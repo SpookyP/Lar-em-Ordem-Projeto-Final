@@ -12,7 +12,7 @@ jobs:
 
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:8.4
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MYSQL_DATABASE: lar_em_ordem_test
@@ -32,10 +32,10 @@ jobs:
       - name: Checkout do Código
         uses: actions/checkout@v4
 
-      - name: Configurar ambiente PHP (v7.4)
+      - name: Configurar ambiente PHP (v8.5)
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.4'
+          php-version: '8.5'
           extensions: mbstring, dom, fileinfo, pdo, pdo_mysql
           coverage: none
 
