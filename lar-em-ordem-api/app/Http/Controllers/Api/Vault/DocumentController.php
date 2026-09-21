@@ -18,16 +18,21 @@ class DocumentController extends Controller
     {
         $file = $request->file('file');
         $path = $file->store('vault_documents', 'local');
+
         $absolutePath = storage_path('app/private/' . $path);
 
+        // Extração ocorre na camada Service
         $extractedData = $this->pdfService->extractInfo($absolutePath);
 
         $document = Document::create([
-            'housing_id' => $request->validated('housing_id'),
-            'file_name' => $file->getClientOriginalName(),
+            'property_id' => $request->validated('property_id'),
+            'document_category_id' => $request->validated('document_category_id'),
+            'name' => $file->getClientOriginalName(),
+            'description' => $request->validated('description'),
             'file_path' => $path,
-            'extracted_data' => $extractedData,
+            'issue_date' => $extractedData['issue_date'] ?? null,
             'expiration_date' => $extractedData['expiration_date'] ?? null,
+            'extracted_data' => $extractedData,
         ]);
 
         return response()->json([

@@ -13,6 +13,20 @@ return new class extends Migration
     {
         Schema::create('vault_documents', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('property_id')->constrained('properties')->cascadeOnDelete();
+            $table->foreignId('document_category_id')->constrained('document_categories')->cascadeOnDelete();
+
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('file_path');
+
+            $table->date('issue_date')->nullable();
+            $table->date('expiration_date')->nullable();
+
+            // Dados devolvidos pelo Script Python
+            $table->json('extracted_data')->nullable();
+
             $table->timestamps();
         });
     }

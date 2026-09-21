@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="" />
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Remoção da Api_Old&#10;Leitura de Documentos">
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/DocumentCategory.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/DocumentCategory.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/api.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -12,7 +18,7 @@
       <option value="$PROJECT_DIR$/lar-em-ordem-api-old/composer.json" />
     </option>
   </component>
-  <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
+  <component name="ComposerSettings" notifyAboutMissingVendor="false" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/lar-em-ordem-api/composer.json</pharConfigPath>
     <execution>
       <executable path="composer" />
@@ -28,7 +34,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="pdfPlumber" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -168,7 +174,39 @@
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/laravel/pao" />
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/laravel/tinker" />
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/laravel/sanctum" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/bacon/bacon-qr-code" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/dasprid/enum" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/laravel/passkeys" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/laravel/sail" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/laravel/fortify" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/phpstan/phpdoc-parser" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/serializer" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/type-info" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/property-info" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/polyfill-php81" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/property-access" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/polyfill-php83" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/yaml" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/doctrine/deprecations" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/web-auth/cose-lib" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/web-auth/webauthn-lib" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/pragmarx/google2fa" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/paragonie/constant_time_encoding" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/ralouphie/getallheaders" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/sebastian/code-unit" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/sebastian/code-unit-reverse-lookup" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/webmozart/assert" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/spomky-labs/pki-framework" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/phpdocumentor/reflection-common" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/spomky-labs/cbor-php" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/phpdocumentor/type-resolver" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/phpdocumentor/reflection-docblock" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/spatie/laravel-package-tools" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/spatie/laravel-permission" />
     </include_path>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6,
@@ -179,20 +217,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.laravel_idea.move_run_console_settings&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "Documentos",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.jshint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.jshint": "",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/lar-em-ordem-api" />
@@ -223,6 +263,7 @@
       <workItem from="1789504176368" duration="8000" />
       <workItem from="1789738551003" duration="2419000" />
       <workItem from="1789740982423" duration="4705000" />
+      <workItem from="1790006505612" duration="5222000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -232,7 +273,23 @@
       <option name="project" value="LOCAL" />
       <updated>1789497542569</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Remoção da Api_Old&#10;Leitura de Documentos">
+      <option name="closed" value="true" />
+      <created>1790009544004</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1790009544004</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Remoção da Api_Old&#10;Leitura de Documentos">
+      <option name="closed" value="true" />
+      <created>1790009749827</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1790009749827</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -252,7 +309,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="pdfPlumber" />
     <MESSAGE value="Merge pull request #8 from SpookyP/main&#10;&#10;Atualizar Branch" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge pull request #8 from SpookyP/main&#10;&#10;Atualizar Branch" />
+    <MESSAGE value="Remoção da Api_Old&#10;Leitura de Documentos" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remoção da Api_Old&#10;Leitura de Documentos" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

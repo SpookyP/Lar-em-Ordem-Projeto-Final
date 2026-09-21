@@ -10,20 +10,29 @@ class Document extends Model
     protected $table = 'vault_documents';
 
     protected $fillable = [
-        'housing_id',
-        'file_name',
+        'property_id',
+        'document_category_id',
+        'name',
+        'description',
         'file_path',
-        'extracted_data',
-        'expiration_date'
+        'issue_date',
+        'expiration_date',
+        'extracted_data'
     ];
 
     protected $casts = [
-        'extracted_data' => 'array',
+        'issue_date' => 'date',
         'expiration_date' => 'date',
+        'extracted_data' => 'array',
     ];
 
-    public function housing(): BelongsTo
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Housing\Housing::class);
+        return $this->belongsTo(\App\Models\Property::class);
+    }
+
+    public function documentCategory(): BelongsTo
+    {
+        return $this->belongsTo(DocumentCategory::class);
     }
 }
