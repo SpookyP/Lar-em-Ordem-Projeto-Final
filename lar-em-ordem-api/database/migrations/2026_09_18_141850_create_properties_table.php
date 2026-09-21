@@ -18,7 +18,8 @@ return new class extends Migration
             $table->foreignId("address_id");
             $table->foreignId("condominium_id")->nullable();
             $table->integer("area");
-            $table->string("fraction");
+            $table->string("fraction")->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

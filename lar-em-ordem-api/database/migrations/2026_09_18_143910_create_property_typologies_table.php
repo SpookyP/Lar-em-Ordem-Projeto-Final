@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('property_typologies', function (Blueprint $table) {
             $table->id();
-            $table->string("description");
+            $table->string("typology");
+            $table->softDeletes();
             $table->timestamps();
         });
     }
