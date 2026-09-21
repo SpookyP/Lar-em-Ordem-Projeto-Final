@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('resident_types', function (Blueprint $table) {
             $table->id();
-            $table->string("description");
+            $table->string("type");
+            $table->softDeletes();
             $table->timestamps();
         });
     }

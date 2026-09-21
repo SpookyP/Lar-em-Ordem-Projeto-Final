@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Address extends Model
 {
     /** @use HasFactory<\Database\Factories\AddressFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     public function properties(){
         	return $this->hasMany('\App\Property');

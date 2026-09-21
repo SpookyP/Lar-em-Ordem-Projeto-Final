@@ -18,6 +18,8 @@ return new class extends Migration
             $table->date("start_date")->nullable();
             $table->date("end_date")->nullable();
             $table->foreignId("resident_type_id");
+            $table->boolean('is_active')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
