@@ -12,7 +12,7 @@ class UpdatePartnerRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,18 @@ class UpdatePartnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name'        => 'required|string|max:255',
+            'nif'         => 'required|string|max:9|unique:partners,nif,' . $this->route('partner')->id,
+            'contact'     => 'required|string|max:255',
+            'website'     => 'nullable|string|max:255',
+            'description' => 'required|string',
         ];
     }
+
+    public function messages(): array
+        {
+            return [
+                'nif.unique' => 'Este NIF já se encontra registado.',
+            ];
+        }
 }

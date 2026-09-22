@@ -5,23 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Partner;
 use App\Http\Requests\StorePartnerRequest;
 use App\Http\Requests\UpdatePartnerRequest;
+use App\Http\Resources\PartnerResource;
+use App\Services\PartnerService;
 
 class PartnerController extends Controller
 {
+    public function __construct(private PartnerService $service) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
+        $partners= $this->service->listActive();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return PartnerResource::collection($partners);
     }
 
     /**
@@ -36,14 +34,6 @@ class PartnerController extends Controller
      * Display the specified resource.
      */
     public function show(Partner $partner)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Partner $partner)
     {
         //
     }
