@@ -12,10 +12,14 @@ class ConsumptionTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        ConsumptionType::insert([
-            ['id' => 1, 'name' => 'Eletricidade', 'unit' => 'kWh'],
-            ['id' => 2, 'name' => 'Água', 'unit' => 'm3'],
-            ['id' => 3, 'name' => 'Gás', 'unit' => 'kWh'],
-        ]);
+        $types = [
+            ['id' => 1, 'name' => 'Eletricidade', 'unit_of_measure' => 'kWh'],
+            ['id' => 2, 'name' => 'Água', 'unit_of_measure' => 'm³'],
+            ['id' => 3, 'name' => 'Gás', 'unit_of_measure' => 'kWh'],
+        ];
+
+        foreach ($types as $type) {
+            ConsumptionType::updateOrCreate(['id' => $type['id']], $type);
+        }
     }
 }
