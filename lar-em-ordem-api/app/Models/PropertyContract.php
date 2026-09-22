@@ -12,12 +12,13 @@ class PropertyContract extends Model
     use HasFactory, SoftDeletes;
 
     public function property(){
-        	return $this->belongsTo('\App\Property');
+        	return $this->belongsTo(Property::class,'property_id');
 	}
     public function resident(){
-        	return $this->belongsTo('\App\Resindent');
+        	return $this->belongsTo(Resident::class,'resident_id');
 	}
-    public function resident_type(){
-        	return $this->belongsTo('\App\ResindentType');
-	}
+	public function residentType()
+    {
+        return $this->belongsTo(ResidentType::class, 'resident_type_id');
+    }
 }

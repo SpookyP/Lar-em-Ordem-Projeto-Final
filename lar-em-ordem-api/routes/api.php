@@ -12,3 +12,7 @@ Route::prefix('v1')->group(function () {
     require __DIR__ . '/modules/vault.php';
 
 });
+
+Route::apiResource('properties', 'PropertyController');
+Route::apiResource('residents', 'ResidentController');
+Route::apiResource('addresses', 'AddressController');

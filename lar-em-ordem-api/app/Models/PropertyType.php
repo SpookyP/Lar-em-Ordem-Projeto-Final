@@ -12,6 +12,6 @@ class PropertyType extends Model
     use HasFactory, SoftDeletes;
 
     public function property(){
-        	return $this->hasMany('\App\Property');
+        	return $this->hasMany(Property::class);
 	}
 }

@@ -12,10 +12,10 @@ class Address extends Model
     use HasFactory, SoftDeletes;
 
     public function properties(){
-        	return $this->hasMany('\App\Property');
+        	return $this->hasMany(Property::class);
 	}
 
     public function condominiums(){
-        	return $this->hasMany('\App\Condominium');
+        	return $this->hasMany(Condominium::class);
 	}
 }

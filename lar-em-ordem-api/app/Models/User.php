@@ -28,7 +28,7 @@ class User extends Authenticatable
     ];
 
     public function resident(){
-        	return $this->hasOne('\App\Resident');
+        	return $this->hasOne(Resident::class);
 	}
 
     /**

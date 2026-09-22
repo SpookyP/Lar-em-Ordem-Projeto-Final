@@ -8,12 +8,17 @@ use App\Http\Requests\UpdatePropertyRequest;
 
 class PropertyController extends Controller
 {
+    protected PropertyService $_service;
+
+    public function __construct(PropertyService $service) {
+        $this->_service = $service;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        
     }
 
     /**

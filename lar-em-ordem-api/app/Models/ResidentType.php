@@ -10,8 +10,8 @@ class ResidentType extends Model
 {
     /** @use HasFactory<\Database\Factories\ResidentTypeFactory> */
     use HasFactory, SoftDeletes;
-
-    public function property_contracts(){
-        	return $this->hasMany('\App\PropertyContract');
+    
+    public function contracts(){
+        	return $this->hasMany(PropertyContract::class,'resident_type_id');
 	}
 }

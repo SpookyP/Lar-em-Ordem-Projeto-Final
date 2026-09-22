@@ -12,10 +12,21 @@ class Resident extends Model
     use HasFactory, SoftDeletes;
 
     public function user(){
-        	return $this->belongsTo('\App\User');
+        	return $this->belongsTo(User::class);
 	}
 
-    public function property_contracts(){
-        	return $this->hasMany('\App\PropertyContract');
+    public function properties(){
+		return $this->belongsToMany(
+			'\App\Property',
+			'property_contracts',
+			'property_id',
+			'resident_id'
+		)
+		->using(PropertyContract::class)
+		->withPivot(['start_date', 'end_date', 'resident_type_id', 'is_active'])
+		->withTimestamps();
+	}
+    public function contracts(){
+        	return $this->hasMany(PropertyContract::class);
 	}
 }

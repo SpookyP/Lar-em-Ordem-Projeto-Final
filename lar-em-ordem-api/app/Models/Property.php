@@ -8,26 +8,36 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Property extends Model
 {
-    /** @use HasFactory<\Database\Factories\PropertyFactory> */
     use HasFactory, SoftDeletes;
 
     public function property_type(){
-        	return $this->belongsTo('\App\PropertyType');
+        	return $this->belongsTo(PropertyType::class);
 	}
 
     public function property_typology(){
-        	return $this->belongsTo('\App\PropertyTypology');
+        	return $this->belongsTo(PropertyTypology::class);
 	}
 
     public function address(){
-        	return $this->belongsTo('\App\Address');
+        	return $this->belongsTo(Address::class);
 	}
 
     public function condominium(){
-        	return $this->belongsTo('\App\Condominium');
+        	return $this->belongsTo(Condominium::class);
 	}
 
-    public function property_contracts(){
-        	return $this->hasMany('\App\PropertyContract');
+	public function residents(){
+		return $this->belongsToMany(
+			Resident::class,
+			'property_contracts',
+			'property_id',
+			'resident_id'
+		)
+		->using(PropertyContract::class)
+		->withPivot(['start_date', 'end_date', 'resident_type_id', 'is_active'])
+		->withTimestamps();
+	}
+    public function contracts(){
+        	return $this->hasMany(PropertyContract::class);
 	}
 }

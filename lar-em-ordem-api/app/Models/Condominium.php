@@ -12,9 +12,9 @@ class Condominium extends Model
     use HasFactory, SoftDeletes;
 
     public function property(){
-        	return $this->hasMany('\App\Property');
+        	return $this->hasMany(Property::class);
 	}
     public function Address(){
-        	return $this->belongsTO('\App\Address');
+        	return $this->belongsTo(Address::class);
 	}
 }
