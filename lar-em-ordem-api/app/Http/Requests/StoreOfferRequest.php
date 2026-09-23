@@ -23,7 +23,22 @@ class StoreOfferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+
+            'title'       => 'required|string|max:255',
+            'description' => 'required|string',
+            'type'        => 'required|string|max:100',
+            'url'         => 'nullable|string|max:500',
+            'start_date'  => 'required|date',
+            'end_date'    => 'nullable|date|after_or_equal:start_date',
+            
+        ];
+        
+    }
+    
+    public function messages(): array
+    {
+        return [
+            'end_date.after_or_equal' => 'A data de fim não pode ser anterior à data de início.',
         ];
     }
 }

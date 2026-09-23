@@ -25,7 +25,7 @@ class StorePartnerRequest extends FormRequest
         return [
             'name'        => 'required|string|max:255',
             'nif'         => 'required|string|max:9|unique:partners,nif',
-            'contact'     => 'required|string|max:255',
+            'phone'       => 'required|string|max:15',
             'website'     => 'nullable|string|max:255',
             'description' => 'required|string',
         ];

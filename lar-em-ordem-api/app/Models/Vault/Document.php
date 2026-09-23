@@ -2,6 +2,7 @@
 
 namespace App\Models\Vault;
 
+use App\Models\Property\Property;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -28,7 +29,7 @@ class Document extends Model
 
     public function property(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Property::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function documentCategory(): BelongsTo
