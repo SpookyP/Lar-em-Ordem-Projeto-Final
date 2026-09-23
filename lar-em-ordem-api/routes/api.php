@@ -13,6 +13,6 @@ Route::prefix('v1')->group(function () {
 
 });
 
-Route::apiResource('properties', 'PropertyController');
-Route::apiResource('residents', 'ResidentController');
-Route::apiResource('addresses', 'AddressController');
+Route::apiResource('properties', 'PropertyController')->middleware('auth:sanctum');
+Route::apiResource('residents', 'ResidentController')->middleware('auth:sanctum');
+Route::apiResource('addresses', 'AddressController')->middleware('auth:sanctum');

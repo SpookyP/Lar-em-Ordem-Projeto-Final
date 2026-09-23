@@ -3,22 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Property;
+use App\Services\PropertyService;
 use App\Http\Requests\StorePropertyRequest;
 use App\Http\Requests\UpdatePropertyRequest;
 
 class PropertyController extends Controller
 {
-    protected PropertyService $_service;
-
-    public function __construct(PropertyService $service) {
-        $this->_service = $service;
-    }
+    public function __construct(protected PropertyService $service)
+    {}
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        
+        try{
+            $properties = $this->service->getResidentProperties($request->user()->id);
+            return response->json($properties,200);
+        } catch(Exception $error) {
+            return response->json($error,500);
+        }
     }
 
     /**
