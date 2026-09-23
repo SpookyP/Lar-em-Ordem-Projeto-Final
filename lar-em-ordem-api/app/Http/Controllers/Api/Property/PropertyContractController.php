@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\Property;
 
-use App\Models\PropertyContract;
+use App\Models\Property\PropertyContract;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePropertyContractRequest;
 use App\Http\Requests\UpdatePropertyContractRequest;
 

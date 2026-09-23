@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Property;
 
+use App\Models\Condominium;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

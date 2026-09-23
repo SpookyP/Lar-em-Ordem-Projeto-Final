@@ -11,10 +11,10 @@ Route::get('/user', function (Request $request) {
 Route::prefix('v1')->group(function () {
 
     require __DIR__ . '/modules/vault.php';
+    require __DIR__ . '/modules/property.php';
+    require __DIR__ . '/modules/resident.php';
+    require __DIR__ . '/modules/address.php';
 
 });
 
-Route::apiResource('properties', 'PropertyController')->middleware('auth:sanctum');
-Route::apiResource('residents', 'ResidentController')->middleware('auth:sanctum');
-Route::apiResource('addresses', 'AddressController')->middleware('auth:sanctum');
 Route::apiResource('partners', PartnerController::class);

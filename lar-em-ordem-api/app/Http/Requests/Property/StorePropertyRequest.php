@@ -24,17 +24,43 @@ class StorePropertyRequest extends FormRequest
     {
         return [
             // Property
-            'property_type_id'     => ['required', 'integer', 'exists:tipo_habitacao,id'],
-            'property_typology_id' => ['required', 'integer', 'exists:tipologia_habitacao,id'],
-            'address_id'           => ['required', 'integer', 'exists:morada,id'],
-            'condominium_id'       => ['nullable', 'integer', 'exists:condominio,id'],
+            'property_type_id'     => ['required', 'integer', 'exists:property_types,id'],
+            'property_typology_id' => ['required', 'integer', 'exists:property_typologies,id'],
+            'address_id'           => ['required', 'integer', 'exists:addresses,id'],
+            'condominium_id'       => ['nullable', 'integer', 'exists:condominia,id'],
             'area'                 => ['required', 'integer', 'min:1'],
-            'fraction'             => ['nullable', 'string', 'max:50'], //max?? or min??
+            'fraction'             => ['nullable', 'string', 'max:50'],
 
             // Contract
-            'resident_type_id'     => ['required', 'integer', 'exists:tipo_morador,id'],
-            'start_date'           => ['nullable', 'date'],
+            'resident_type_id'     => ['required', 'integer', 'exists:resident_types,id'],
+            'start_date'           => ['required', 'date'],
             'end_date'             => ['nullable', 'date', 'after_or_equal:start_date'],
         ];
+    }
+    /**
+     * Extract only Property data.
+     */
+    public function propertyData(): array
+    {
+        return $this->safe()->only([
+            'property_type_id',
+            'property_typology_id',
+            'address_id',
+            'condominium_id',
+            'area',
+            'fraction',
+        ]);
+    }
+
+    /**
+     * Extract only Contract data.
+     */
+    public function contractData(): array
+    {
+        return $this->safe()->only([
+            'resident_type_id',
+            'start_date',
+            'end_date',
+        ]);
     }
 }

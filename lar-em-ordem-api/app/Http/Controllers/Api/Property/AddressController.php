@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\Property;
 
-use App\Models\Resident;
-use App\Http\Requests\StoreResidentRequest;
-use App\Http\Requests\UpdateResidentRequest;
+use App\Models\Property\Address;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Address\StoreAddressRequest;
+use App\Http\Requests\Address\UpdateAddressRequest;
 
-class ResidentController extends Controller
+class AddressController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +28,7 @@ class ResidentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreResidentRequest $request)
+    public function store(StoreAddressRequest $request)
     {
         //
     }
@@ -35,7 +36,7 @@ class ResidentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Resident $resident)
+    public function show(Address $address)
     {
         //
     }
@@ -43,7 +44,7 @@ class ResidentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Resident $resident)
+    public function edit(Address $address)
     {
         //
     }
@@ -51,7 +52,7 @@ class ResidentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateResidentRequest $request, Resident $resident)
+    public function update(UpdateAddressRequest $request, Address $address)
     {
         //
     }
@@ -59,7 +60,7 @@ class ResidentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Resident $resident)
+    public function destroy(Address $address)
     {
         //
     }

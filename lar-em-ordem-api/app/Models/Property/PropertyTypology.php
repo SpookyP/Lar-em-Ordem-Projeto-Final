@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Property;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PropertyType extends Model
+class PropertyTypology extends Model
 {
-    /** @use HasFactory<\Database\Factories\PropertyTypeFactory> */
+    /** @use HasFactory<\Database\Factories\PropertyTypologyFactory> */
     use HasFactory, SoftDeletes;
 
     public function property(){

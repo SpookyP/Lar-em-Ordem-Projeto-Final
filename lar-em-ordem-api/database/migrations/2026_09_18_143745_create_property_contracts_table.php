@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId("resident_id");
             $table->foreignId("property_id");
-            $table->date("start_date")->nullable();
+            $table->date("start_date");
             $table->date("end_date")->nullable();
             $table->foreignId("resident_type_id");
             $table->boolean('is_active')->nullable();

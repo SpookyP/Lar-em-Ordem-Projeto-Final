@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\Auth;
 
-use App\User;
+use App\Models\User\User;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth as AuthFacade;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -27,7 +28,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        Auth:login($user);
+        AuthFacade::login($user);
 
         return response()->json(['user' => $user], 201);
     }
@@ -39,18 +40,18 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        if (!AuthFacade::attempt($credentials)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
-
+        
         $request->session()->regenerate();
 
-        return response()->json(['user' => Auth::user()]);
+        return response()->json(['user' => AuthFacade::user()]);
     }
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
+        AuthFacade::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
