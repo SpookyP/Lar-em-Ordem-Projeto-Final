@@ -3,8 +3,8 @@
   <component name="PHPUnit">
     <option name="directories">
       <list>
-        <option value="$PROJECT_DIR$/lar-em-ordem-api/tests" />
         <option value="$PROJECT_DIR$/lar-em-ordem-api-old/tests" />
+        <option value="$PROJECT_DIR$/lar-em-ordem-api/tests" />
       </list>
     </option>
   </component>
