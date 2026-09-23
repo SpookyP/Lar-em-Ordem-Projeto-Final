@@ -18,7 +18,6 @@ class PartnerService
     {
         return Partner::create($data + [
             'user_id' => $owner->id,
-            'active'  => true,
         ]);
     }
 

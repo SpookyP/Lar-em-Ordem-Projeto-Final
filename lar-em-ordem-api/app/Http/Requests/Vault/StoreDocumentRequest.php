@@ -8,7 +8,10 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreDocumentRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determina se o utilizador está autorizado a realizar este pedido.
+     * Atualmente, permite todos os pedidos que já passaram pela autenticação.
+     *
+     * @return bool
      */
     public function authorize(): bool
     {
@@ -16,7 +19,9 @@ class StoreDocumentRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Obtém as regras de validação que se aplicam ao pedido de upload de documento.
+     * Garante que os relacionamentos existem, os limites de texto são respeitados
+     * e o ficheiro é um PDF válido dentro do limite de tamanho.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -35,6 +40,11 @@ class StoreDocumentRequest extends FormRequest
         ];
     }
 
+    /**
+     * Define as mensagens de erro personalizadas para regras de validação específicas.
+     *
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [

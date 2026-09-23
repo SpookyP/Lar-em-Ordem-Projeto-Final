@@ -18,10 +18,10 @@ class PartnerResource extends JsonResource
             'id'          => $this->id,
             'name'        => $this->name,
             'nif'         => $this->nif,
-            'contact'     => $this->contact,
+            'phone'       => $this->phone,
             'website'     => $this->website,
             'description' => $this->description,
-            'active'      => (bool) $this->active,
+            'active'      => $this->active,
             //'offers'      => OfferResource::collection($this->whenLoaded('offers')),
         ];
     }

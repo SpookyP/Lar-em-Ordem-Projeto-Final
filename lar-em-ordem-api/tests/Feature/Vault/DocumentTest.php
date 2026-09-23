@@ -15,8 +15,17 @@ use Mockery\MockInterface;
 
 class DocumentTest extends TestCase
 {
+    // Limpa e recria a base de dados a cada teste, garantindo um estado limpo
     use RefreshDatabase;
 
+    /**
+     * Testa o "Caminho Feliz" (Happy Path).
+     * Garante que um utilizador autenticado consegue fazer upload de um PDF,
+     * que o serviço de extração é chamado corretamente e que os dados
+     * são guardados na base de dados e o ficheiro no disco.
+     *
+     * @return void
+     */
     public function test_user_can_upload_pdf_and_extract_data(): void
     {
         // Simular o disco local para não guardar ficheiros reais durante os testes
@@ -85,6 +94,13 @@ class DocumentTest extends TestCase
         Storage::disk('local')->assertExists('vault_documents/' . $file->hashName());
     }
 
+    /**
+     * Testa a validação de ficheiros.
+     * Garante que o sistema rejeita qualquer ficheiro que não seja um PDF
+     * devolvendo um erro 422 de validação.
+     *
+     * @return void
+     */
     public function test_upload_fails_if_file_is_not_pdf(): void
     {
         $user = User::factory()->create();

@@ -10,10 +10,22 @@ use Illuminate\Http\JsonResponse;
 
 class DocumentController extends Controller
 {
+    /**
+     * Construtor do controlador. Injeta o serviço responsável pela extração
+     * automática de informações dos ficheiros PDF.
+     */
     public function __construct(
         private readonly PdfExtractionService $pdfService
     ) {}
 
+    /**
+     * Processa o upload de um novo documento, armazena-o de forma segura,
+     * executa a extração inteligente de dados (via serviço de PDF) e
+     * guarda o registo final na base de dados.
+     *
+     * @param StoreDocumentRequest $request Pedido validado com os dados do formulário e ficheiro.
+     * @return JsonResponse Resposta JSON com o sucesso da operação e o documento criado (Código 201).
+     */
     public function store(StoreDocumentRequest $request): JsonResponse
     {
         $file = $request->file('file');
