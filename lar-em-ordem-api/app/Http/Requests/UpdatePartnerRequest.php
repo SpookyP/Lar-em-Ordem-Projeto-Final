@@ -23,11 +23,12 @@ class UpdatePartnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
-            'nif'         => 'required|string|max:9|unique:partners,nif,' . $this->route('partner')->id,
-            'contact'     => 'required|string|max:255',
+            'name'        => 'sometimes|required|string|max:255',
+            'nif'         => 'sometimes|required|string|max:9|unique:partners,nif,' . $this->route('partner')->id,
+            'phone'       => 'sometimes|required|string|max:15',
             'website'     => 'nullable|string|max:255',
-            'description' => 'required|string',
+            'description' => 'sometimes|required|string',
+            'active'      => 'sometimes|required|boolean'
         ];
     }
 

@@ -2,11 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Remoção da Api_Old&#10;Leitura de Documentos">
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/DocumentCategory.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/DocumentCategory.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/api.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/console.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/console.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/scripts/extract_pdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/scripts/extract_pdf.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -224,7 +223,7 @@
     "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "Documentos",
+    "git-widget-placeholder": "Notificacao",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
     "node.js.selected.package.eslint": "(autodetect)",

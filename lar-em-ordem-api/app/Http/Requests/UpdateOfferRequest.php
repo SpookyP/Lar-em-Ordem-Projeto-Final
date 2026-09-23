@@ -12,7 +12,7 @@ class UpdateOfferRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,13 @@ class UpdateOfferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title'       => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'type'        => 'sometimes|required|string|max:100',
+            'url'         => 'nullable|string|max:500',
+            'start_date'  => 'sometimes|required|date',
+            'end_date'    => 'nullable|date|after_or_equal:start_date',
+            'active'      => 'sometimes|boolean',
         ];
     }
 }
