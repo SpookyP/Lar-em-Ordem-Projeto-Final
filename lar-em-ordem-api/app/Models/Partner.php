@@ -21,4 +21,23 @@ class Partner extends Model
         return $this->hasMany(Offer::class);
     }
 
+    protected $attributes = [
+        'active' => true,
+    ];
+
+    //forca a conversao 0/1 da bdd para false/true
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
+    protected $fillable = [
+        'name',
+        'nif',
+        'phone',
+        'website',
+        'description',
+        'user_id',
+        'active',
+    ];
+
 }

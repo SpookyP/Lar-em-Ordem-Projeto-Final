@@ -25,9 +25,10 @@ class UpdatePartnerRequest extends FormRequest
         return [
             'name'        => 'required|string|max:255',
             'nif'         => 'required|string|max:9|unique:partners,nif,' . $this->route('partner')->id,
-            'contact'     => 'required|string|max:255',
+            'phone'       => 'required|string|max:15',
             'website'     => 'nullable|string|max:255',
             'description' => 'required|string',
+            'active'      => 'sometimes|boolean'
         ];
     }
 
