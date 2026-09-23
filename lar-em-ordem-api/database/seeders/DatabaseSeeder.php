@@ -25,5 +25,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $user->assignRole('resident');
+
+        $this->call(PartnerSeeder::class);
     }
 }
