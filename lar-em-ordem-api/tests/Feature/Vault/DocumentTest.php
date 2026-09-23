@@ -3,7 +3,7 @@
 namespace Tests\Feature\Vault;
 
 use Tests\TestCase;
-use App\Models\User;
+use App\Models\User\User;
 use App\Models\Vault\DocumentCategory;
 use App\Services\Vault\PdfExtractionService;
 use Illuminate\Http\UploadedFile;

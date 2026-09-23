@@ -19,10 +19,11 @@ class RoleSeeder extends Seeder
 
         //Atividades Permitidas
         $permissions = [
-            'view properties',
-            'create properties',
-            'update properties',
-            'delete properties',
+            'properties.viewAny',
+            'properties.view',
+            'properties.create',
+            'properties.update',
+            'properties.delete',
             'view vault documents',
         ];
         foreach ($permissions as $permission) {
@@ -30,16 +31,22 @@ class RoleSeeder extends Seeder
         }
 
         // 2. Create Roles & Assign Permissions
+        $SURole = Role::firstOrCreate(['name' => 'SU']);
+        $SURole->givePermissionTo(Permission::all());
+
         $residentRole = Role::firstOrCreate(['name' => 'resident']);
-        $residentRole->givePermissionTo(Permission::all());
+        $residentRole->givePermissionTo([
+            'properties.viewAny',
+            'properties.view',
+            'properties.create']);
 
         $service_providerRole = Role::firstOrCreate(['name' => 'service_provider']);
-        $service_providerRole->givePermissionTo(['view properties', 'create properties', 'update properties']);
+        $service_providerRole->givePermissionTo(['properties.viewAny']);
 
         $partnerRole = Role::firstOrCreate(['name' => 'partner']);
-        $partnerRole->givePermissionTo(['view properties']);
+        $partnerRole->givePermissionTo(['properties.viewAny']);
         
         $condominium_adminRole = Role::firstOrCreate(['name' => 'condominium_admin']);
-        $condominium_adminRole->givePermissionTo(['view properties']);
+        $condominium_adminRole->givePermissionTo(['properties.viewAny']);
     }
 }

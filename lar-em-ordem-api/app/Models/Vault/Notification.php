@@ -2,7 +2,7 @@
 
 namespace App\Models\Vault;
 
-use App\Models\Property;
+use App\Models\Property\Property;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model

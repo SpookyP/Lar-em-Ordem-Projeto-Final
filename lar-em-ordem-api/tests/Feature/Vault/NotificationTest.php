@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Vault;
 
-use App\Models\User;
+use App\Models\User\User;
 use App\Models\Vault\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
