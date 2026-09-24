@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PartnerOffer\PartnerController;
 use App\Http\Controllers\InvoiceController;
 
 Route::get('/user', function (Request $request) {
