@@ -70,6 +70,8 @@ class PartnerController extends Controller
 
         $this->service->delete($partner);
 
+          return response()->json(['message' => 'Partner removed']);
+
     }
 
    
