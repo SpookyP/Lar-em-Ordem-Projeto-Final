@@ -3,9 +3,11 @@
 namespace App\Models\Offer;
 
 use App\Models\User\Partner;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Offer extends Model
 {
@@ -37,4 +39,5 @@ class Offer extends Model
         'start_date' => 'date',
         'end_date'   => 'date',
     ];
+
 }
