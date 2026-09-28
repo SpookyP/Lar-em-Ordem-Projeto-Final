@@ -19,6 +19,54 @@ class DocumentController extends Controller
     ) {}
 
     /**
+     * Lista todos os documentos de uma habitação.
+     */
+    public function index(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'property_id' => ['required', 'integer', 'exists:properties,id']
+        ]);
+
+        $documents = \App\Models\Vault\Document::where('property_id', $request->property_id)
+            ->with('category')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return \App\Http\Resources\Vault\DocumentResource::collection($documents);
+    }
+
+    /**
+     * Faz o download do ficheiro PDF.
+     */
+    public function download(\App\Models\Vault\Document $document)
+    {
+        $path = 'vault_documents/' . basename($document->file_path);
+
+        if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+            return response()->json(['message' => 'Ficheiro não encontrado no servidor.'], 404);
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download($path, $document->name);
+    }
+
+    /**
+     * Apaga um documento e o respetivo ficheiro físico.
+     */
+    public function destroy(\App\Models\Vault\Document $document)
+    {
+        // Apagar o ficheiro físico do disco
+        $path = 'vault_documents/' . basename($document->file_path);
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($path);
+        }
+
+        // Apagar o registo da base de dados
+        $document->delete();
+
+        return response()->json(['message' => 'Documento eliminado com sucesso.']);
+    }
+
+    /**
      * Processa o upload de um novo documento, armazena-o de forma segura,
      * executa a extração inteligente de dados (via serviço de PDF) e
      * guarda o registo final na base de dados.
