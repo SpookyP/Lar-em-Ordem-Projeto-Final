@@ -4,6 +4,7 @@ namespace App\Http\Requests\ServiceProvider;
 
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateServiceProviderRequest extends FormRequest
 {
@@ -23,7 +24,15 @@ class UpdateServiceProviderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'company_name' => 'sometimes|required|string|max:255',
+            'nif' => [
+                'sometimes', 'required', 'string', 'max:9',
+                Rule::unique('service_providers', 'nif')->ignore($this->route('service_provider')),
+            ],
+            'phone'       => 'sometimes|required|string|max:30',
+            'email'       => 'sometimes|required|email|max:255',
+            'description' => 'sometimes|required|string',
+            'active'      => 'sometimes|boolean',
         ];
     }
 }

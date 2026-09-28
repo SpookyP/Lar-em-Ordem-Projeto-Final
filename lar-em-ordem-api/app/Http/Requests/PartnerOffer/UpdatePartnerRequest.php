@@ -3,6 +3,7 @@
 namespace App\Http\Requests\PartnerOffer;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePartnerRequest extends FormRequest
 {
@@ -23,7 +24,10 @@ class UpdatePartnerRequest extends FormRequest
     {
         return [
             'name'        => 'sometimes|required|string|max:255',
-            'nif'         => 'sometimes|required|string|max:9|unique:partners,nif,' . $this->route('partner')->id,
+            'nif' => [
+                        'sometimes','required', 'string', 'max:9', 
+                        Rule::unique('partners', 'nif')->ignore($this->route('partner')),
+            ],
             'phone'       => 'sometimes|required|string|max:15',
             'website'     => 'nullable|string|max:255',
             'description' => 'sometimes|required|string',
