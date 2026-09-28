@@ -135,4 +135,104 @@ class DocumentTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['file']);
     }
+
+    public function test_user_can_list_property_documents(): void
+    {
+        $user = User::factory()->create();
+
+        // Workaround da Habitação
+        $propertyId = DB::table('properties')->insertGetId([
+            'property_type_id' => 1,
+            'property_typology_id' => 1,
+            'address_id' => 1,
+            'area' => 100,
+            'fraction' => 'A',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $category = DocumentCategory::factory()->create();
+
+        // Inserir um documento de teste diretamente na base de dados
+        \App\Models\Vault\Document::create([
+            'property_id' => $propertyId,
+            'document_category_id' => $category->id,
+            'name' => 'fatura_luz.pdf',
+            'description' => 'Fatura de teste',
+            'file_path' => 'vault_documents/fatura_luz.pdf',
+            'expiration_date' => now()->addMonths(6),
+        ]);
+
+        // Ação: Fazer o pedido GET
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson("/api/v1/documents?property_id={$propertyId}");
+
+        // Afirmação
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'property_id', 'document_category_id', 'file_path']
+                ]
+            ]);
+    }
+
+    public function test_user_can_download_document(): void
+    {
+        $user = User::factory()->create();
+        Storage::fake('local');
+
+        $propertyId = DB::table('properties')->insertGetId([
+            'property_type_id' => 1, 'property_typology_id' => 1, 'address_id' => 1, 'area' => 100, 'fraction' => 'A',
+        ]);
+
+        // Criar um ficheiro falso no disco simulado
+        $fileName = 'contrato_arrendamento.pdf';
+        Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
+
+        $document = \App\Models\Vault\Document::create([
+            'property_id' => $propertyId,
+            'document_category_id' => DocumentCategory::factory()->create()->id,
+            'name' => $fileName,
+            'description' => 'Contrato',
+            'file_path' => "vault_documents/{$fileName}",
+        ]);
+
+        // Ação: Fazer o pedido GET para download
+        $response = $this->actingAs($user, 'sanctum')
+            ->get("/api/v1/documents/{$document->id}/download");
+
+        // Afirmação: Verifica se o Laravel iniciou a transferência do ficheiro correto
+        $response->assertStatus(200)
+            ->assertDownload($fileName);
+    }
+
+    public function test_user_can_delete_document(): void
+    {
+        $user = User::factory()->create();
+        Storage::fake('local');
+
+        $propertyId = DB::table('properties')->insertGetId([
+            'property_type_id' => 1, 'property_typology_id' => 1, 'address_id' => 1, 'area' => 100, 'fraction' => 'A',
+        ]);
+
+        $fileName = 'planta_casa.pdf';
+        Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
+
+        $document = \App\Models\Vault\Document::create([
+            'property_id' => $propertyId,
+            'document_category_id' => DocumentCategory::factory()->create()->id,
+            'name' => $fileName,
+            'description' => 'Planta',
+            'file_path' => "vault_documents/{$fileName}",
+        ]);
+
+        // Ação: Fazer o pedido DELETE
+        $response = $this->actingAs($user, 'sanctum')
+            ->deleteJson("/api/v1/documents/{$document->id}");
+
+        // Afirmação: Verifica sucesso na API, ausência na base de dados e remoção física do disco
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('vault_documents', ['id' => $document->id]);
+        Storage::disk('local')->assertMissing("vault_documents/{$fileName}");
+    }
 }

@@ -17,19 +17,39 @@ class ServiceProvider extends Model
         return $this->belongsTo(User::class);
     }
 
-      public function specialties()
-    {
-        return $this->belongsToMany(ServiceSpecialty::class);
-    }
-
     public function zones()
     {
         return $this->belongsToMany(ServiceZone::class);
     }
 
+   /*  ENTIDADE, PIVOT ENTRE SPEC, CAT E PROVIDER
+    public function specialties()
+    {
+        return $this->hasMany(\App\Models\Provider\ProviderSpecialty::class);
+    }
+    */
+
     public function proposals()
     {
         return $this->hasMany(Proposal::class);
     }
+
+    protected $attributes = [
+        'active' => true,
+    ];
+
+    protected $fillable = [
+        'user_id',
+        'company_name',
+        'nif',
+        'phone',
+        'email',
+        'description',
+        'active',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
+    ];
 
 }
