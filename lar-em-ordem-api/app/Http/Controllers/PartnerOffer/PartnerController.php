@@ -15,6 +15,11 @@ class PartnerController extends Controller
 {
     public function __construct(private PartnerService $service) {}
 
+    /**
+     * Lista todos os parceiros ativos no sistema.
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de parceiros.
+     */
     public function index()
     {
         $partners= $this->service->listActive();
@@ -22,7 +27,12 @@ class PartnerController extends Controller
         return PartnerResource::collection($partners);
     }
 
-    
+    /**
+     * Cria um novo perfil de parceiro associado a um utilizador.
+     * 
+     * @param StorePartnerRequest $request Dados validados.
+     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
+     */
     public function store(StorePartnerRequest $request)
     {
         //Sanctum ainda não está ativo e ainda nao tenho policies
@@ -40,20 +50,37 @@ class PartnerController extends Controller
     }
 
    
+    /**
+     * Devolve os detalhes de um parceiro específico.
+     *
+     * @param Partner $partner Instância do parceiro solicitada.
+     * @return PartnerResource
+     */
     public function show(Partner $partner)
     {
         return new PartnerResource($partner);
     }
 
 
-     /*
+    /**
+     * Devolve os detalhes de um parceiro específico carregando em conjunto a sua lista de ofertas.
+     *
+     * @param Partner $partner Instância do parceiro.
+     * @return PartnerResource
+     */
     public function showWithOffers(Partner $partner): PartnerResource
     {
         return new PartnerResource($this->service->loadWithOffers($partner));
     }
-    */
-
     
+
+    /**
+     * Atualiza os dados de um parceiro existente.
+     *
+     * @param UpdatePartnerRequest $request Dados validados.
+     * @param Partner $partner Instância do parceiro.
+     * @return PartnerResource Devolve o parceiro atualizado.
+     */
     public function update(UpdatePartnerRequest $request, Partner $partner)
     {
         //$this->authorize('update', $partner);
@@ -64,6 +91,12 @@ class PartnerController extends Controller
     }
 
  
+    /**
+     * Remove permanentemente um parceiro do sistema.
+     *
+     * @param Partner $partner Instância do parceiro.
+     * @return \Illuminate\Http\JsonResponse Confirmação da eliminação.
+     */
     public function destroy(Partner $partner)
     {
         //$this->authorize('delete', $partner);
@@ -73,6 +106,4 @@ class PartnerController extends Controller
           return response()->json(['message' => 'Partner removed']);
 
     }
-
-   
 }
