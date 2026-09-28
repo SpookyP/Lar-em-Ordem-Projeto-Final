@@ -3,65 +3,40 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User\Resident;
-use App\Http\Requests\StoreResidentRequest;
-use App\Http\Requests\UpdateResidentRequest;
+use App\Services\Resident\ResidentService;
+use App\Http\Requests\Resident\UpdateResidentRequest;
+use Illuminate\Http\Request;
+use App\Http\Resources\Resident\ResidentResource;
+use Illuminate\Http\JsonResponse;
 
 class ResidentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreResidentRequest $request)
-    {
-        //
-    }
+    public function __construct(protected ResidentService $service)
+    {}
 
     /**
      * Display the specified resource.
      */
-    public function show(Resident $resident)
+    public function show(Request $request): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Resident $resident)
-    {
-        //
+        $resident = $this->service->getResidentByUserId(
+            userId: $request->user()->id
+        );
+        return ResidentResource::make($resident)
+            ->response();
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateResidentRequest $request, Resident $resident)
+    public function update(UpdateResidentRequest $request)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Resident $resident)
-    {
-        //
+        $property = $this->service->updateResident(
+            userId: $request->user()->id,
+            data: $request->validated()
+        );
+        return ResidentResource::make($property)
+            ->additional(['message' => 'Resident updated successfully.'])
+            ->response();
     }
 }

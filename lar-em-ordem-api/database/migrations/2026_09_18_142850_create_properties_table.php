@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("property_type_id");
-            $table->foreignId("property_typology_id");
-            $table->foreignId("address_id");
-            $table->foreignId("condominium_id")->nullable();
+            $table->foreignId("property_type_id")->constrained()->restrictOnDelete();
+            $table->foreignId("property_typology_id")->constrained()->restrictOnDelete();
+            $table->foreignId("address_id")->constrained()->cascadeOnDelete();
+            $table->foreignId("condominium_id")->constrained()->restrictOnDelete()->nullable();
             $table->integer("area");
             $table->string("fraction")->nullable();
             $table->softDeletes();

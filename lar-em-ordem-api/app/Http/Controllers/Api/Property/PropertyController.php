@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers\Api\Property;
 
-use Exception;
-use App\Models\Property\Property;
 use App\Http\Controllers\Controller;
-use App\Services\PropertyService;
+use App\Services\Property\PropertyService;
 use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use Illuminate\Http\Request;
-use App\Http\Resources\PropertyResource;
+use App\Http\Resources\Property\PropertyResource;
 use Illuminate\Http\JsonResponse;
 
 class PropertyController extends Controller
 {
-    public function __construct(protected PropertyService $service)
-    {}
+    public function __construct(protected PropertyService $service) {}
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $properties = $this->service->getResidentProperties(
-            residentId: $request->user()->id
-            );
+            userId: $request->user()->id
+        );
+
+        if ($properties->currentPage() > $properties->lastPage() && $properties->lastPage() > 0) {
+            abort(404, 'Page out of bounds.');
+        }
+
         return PropertyResource::collection($properties);
     }
 
@@ -33,7 +35,7 @@ class PropertyController extends Controller
     public function store(StorePropertyRequest $request): JsonResponse
     {
         $property = $this->service->createResidentProperty(
-            residentId: $request->user()->id,
+            userId: $request->user()->id,
             propertyData: $request->propertyData(),
             contractData: $request->contractData()
         );
@@ -46,11 +48,11 @@ class PropertyController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $property_id): JsonResponse
+    public function show(Request $request, int $propertyId): JsonResponse
     {
         $property = $this->service->getResidentPropertyById(
-            propertyId: $property_id,
-            residentId: $request->user()->id
+            propertyId: $propertyId,
+            userId: $request->user()->id
         );
         return PropertyResource::make($property)
             ->response();
@@ -59,11 +61,11 @@ class PropertyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePropertyRequest $request, int $property_id)
+    public function update(UpdatePropertyRequest $request, int $propertyId)
     {
         $property = $this->service->updateResidentProperty(
-            propertyId: $property_id,
-            residentId: $request->user()->id,
+            propertyId: $propertyId,
+            userId: $request->user()->id,
             data: $request->validated()
         );
         return PropertyResource::make($property)
@@ -74,12 +76,12 @@ class PropertyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, int $property_id)
+    public function destroy(Request $request, int $propertyId)
     {
         $response = $this->service->deleteResidentProperty(
-            propertyId: $property_id,
-            residentId: $request->user()->id
+            propertyId: $propertyId,
+            userId: $request->user()->id
         );
-        return response()->json(['message'=>'Property was successfully deleted'],204);
+        return response()->json(['message' => 'Property was successfully deleted'], 204);
     }
 }
