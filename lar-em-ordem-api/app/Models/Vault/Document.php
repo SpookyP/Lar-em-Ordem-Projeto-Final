@@ -32,8 +32,8 @@ class Document extends Model
         return $this->belongsTo(Property::class);
     }
 
-    public function documentCategory(): BelongsTo
+    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(DocumentCategory::class);
+        return $this->belongsTo(\App\Models\Vault\DocumentCategory::class, 'document_category_id');
     }
 }
