@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-    //TEMPORARY CODE
+        //TEMPORARY CODE
         // 1. Property Types
         DB::table('property_types')->insertOrIgnore([
             ['id' => 1, 'type' => 'Apartment', 'created_at' => now(), 'updated_at' => now()],
@@ -52,15 +52,19 @@ class DatabaseSeeder extends Seeder
         // 5. Seed Roles & Seed User
         $this->call(RoleSeeder::class);
         $user = User::factory()->create([
-        'name' => 'Test User',
-        'email' => 'test@example.com',
-         ]);
-
-         $this->call([
-             ConsumptionTypeSeeder::class, 
+            'name' => 'Test User',
+            'email' => 'test@example.com',
         ]);
 
-         $user->assignRole('SU');
+        $this->call([
+            ConsumptionTypeSeeder::class,
+        ]);
+
+        $user->resident()->create([
+            'name' => $user->name,
+            'nif' => '212345678']);
+
+        $user->assignRole('SU');
 
         $this->call(PartnerSeeder::class);
     }

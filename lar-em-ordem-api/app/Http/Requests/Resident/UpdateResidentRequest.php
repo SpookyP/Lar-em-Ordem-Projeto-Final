@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Resident;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateResidentRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class UpdateResidentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,8 +23,11 @@ class UpdateResidentRequest extends FormRequest
      */
     public function rules(): array
     {
+        $residentId = $this->user()->resident?->id;
         return [
-            //
+            'nif'         => ['sometimes', 'string', 'digits:9', Rule::unique('residents', 'nif')->ignore($residentId)],
+            'name'        => ['sometimes', 'string', 'max:255'],
+            'is_active'   => ['sometimes', 'boolean'],
         ];
     }
 }

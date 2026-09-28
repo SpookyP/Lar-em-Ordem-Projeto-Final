@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('residents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id");
+            $table->foreignId("user_id")->constrained()->cascadeOnDelete();
             $table->string("name");
             $table->string("nif")->unique();
+            $table->boolean("is_active")->default(true);
             $table->softDeletes();
             $table->timestamps();
         });

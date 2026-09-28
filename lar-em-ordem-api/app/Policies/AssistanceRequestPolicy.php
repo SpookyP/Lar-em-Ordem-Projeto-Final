@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\AssistanceRequest;
-use App\Models\User;
+use App\Models\User\User;
 use Illuminate\Auth\Access\Response;
 
 class AssistanceRequestPolicy

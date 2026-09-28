@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('phone', 15);
             $table->string('email')->unique();
             $table->text('description');
-            $table->boolean('is_active');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
         });

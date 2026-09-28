@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Resources;
+namespace App\Http\Resources\Property;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -26,7 +26,7 @@ class PropertyResource extends JsonResource
             'address' => $this->whenLoaded('address', fn () => [
                 'id'         => $this->address->id,
                 'street'     => $this->address->street,
-                'postal_code' => $this->address->postal_code,
+                'postalCode' => $this->address->postal_code,
                 'door'       => $this->address->door,
                 'county'     => $this->address->county,
                 'location'   => $this->address->location,

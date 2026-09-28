@@ -24,17 +24,17 @@ class UpdatePropertyRequest extends FormRequest
     {
         return [
             // Property
-            'property_type_id'     => ['required', 'integer', 'exists:property_types,id'],
-            'property_typology_id' => ['required', 'integer', 'exists:property_typologies,id'],
-            'address_id'           => ['required', 'integer', 'exists:addresses,id'],
-            'condominium_id'       => ['nullable', 'integer', 'exists:condominia,id'],
-            'area'                 => ['required', 'integer', 'min:1'],
-            'fraction'             => ['nullable', 'string', 'max:50'],
+            'property_type_id'     => ['sometimes','nullable', 'integer', 'exists:property_types,id'],
+            'property_typology_id' => ['sometimes','nullable', 'integer', 'exists:property_typologies,id'],
+            'address_id'           => ['sometimes','nullable', 'integer', 'exists:addresses,id'],
+            'condominium_id'       => ['sometimes','nullable', 'integer', 'exists:condominia,id'],
+            'area'                 => ['sometimes','nullable', 'integer', 'min:1'],
+            'fraction'             => ['sometimes','nullable', 'string', 'max:50'],
 
             // Contract
-            'resident_type_id'     => ['required', 'integer', 'exists:resident_types,id'],
-            'start_date'           => ['required', 'date'],
-            'end_date'             => ['nullable', 'date', 'after_or_equal:start_date'],
+            'resident_type_id'     => ['sometimes','nullable', 'integer', 'exists:resident_types,id'],
+            'start_date'           => ['sometimes','nullable', 'date'],
+            'end_date'             => ['sometimes','nullable', 'date', 'after_or_equal:start_date'],
         ];
     }
 }
