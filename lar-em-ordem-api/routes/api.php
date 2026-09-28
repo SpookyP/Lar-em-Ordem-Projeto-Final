@@ -1,19 +1,33 @@
 <?php
 
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PartnerOffer\OfferController;
+use App\Http\Controllers\PartnerOffer\PartnerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
+Route::get('/user', function (Request $request) {
     return $request->user();
+})->middleware('auth:sanctum');
+
+Route::prefix('v1')->group(function () {
+
+    require __DIR__ . '/modules/vault.php';
+    require __DIR__ . '/modules/property.php';
+    require __DIR__ . '/modules/resident.php';
+    require __DIR__ . '/modules/address.php';
+
 });
+
+Route::get('partners/offers/{partner}', [PartnerController::class, 'showWithOffers']);
+Route::apiResource('partners', PartnerController::class);
+Route::middleware('auth:sanctum')->apiResource('invoices', InvoiceController::class);
+Route::get('offers/partner/{partner}', [OfferController::class, 'listByPartner']);
+Route::get('offers/recommendations', [OfferController::class, 'listActiveRecommendations']);
+Route::apiResource('offers', OfferController::class);
+
+
+/*
+offers/partner/{partner} devolve { "data": [ {oferta}, {oferta} ] }, uma lista de ofertas de um partner.
+partners/offers/{partner} devolve { "data": { parceiro, "offers": [...] } }, um objeto do parceiro com todas as suas ofertas.
+ */
