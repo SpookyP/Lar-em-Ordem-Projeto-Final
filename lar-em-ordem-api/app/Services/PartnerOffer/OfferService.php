@@ -47,6 +47,18 @@ class OfferService
     }
 
     /**
+     * Carrega os dados do parceiro associado a uma oferta existente.
+     * Modelo da oferta já instanciado e injetamos a relação com o load().
+     *
+     * @param Offer $offer Instância da oferta à qual queremos anexar o parceiro.
+     * @return Offer A mesma instância da oferta, agora com a propriedade 'partner' carregada.
+     */
+    public function loadWithPartner(Offer $offer): Offer
+    {
+        return $offer->load('partner');
+    }
+
+    /**
      * Devolve as ofertas criadas por um parceiro específico, ordenadas pela data de início (desc).
      * Permite filtrar opcionalmente por ativas ou inativas.
      *
@@ -68,7 +80,7 @@ class OfferService
      *
      * @return Collection
      */
-    public function listActiveRecommendations(): Collection
+    public function listActiveOffers(): Collection
     {
         $hoje = now()->toDateString();
 

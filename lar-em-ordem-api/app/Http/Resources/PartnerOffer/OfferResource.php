@@ -18,7 +18,8 @@ class OfferResource extends JsonResource
             'start_date'         => $this->start_date->toDateString(),
             'end_date'           => $this->end_date?->toDateString(),
             'active'             => $this->active,
-            //'partner'            => new PartnerResource($this->whenLoaded('partner')),
+            // Como a relação devolve um único objeto/modelo, instanciamos um único Resource.
+            'partner'            => new PartnerResource($this->whenLoaded('partner')),
         ];
     }
 }

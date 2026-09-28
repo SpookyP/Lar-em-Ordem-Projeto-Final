@@ -19,8 +19,15 @@ Route::prefix('v1')->group(function () {
 
 });
 
+Route::get('partners/offers/{partner}', [PartnerController::class, 'showWithOffers']);
 Route::apiResource('partners', PartnerController::class);
 Route::middleware('auth:sanctum')->apiResource('invoices', InvoiceController::class);
 Route::get('offers/partner/{partner}', [OfferController::class, 'listByPartner']);
 Route::get('offers/recommendations', [OfferController::class, 'listActiveRecommendations']);
 Route::apiResource('offers', OfferController::class);
+
+
+/*
+offers/partner/{partner} devolve { "data": [ {oferta}, {oferta} ] }, uma lista de ofertas de um partner.
+partners/offers/{partner} devolve { "data": { parceiro, "offers": [...] } }, um objeto do parceiro com todas as suas ofertas.
+ */

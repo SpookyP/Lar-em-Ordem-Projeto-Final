@@ -22,7 +22,9 @@ class PartnerResource extends JsonResource
             'website'     => $this->website,
             'description' => $this->description,
             'active'      => $this->active,
-            //'offers'      => OfferResource::collection($this->whenLoaded('offers')),
+            // A relação devolve uma Collection. O método ::collection encarrega-se 
+            // de percorrer a lista e aplicar o OfferResource a cada oferta individualmente.
+            'offers'      => OfferResource::collection($this->whenLoaded('offers')),
         ];
     }
 }

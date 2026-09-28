@@ -38,14 +38,14 @@ class OfferController extends Controller
     }
 
     /**
-     * Devolve os detalhes de uma oferta específica.
+     * Devolve os detalhes de uma oferta específica de um parceiro.
      *
      * @param Offer $offer Instância da oferta solicitada (automatico p/ Laravel).
      * @return OfferResource
      */
     public function show(Offer $offer)
     {
-        return new OfferResource($offer);
+        return new OfferResource($this->service->loadWithPartner($offer));
     }
 
 
@@ -81,6 +81,14 @@ class OfferController extends Controller
     }
 
 
+    /**
+     * Lista as ofertas de um parceiro específico.
+     * Permite filtrar por estado enviando o parâmetro 'active' (ex: ?active=true) no URL.
+     *
+     * @param \Illuminate\Http\Request $request O pedido HTTP com os parâmetros de pesquisa.
+     * @param \App\Models\User\Partner $partner Instância do parceiro.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas.
+     */
     public function listByPartner(Request $request, Partner $partner)
     {
         
@@ -93,10 +101,15 @@ class OfferController extends Controller
         );
     }
 
-    public function listActiveRecommendations()
+    /**
+     * Devolve todas as ofertas ativas e dentro da validade.
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas globais.
+     */
+    public function listActiveOffers()
     {
         return OfferResource::collection(
-            $this->service->listActiveRecommendations()
+            $this->service->listActiveOffers()
         );
     }
 }
