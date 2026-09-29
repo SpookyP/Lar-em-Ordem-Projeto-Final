@@ -18,13 +18,12 @@ class PropertyController extends Controller
      */
     public function index(Request $request)
     {
-        $properties = $this->service->getResidentProperties(
-            userId: $request->user()->id
-        );
+        $request->validate(['per_page' => ['sometimes', 'integer','between:1,15'],]);
 
-        if ($properties->currentPage() > $properties->lastPage() && $properties->lastPage() > 0) {
-            abort(404, 'Page out of bounds.');
-        }
+        $properties = $this->service->getResidentProperties(
+            userId: $request->user()->id,
+            perPage: $request->integer('per_page', 5)
+        );
 
         return PropertyResource::collection($properties);
     }
@@ -82,6 +81,6 @@ class PropertyController extends Controller
             propertyId: $propertyId,
             userId: $request->user()->id
         );
-        return response()->json(['message' => 'Property was successfully deleted'], 204);
+        return response()->json(['message' => 'Property was successfully deleted']);
     }
 }

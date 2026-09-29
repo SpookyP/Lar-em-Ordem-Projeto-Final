@@ -13,7 +13,7 @@ class UpdateResidentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->resident !== null;
     }
 
     /**
@@ -25,9 +25,10 @@ class UpdateResidentRequest extends FormRequest
     {
         $residentId = $this->user()->resident?->id;
         return [
-            'nif'         => ['sometimes', 'string', 'digits:9', Rule::unique('residents', 'nif')->ignore($residentId)],
-            'name'        => ['sometimes', 'string', 'max:255'],
-            'is_active'   => ['sometimes', 'boolean'],
+            // Resident
+            'nif'              => ['sometimes', 'string', 'digits:9', Rule::unique('residents', 'nif')->ignore($residentId)],
+            'name'             => ['sometimes', 'string', 'max:255'],
+            'is_active'        => ['sometimes', 'boolean'],
         ];
     }
 }

@@ -65,6 +65,7 @@ class DatabaseSeeder extends Seeder
             'nif' => '212345678']);
 
         $user->assignRole('SU');
+        $user->assignRole('resident');
 
         $this->call(PartnerSeeder::class);
     }

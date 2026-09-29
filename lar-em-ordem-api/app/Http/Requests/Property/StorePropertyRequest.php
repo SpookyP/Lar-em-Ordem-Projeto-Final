@@ -12,7 +12,7 @@ class StorePropertyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; //middleware handled
+        return $this->user()?->resident !== null;
     }
 
     /**
@@ -58,7 +58,6 @@ class StorePropertyRequest extends FormRequest
     public function contractData(): array
     {
         return $this->safe()->only([
-            'resident_type_id',
             'start_date',
             'end_date',
         ]);

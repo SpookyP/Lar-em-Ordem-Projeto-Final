@@ -14,6 +14,10 @@ class Resident extends Model
 
 	protected $fillable = ['user_id','name','nif','is_active'];
 
+	protected function casts(): array
+    {
+        return ['is_active'  => 'boolean'];
+    }
     public function user(){
         	return $this->belongsTo(User::class);
 	}

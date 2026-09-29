@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId("property_type_id")->constrained()->restrictOnDelete();
             $table->foreignId("property_typology_id")->constrained()->restrictOnDelete();
             $table->foreignId("address_id")->constrained()->cascadeOnDelete();
-            $table->foreignId("condominium_id")->constrained()->restrictOnDelete()->nullable();
+            $table->foreignId("condominium_id")->nullable()->constrained()->restrictOnDelete();
             $table->integer("area");
             $table->string("fraction")->nullable();
             $table->softDeletes();

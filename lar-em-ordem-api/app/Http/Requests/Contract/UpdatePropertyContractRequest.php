@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Contract;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,7 +12,7 @@ class UpdatePropertyContractRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()?->resident !== null;
     }
 
     /**
@@ -23,7 +23,10 @@ class UpdatePropertyContractRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'resident_type_id' => ['sometimes','nullable', 'integer', 'exists:resident_types,id'],
+            'start_date'       => ['sometimes','nullable', 'date'],
+            'end_date'         => ['sometimes','nullable', 'date', 'after_or_equal:start_date'],
+            'is_active'        => ['sometimes', 'boolean'],
         ];
     }
 }

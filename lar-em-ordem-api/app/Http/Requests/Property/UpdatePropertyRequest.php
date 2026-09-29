@@ -12,7 +12,7 @@ class UpdatePropertyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // middlewareHandled
+        return $this->user()?->resident !== null;
     }
 
     /**
@@ -26,13 +26,13 @@ class UpdatePropertyRequest extends FormRequest
             // Property
             'property_type_id'     => ['sometimes','nullable', 'integer', 'exists:property_types,id'],
             'property_typology_id' => ['sometimes','nullable', 'integer', 'exists:property_typologies,id'],
-            'address_id'           => ['sometimes','nullable', 'integer', 'exists:addresses,id'],
+            // 'address_id'           => ['sometimes','nullable', 'integer', 'exists:addresses,id'],
             'condominium_id'       => ['sometimes','nullable', 'integer', 'exists:condominia,id'],
             'area'                 => ['sometimes','nullable', 'integer', 'min:1'],
             'fraction'             => ['sometimes','nullable', 'string', 'max:50'],
 
             // Contract
-            'resident_type_id'     => ['sometimes','nullable', 'integer', 'exists:resident_types,id'],
+            'resident_type_id' => ['sometimes','nullable', 'integer', 'exists:resident_types,id'],
             'start_date'           => ['sometimes','nullable', 'date'],
             'end_date'             => ['sometimes','nullable', 'date', 'after_or_equal:start_date'],
         ];
