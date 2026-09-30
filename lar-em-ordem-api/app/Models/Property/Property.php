@@ -21,11 +21,11 @@ class Property extends Model
 		'condominium_id',
 	];
 
-    public function property_type(){
+    public function propertyType(){
         	return $this->belongsTo(PropertyType::class);
 	}
 
-    public function property_typology(){
+    public function propertyTypology(){
         	return $this->belongsTo(PropertyTypology::class);
 	}
 

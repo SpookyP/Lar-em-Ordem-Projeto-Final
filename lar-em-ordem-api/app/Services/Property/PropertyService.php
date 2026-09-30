@@ -3,9 +3,14 @@
 namespace App\Services\Property;
 
 use App\Models\Property\Property;
+use App\Models\Property\PropertyType;
+use App\Models\Property\PropertyTypology;
+use App\Models\Property\PropertyContract;
+use App\Models\User\ResidentType;
 use App\Services\Resident\ResidentService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class PropertyService
 {
@@ -16,17 +21,37 @@ class PropertyService
         return $this->residentService->getResidentByUserId($userId)->id;
     }
     #endregion
+
     #region CRUD
+    #region Get Types
+    public function getPropertyForms(): array
+    {
+        return Cache::remember('properties.form_options', now()->addDay(), function () {
+            return [
+                'propertyTypes' => PropertyType::select('id', 'type')->get(),
+                'propertyTypologies' => PropertyTypology::select('id', 'typology')->get(),
+                'residentTypes' => ResidentType::select('id', 'type')->get(),
+            ];
+        });
+    }
+    #endregion
+
     #region Get Properties
     public function getResidentProperties(int $userId, int $perPage = 5): LengthAwarePaginator
     {
         $residentId = $this->_userIdtoResidentId($userId);
+
         return Property::query()
             ->whereHas('contracts', function ($query) use ($residentId) {
                 $query->where('resident_id', $residentId)
                     ->where('is_active', true);
             })
-            ->with(['address', 'property_type', 'property_typology'])
+            ->with([
+                'address',
+                'propertyType',
+                'propertyTypology',
+                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
+            ])
             ->latest() // order by latest
             ->paginate($perPage);
     }
@@ -40,7 +65,12 @@ class PropertyService
                 $query->where('resident_id', $residentId)
                     ->where('is_active', true);
             })
-            ->with(['address', 'property_type', 'property_typology'])
+            ->with([
+                'address',
+                'propertyType',
+                'propertyTypology',
+                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
+            ])
             ->first();
 
         if (!$property) {
@@ -48,8 +78,9 @@ class PropertyService
         }
         return $property;
     }
+
     #endregion
-    public function createResidentProperty(array $propertyData, int $userId, array $contractData): Property
+    public function createResidentProperty(int $userId, array $propertyData, array $contractData): Property
     {
         $residentId = $this->_userIdtoResidentId($userId);
         return DB::transaction(function () use ($propertyData, $contractData, $residentId) {
@@ -62,23 +93,32 @@ class PropertyService
                 'is_active'        => true,
             ]);
 
-            return $property->load(['address', 'property_type', 'property_typology']);
+            return $property->load([
+                'address',
+                'propertyType',
+                'propertyTypology',
+                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
+            ]);
         });
     }
+
     public function updateResidentProperty(int $propertyId, int $userId, array $data): Property
     {
-        $residentId = $this->_userIdtoResidentId($userId);
-        $property = $this->getResidentPropertyById($propertyId, $residentId);
+        $property = $this->getResidentPropertyById($propertyId, $userId);
         return DB::transaction(function () use ($data, $property) {
             $property->update($data);
-            return $property->fresh(['address', 'property_type', 'property_typology']);
+            return $property->fresh([
+                'address',
+                'propertyType',
+                'propertyTypology',
+                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
+            ]);
         });
     }
 
     public function deleteResidentProperty(int $propertyId, int $userId): bool
     {
-        $residentId = $this->_userIdtoResidentId($userId);
-        $property = $this->getResidentPropertyById($propertyId, $residentId);
+        $property = $this->getResidentPropertyById($propertyId, $userId);
         return DB::transaction(function () use ($property) {
             $property->contracts()->where('is_active', true)
                 ->update([
@@ -88,17 +128,25 @@ class PropertyService
             return $property->delete();
         });
     }
-    #endregion
-    #region Contract Methods
-    public function addResidentToProperty(int $residentId, int $propertyId) {}
-    public function removeResidentToProperty(int $residentId, int $propertyId) {}
-    public function terminateContract(int $contractId): bool
+
+    public function terminateContract(int $propertyId, int $userId): bool
     {
-        DB::transaction(function () use ($contractId) {
-            //$contract =getContractById->where('is_active'=>true)
-            //$contract->update(['is_active'=>false,'end_date'=>now()])
+        $residentId = $this->_userIdtoResidentId($userId);
+        return DB::transaction(function () use ($propertyId, $residentId) {
+            $contract = PropertyContract::query()
+                ->where('property_id', $propertyId)
+                ->where('resident_id', $residentId)
+                ->where('is_active', true)
+                ->first();
+            if (!$contract) {
+                return false;
+                }
+            $contract->update([
+                'is_active' => false,
+                'end_date' => now()
+            ]);
+            return $contract->delete();
         });
-        return false;
     }
     #endregion
 }

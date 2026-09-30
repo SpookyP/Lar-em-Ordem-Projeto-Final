@@ -12,7 +12,7 @@ class StorePropertyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; //middleware handled
+        return $this->user()?->resident !== null;
     }
 
     /**

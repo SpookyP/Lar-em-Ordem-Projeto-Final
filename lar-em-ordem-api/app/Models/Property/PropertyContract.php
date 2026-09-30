@@ -22,6 +22,15 @@ class PropertyContract extends Model
         'is_active',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date'   => 'date',
+            'is_active'  => 'boolean',
+        ];
+    }
+
     public function property(){
         	return $this->belongsTo(Property::class,'property_id');
 	}
