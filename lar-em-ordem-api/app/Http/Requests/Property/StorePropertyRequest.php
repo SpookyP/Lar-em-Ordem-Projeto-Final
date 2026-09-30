@@ -58,6 +58,7 @@ class StorePropertyRequest extends FormRequest
     public function contractData(): array
     {
         return $this->safe()->only([
+            'resident_type_id',
             'start_date',
             'end_date',
         ]);

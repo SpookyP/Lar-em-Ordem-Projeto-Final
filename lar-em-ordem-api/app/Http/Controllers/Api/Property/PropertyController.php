@@ -18,7 +18,7 @@ class PropertyController extends Controller
      */
     public function index(Request $request)
     {
-        $request->validate(['per_page' => ['sometimes', 'integer','between:1,15'],]);
+        $request->validate(['per_page' => ['sometimes', 'integer', 'between:1,15'],]);
 
         $properties = $this->service->getResidentProperties(
             userId: $request->user()->id,
@@ -82,5 +82,34 @@ class PropertyController extends Controller
             userId: $request->user()->id
         );
         return response()->json(['message' => 'Property was successfully deleted']);
+    }
+
+    /**
+     * Displays forms data.
+     */
+    public function formOptions(): JsonResponse
+    {
+        $options = $this->service->getPropertyForms();
+        return response()->json([
+            'data' => $options
+        ]);
+    }
+
+    public function terminateContract(Request $request, int $propertyId): JsonResponse
+    {
+        $terminated = $this->service->terminateContract(
+            propertyId: $propertyId,
+            userId: $request->user()->id
+        );
+
+        if (!$terminated) {
+            return response()->json([
+                'message' => 'Contract not found or already inactive.'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Contract terminated successfully.'
+        ]);
     }
 }
