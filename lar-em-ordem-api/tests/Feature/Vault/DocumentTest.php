@@ -20,34 +20,32 @@ class DocumentTest extends TestCase
     /**
      * Cria uma Habitação de forma dinâmica para os testes do Cofre.
      * Isola o Módulo 3 dos problemas dos Seeders globais da equipa
-     * e resolve o problema dos "IDs hardcoded" reportado pelo Rafa,
-     * utilizando os nomes corretos das colunas em inglês.
+     * e resolve o problema dos "IDs hardcoded",
+     * utilizando os nomes corretos das colunas das migrations do Módulo 2.
      */
     private function createTestProperty(): int
     {
         Schema::disableForeignKeyConstraints();
 
-        // Inserção com base na migration property_types
         $typeId = DB::table('property_types')->insertGetId([
-            'type' => 'Apartamento',
+            'type' => 'Apartamento', // Atualizado de acordo com a tua migration
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // Assumindo a tradução padrão para property_typologies
         $typologyId = DB::table('property_typologies')->insertGetId([
             'typology' => 'T2',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // Inserção com base na migration addresses
         $addressId = DB::table('addresses')->insertGetId([
-            'street' => 'Rua Teste',
-            'postal_code' => '4000-000',
-            'county' => 'Porto',
-            'location' => 'Porto',
-            'district' => 'Porto',
+            'street' => 'Rua Teste',           // Atualizado
+            'postal_code' => '4000-000',       // Atualizado
+            'door' => '1A',                    // Adicionado (nullable na migration, mas preenchido)
+            'county' => 'Porto',               // Atualizado
+            'location' => 'Porto',             // Atualizado
+            'district' => 'Porto',             // Atualizado
             'created_at' => now(),
             'updated_at' => now(),
         ]);
