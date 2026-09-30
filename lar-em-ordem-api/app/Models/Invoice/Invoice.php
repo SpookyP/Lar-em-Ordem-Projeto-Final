@@ -1,7 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Invoice;
 
+use App\Models\User\User;
+use App\Models\Property\Property;
+use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +13,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Invoice extends Model
 {
     use HasFactory;
+
+    protected static function newFactory()
+    {
+        return InvoiceFactory::new();
+    }
 
     protected $fillable = [
         'user_id',

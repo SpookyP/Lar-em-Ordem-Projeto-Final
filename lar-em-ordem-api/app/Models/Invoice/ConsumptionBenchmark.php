@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Invoice;
 
+use App\Models\Property\PropertyType;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Property\PropertyTypology;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
