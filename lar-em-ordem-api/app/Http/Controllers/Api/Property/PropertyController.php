@@ -8,6 +8,7 @@ use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
 use Illuminate\Http\Request;
 use App\Http\Resources\Property\PropertyResource;
+use App\Http\Resources\Property\PropertyListResource;
 use Illuminate\Http\JsonResponse;
 
 class PropertyController extends Controller
@@ -25,7 +26,7 @@ class PropertyController extends Controller
             perPage: $request->integer('per_page', 5)
         );
 
-        return PropertyResource::collection($properties);
+        return PropertyListResource::collection($properties);
     }
 
     /**
@@ -36,7 +37,8 @@ class PropertyController extends Controller
         $property = $this->service->createResidentProperty(
             userId: $request->user()->id,
             propertyData: $request->propertyData(),
-            contractData: $request->contractData()
+            contractData: $request->contractData(),
+            addressData: $request->addressData(),
         );
         return PropertyResource::make($property)
             ->additional(['message' => 'Property created successfully.'])
@@ -65,7 +67,9 @@ class PropertyController extends Controller
         $property = $this->service->updateResidentProperty(
             propertyId: $propertyId,
             userId: $request->user()->id,
-            data: $request->validated()
+            propertyData: $request->propertyData(),
+            contractData: $request->contractData(),
+            addressData: $request->addressData(),
         );
         return PropertyResource::make($property)
             ->additional(['message' => 'Property updated successfully.'])

@@ -9,21 +9,13 @@ class PropertyResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'area'        => $this->area,
-            'fraction'    => $this->fraction,
+            'id'               => $this->id,
+            'addressId'        => $this->address_id,
+            'area'             => $this->area,
+            'fraction'         => $this->fraction,
 
-            'type' => $this->whenLoaded('property_type', fn () => [
-                'id'   => $this->property_type->id,
-                'type' => $this->property_type->type,
-            ]),
-
-            'typology' => $this->whenLoaded('property_typology', fn () => [
-                'id'   => $this->property_typology->id,
-                'typology' => $this->property_typology->typology,
-            ]),
-
-            'address' => $this->whenLoaded('address', fn () => [
+            // Inline Address transformation
+            'address'          => $this->whenLoaded('address', fn() => [
                 'id'         => $this->address->id,
                 'street'     => $this->address->street,
                 'postalCode' => $this->address->postal_code,
@@ -33,7 +25,22 @@ class PropertyResource extends JsonResource
                 'district'   => $this->address->district,
             ]),
 
-            'createdAt' => $this->created_at?->toIso8601String(),
+            'propertyType'     => $this->whenLoaded('propertyType'),
+            'propertyTypology' => $this->whenLoaded('propertyTypology'),
+            'condominium'      => $this->whenLoaded('condominium'),
+
+            // Inline Contracts transformation
+            'contracts'        => $this->whenLoaded('contracts', fn() => $this->contracts->map(fn($contract) => [
+                'id'           => $contract->id,
+                'residentId'   => $contract->resident_id,
+                'residentType' => $contract->relationLoaded('residentType') ? $contract->residentType : null,
+                'startDate'    => $contract->start_date,
+                'endDate'      => $contract->end_date,
+                'isActive'     => (bool) $contract->is_active,
+            ])),
+
+            'createdAt'        => $this->created_at,
+            'updatedAt'        => $this->updated_at,
         ];
     }
 }
