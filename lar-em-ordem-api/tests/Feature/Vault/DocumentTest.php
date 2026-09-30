@@ -8,31 +8,65 @@ use App\Models\Vault\DocumentCategory;
 use App\Services\Vault\PdfExtractionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
 
 class DocumentTest extends TestCase
 {
-    // Limpa e recria a base de dados a cada teste, garantindo um estado limpo
     use RefreshDatabase;
 
-    protected function setUp(): void
+    /**
+     * Cria uma Habitação de forma dinâmica para os testes do Cofre.
+     * Isola o Módulo 3 dos problemas dos Seeders globais da equipa
+     * e resolve o problema dos "IDs hardcoded" reportado pelo Rafa,
+     * utilizando os nomes corretos das colunas em inglês.
+     */
+    private function createTestProperty(): int
     {
-        parent::setUp();
+        Schema::disableForeignKeyConstraints();
 
-        // Corre os seeders do Rafa para popular a base de dados com Users, Properties, etc.
-        $this->seed();
+        // Inserção com base na migration property_types
+        $typeId = DB::table('property_types')->insertGetId([
+            'type' => 'Apartamento',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Assumindo a tradução padrão para property_typologies
+        $typologyId = DB::table('property_typologies')->insertGetId([
+            'typology' => 'T2',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Inserção com base na migration addresses
+        $addressId = DB::table('addresses')->insertGetId([
+            'street' => 'Rua Teste',
+            'postal_code' => '4000-000',
+            'county' => 'Porto',
+            'location' => 'Porto',
+            'district' => 'Porto',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $propertyId = DB::table('properties')->insertGetId([
+            'property_type_id' => $typeId,
+            'property_typology_id' => $typologyId,
+            'address_id' => $addressId,
+            'area' => 100,
+            'fraction' => 'A',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Schema::enableForeignKeyConstraints();
+
+        return $propertyId;
     }
 
-    /**
-     * Testa o "Caminho Feliz" (Happy Path).
-     * Garante que um utilizador autenticado consegue fazer upload de um PDF,
-     * que o serviço de extração é chamado corretamente e que os dados
-     * são guardados na base de dados e o ficheiro no disco.
-     *
-     * @return void
-     */
     public function test_user_can_upload_pdf_and_extract_data(): void
     {
         Storage::fake('local');
@@ -47,10 +81,10 @@ class DocumentTest extends TestCase
                 ]);
         });
 
-        // Obter dados gerados pelos Seeders em vez de os criar manualmente
-        $user = User::first();
-        $propertyId = DB::table('properties')->first()->id;
-        $category = DocumentCategory::first();
+        $user = User::factory()->create();
+        $category = DocumentCategory::factory()->create();
+
+        $propertyId = $this->createTestProperty();
 
         $file = UploadedFile::fake()->create('energy_certificate.pdf', 100, 'application/pdf');
 
@@ -83,21 +117,12 @@ class DocumentTest extends TestCase
         Storage::disk('local')->assertExists('vault_documents/' . $file->hashName());
     }
 
-    /**
-     * Testa a validação de ficheiros.
-     * Garante que o sistema rejeita qualquer ficheiro que não seja um PDF
-     * devolvendo um erro 422 de validação.
-     *
-     * @return void
-     */
     public function test_upload_fails_if_file_is_not_pdf(): void
     {
-        // Usar dados dos Seeders
-        $user = User::first();
-        $propertyId = DB::table('properties')->first()->id;
-        $category = DocumentCategory::first();
+        $user = User::factory()->create();
+        $category = DocumentCategory::factory()->create();
+        $propertyId = $this->createTestProperty();
 
-        // Enviar uma imagem em vez de um PDF
         $file = UploadedFile::fake()->image('photo.jpg');
 
         $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/documents', [
@@ -112,9 +137,9 @@ class DocumentTest extends TestCase
 
     public function test_user_can_list_property_documents(): void
     {
-        $user = User::first();
-        $propertyId = DB::table('properties')->first()->id;
-        $category = DocumentCategory::first();
+        $user = User::factory()->create();
+        $category = DocumentCategory::factory()->create();
+        $propertyId = $this->createTestProperty();
 
         \App\Models\Vault\Document::create([
             'property_id' => $propertyId,
@@ -140,9 +165,9 @@ class DocumentTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = User::first();
-        $propertyId = DB::table('properties')->first()->id;
-        $category = DocumentCategory::first();
+        $user = User::factory()->create();
+        $category = DocumentCategory::factory()->create();
+        $propertyId = $this->createTestProperty();
 
         $fileName = 'contrato_arrendamento.pdf';
         Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
@@ -166,9 +191,9 @@ class DocumentTest extends TestCase
     {
         Storage::fake('local');
 
-        $user = User::first();
-        $propertyId = DB::table('properties')->first()->id;
-        $category = DocumentCategory::first();
+        $user = User::factory()->create();
+        $category = DocumentCategory::factory()->create();
+        $propertyId = $this->createTestProperty();
 
         $fileName = 'planta_casa.pdf';
         Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
