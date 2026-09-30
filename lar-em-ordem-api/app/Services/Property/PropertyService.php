@@ -3,6 +3,7 @@
 namespace App\Services\Property;
 
 use App\Models\Property\Property;
+use App\Models\Property\Address;
 use App\Models\Property\PropertyType;
 use App\Models\Property\PropertyTypology;
 use App\Models\Property\PropertyContract;
@@ -47,10 +48,10 @@ class PropertyService
                     ->where('is_active', true);
             })
             ->with([
-                'address',
-                'propertyType',
-                'propertyTypology',
-                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
+                'address:id,street,location',
+                'propertyType:id,type',
+                'propertyTypology:id,typology',
+                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType:id,type'),
             ])
             ->latest() // order by latest
             ->paginate($perPage);
@@ -80,10 +81,12 @@ class PropertyService
     }
 
     #endregion
-    public function createResidentProperty(int $userId, array $propertyData, array $contractData): Property
+    public function createResidentProperty(int $userId, array $propertyData, array $contractData, array $addressData): Property
     {
         $residentId = $this->_userIdtoResidentId($userId);
-        return DB::transaction(function () use ($propertyData, $contractData, $residentId) {
+        return DB::transaction(function () use ($propertyData, $contractData, $addressData, $residentId,) {
+            $address = Address::create($addressData);
+            $propertyData['address_id'] = $address->id;
             $property = Property::create($propertyData);
             $property->contracts()->create([
                 'resident_id'      => $residentId,
@@ -102,11 +105,27 @@ class PropertyService
         });
     }
 
-    public function updateResidentProperty(int $propertyId, int $userId, array $data): Property
+    public function updateResidentProperty(int $propertyId, int $userId, array $propertyData, array $contractData, array $addressData): Property
     {
         $property = $this->getResidentPropertyById($propertyId, $userId);
-        return DB::transaction(function () use ($data, $property) {
-            $property->update($data);
+        return DB::transaction(function () use ($propertyData, $contractData, $addressData, $property,) {
+
+            if (!empty($addressData)) {
+                $property->address->update($addressData);
+            }
+
+            if (!empty($propertyData)) {
+                $property->update($propertyData);
+            }
+
+            if (!empty($contractData)) {
+                $property->contracts()
+                    ->where('is_active', true)
+                    ->first()
+                    ?->update($contractData);
+            }
+
+
             return $property->fresh([
                 'address',
                 'propertyType',
@@ -140,7 +159,7 @@ class PropertyService
                 ->first();
             if (!$contract) {
                 return false;
-                }
+            }
             $contract->update([
                 'is_active' => false,
                 'end_date' => now()

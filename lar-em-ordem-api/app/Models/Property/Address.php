@@ -12,6 +12,13 @@ class Address extends Model
     /** @use HasFactory<\Database\Factories\AddressFactory> */
     use HasFactory, SoftDeletes;
 
+    protected $fillable = ['street',
+    'postal_code',
+    'door',
+    'county',
+    'location',
+    'district'];
+
     public function properties(){
         	return $this->hasMany(Property::class);
 	}

@@ -26,17 +26,27 @@ class StorePropertyRequest extends FormRequest
             // Property
             'property_type_id'     => ['required', 'integer', 'exists:property_types,id'],
             'property_typology_id' => ['required', 'integer', 'exists:property_typologies,id'],
-            'address_id'           => ['required', 'integer', 'exists:addresses,id'],
+            'address_id'           => ['nullable', 'integer', 'exists:addresses,id'],
             'condominium_id'       => ['nullable', 'integer', 'exists:condominia,id'],
             'area'                 => ['required', 'integer', 'min:1'],
-            'fraction'             => ['nullable', 'string', 'max:50'],
+            'fraction'             => ['required', 'string', 'max:50'],
 
             // Contract
             'resident_type_id'     => ['required', 'integer', 'exists:resident_types,id'],
             'start_date'           => ['required', 'date'],
             'end_date'             => ['nullable', 'date', 'after_or_equal:start_date'],
+
+            // Address (Required if address_id is not provided)
+            'address'              => ['required_without:address_id', 'array'],
+            'address.street'       => ['required_with:address', 'string', 'max:255'],
+            'address.postal_code'  => ['required_with:address', 'string', 'max:20'],
+            'address.door'         => ['nullable', 'string', 'max:10'],
+            'address.county'       => ['required', 'string', 'max:100'],
+            'address.location'     => ['required', 'string', 'max:100'],
+            'address.district'     => ['required', 'string', 'max:100'],
         ];
     }
+
     /**
      * Extract only Property data.
      */
@@ -62,5 +72,13 @@ class StorePropertyRequest extends FormRequest
             'start_date',
             'end_date',
         ]);
+    }
+
+    /**
+     * Extract only Address data.
+     */
+    public function addressData(): ?array
+    {
+        return $this->validated('address');
     }
 }
