@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\ConsumptionType;
+use App\Models\Invoice\ConsumptionType;
 
 class ConsumptionTypeSeeder extends Seeder
 {

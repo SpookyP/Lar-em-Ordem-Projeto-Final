@@ -58,6 +58,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             ConsumptionTypeSeeder::class,
+            InvoiceSeeder::class,
+            ConsumptionSeeder::class,
         ]);
 
         $user->resident()->create([
