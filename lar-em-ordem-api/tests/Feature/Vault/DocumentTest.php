@@ -8,7 +8,6 @@ use App\Models\Vault\DocumentCategory;
 use App\Services\Vault\PdfExtractionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
@@ -17,6 +16,14 @@ class DocumentTest extends TestCase
 {
     // Limpa e recria a base de dados a cada teste, garantindo um estado limpo
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Corre os seeders do Rafa para popular a base de dados com Users, Properties, etc.
+        $this->seed();
+    }
 
     /**
      * Testa o "Caminho Feliz" (Happy Path).
@@ -28,10 +35,8 @@ class DocumentTest extends TestCase
      */
     public function test_user_can_upload_pdf_and_extract_data(): void
     {
-        // Simular o disco local para não guardar ficheiros reais durante os testes
         Storage::fake('local');
 
-        // Fazer Mock do serviço Python para devolver um array estático
         $this->mock(PdfExtractionService::class, function (MockInterface $mock) {
             $mock->shouldReceive('extractInfo')
                 ->once()
@@ -42,26 +47,13 @@ class DocumentTest extends TestCase
                 ]);
         });
 
-        // Criar os dados de suporte na base de dados
-        $user = User::factory()->create();
+        // Obter dados gerados pelos Seeders em vez de os criar manualmente
+        $user = User::first();
+        $propertyId = DB::table('properties')->first()->id;
+        $category = DocumentCategory::first();
 
-        // Inserir uma Habitação (Property) simulada diretamente na base de dados
-        $propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => 1,
-            'property_typology_id' => 1,
-            'address_id' => 1,
-            'area' => 100,
-            'fraction' => 'A',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $category = DocumentCategory::factory()->create();
-
-        // Criar um ficheiro PDF em memória
         $file = UploadedFile::fake()->create('energy_certificate.pdf', 100, 'application/pdf');
 
-        // Executar o pedido POST autenticado com Sanctum
         $response = $this->actingAs($user, 'sanctum')->postJson('/api/v1/documents', [
             'property_id' => $propertyId,
             'document_category_id' => $category->id,
@@ -69,7 +61,6 @@ class DocumentTest extends TestCase
             'file' => $file,
         ]);
 
-        // Afirmar que a resposta HTTP é 201 Created e verificar a estrutura JSON
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'message',
@@ -82,7 +73,6 @@ class DocumentTest extends TestCase
                 ]
             ]);
 
-        // Afirmar que o registo foi inserido na tabela correta
         $this->assertDatabaseHas('vault_documents', [
             'property_id' => $propertyId,
             'document_category_id' => $category->id,
@@ -90,7 +80,6 @@ class DocumentTest extends TestCase
             'expiration_date' => '2030-12-31 00:00:00',
         ]);
 
-        // Afirmar que o ficheiro foi movido para a pasta correta no disco simulado
         Storage::disk('local')->assertExists('vault_documents/' . $file->hashName());
     }
 
@@ -103,24 +92,10 @@ class DocumentTest extends TestCase
      */
     public function test_upload_fails_if_file_is_not_pdf(): void
     {
-        $user = User::factory()->create();
-
-        // Aplicar o mesmo workaround do primeiro teste
-        Schema::disableForeignKeyConstraints();
-
-        $propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => 1,
-            'property_typology_id' => 1,
-            'address_id' => 1,
-            'area' => 100,
-            'fraction' => 'A',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        Schema::enableForeignKeyConstraints();
-
-        $category = DocumentCategory::factory()->create();
+        // Usar dados dos Seeders
+        $user = User::first();
+        $propertyId = DB::table('properties')->first()->id;
+        $category = DocumentCategory::first();
 
         // Enviar uma imagem em vez de um PDF
         $file = UploadedFile::fake()->image('photo.jpg');
@@ -131,29 +106,16 @@ class DocumentTest extends TestCase
             'file' => $file,
         ]);
 
-        // Bloquear o pedido com erro 422 Unprocessable Entity
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['file']);
     }
 
     public function test_user_can_list_property_documents(): void
     {
-        $user = User::factory()->create();
+        $user = User::first();
+        $propertyId = DB::table('properties')->first()->id;
+        $category = DocumentCategory::first();
 
-        // Workaround da Habitação
-        $propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => 1,
-            'property_typology_id' => 1,
-            'address_id' => 1,
-            'area' => 100,
-            'fraction' => 'A',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $category = DocumentCategory::factory()->create();
-
-        // Inserir um documento de teste diretamente na base de dados
         \App\Models\Vault\Document::create([
             'property_id' => $propertyId,
             'document_category_id' => $category->id,
@@ -163,11 +125,9 @@ class DocumentTest extends TestCase
             'expiration_date' => now()->addMonths(6),
         ]);
 
-        // Ação: Fazer o pedido GET
         $response = $this->actingAs($user, 'sanctum')
             ->getJson("/api/v1/documents?property_id={$propertyId}");
 
-        // Afirmação
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
@@ -178,59 +138,52 @@ class DocumentTest extends TestCase
 
     public function test_user_can_download_document(): void
     {
-        $user = User::factory()->create();
         Storage::fake('local');
 
-        $propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => 1, 'property_typology_id' => 1, 'address_id' => 1, 'area' => 100, 'fraction' => 'A',
-        ]);
+        $user = User::first();
+        $propertyId = DB::table('properties')->first()->id;
+        $category = DocumentCategory::first();
 
-        // Criar um ficheiro falso no disco simulado
         $fileName = 'contrato_arrendamento.pdf';
         Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
 
         $document = \App\Models\Vault\Document::create([
             'property_id' => $propertyId,
-            'document_category_id' => DocumentCategory::factory()->create()->id,
+            'document_category_id' => $category->id,
             'name' => $fileName,
             'description' => 'Contrato',
             'file_path' => "vault_documents/{$fileName}",
         ]);
 
-        // Ação: Fazer o pedido GET para download
         $response = $this->actingAs($user, 'sanctum')
             ->get("/api/v1/documents/{$document->id}/download");
 
-        // Afirmação: Verifica se o Laravel iniciou a transferência do ficheiro correto
         $response->assertStatus(200)
             ->assertDownload($fileName);
     }
 
     public function test_user_can_delete_document(): void
     {
-        $user = User::factory()->create();
         Storage::fake('local');
 
-        $propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => 1, 'property_typology_id' => 1, 'address_id' => 1, 'area' => 100, 'fraction' => 'A',
-        ]);
+        $user = User::first();
+        $propertyId = DB::table('properties')->first()->id;
+        $category = DocumentCategory::first();
 
         $fileName = 'planta_casa.pdf';
         Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
 
         $document = \App\Models\Vault\Document::create([
             'property_id' => $propertyId,
-            'document_category_id' => DocumentCategory::factory()->create()->id,
+            'document_category_id' => $category->id,
             'name' => $fileName,
             'description' => 'Planta',
             'file_path' => "vault_documents/{$fileName}",
         ]);
 
-        // Ação: Fazer o pedido DELETE
         $response = $this->actingAs($user, 'sanctum')
             ->deleteJson("/api/v1/documents/{$document->id}");
 
-        // Afirmação: Verifica sucesso na API, ausência na base de dados e remoção física do disco
         $response->assertStatus(200);
         $this->assertDatabaseMissing('vault_documents', ['id' => $document->id]);
         Storage::disk('local')->assertMissing("vault_documents/{$fileName}");
