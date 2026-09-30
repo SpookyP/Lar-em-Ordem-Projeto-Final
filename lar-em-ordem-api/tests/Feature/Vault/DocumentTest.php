@@ -28,7 +28,7 @@ class DocumentTest extends TestCase
         Schema::disableForeignKeyConstraints();
 
         $typeId = DB::table('property_types')->insertGetId([
-            'type' => 'Apartamento', // Atualizado de acordo com a tua migration
+            'type' => 'Apartamento',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -40,12 +40,12 @@ class DocumentTest extends TestCase
         ]);
 
         $addressId = DB::table('addresses')->insertGetId([
-            'street' => 'Rua Teste',           // Atualizado
-            'postal_code' => '4000-000',       // Atualizado
-            'door' => '1A',                    // Adicionado (nullable na migration, mas preenchido)
-            'county' => 'Porto',               // Atualizado
-            'location' => 'Porto',             // Atualizado
-            'district' => 'Porto',             // Atualizado
+            'street' => 'Rua Teste',
+            'postal_code' => '4000-000',
+            'door' => '1A',
+            'county' => 'Porto',
+            'location' => 'Porto',
+            'district' => 'Porto',
             'created_at' => now(),
             'updated_at' => now(),
         ]);

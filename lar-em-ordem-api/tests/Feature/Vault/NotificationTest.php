@@ -2,95 +2,116 @@
 
 namespace Tests\Feature\Vault;
 
+use Tests\TestCase;
 use App\Models\User\User;
-use App\Models\Vault\Notification;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class NotificationTest extends TestCase
 {
-    // Limpa e reconstrói a base de dados antes de cada teste correr, garantindo isolamento
     use RefreshDatabase;
 
-    private int $propertyId;
-    private User $user;
-
-    /**
-     * O método setUp corre automaticamente ANTES de cada teste individual.
-     * Serve para preparar o estado base que todos os testes vão precisar.
-     */
-    protected function setUp(): void
+    private function createTestProperty(): int
     {
-        parent::setUp();
+        Schema::disableForeignKeyConstraints();
 
-        // Cria um utilizador falso
-        $this->user = User::factory()->create();
+        $typeId = DB::table('property_types')->insertGetId([
+            'type' => 'Apartamento',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        $this->propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => 1,
-            'property_typology_id' => 1,
-            'address_id' => 1,
+        $typologyId = DB::table('property_typologies')->insertGetId([
+            'typology' => 'T2',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $addressId = DB::table('addresses')->insertGetId([
+            'street' => 'Rua Teste',
+            'postal_code' => '4000-000',
+            'door' => '1A',
+            'county' => 'Porto',
+            'location' => 'Porto',
+            'district' => 'Porto',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $propertyId = DB::table('properties')->insertGetId([
+            'property_type_id' => $typeId,
+            'property_typology_id' => $typologyId,
+            'address_id' => $addressId,
             'area' => 100,
             'fraction' => 'A',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        Schema::enableForeignKeyConstraints();
+
+        return $propertyId;
     }
 
-    /**
-     * Testa se um utilizador consegue obter a lista das suas notificações.
-     */
     public function test_user_can_list_notifications(): void
     {
-        // Inserir uma notificação na base de dados
-        Notification::create([
-            'property_id' => $this->propertyId,
-            'type' => 'document_expiry',
-            'title' => 'Test Alert',
-            'message' => 'This is a test notification.',
+        $user = User::factory()->create();
+        $propertyId = $this->createTestProperty();
+
+        DB::table('vault_notifications')->insert([
+            'property_id' => $propertyId,
+            'type' => 'Alerta',
+            'title' => 'Documento a expirar',
+            'message' => 'O seu certificado energético expira em 30 dias.',
             'alert_date' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // Fazer um pedido GET autenticado à rota de listagem
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v1/notifications?property_id={$this->propertyId}");
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson("/api/v1/notifications?property_id={$propertyId}");
 
-        // Verificar se a API devolve 200 OK e a estrutura JSON correta
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'property_id', 'title', 'message', 'is_read']
+                    '*' => [
+                        'id',
+                        'property_id',
+                        'type',
+                        'title',
+                        'message',
+                        'alert_date',
+                        'read_at'
+                    ]
                 ]
             ]);
     }
 
-    /**
-     * Testa se um utilizador consegue marcar uma notificação como lida.
-     */
     public function test_user_can_mark_notification_as_read(): void
     {
-        // Criar uma notificação por ler
-        $notification = Notification::create([
-            'property_id' => $this->propertyId,
-            'type' => 'system_alert',
-            'title' => 'Unread Alert',
-            'message' => 'Please read me.',
+        $user = User::factory()->create();
+        $propertyId = $this->createTestProperty();
+
+        $notificationId = DB::table('vault_notifications')->insertGetId([
+            'property_id' => $propertyId,
+            'type' => 'Alerta',
+            'title' => 'Documento a expirar',
+            'message' => 'O seu certificado energético expira em 30 dias.',
             'alert_date' => now(),
+            'read_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // Fazer um pedido PATCH autenticado para atualizar o estado
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->patchJson("/api/v1/notifications/{$notification->id}/read");
+        $response = $this->actingAs($user, 'sanctum')
+            ->patchJson("/api/v1/notifications/{$notificationId}/read");
 
-        // Confirmar a resposta da API
-        $response->assertStatus(200)
-            ->assertJsonPath('data.is_read', true);
+        $response->assertStatus(200);
 
-        // Confirmar que a coluna read_at foi preenchida
-        // O método fresh() vai buscar a versão mais recente do registo à base de dados
-        $this->assertNotNull($notification->fresh()->read_at);
+        $this->assertDatabaseMissing('vault_notifications', [
+            'id' => $notificationId,
+            'read_at' => null,
+        ]);
     }
 }
