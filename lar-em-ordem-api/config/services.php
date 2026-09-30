@@ -14,6 +14,8 @@ return [
     |
     */
 
+    'python' => ['binary' => env('PYTHON_BINARY', base_path('.venv/bin/python'))],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

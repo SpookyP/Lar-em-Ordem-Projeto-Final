@@ -17,21 +17,21 @@ class PdfExtractionService
      * @throws ProcessFailedException Se a execução do comando no terminal falhar a nível de sistema.
      * @throws RuntimeException Se o script Python for executado mas reportar um erro na extração.
      */
-    public function extractInfo(string $absolutePath): array
+    public function extractInfo(string $path): array
     {
-        $process = new Process(['python3', base_path('scripts/extract_pdf.py'), $absolutePath]);
-        $process->run();
+        try {
+            $process = new Process([
+                config('services.python.binary', 'python3'),
+                base_path('scripts/extract_pdf.py'),
+                $path,
+            ]);
+            $process->setTimeout(30);
+            $process->mustRun();
 
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
+            return json_decode($process->getOutput(), true) ?? [];
+        } catch (\Throwable $e) {
+            \Log::warning('Falha na extração do PDF', ['erro' => $e->getMessage()]);
+            return [];
         }
-
-        $output = json_decode($process->getOutput(), true);
-
-        if (isset($output['status']) && $output['status'] === 'error') {
-            throw new RuntimeException("PDF Extraction Error: " . $output['message']);
-        }
-
-        return $output;
     }
 }
