@@ -21,8 +21,14 @@ return new class extends Migration
             $table->date('period_end');
             $table->decimal('total_amount', 10, 2);
             $table->string('supplier');
-            $table->string('file_path');
+            $table->string('file_path')->nullable();
             $table->timestamps();
+
+            $table->unique([
+                'user_id',
+                'supplier',
+                'invoice_number',
+            ]);
         });
     }
 

@@ -31,6 +31,16 @@ class Invoice extends Model
         'file_path',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'issue_date' => 'date',
+            'period_start' => 'date',
+            'period_end' => 'date',
+            'total_amount' => 'decimal:2',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
