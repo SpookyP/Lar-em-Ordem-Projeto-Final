@@ -14,7 +14,6 @@ Route::prefix('v1')->group(function () {
     require __DIR__ . '/modules/vault.php';
     require __DIR__ . '/modules/property.php';
     require __DIR__ . '/modules/resident.php';
-    require __DIR__ . '/modules/address.php';
     require __DIR__ . '/modules/invoice.php';
 });
 
