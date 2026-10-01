@@ -27,6 +27,16 @@ class Consumption extends Model
         'cost',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'period_start' => 'date',
+            'period_end' => 'date',
+            'amount' => 'decimal:3',
+            'cost' => 'decimal:2',
+        ];
+    }
+
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);

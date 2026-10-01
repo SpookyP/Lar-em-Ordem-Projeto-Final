@@ -19,6 +19,16 @@ return new class extends Migration
             $table->decimal('area', 8, 2)->nullable();
             $table->string('reference_period'); // Ex: Mensal ou Annual
             $table->decimal('average_value', 10, 3);
+
+            $table->unique([
+                'consumption_type_id',
+                'property_type_id',
+                'typology_id',
+                'reference_period',
+            ],           
+            'cb_type_property_typology_period_unique'
+            );
+            
         });
     }
 
