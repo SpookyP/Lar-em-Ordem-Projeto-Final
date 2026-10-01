@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConsumptionBenchmark extends Model
 {
+    public $timestamps = false;
+
     use HasFactory;
 
     protected $fillable = [
@@ -21,18 +23,23 @@ class ConsumptionBenchmark extends Model
         'average_value',
     ];
 
-    public function propertytype(): BelongsTo
+    protected $casts = [
+        'area' => 'decimal:2',
+        'average_value' => 'decimal:3',
+    ];
+
+    public function typology(): BelongsTo
     {
-        return $this->belongsTo(PropertyType::class);
+        return $this->belongsTo(PropertyTypology::class, 'typology_id');
     }
 
-    public function propertytypology(): BelongsTo
+    public function propertyType(): BelongsTo
     {
-        return $this->belongsTo(PropertyTypology::class);
+        return $this->belongsTo(PropertyType::class, 'property_type_id');
     }
 
-    public function consumptiontype(): BelongsTo
+    public function consumptionType(): BelongsTo
     {
-        return $this->belongsTo(ConsumptionType::class);
+        return $this->belongsTo(ConsumptionType::class, 'consumption_type_id');
     }
 }
