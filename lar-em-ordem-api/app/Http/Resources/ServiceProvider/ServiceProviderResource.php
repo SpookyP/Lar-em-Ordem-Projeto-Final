@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Resources\ServiceProvider;
 
 use Illuminate\Http\Request;

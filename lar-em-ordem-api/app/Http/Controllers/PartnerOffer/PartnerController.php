@@ -103,7 +103,7 @@ class PartnerController extends Controller
 
         $this->service->delete($partner);
 
-          return response()->json(['message' => 'Partner removed']);
+          return response()->json(['message' => 'Parceiro removido.']);
 
     }
 }

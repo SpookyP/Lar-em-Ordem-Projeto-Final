@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models\ServiceProvider;
+namespace App\Models\User;
 
+use App\Models\ServiceProvider\Proposal;
+use App\Models\ServiceProvider\ServiceZone;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
