@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PartnerOffer\OfferController;
 use App\Http\Controllers\PartnerOffer\PartnerController;
+use App\Http\Controllers\ServiceProvider\ServiceProviderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,8 +23,8 @@ Route::apiResource('partners', PartnerController::class);
 Route::get('offers/partner/{partner}', [OfferController::class, 'listByPartner']);
 Route::get('offers/recommendations', [OfferController::class, 'listActiveRecommendations']);
 Route::apiResource('offers', OfferController::class);
-
-
+Route::get('service-providers/active', [ServiceProviderController::class, 'listActiveProviders']);
+Route::apiResource('service-providers', ServiceProviderController::class);
 /*
 offers/partner/{partner} devolve { "data": [ {oferta}, {oferta} ] }, uma lista de ofertas de um partner.
 partners/offers/{partner} devolve { "data": { parceiro, "offers": [...] } }, um objeto do parceiro com todas as suas ofertas.

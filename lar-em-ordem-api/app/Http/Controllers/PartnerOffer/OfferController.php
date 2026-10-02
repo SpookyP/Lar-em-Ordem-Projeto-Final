@@ -77,7 +77,7 @@ class OfferController extends Controller
 
         $this->service->delete($offer);
 
-        return response()->json(['message' => 'Offer removed']);
+        return response()->json(['message' => 'Oferta removida.']);
     }
 
 
