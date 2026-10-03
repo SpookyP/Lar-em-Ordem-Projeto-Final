@@ -9,13 +9,18 @@ use App\Http\Resources\PartnerOffer\OfferResource;
 use App\Models\Offer\Offer;
 use App\Models\User\Partner;
 use App\Services\PartnerOffer\OfferService;
+use App\Services\PartnerOffer\PartnerService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 
 class OfferController extends Controller
 {
 
-    public function __construct(private OfferService $service) {}
+    public function __construct(
+        private OfferService $service,
+        private PartnerService $partnerService,
+    ) {}
 
     /**
      * Cria uma nova oferta associada a um parceiro.
@@ -25,12 +30,10 @@ class OfferController extends Controller
      */
     public function store(StoreOfferRequest $request)
     {
-        //$this->authorize('create', Offer::class);
+        Gate::authorize('create', Offer::class);
 
-        $fakePartner = \App\Models\User\Partner::inRandomOrder()->first(); //remover 
-
-        //$offer = $this->service->create($request->validated(), $partner);
-        $offer = $this->service->create($request->validated(), $fakePartner);
+        $partner = $this->partnerService->getByUser($request->user());
+        $offer = $this->service->create($request->validated(), $partner);
 
         return (new OfferResource($offer))
             ->response()
@@ -58,7 +61,7 @@ class OfferController extends Controller
      */
     public function update(UpdateOfferRequest $request, Offer $offer)
     {
-        //$this->authorize('update', $offer);
+        Gate::authorize('update', $offer);
 
         $updatedOffer = $this->service->update($offer, $request->validated());
 
@@ -73,7 +76,7 @@ class OfferController extends Controller
      */
     public function destroy(Offer $offer)
     {
-        //$this->authorize('delete', $offer);
+        Gate::authorize('delete', $offer);
 
         $this->service->delete($offer);
 

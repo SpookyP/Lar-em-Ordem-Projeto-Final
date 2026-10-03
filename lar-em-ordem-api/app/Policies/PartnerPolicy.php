@@ -2,18 +2,22 @@
 
 namespace App\Policies;
 
-use App\Models\Partner;
+use App\Models\User\Partner;
 use App\Models\User\User;
-use Illuminate\Auth\Access\Response;
 
 class PartnerPolicy
 {
+
+    public function before(User $user, string $ability): ?bool
+    {
+        return $user->hasRole('SU') ? true : null;
+    }
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +25,15 @@ class PartnerPolicy
      */
     public function view(User $user, Partner $partner): bool
     {
-        return false;
+        return true;
     }
 
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+   public function create(User $user): bool
     {
-        return false;
+        return $user->hasRole('partner');
     }
 
     /**
@@ -37,15 +41,15 @@ class PartnerPolicy
      */
     public function update(User $user, Partner $partner): bool
     {
-        return false;
+        return $partner->user_id === $user->id;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Partner $partner): bool
+     public function delete(User $user, Partner $partner): bool
     {
-        return false;
+        return $partner->user_id === $user->id;
     }
 
     /**
@@ -59,7 +63,7 @@ class PartnerPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Partner $partner): bool
+     public function forceDelete(User $user, Partner $partner): bool
     {
         return false;
     }

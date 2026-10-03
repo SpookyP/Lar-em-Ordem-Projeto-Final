@@ -6,9 +6,22 @@ namespace App\Services\PartnerOffer;
 use App\Models\User\Partner;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PartnerService
 {
+    public function findByUser(User $user): ?Partner
+    {
+        return Partner::where('user_id', $user->id)->first();
+    }
+
+    public function getByUser(User $user): Partner
+    {
+        return $this->findByUser($user)
+            ?? abort(403, 'Este utilizador não tem um perfil de parceiro.');
+    }
+    
     public function listActive(): Collection 
     {
         return Partner::where('active', true)->get();
@@ -16,6 +29,11 @@ class PartnerService
 
     public function create(array $data, User $owner): Partner
     {
+        if ($this->findByUser($owner)) {
+            throw ValidationException::withMessages([
+                'user_id' => 'Este utilizador já tem um perfil de parceiro.',
+            ]);
+        }
         return Partner::create($data + [
             'user_id' => $owner->id,
         ]);
@@ -29,7 +47,10 @@ class PartnerService
 
     public function delete(Partner $partner): void
     {
-        $partner->delete();
+        DB::transaction(function () use ($partner) {
+            $partner->offers()->delete();
+            $partner->delete();
+        });
     }
 
     public function loadWithOffers(Partner $partner): Partner

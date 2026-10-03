@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\PartnerOffer;
 
 use App\Http\Controllers\Controller;
-use App\Models\User\User;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\PartnerOffer\UpdatePartnerRequest;
 use App\Http\Resources\PartnerOffer\PartnerResource;
 use App\Models\User\Partner;
 use App\Services\PartnerOffer\PartnerService;
-
+use Illuminate\Support\Facades\Gate;
 
 class PartnerController extends Controller
 {
@@ -35,14 +34,9 @@ class PartnerController extends Controller
      */
     public function store(StorePartnerRequest $request)
     {
-        //Sanctum ainda não está ativo e ainda nao tenho policies
-        // $this->authorize('create', Partner::class); 
+        Gate::authorize('create', Partner::class); 
 
-        $fakeUser = User::first(); //remover 
-
-
-        //$partner = $this->service->create($request->validated(), $request->user()); 
-        $partner = $this->service->create($request->validated(), $fakeUser); //remover
+        $partner = $this->service->create($request->validated(), $request->user()); 
         
         return (new PartnerResource($partner))
             ->response()
@@ -83,7 +77,7 @@ class PartnerController extends Controller
      */
     public function update(UpdatePartnerRequest $request, Partner $partner)
     {
-        //$this->authorize('update', $partner);
+        Gate::authorize('update', $partner);
 
         $updatedPartner = $this->service->update($partner, $request->validated());
 
@@ -99,7 +93,7 @@ class PartnerController extends Controller
      */
     public function destroy(Partner $partner)
     {
-        //$this->authorize('delete', $partner);
+         Gate::authorize('delete', $partner);
 
         $this->service->delete($partner);
 
