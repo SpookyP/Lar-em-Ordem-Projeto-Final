@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\PartnerOffer\OfferController;
-use App\Http\Controllers\PartnerOffer\PartnerController;
-use App\Http\Controllers\ServiceProvider\ServiceProviderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,16 +13,9 @@ Route::prefix('v1')->group(function () {
     require __DIR__ . '/modules/property.php';
     require __DIR__ . '/modules/resident.php';
     require __DIR__ . '/modules/invoice.php';
+    require __DIR__ . '/modules/partner.php';
+    require __DIR__ . '/modules/offer.php';
+    require __DIR__ . '/modules/service_provider.php';
 });
 
-Route::get('partners/offers/{partner}', [PartnerController::class, 'showWithOffers']);
-Route::apiResource('partners', PartnerController::class);
-Route::get('offers/partner/{partner}', [OfferController::class, 'listByPartner']);
-Route::get('offers/recommendations', [OfferController::class, 'listActiveRecommendations']);
-Route::apiResource('offers', OfferController::class);
-Route::get('service-providers/active', [ServiceProviderController::class, 'listActiveProviders']);
-Route::apiResource('service-providers', ServiceProviderController::class);
-/*
-offers/partner/{partner} devolve { "data": [ {oferta}, {oferta} ] }, uma lista de ofertas de um partner.
-partners/offers/{partner} devolve { "data": { parceiro, "offers": [...] } }, um objeto do parceiro com todas as suas ofertas.
- */
+
