@@ -7,8 +7,8 @@ use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Http\Requests\ServiceProvider\UpdateServiceProviderRequest;
 use App\Http\Resources\ServiceProvider\ServiceProviderResource;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
-use App\Models\User\User;
 use App\Services\ServiceProvider\ServiceProviderService;
+use Illuminate\Support\Facades\Gate;
 
 class ServiceProviderController extends Controller
 {
@@ -28,13 +28,10 @@ class ServiceProviderController extends Controller
      */
     public function store(StoreServiceProviderRequest $request)
     {
-        // $this->authorize('create', ServiceProviderModel::class);
+        Gate::authorize('create', ServiceProviderModel::class);
 
-        $fakeUser = User::first(); // remover quando houver Sanctum
-
-        // $provider = $this->service->create($request->validated(), $request->user());
-        $provider = $this->service->create($request->validated(), $fakeUser);
-
+        $provider = $this->service->create($request->validated(), $request->user());
+        
         return (new ServiceProviderResource($provider))
             ->response()
             ->setStatusCode(201);
@@ -54,7 +51,7 @@ class ServiceProviderController extends Controller
      */
     public function update(UpdateServiceProviderRequest $request, ServiceProviderModel $serviceProvider)
     {
-          // $this->authorize('update', $serviceProvider);
+        Gate::authorize('update', $serviceProvider);
 
         $updated = $this->service->update($serviceProvider, $request->validated());
 
@@ -66,7 +63,7 @@ class ServiceProviderController extends Controller
      */
     public function destroy(ServiceProviderModel $serviceProvider)
     {
-        // $this->authorize('delete', $serviceProvider);
+        Gate::authorize('delete', $serviceProvider);
 
         $this->service->delete($serviceProvider);
 
