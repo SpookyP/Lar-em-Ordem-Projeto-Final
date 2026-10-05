@@ -1,5 +1,6 @@
-import { Droplet, Zap, Flame } from 'lucide-react';
+import { Droplet, Zap, Flame, FolderClosed } from 'lucide-react';
 import { SummaryCard } from '../../components/ui/SummaryCard';
+import { ShortcutCard } from '../../components/ui/ShortcutCard';
 
 export default function Dashboard() {
   return (
@@ -34,6 +35,20 @@ export default function Dashboard() {
               iconColor="bg-orange-light text-orange"
               value="8 m³"
               label="Gás · este mês"
+            />
+            <ShortcutCard
+              icon={FolderClosed}
+              iconColor="bg-navy/10 text-navy"
+              title="Cofre Digital"
+              description="1 documento a expirar"
+              to="/cofre"
+            />
+            <ShortcutCard
+              icon={Zap}
+              iconColor="bg-teal-light text-teal"
+              title="Consumos"
+              description="Registar fatura"
+              to="/consumos"
             />
           </div>
         </div>
