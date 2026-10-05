@@ -1,9 +1,14 @@
-import { Droplet, Zap, Flame, FolderClosed } from 'lucide-react';
-import { SummaryCard } from '../../components/ui/SummaryCard';
-import { ShortcutCard } from '../../components/ui/ShortcutCard';
-import { ConsumptionChart } from '../../components/ui/ConsumptionChart';
+import { Droplet, Zap, Flame, FolderClosed } from "lucide-react";
+import { SummaryCard } from "../../components/ui/SummaryCard";
+import { ShortcutCard } from "../../components/ui/ShortcutCard";
+import { ConsumptionChart } from "../../components/ui/ConsumptionChart";
+import { useState } from "react";
+
+const periods = ["1 mês", "2 meses", "6 meses"];
 
 export default function Dashboard() {
+  const [period, setPeriod] = useState("1 mês");
+
   return (
     <div className="flex flex-col gap-6">
       <header>
@@ -12,8 +17,36 @@ export default function Dashboard() {
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
-          <div className="rounded-2xl bg-card p-6 shadow-sm text-muted">
+          <div className="rounded-2xl bg-card p-8 shadow-sm">
+            {/* cabecalho do cartao */}
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h2 className="font-display text-xl text-navy">Gasto Mensal</h2>
+                <p className="text-sm text-muted">Último mês · Setembro 2026</p>
+              </div>
+
+              <div className="flex rounded-full bg-surface p-1">
+                {periods.map((p) => (
+                  <button
+                    hey={p}
+                    onClick={() => setPeriod(p)}
+                    className={`rounded-full px-3 py-1 text-sm transition ${
+                      period === p
+                        ? "bg-card text-navy shadow-sm"
+                        : "text-muted hover:text-navy"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <ConsumptionChart />
+
+            <p className="text-xs text-muted mt-6 ">
+              * Conversão: Água - 1m³ = 1000 L | Gás - 1m³ ~ 11,5 a 13,2 kWh
+            </p>
           </div>
         </div>
 
