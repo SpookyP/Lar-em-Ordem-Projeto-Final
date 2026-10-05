@@ -24,7 +24,7 @@ export function SideBar() {
                             key={item.path}
                             to={item.path}
                             className={({isActive}) =>
-                                `flex items-center gap-3 rounded-lg pz-3 py-2 text-sm transition 
+                                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition 
                                 ${isActive ? 'bg-navy-light text-white' : 'text-white/70 hover:bg-navy-light hover:text-white'}`
                             }>
                             <Icon size={20} />
