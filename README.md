@@ -49,29 +49,43 @@ pip install my-package
 minimum requirements and software versions.
 
 
-## 📄 Módulo de Extração de Faturas (Python)
+## 🐍 Scripts Python (extração de PDFs)
 
-Esta parte do projeto é responsável por extrair dados de faturas em PDF e enviá-los para a API REST do Laravel.
+Usados pelo Módulo 3 (Cofre Digital, extração da data de validade) e pelo
+módulo de extração de faturas. Requerem **Python 3** no ambiente onde o PHP corre.
 
-### Como configurar e executar:
+### Setup (uma vez, por máquina/ambiente)
 
-1. Entra na pasta do script Python:
-
-```bash
-   cd Lar-em-Ordem-Projeto-Final/lar-em-ordem-api/scripts
-```
-
-2. Instala as dependências necessárias:
+Na raiz do projeto `lar-em-ordem-api`:
 
 ```bash
-    pip install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/pip install -r scripts/requirements.txt
 ```
 
-3. Executa o script de teste dentro da respetiva pasta (Versão de Teste não defenitiva)
+> Em Windows: `python -m venv .venv` e `.venv\Scripts\pip install -r scripts\requirements.txt`.
+
+**Se usas Lerd** (o PHP corre num container Alpine, sem Python por defeito):
 
 ```bash
-    python test_InvoiceExtract.py
+lerd php:pkg add python3 py3-pip
+lerd php:rebuild
+lerd shell          # e, dentro do container, os comandos do venv acima
 ```
+
+O venv fica dentro do projeto (`.venv/`, ignorado pelo git), por isso sobrevive a
+reinícios do Lerd. Cria-o sempre no mesmo ambiente onde o PHP corre.
+
+### Executar o script de teste das faturas
+
+```bash
+.venv/bin/python scripts/test_InvoiceExtract.py
+```
+
+### Sem Python?
+O upload de documentos funciona na mesma, mas as datas (`issue_date`,
+`expiration_date`) têm de ser preenchidas à mão (a API devolve
+`extraction.success = false`).
 
 
 ## 💭 Feedback - Conclusão

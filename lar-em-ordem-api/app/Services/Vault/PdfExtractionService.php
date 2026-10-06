@@ -34,4 +34,23 @@ class PdfExtractionService
             return [];
         }
     }
+
+    private function pythonBinary(): ?string
+    {
+        $candidates = array_filter([
+            config('services.python.binary'),
+            base_path('.venv/bin/python'),
+            base_path('.venv/Scripts/python.exe'),
+            'python3',
+            'python',
+        ]);
+
+        foreach ($candidates as $bin) {
+            if (str_contains($bin, DIRECTORY_SEPARATOR) ? is_executable($bin) : true) {
+                return $bin;
+            }
+        }
+
+        return null;
+    }
 }
