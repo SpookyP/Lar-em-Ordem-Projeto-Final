@@ -2,18 +2,29 @@
 
 namespace App\Policies;
 
-use App\Models\Property;
+use App\Models\Property\Property;
 use App\Models\User\User;
 use Illuminate\Auth\Access\Response;
 
 class PropertyPolicy
 {
+    public function isOwner(User $user, Property $property): bool
+    {
+        if (!$user->resident) {
+            return false;
+        }
+
+        return $property->contracts()
+            ->where('resident_id', $user->resident->id)
+            ->where('is_active', true)
+            ->exists();
+    }
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->resident !== null;
     }
 
     /**
@@ -21,7 +32,7 @@ class PropertyPolicy
      */
     public function view(User $user, Property $property): bool
     {
-        return false;
+        return $this->isOwner($user, $property);
     }
 
     /**
@@ -29,7 +40,7 @@ class PropertyPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->resident !== null;
     }
 
     /**
@@ -37,7 +48,7 @@ class PropertyPolicy
      */
     public function update(User $user, Property $property): bool
     {
-        return false;
+        return $this->isOwner($user, $property);
     }
 
     /**
@@ -45,22 +56,16 @@ class PropertyPolicy
      */
     public function delete(User $user, Property $property): bool
     {
-        return false;
+        return $this->isOwner($user, $property);
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Property $property): bool
+    public function terminateContract(User $user, Property $property): bool
     {
-        return false;
+        return $this->isOwner($user, $property);
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Property $property): bool
+    public function viewOptions(User $user): bool
     {
-        return false;
+        return $user->resident !== null;
     }
 }

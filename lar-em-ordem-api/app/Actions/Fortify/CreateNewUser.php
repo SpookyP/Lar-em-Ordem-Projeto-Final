@@ -23,48 +23,82 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-       $rules = [
+        $role = !empty($input['role']) ? $input['role'] : null;
+        $rules = [
             'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email'    => ['required', 'string', 'email', 'max:255'],
             'password' => $this->passwordRules(),
-            'role'     => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner','condominium_admin'])],
+            'role'     => ['nullable', 'string', Rule::in(['resident', 'service_provider', 'partner'])], // No Futuro Adicionar 'condominium_admin'
         ];
 
-        $roleRules = match ($input['role'] ?? null) {
+        $roleRules = match ($role) {
             'resident' => [
-                'nif' => ['required', 'string', 'digits:9', 'unique:residents,nif'],
+                'nif' => [
+                    'required',
+                    'string',
+                    'digits:9'
+                ],
             ],
             'partner' => [
-                'nif'         => ['required', 'string', 'digits:9', 'unique:partners,nif'],
+                'nif'         => ['required', 'string', 'digits:9'],
                 'phone'       => ['required', 'string', 'max:15'],
                 'description' => ['required', 'string'],
                 'website'     => ['nullable', 'string', 'url'],
             ],
             'service_provider' => [
-                'company_name' => ['required', 'string', 'max:255'],
-                'nif'          => ['required', 'string', 'digits:9', 'unique:service_providers,nif'],
-                'phone'        => ['required', 'string', 'max:15'],
+                'company_name'   => ['required', 'string', 'max:255'],
+                'nif'            => ['required', 'string', 'digits:9'],
+                'phone'          => ['required', 'string', 'max:15'],
                 'provider_email' => ['required', 'string', 'email', 'unique:service_providers,email'],
-                'description'  => ['required', 'string'],
+                'description'    => ['required', 'string'],
             ],
             default => [],
         };
 
         Validator::make($input, array_merge($rules, $roleRules))->validate();
 
-        return DB::transaction(function () use ($input) {
-            $user = User::create([
-                'name'     => $input['name'],
-                'email'    => $input['email'],
-                'password' => Hash::make($input['password']),
-            ]);
+        $user = User::where('email', $input['email'])->first();
 
-            $user->assignRole($input['role']);
+        if ($user) {
+            if (!Hash::check($input['password'], $user->password)) {
+                throw ValidationException::withMessages([
+                    'password' => ['Invalid credentials for existing account.'],
+                ]);
+            }
 
-            match ($input['role']) {
+            $alreadyHasProfile = match ($role) {
+                'resident'         => $user->resident()->exists(),
+                'service_provider' => $user->service_provider()->exists(),
+                'partner'          => $user->partner()->exists(),
+                default            => false,
+            };
+
+            if ($alreadyHasProfile) {
+                throw ValidationException::withMessages([
+                    'role' => ["User already has a {$role} profile."],
+                ]);
+            }
+        }
+
+        return DB::transaction(function () use ($input, $user, $role) {
+            if (!$user) {
+                $user = User::create([
+                    'name'     => $input['name'],
+                    'email'    => $input['email'],
+                    'password' => Hash::make($input['password']),
+                ]);
+            }
+
+            if ($role) {
+                if (!$user->hasRole($role)) {
+                    $user->assignRole($role);
+                }
+            }
+
+            match ($role) {
                 'resident' => $user->resident()->create([
-                    'name'      => $user->name,
-                    'nif'       => $input['nif'],
+                    'name' => $user->name,
+                    'nif'  => $input['nif'],
                 ]),
 
                 'partner' => $user->partner()->create([
@@ -82,6 +116,8 @@ class CreateNewUser implements CreatesNewUsers
                     'email'        => $input['provider_email'],
                     'description'  => $input['description'],
                 ]),
+
+                default => null,
             };
 
             return $user;

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId("user_id")->constrained()->cascadeOnDelete();
             $table->string("name");
-            $table->string("nif")->unique();
+            $table->string("nif");
             $table->boolean("is_active")->default(true);
             $table->softDeletes();
             $table->timestamps();
