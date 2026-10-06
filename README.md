@@ -87,6 +87,11 @@ O upload de documentos funciona na mesma, mas as datas (`issue_date`,
 `expiration_date`) têm de ser preenchidas à mão (a API devolve
 `extraction.success = false`).
 
+### Importante (Lerd): 
+Corre `lerd shell` primeiro e só depois os comandos do venv, dentro do container. 
+Um venv criado no host (CachyOS, Ubuntu...) não funciona no container Alpine, 
+e vice-versa. Se aparecer `Error loading shared library ld-linux-x86-64.so.2`, 
+apaga o `.venv` e recria-o a partir do container.
 
 ## 💭 Feedback - Conclusão
 

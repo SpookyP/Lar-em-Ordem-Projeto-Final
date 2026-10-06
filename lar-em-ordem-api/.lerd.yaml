@@ -1,4 +1,5 @@
 domains:
+  - lar-em-ordem-api-2
   - lar-em-ordem-api
 php_version: "8.5"
 node_version: "22"

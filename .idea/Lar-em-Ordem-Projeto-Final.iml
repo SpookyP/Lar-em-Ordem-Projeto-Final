@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/lar-em-ordem-api-old/app" isTestSource="false" packagePrefix="App\" />
       <sourceFolder url="file://$MODULE_DIR$/lar-em-ordem-api-old/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/lar-em-ordem-api-old/tests" isTestSource="true" packagePrefix="Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/lar-em-ordem-api/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/storage/app" />
       <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/storage/framework" />
       <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/vendor/spatie/laravel-package-tools" />
