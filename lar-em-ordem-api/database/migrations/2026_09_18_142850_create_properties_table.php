@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('properties', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id')->primary();
             $table->foreignId("property_type_id")->constrained()->restrictOnDelete();
             $table->foreignId("property_typology_id")->constrained()->restrictOnDelete();
-            $table->foreignId("address_id")->constrained()->cascadeOnDelete();
-            $table->foreignId("condominium_id")->nullable()->constrained()->restrictOnDelete();
+            $table->foreignUlid("address_id")->constrained()->cascadeOnDelete();
+            $table->foreignUlid("condominium_id")->nullable()->constrained()->restrictOnDelete();
             $table->integer("area");
             $table->string("fraction")->nullable();
             $table->softDeletes();

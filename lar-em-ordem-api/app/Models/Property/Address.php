@@ -6,11 +6,12 @@ use App\Models\Condominium\Condominium;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Address extends Model
 {
     /** @use HasFactory<\Database\Factories\AddressFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasUlids;
 
     protected $fillable = ['street',
     'postal_code',

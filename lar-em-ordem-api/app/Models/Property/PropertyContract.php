@@ -7,11 +7,12 @@ use App\Models\User\ResidentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class PropertyContract extends Model
 {
     /** @use HasFactory<\Database\Factories\PropertyContractFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasUlids;
 
     protected $fillable = [
         'property_id',

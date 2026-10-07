@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('service_providers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")->constrained();
+            $table->foreignUlid("user_id")->constrained();
             $table->string('company_name');
             $table->string('nif', 9);
             $table->string('phone', 15);
