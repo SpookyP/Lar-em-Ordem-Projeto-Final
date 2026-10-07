@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User\ResidentType;
 use Illuminate\Database\Seeder;
 
 class ResidentTypeSeeder extends Seeder
@@ -12,6 +12,13 @@ class ResidentTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $types = [
+            ['type' => 'Owner'],
+            ['type' => 'Tenant'],
+        ];
+
+        foreach ($types as $type) {
+            ResidentType::firstOrCreate($type);
+        }
     }
 }

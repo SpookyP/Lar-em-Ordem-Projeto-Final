@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Property;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property\Property;
 use App\Services\Property\PropertyService;
 use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
@@ -13,7 +14,10 @@ use Illuminate\Http\JsonResponse;
 
 class PropertyController extends Controller
 {
-    public function __construct(protected PropertyService $service) {}
+    public function __construct(protected PropertyService $service)
+    {
+        $this->authorizeResource(Property::class, 'property');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -22,7 +26,7 @@ class PropertyController extends Controller
         $request->validate(['per_page' => ['sometimes', 'integer', 'between:1,15'],]);
 
         $properties = $this->service->getResidentProperties(
-            userId: $request->user()->id,
+            user: $request->user(),
             perPage: $request->integer('per_page', 5)
         );
 
@@ -35,7 +39,7 @@ class PropertyController extends Controller
     public function store(StorePropertyRequest $request): JsonResponse
     {
         $property = $this->service->createResidentProperty(
-            userId: $request->user()->id,
+            user: $request->user(),
             propertyData: $request->propertyData(),
             contractData: $request->contractData(),
             addressData: $request->addressData(),
@@ -49,29 +53,31 @@ class PropertyController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $propertyId): JsonResponse
+    public function show(Property $property): JsonResponse
     {
-        $property = $this->service->getResidentPropertyById(
-            propertyId: $propertyId,
-            userId: $request->user()->id
-        );
-        return PropertyResource::make($property)
-            ->response();
+        $property->load([
+            'address',
+            'propertyType',
+            'propertyTypology',
+            'contracts' => fn($q) => $q->where('is_active', true)->with('residentType'),
+        ]);
+
+        return PropertyResource::make($property)->response();
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePropertyRequest $request, int $propertyId)
+    public function update(UpdatePropertyRequest $request, Property $property)
     {
-        $property = $this->service->updateResidentProperty(
-            propertyId: $propertyId,
-            userId: $request->user()->id,
+        $updatedProperty = $this->service->updateResidentProperty(
+            property: $property,
             propertyData: $request->propertyData(),
             contractData: $request->contractData(),
             addressData: $request->addressData(),
         );
-        return PropertyResource::make($property)
+
+        return PropertyResource::make($updatedProperty)
             ->additional(['message' => 'Property updated successfully.'])
             ->response();
     }
@@ -79,12 +85,9 @@ class PropertyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, int $propertyId)
+    public function destroy(Property $property)
     {
-        $response = $this->service->deleteResidentProperty(
-            propertyId: $propertyId,
-            userId: $request->user()->id
-        );
+        $this->service->deleteResidentProperty($property);
         return response()->json(['message' => 'Property was successfully deleted']);
     }
 
@@ -93,17 +96,20 @@ class PropertyController extends Controller
      */
     public function formOptions(): JsonResponse
     {
-        $options = $this->service->getPropertyForms();
+        $this->authorize('viewOptions', Property::class);
+ 
         return response()->json([
-            'data' => $options
+            'data' => $this->service->getPropertyForms()
         ]);
     }
 
-    public function terminateContract(Request $request, int $propertyId): JsonResponse
+    public function terminateContract(Request $request, Property $property): JsonResponse
     {
+        $this->authorize('terminate', $property);
+
         $terminated = $this->service->terminateContract(
-            propertyId: $propertyId,
-            userId: $request->user()->id
+            property: $property,
+            user: $request->user()
         );
 
         if (!$terminated) {
