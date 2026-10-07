@@ -1,10 +1,11 @@
 import json
 import re
+import os
 import pdfplumber
 import requests
 
 # --- CONFIGURAÇÕES ---
-API_URL = "http://127.0.0.1:8000/api/invoices"
+API_URL = "http://127.0.0.1:8000/api/v1/invoices"
 # Por enquanto introdução de Bearer Token e File Paths Manual para testes (File Paths disponiveis = fatura_teste.pdf e fatura_gas_teste_pdf)
 BEARER_TOKEN = " "
 PDF_FILE_PATH = "fatura_teste.pdf"
@@ -130,7 +131,7 @@ def extract_invoice_data(pdf_path):
       "period_end": period_end,
       "total_amount": total_amount,
       "supplier": supplier,
-      "file_path": pdf_path,
+      # "file_path": pdf_path,
       "consumptions": consumptions,
   }
 

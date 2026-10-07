@@ -18,9 +18,11 @@ class ConsumptionBenchmark extends Model
         'consumption_type_id',
         'property_type_id',
         'typology_id',
-        'area',
+        'region',
+        'period_start',
         'reference_period',
         'average_value',
+        'sample_size',
     ];
 
     protected $casts = [

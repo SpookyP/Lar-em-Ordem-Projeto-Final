@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -70,5 +71,8 @@ class DatabaseSeeder extends Seeder
         $user->assignRole('resident');
 
         $this->call(PartnerSeeder::class);
+
+        // Rodar o script de Benchmark_Backfill automaticamente para criar os Benchmarks de mêses passados
+        Artisan::call('benchmarks:backfill');
     }
 }
