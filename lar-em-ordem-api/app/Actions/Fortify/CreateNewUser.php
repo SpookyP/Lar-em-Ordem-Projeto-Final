@@ -28,7 +28,7 @@ class CreateNewUser implements CreatesNewUsers
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255'],
             'password' => $this->passwordRules(),
-            'role'     => ['nullable', 'string', Rule::in(['resident', 'service_provider', 'partner'])], // No Futuro Adicionar 'condominium_admin'
+            'role'     => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])], // No Futuro Adicionar 'condominium_admin'
         ];
 
         $roleRules = match ($role) {
