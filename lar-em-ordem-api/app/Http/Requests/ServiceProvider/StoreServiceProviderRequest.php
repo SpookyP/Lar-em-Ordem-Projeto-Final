@@ -15,7 +15,7 @@ class StoreServiceProviderRequest extends FormRequest
     {
         return [
             'company_name' => 'required|string|max:255',
-            'nif'          => 'required|string|digits:9|unique:service_providers,nif',
+            'nif'          => 'required|string|digits:9',
             'phone'        => 'required|string|max:15',
             'email'        => 'required|email|max:255|unique:service_providers,email',
             'description'  => 'required|string',
@@ -25,7 +25,6 @@ class StoreServiceProviderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nif.unique'   => 'Já existe um prestador de serviços com este NIF.',
             'email.unique' => 'Já existe um prestador de serviços com este email.',
         ];
     }
