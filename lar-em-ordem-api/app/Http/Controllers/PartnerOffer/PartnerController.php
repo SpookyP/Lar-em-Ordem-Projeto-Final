@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\PartnerOffer;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\PartnerOffer\UpdatePartnerRequest;
 use App\Http\Resources\PartnerOffer\PartnerResource;
 use App\Models\User\Partner;
 use App\Services\PartnerOffer\PartnerService;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 
 class PartnerController extends Controller
 {
@@ -25,24 +25,6 @@ class PartnerController extends Controller
 
         return PartnerResource::collection($partners);
     }
-
-    /**
-     * Cria um novo perfil de parceiro associado a um utilizador.
-     * 
-     * @param StorePartnerRequest $request Dados validados.
-     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
-     */
-    public function store(StorePartnerRequest $request)
-    {
-        Gate::authorize('create', Partner::class); 
-
-        $partner = $this->service->create($request->validated(), $request->user()); 
-        
-        return (new PartnerResource($partner))
-            ->response()
-            ->setStatusCode(201);
-    }
-
    
     /**
      * Devolve os detalhes de um parceiro específico.
@@ -67,6 +49,16 @@ class PartnerController extends Controller
         return new PartnerResource($this->service->loadWithOffers($partner));
     }
     
+    public function store(StorePartnerRequest $request)
+    {
+        Gate::authorize('create', Partner::class);
+
+        $partner = $this->service->create($request->validated(), $request->user());
+
+        return (new PartnerResource($partner))
+            ->response()
+            ->setStatusCode(201);
+    }
 
     /**
      * Atualiza os dados de um parceiro existente.

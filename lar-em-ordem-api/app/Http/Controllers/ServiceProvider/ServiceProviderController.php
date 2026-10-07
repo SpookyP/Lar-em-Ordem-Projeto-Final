@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Http\Requests\ServiceProvider\UpdateServiceProviderRequest;
 use App\Http\Resources\ServiceProvider\ServiceProviderResource;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Services\ServiceProvider\ServiceProviderService;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 
 class ServiceProviderController extends Controller
 {
@@ -22,21 +22,6 @@ class ServiceProviderController extends Controller
         return ServiceProviderResource::collection(($this->service->listActive()));
     }
 
- 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreServiceProviderRequest $request)
-    {
-        Gate::authorize('create', ServiceProviderModel::class);
-
-        $provider = $this->service->create($request->validated(), $request->user());
-        
-        return (new ServiceProviderResource($provider))
-            ->response()
-            ->setStatusCode(201);
-    }
-
     /**
      * Display the specified resource.
      */
@@ -45,6 +30,16 @@ class ServiceProviderController extends Controller
         return new ServiceProviderResource($this->service->loadFull($serviceProvider));
     }
 
+    public function store(StoreServiceProviderRequest $request)
+    {
+        Gate::authorize('create', ServiceProviderModel::class);
+
+        $provider = $this->service->create($request->validated(), $request->user());
+
+        return (new ServiceProviderResource($provider))
+            ->response()
+            ->setStatusCode(201);
+    }
  
     /**
      * Update the specified resource in storage.
