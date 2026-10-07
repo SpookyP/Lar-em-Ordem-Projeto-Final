@@ -73,7 +73,7 @@ class PropertyService
         });
     }
 
-    public function updateResidentProperty(Property $property, array $propertyData, array $contractData, array $addressData): Property
+    public function updateResidentProperty(Property $property, array $propertyData, array $contractData, ?array $addressData = null): Property
     {
         return DB::transaction(function () use ($propertyData, $contractData, $addressData, $property) {
 

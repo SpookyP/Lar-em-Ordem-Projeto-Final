@@ -25,14 +25,20 @@ class UpdateServiceProviderRequest extends FormRequest
     {
         return [
             'company_name' => 'sometimes|required|string|max:255',
-            'nif' => [
-                'sometimes', 'required', 'string', 'max:9',
-                Rule::unique('service_providers', 'nif')->ignore($this->route('service_provider')),
+            'nif'          => 'sometimes|required|string|digits:9',
+            'phone'       => 'sometimes|required|string|max:15',
+            'email' => [
+                'sometimes', 'required', 'email', 'max:255',
+                Rule::unique('service_providers', 'email')->ignore($this->route('service_provider')),
             ],
-            'phone'       => 'sometimes|required|string|max:30',
-            'email'       => 'sometimes|required|email|max:255',
             'description' => 'sometimes|required|string',
             'active'      => 'sometimes|boolean',
+        ];    
+    }
+     public function messages(): array
+    {
+        return [
+            'email.unique' => 'Já existe um prestador de serviços com este email.',
         ];
     }
 }

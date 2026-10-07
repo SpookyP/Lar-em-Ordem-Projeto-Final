@@ -29,11 +29,11 @@ class PartnerPolicy
     }
 
     /**
-     * Determine whether the user can create models.
-     */
+    * The partner profile is created during registration (CreateNewUser), not by this resource.
+    */
    public function create(User $user): bool
     {
-        return $user->hasRole('partner');
+        return true;
     }
 
     /**

@@ -34,9 +34,13 @@ class PartnerService
                 'user_id' => 'Este utilizador já tem um perfil de parceiro.',
             ]);
         }
-        return Partner::create($data + [
-            'user_id' => $owner->id,
-        ]);
+        return DB::transaction(function () use ($data, $owner) {
+            $owner->assignRole('partner');
+
+            return Partner::create($data + [
+                'user_id' => $owner->id,
+            ]);
+        });
     }
 
     public function update(Partner $partner, array $data): Partner
@@ -45,11 +49,12 @@ class PartnerService
         return $partner;
     }
 
-    public function delete(Partner $partner): void
+   public function delete(Partner $partner): void
     {
         DB::transaction(function () use ($partner) {
             $partner->offers()->delete();
             $partner->delete();
+            $partner->user->removeRole('partner');
         });
     }
 

@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Property\PropertyType;
 use Illuminate\Database\Seeder;
 
 class PropertyTypeSeeder extends Seeder
@@ -12,6 +12,13 @@ class PropertyTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $types = [
+            ['type' => 'Apartment'],
+            ['type' => 'House'],
+        ];
+
+        foreach ($types as $type) {
+            PropertyType::firstOrCreate($type);
+        }
     }
 }

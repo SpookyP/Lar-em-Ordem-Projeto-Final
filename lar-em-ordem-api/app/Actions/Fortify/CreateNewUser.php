@@ -23,7 +23,7 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        $role = !empty($input['role']) ? $input['role'] : null;
+        $role = $input['role'] ?? null;;
         $rules = [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255'],
