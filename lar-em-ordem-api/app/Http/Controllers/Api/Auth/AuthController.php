@@ -58,11 +58,11 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        $rules = [
-            'role' => ['nullable', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
-        ];
+        $rules = $request->validate([
+            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+        ]);
 
-        $role = !empty($request->input('role')) ? $request->input('role') : null;
+        $role = $rules['role'];
 
         $roleRules = match ($role) {
             'resident' => [
@@ -78,7 +78,7 @@ class AuthController extends Controller
                 'company_name'   => ['required', 'string', 'max:255'],
                 'nif'            => ['required', 'string', 'digits:9'],
                 'phone'          => ['required', 'string', 'max:15'],
-                'provider_email' => ['required', 'string', 'email'],
+                'provider_email' => ['required', 'string', 'email', 'unique:service_providers,email'],
                 'description'    => ['required', 'string'],
             ],
             default => [],
@@ -97,18 +97,6 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'role' => ["You already have a {$role} profile attached to this account."],
             ]);
-        }
-
-        if ($role === 'service_provider') {
-            $emailExists = DB::table('service_providers')
-                ->where('email', $validated['provider_email'])
-                ->exists();
-
-            if ($emailExists) {
-                throw ValidationException::withMessages([
-                    'provider_email' => ['The provider email has already been taken.'],
-                ]);
-            }
         }
 
         DB::transaction(function () use ($user, $validated, $role) {
