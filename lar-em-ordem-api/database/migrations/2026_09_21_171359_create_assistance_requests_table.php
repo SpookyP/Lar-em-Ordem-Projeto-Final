@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('assistance_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('property_id')->constrained();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignUlid('property_id')->constrained();
+            $table->foreignUlid('user_id')->constrained();
             $table->foreignId('problem_category_id')->constrained();
             $table->string('title');
             $table->text('description');

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('vault_notifications', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('property_id')->constrained('properties')->cascadeOnDelete();
+            $table->foreignUlid('property_id')->constrained('properties')->cascadeOnDelete();
 
             $table->foreignId('document_id')->nullable()->constrained('vault_documents')->cascadeOnDelete();
 

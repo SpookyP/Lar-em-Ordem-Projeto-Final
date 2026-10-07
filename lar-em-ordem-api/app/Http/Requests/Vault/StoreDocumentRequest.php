@@ -29,7 +29,7 @@ class StoreDocumentRequest extends FormRequest
     {
         return [
             // Valida se os IDs enviados existem efetivamente nas tabelas relacionadas
-            'property_id' => ['required', 'integer', 'exists:properties,id'],
+            'property_id' => ['required', 'string', 'exists:properties,id'],
             'document_category_id' => ['required', 'integer', 'exists:document_categories,id'],
 
             // Dados opcionais preenchidos pelo utilizador

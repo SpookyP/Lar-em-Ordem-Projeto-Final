@@ -6,11 +6,11 @@ use App\Models\Property\PropertyContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 class Resident extends Model
 {
     /** @use HasFactory<\Database\Factories\ResidentFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasUlids;
 
 	protected $fillable = ['user_id','name','nif','is_active'];
 

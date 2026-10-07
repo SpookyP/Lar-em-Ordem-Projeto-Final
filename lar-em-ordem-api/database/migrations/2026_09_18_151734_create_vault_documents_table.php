@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('vault_documents', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('property_id')->constrained('properties')->cascadeOnDelete();
+            $table->foreignUlid('property_id')->constrained('properties')->cascadeOnDelete();
             $table->foreignId('document_category_id')->constrained('document_categories')->cascadeOnDelete();
 
             $table->string('name');

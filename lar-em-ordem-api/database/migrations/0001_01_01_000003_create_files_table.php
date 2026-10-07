@@ -11,9 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('condominia', function (Blueprint $table) {
+        Schema::create('files', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->softDeletes();
+            $table->foreignUlid('user_id')->constrained()->cascadeOnDelete();
+            $table->string('title');
+            $table->string('original_name');
+            $table->string('path');
+            $table->string('mime_type');
+            $table->unsignedBigInteger('size_in_bytes');
+            $table->string('category');
             $table->timestamps();
         });
     }
@@ -23,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('condominia');
+        Schema::dropIfExists('files');
     }
 };
