@@ -15,17 +15,10 @@ class StorePartnerRequest extends FormRequest
     {
         return [
             'name'        => 'required|string|max:255',
-            'nif'         => 'required|string|digits:9|unique:partners,nif',
+            'nif'         => 'required|string|digits:9',
             'phone'       => 'required|string|max:15',
             'website'     => 'nullable|string|url|max:255',
             'description' => 'required|string',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'nif.unique' => 'Este NIF já se encontra registado.',
         ];
     }
 }

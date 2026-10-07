@@ -3,7 +3,6 @@
 namespace App\Http\Requests\PartnerOffer;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdatePartnerRequest extends FormRequest
 {
@@ -24,21 +23,11 @@ class UpdatePartnerRequest extends FormRequest
     {
         return [
             'name'        => 'sometimes|required|string|max:255',
-            'nif' => [
-                        'sometimes','required', 'string', 'max:9', 
-                        Rule::unique('partners', 'nif')->ignore($this->route('partner')),
-            ],
+            'nif'         => 'sometimes|required|string|digits:9',
             'phone'       => 'sometimes|required|string|max:15',
-            'website'     => 'nullable|string|max:255',
+            'website'     => 'nullable|string|url|max:255',
             'description' => 'sometimes|required|string',
             'active'      => 'sometimes|required|boolean'
         ];
     }
-
-    public function messages(): array
-        {
-            return [
-                'nif.unique' => 'Este NIF já se encontra registado.',
-            ];
-        }
 }
