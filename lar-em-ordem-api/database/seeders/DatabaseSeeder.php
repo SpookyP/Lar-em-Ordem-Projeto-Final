@@ -41,5 +41,7 @@ class DatabaseSeeder extends Seeder
             InvoiceSeeder::class,
             ConsumptionSeeder::class,
         ]);
+
+        $this->call(ServiceZoneSeeder::class);
     }
 }
