@@ -19,9 +19,9 @@ class ServiceProvider extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function zones()
+     public function zones()
     {
-        return $this->belongsToMany(ServiceZone::class);
+        return $this->belongsToMany(ServiceZone::class)->withTimestamps();
     }
 
    /*  ENTIDADE, PIVOT ENTRE SPEC, CAT E PROVIDER
