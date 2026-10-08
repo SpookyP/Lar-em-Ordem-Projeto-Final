@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('proposals', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('assistance_request_id')->constrained()->onDelete('cascade');
-            $table->foreignId('service_provider_id')->constrained();
+            $table->ulid('id')->primary();
+            $table->foreignUlid('assistance_request_id')->constrained()->onDelete('cascade');
+            $table->foreignUlid('service_provider_id')->constrained();
             $table->decimal('estimated_value', 12, 2);
             $table->text('description');
             $table->date('validity');                    
