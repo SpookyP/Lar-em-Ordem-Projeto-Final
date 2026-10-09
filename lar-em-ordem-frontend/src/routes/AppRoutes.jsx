@@ -7,6 +7,7 @@ import Login from "../pages/Login/Login";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import NaoAutorizado from "../pages/NaoAutorizado/NaoAutorizado";
 import Register from "../pages/Register/Register";
+import Profiles from "../pages/Profiles/Profiles";
 
 export function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ export function AppRoutes() {
 
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>
+          <Route path="/perfis" element={<Profiles />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
