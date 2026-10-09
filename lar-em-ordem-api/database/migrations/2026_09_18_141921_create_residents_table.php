@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('residents', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId("user_id")->constrained()->cascadeOnDelete();
+            $table->ulid('id')->primary();
+            $table->foreignUlid("user_id")->constrained()->cascadeOnDelete();
             $table->string("name");
-            $table->string("nif")->unique();
+            $table->string("nif");
             $table->boolean("is_active")->default(true);
             $table->softDeletes();
             $table->timestamps();

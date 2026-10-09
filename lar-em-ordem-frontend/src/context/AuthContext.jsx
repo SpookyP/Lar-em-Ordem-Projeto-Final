@@ -1,52 +1,64 @@
-import {useState, useEffect} from 'react';
-import { AuthContext } from './authContextObject';
-import {login as loginService, logout as logoutService, getCurrentUser} from '../services/api/authService';
+import { useState, useEffect } from "react";
+import { AuthContext } from "./authContextObject";
+import {
+  login as loginService,
+  logout as logoutService,
+  getCurrentUser,
+  register as registerService,
+} from "../services/api/authService";
 
 //Provider vai distribuir a info da autenticacao
-export function AuthProvider({children}) {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function checkSession(){
-            try {
-                const currentUser = await getCurrentUser();
-                setUser(currentUser);
-            } catch {
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
-        }
-        checkSession();
-    }, []);
-
-    async function login(email, password){
-        const user = await loginService(email, password);
-        setUser(user);
-        return user;
-    }
-
-    async function logout(){
-        await logoutService();
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch {
         setUser(null);
+      } finally {
+        setLoading(false);
+      }
     }
-    
-    function hasRole(roleName) {
-        if(!user?.roles)
-            return false;
+    checkSession();
+  }, []);
 
-        return user.roles.some((role) => role.name === roleName)
-    }
+  async function login(email, password) {
+    const user = await loginService(email, password);
+    setUser(user);
+    return user;
+  }
 
-    const value = {
-        user,
-        isAuthenticated: Boolean(user),
-        loading,
-        login,
-        logout,
-        hasRole
-    };
+  async function logout() {
+    await logoutService();
+    setUser(null);
+  }
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  async function register(data) {
+    await registerService(data);
+    const user = await getCurrentUser();
+    setUser(user);
+    return user;
+  }
+
+  function hasRole(roleName) {
+    if (!user?.roles) return false;
+
+    return user.roles.some((role) => role.name === roleName);
+  }
+
+  const value = {
+    user,
+    isAuthenticated: Boolean(user),
+    loading,
+    login,
+    logout,
+    register,
+    hasRole,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

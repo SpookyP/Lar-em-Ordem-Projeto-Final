@@ -20,7 +20,7 @@ class ConsumptionController extends Controller
     public function index(Request $request) 
     { 
         $validated = $request->validate([ 
-            'property_id' => ['nullable', 'integer'],
+            'property_id' => ['nullable', 'string', 'exists:properties,id'],
         ]);
         
         $consumptions = $this->service->getConsumptions( 

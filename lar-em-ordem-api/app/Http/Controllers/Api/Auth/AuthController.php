@@ -2,37 +2,16 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Models\User\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth as AuthFacade;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth as AuthFacade;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(),[
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        if ($validator->fails()) return response()->json(['errors' => $validator->errors()],422);
-    
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        AuthFacade::login($user);
-
-        return response()->json(['user' => $user], 201);
-    }
-    
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -43,7 +22,7 @@ class AuthController extends Controller
         if (!AuthFacade::attempt($credentials)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
-        
+
         $request->session()->regenerate();
 
         return response()->json(['user' => AuthFacade::user()]);
@@ -60,6 +39,100 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+
+        return response()->json([
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'roles' => $user->roles->pluck('name'),
+        ]);
+    }
+
+    /**
+     * Attach a new role and create the corresponding profile for the authenticated user.
+     *
+     * @throws ValidationException
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $rules = $request->validate([
+            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+        ]);
+
+        $role = $rules['role'];
+
+        $roleRules = match ($role) {
+            'resident' => [
+                'nif' => ['required', 'string', 'digits:9'],
+            ],
+            'partner' => [
+                'nif'         => ['required', 'string', 'digits:9'],
+                'phone'       => ['required', 'string', 'max:15'],
+                'description' => ['required', 'string'],
+                'website'     => ['nullable', 'string', 'url'],
+            ],
+            'service_provider' => [
+                'company_name'   => ['required', 'string', 'max:255'],
+                'nif'            => ['required', 'string', 'digits:9'],
+                'phone'          => ['required', 'string', 'max:15'],
+                'provider_email' => ['required', 'string', 'email', 'unique:service_providers,email'],
+                'description'    => ['required', 'string'],
+            ],
+            default => [],
+        };
+
+        $validated = $request->validate($roleRules);
+
+        $alreadyHasProfile = match ($role) {
+            'resident'         => $user->resident()->exists(),
+            'service_provider' => $user->service_provider()->exists(),
+            'partner'          => $user->partner()->exists(),
+            default            => false,
+        };
+
+        if ($alreadyHasProfile) {
+            throw ValidationException::withMessages([
+                'role' => ["You already have a {$role} profile attached to this account."],
+            ]);
+        }
+
+        DB::transaction(function () use ($user, $validated, $role) {
+            if (!$user->hasRole($role)) {
+                $user->assignRole($role);
+            }
+
+            match ($role) {
+                'resident' => $user->resident()->create([
+                    'name' => $user->name,
+                    'nif'  => $validated['nif'],
+                ]),
+
+                'partner' => $user->partner()->create([
+                    'name'        => $user->name,
+                    'nif'         => $validated['nif'],
+                    'phone'       => $validated['phone'],
+                    'website'     => $validated['website'] ?? null,
+                    'description' => $validated['description'],
+                ]),
+
+                'service_provider' => $user->service_provider()->create([
+                    'company_name' => $validated['company_name'],
+                    'nif'          => $validated['nif'],
+                    'phone'        => $validated['phone'],
+                    'email'        => $validated['provider_email'],
+                    'description'  => $validated['description'],
+                ]),
+
+                default => null,
+            };
+        });
+
+        return response()->json([
+            'message' => "Profile '{$role}' added successfully.",
+            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner']),
+        ], 201);
     }
 }

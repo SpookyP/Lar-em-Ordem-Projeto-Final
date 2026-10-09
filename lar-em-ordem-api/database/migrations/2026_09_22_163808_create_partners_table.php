@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('partners', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained();
+            $table->ulid('id')->primary();
+            $table->foreignUlid('user_id')->constrained();
             $table->string('name');
-            $table->string('nif', 9)->unique();
+            $table->string('nif', 9);
             $table->string('phone', 15);
             $table->string('website')->nullable();
             $table->text('description');

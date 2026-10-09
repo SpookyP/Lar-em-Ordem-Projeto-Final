@@ -4,9 +4,9 @@ namespace App\Services\Property;
 
 use App\Models\Property\Property;
 use App\Models\Property\Address;
+use App\Models\User\User;
 use App\Models\Property\PropertyType;
 use App\Models\Property\PropertyTypology;
-use App\Models\Property\PropertyContract;
 use App\Models\User\ResidentType;
 use App\Services\Resident\ResidentService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -16,12 +16,6 @@ use Illuminate\Support\Facades\Cache;
 class PropertyService
 {
     public function __construct(protected ResidentService $residentService) {}
-    #region Metodos Privados
-    private function _userIdtoResidentId(int $userId): int
-    {
-        return $this->residentService->getResidentByUserId($userId)->id;
-    }
-    #endregion
 
     #region CRUD
     #region Get Types
@@ -38,13 +32,11 @@ class PropertyService
     #endregion
 
     #region Get Properties
-    public function getResidentProperties(int $userId, int $perPage = 5): LengthAwarePaginator
+    public function getResidentProperties(User $user, int $perPage = 5): LengthAwarePaginator
     {
-        $residentId = $this->_userIdtoResidentId($userId);
-
         return Property::query()
-            ->whereHas('contracts', function ($query) use ($residentId) {
-                $query->where('resident_id', $residentId)
+            ->whereHas('contracts', function ($query) use ($user) {
+                $query->where('resident_id', $user->resident?->id)
                     ->where('is_active', true);
             })
             ->with([
@@ -57,39 +49,15 @@ class PropertyService
             ->paginate($perPage);
     }
 
-    public function getResidentPropertyById(int $propertyId, int $userId): ?Property
-    {
-        $residentId = $this->_userIdtoResidentId($userId);
-        $property = Property::query()
-            ->where('id', $propertyId)
-            ->whereHas('contracts', function ($query) use ($residentId) {
-                $query->where('resident_id', $residentId)
-                    ->where('is_active', true);
-            })
-            ->with([
-                'address',
-                'propertyType',
-                'propertyTypology',
-                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
-            ])
-            ->first();
-
-        if (!$property) {
-            abort(404, 'Property not found under the resident current properties');
-        }
-        return $property;
-    }
-
     #endregion
-    public function createResidentProperty(int $userId, array $propertyData, array $contractData, array $addressData): Property
+    public function createResidentProperty(User $user, array $propertyData, array $contractData, array $addressData): Property
     {
-        $residentId = $this->_userIdtoResidentId($userId);
-        return DB::transaction(function () use ($propertyData, $contractData, $addressData, $residentId,) {
+        return DB::transaction(function () use ($propertyData, $contractData, $addressData, $user) {
             $address = Address::create($addressData);
             $propertyData['address_id'] = $address->id;
             $property = Property::create($propertyData);
             $property->contracts()->create([
-                'resident_id'      => $residentId,
+                'resident_id'      => $user->resident->id,
                 'resident_type_id' => $contractData['resident_type_id'],
                 'start_date'       => $contractData['start_date'] ?? now(),
                 'end_date'         => $contractData['end_date'] ?? null,
@@ -100,17 +68,16 @@ class PropertyService
                 'address',
                 'propertyType',
                 'propertyTypology',
-                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
+                'contracts' => fn ($q) => $q->where('is_active', true)->with('residentType'),
             ]);
         });
     }
 
-    public function updateResidentProperty(int $propertyId, int $userId, array $propertyData, array $contractData, array $addressData): Property
+    public function updateResidentProperty(Property $property, array $propertyData, array $contractData, ?array $addressData = null): Property
     {
-        $property = $this->getResidentPropertyById($propertyId, $userId);
-        return DB::transaction(function () use ($propertyData, $contractData, $addressData, $property,) {
+        return DB::transaction(function () use ($propertyData, $contractData, $addressData, $property) {
 
-            if (!empty($addressData)) {
+            if (!empty($addressData) && $property->address) {
                 $property->address->update($addressData);
             }
 
@@ -135,11 +102,11 @@ class PropertyService
         });
     }
 
-    public function deleteResidentProperty(int $propertyId, int $userId): bool
+    public function deleteResidentProperty(Property $property): bool
     {
-        $property = $this->getResidentPropertyById($propertyId, $userId);
         return DB::transaction(function () use ($property) {
-            $property->contracts()->where('is_active', true)
+            $property->contracts()
+                ->where('is_active', true)
                 ->update([
                     'is_active' => false,
                     'end_date' => now()
@@ -148,13 +115,11 @@ class PropertyService
         });
     }
 
-    public function terminateContract(int $propertyId, int $userId): bool
+    public function terminateContract(Property $property, User $user): bool
     {
-        $residentId = $this->_userIdtoResidentId($userId);
-        return DB::transaction(function () use ($propertyId, $residentId) {
-            $contract = PropertyContract::query()
-                ->where('property_id', $propertyId)
-                ->where('resident_id', $residentId)
+        return DB::transaction(function () use ($property, $user) {
+            $contract = $property->contracts()
+                ->where('resident_id', $user->resident->id)
                 ->where('is_active', true)
                 ->first();
             if (!$contract) {

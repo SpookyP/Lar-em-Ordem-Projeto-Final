@@ -29,11 +29,11 @@ class ServiceProviderPolicy
     }
 
     /**
-     * Determine whether the user can create models.
+     * The service provider profile is created during registration (CreateNewUser), not by this resource.
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('service_provider');
+        return true;
     }
 
     /**

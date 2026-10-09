@@ -2,65 +2,36 @@
 
 namespace App\Policies;
 
-use App\Models\Resident;
+use App\Models\User\Resident;
 use App\Models\User\User;
 use Illuminate\Auth\Access\Response;
 
 class ResidentPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Helper to check if the resident profile belongs to the authenticated user.
      */
-    public function viewAny(User $user): bool
+    private function isSelf(User $user, ?Resident $resident): bool
     {
-        return false;
+        if (!$user->resident || !$resident) {
+            return false;
+        }
+
+        return $user->resident->id === $resident->id;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Resident $resident): bool
     {
-        return false;
+        return $this->isSelf($user, $resident);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Resident $resident): bool
     {
-        return false;
+        return $this->isSelf($user, $resident);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Resident $resident): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Resident $resident): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Resident $resident): bool
-    {
-        return false;
+        return $this->isSelf($user, $resident);
     }
 }

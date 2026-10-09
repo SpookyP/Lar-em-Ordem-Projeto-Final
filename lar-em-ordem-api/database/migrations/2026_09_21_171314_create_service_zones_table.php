@@ -16,9 +16,10 @@ return new class extends Migration
             $table->string('district');
             $table->string("county");
             $table->string("location");
-            $table->string("postal_code");
             $table->timestamps();
             $table->softDeletes();
+
+            $table->unique(['district', 'county', 'location']);
         });
     }
 

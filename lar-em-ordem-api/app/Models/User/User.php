@@ -7,15 +7,15 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\Sanctum;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HasRoles;
+    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HasRoles, HasUlids;
 
     protected static function newFactory()
     {
@@ -33,10 +33,18 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function resident(){
-        	return $this->hasOne(Resident::class);
-	}
-
+    public function resident()
+    {
+        return $this->hasOne(Resident::class);
+    }
+    public function partner()
+    {
+        return $this->hasOne(Partner::class);
+    }
+    public function service_provider()
+    {
+        return $this->hasOne(ServiceProvider::class);
+    }
     /**
      * The attributes that should be hidden for serialization.
      *

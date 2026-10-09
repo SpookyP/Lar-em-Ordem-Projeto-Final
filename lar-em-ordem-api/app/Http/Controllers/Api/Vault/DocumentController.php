@@ -27,7 +27,7 @@ class DocumentController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'property_id' => ['required', 'integer', 'exists:properties,id']
+            'property_id' => ['required', 'string', 'exists:properties,id']
         ]);
 
         $documents = Document::where('property_id', $request->property_id)
