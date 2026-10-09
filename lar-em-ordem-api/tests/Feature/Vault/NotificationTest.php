@@ -15,7 +15,7 @@ class NotificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createTestProperty(): int
+    private function createTestProperty()
     {
         $type = new PropertyType();
         $type->type = 'Apartamento';

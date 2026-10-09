@@ -26,7 +26,7 @@ class DocumentTest extends TestCase
      * Garante que o ciclo de vida do Laravel (ex: geração de UUIDs ou IDs automáticos)
      * é respeitado, evitando falhas de integridade no SQLite.
      */
-    private function createTestProperty(): int
+    private function createTestProperty()
     {
         $type = new PropertyType();
         $type->type = 'Apartamento';
