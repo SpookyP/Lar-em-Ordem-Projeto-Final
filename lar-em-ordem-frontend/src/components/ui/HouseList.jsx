@@ -5,7 +5,7 @@ import { getProperties } from "../../services/api/propertyService";
 export function HouseList({ onEnter }) {
   const [page, setPage] = useState(1);
   const [houses, setHouses] = useState([]);
-  const [lastPage, setLastPage] = useState([1]);
+  const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
