@@ -19,14 +19,17 @@ class InvoiceFactory extends Factory
      */
     public function definition(): array
     {
+        $month = $this->faker->numberBetween(1, 9);
+        $start = now()->startOfYear()->addMonths($month - 1);
+
         return [
-            'invoice_number' => 'FT-' . $this->faker->unique()->numerify('#####'),
-            'issue_date' => $this->faker->date(),
-            'period_start' => $this->faker->dateTimeBetween('-2 months', '-1 month'),
-            'period_end' => $this->faker->dateTimeBetween('-1 month', 'now'),
-            'total_amount' => $this->faker->randomFloat(2, 20, 500), 
-            'supplier' => $this->faker->company(),
-            'file_path' => 'invoices/sample.pdf', 
+            'invoice_number'    =>      'FT-' . $this->faker->unique()->numerify('#####'),
+            'issue_date'        =>      $start->copy()->addMonth()->addDays(10)->toDateString(),
+            'period_start'      =>      $start->toDateString(),
+            'period_end'        =>      $start->copy()->endOfMonth()->toDateString(),
+            'total_amount'      =>      $this->faker->randomFloat(2, 20, 500),
+            'supplier'          =>      $this->faker->company(),
+            'file_path'         =>      null,
         ];
     }
 }

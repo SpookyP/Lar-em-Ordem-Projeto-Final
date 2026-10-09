@@ -2,30 +2,70 @@
 
 namespace Database\Seeders;
 
-use App\Models\Property\Property;
-use App\Models\User\Resident;
 use App\Models\Invoice\Invoice;
+use App\Models\User\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $residents = Resident::all();
-        $properties = Property::all();
-        if ($residents->isEmpty() || $properties->isEmpty()) {
+        // firstOrCreate torna o seeder repetível (o cast 'hashed' trata da password)
+        $user = User::firstOrCreate(
+            ['email' => 'temp@teste.com'],
+            ['name' => 'Utilizador Temporario', 'password' => 'password']
+        );
+
+        $propertyIds = DB::table('properties')
+            ->whereNull('deleted_at')
+            ->pluck('id')
+            ->all();
+
+        if (empty($propertyIds)) {
             return;
         }
-        foreach ($residents as $index => $resident) {
-            $property = $properties->get($index) ?? $properties->random();
 
-            Invoice::factory()->count(25)->create([
-                'user_id' => $resident->user_id,
-                'property_id' => $property->id,
-            ]);
+        $thisMonth = now()->startOfMonth();
+
+        // Últimos 3 meses: todas as propriedades têm fatura.
+        for ($month = 3; $month >= 1; $month--) {
+            $start = $thisMonth->copy()->subMonths($month);
+
+            foreach ($propertyIds as $propertyId) {
+                $this->createInvoice($user->id, $propertyId, $start);
+            }
         }
+
+        // Ano anterior: ~90% das propriedades têm fatura em cada mês
+        // (cobertura suficiente para testar o benchmark anual).
+        $lastYearStart = $thisMonth->copy()->subYear()->startOfYear();
+
+        for ($month = 0; $month < 12; $month++) {
+            $start = $lastYearStart->copy()->addMonths($month);
+
+            foreach ($propertyIds as $propertyId) {
+                if (rand(1, 100) > 90) {
+                    continue;
+                }
+
+                $this->createInvoice($user->id, $propertyId, $start);
+            }
+        }
+    }
+
+    private function createInvoice(
+        string $userId,
+        string $propertyId,
+        Carbon $start
+    ): void {
+        Invoice::factory()->create([
+            'user_id'      => $userId,
+            'property_id'  => $propertyId,
+            'period_start' => $start->toDateString(),
+            'period_end'   => $start->copy()->endOfMonth()->toDateString(),
+            'issue_date'   => $start->copy()->addMonth()->addDays(10)->toDateString(),
+        ]);
     }
 }

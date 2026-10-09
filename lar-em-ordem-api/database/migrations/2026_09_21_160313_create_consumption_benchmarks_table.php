@@ -16,18 +16,20 @@ return new class extends Migration
             $table->foreignId('consumption_type_id')->constrained()->cascadeOnDelete();
             $table->foreignId('property_type_id')->constrained()->cascadeOnDelete();
             $table->foreignId('typology_id')->constrained('property_typologies')->cascadeOnDelete();
-            $table->decimal('area', 8, 2)->nullable();
-            $table->string('reference_period'); // Ex: Mensal ou Annual
+            $table->string('region', 100);
+            $table->string('reference_period', 10);
+            $table->date('period_start');
             $table->decimal('average_value', 10, 3);
+            $table->unsignedInteger('sample_size');
 
             $table->unique([
                 'consumption_type_id',
                 'property_type_id',
                 'typology_id',
-                'reference_period',
-            ],           
-            'cb_type_property_typology_period_unique'
-            );
+                'region', 
+                'reference_period', 
+                'period_start',
+            ], 'cb_dimensions_period_unique');
             
         });
     }

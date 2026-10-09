@@ -11,7 +11,7 @@ class InvoiceService
     /**
      * Obter as faturas de um utilizador.
      */
-    public function getInvoicesByUser(int $userId, int $perPage = 15): LengthAwarePaginator
+    public function getInvoicesByUser(string $userId, int $perPage = 15): LengthAwarePaginator
     {
         return Invoice::query()
             ->where('user_id', $userId)
@@ -24,7 +24,7 @@ class InvoiceService
     /**
      * Obter uma fatura específica pelo ID garantindo que pertence ao utilizador.
      */
-    public function getInvoiceById(int $invoiceId, int $userId): Invoice
+    public function getInvoiceById(string  $invoiceId, string  $userId): Invoice
     {
         $invoice = Invoice::query()
             ->where('id', $invoiceId)
@@ -42,7 +42,7 @@ class InvoiceService
     /**
      * Criar uma fatura e os respetivos consumos dentro de uma transação.
      */
-    public function createInvoiceWithConsumptions(int $userId, array $invoiceData, array $consumptionsData): Invoice
+    public function createInvoiceWithConsumptions(string  $userId, array $invoiceData, array $consumptionsData): Invoice
     {
         return DB::transaction(function () use ($userId, $invoiceData, $consumptionsData) {
             $invoiceData['user_id'] = $userId;
@@ -71,7 +71,7 @@ class InvoiceService
     /**
      * Apagar uma fatura e os consumos associados.
      */
-    public function deleteInvoice(int $invoiceId, int $userId): bool
+    public function deleteInvoice(string  $invoiceId, string  $userId): bool
     {
         $invoice = $this->getInvoiceById($invoiceId, $userId);
 

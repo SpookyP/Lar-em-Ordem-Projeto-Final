@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('consumptions', function (Blueprint $table) {
-            $table->id();
+            $table->ulid('id')->primary();
             $table->foreignUlid('property_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('invoice_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlid('invoice_id')->constrained()->cascadeOnDelete();
             $table->foreignId('consumption_type_id')->constrained()->cascadeOnDelete();
             $table->date('period_start');
             $table->date('period_end');

@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Database\Factories\ConsumptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Consumption extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlids;
 
         protected static function newFactory()
     {

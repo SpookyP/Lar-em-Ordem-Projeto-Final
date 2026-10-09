@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,7 +21,6 @@ class DatabaseSeeder extends Seeder
             ResidentTypeSeeder::class,
         ]);
 
-        $this->call(RoleSeeder::class);
         $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -43,5 +43,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(ServiceZoneSeeder::class);
+
+        // Rodar o script de Benchmark_Backfill automaticamente para criar os Benchmarks de mêses passados
+        Artisan::call('benchmarks:backfill');
+        $this->command->info(Artisan::output());
     }
 }

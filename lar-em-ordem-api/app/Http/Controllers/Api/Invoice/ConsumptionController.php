@@ -39,7 +39,7 @@ class ConsumptionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $consumptionId): JsonResponse
+    public function show(Request $request, string $consumptionId): JsonResponse
     {
         $consumption = $this->service->getConsumptionById(
             consumptionId: $consumptionId,

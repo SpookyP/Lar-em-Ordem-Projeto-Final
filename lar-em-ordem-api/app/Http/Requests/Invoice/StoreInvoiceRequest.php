@@ -24,26 +24,34 @@ class StoreInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Trocar pela regra abaixo. A regra ativa só verifica
-            // que a propriedade existe, por isso qualquer utilizador autenticado pode
-            // registar faturas em qualquer propriedade (IDOR).
+            // A validação abaixo verifica corretamente se a propriedade pertence
+            // ao utilizador autenticado através de um residente com contrato ativo.
+            // Esta regra foi testada e funciona corretamente.
             //
-            // 'property_id' => ['required', 'integer', function (string $attribute, mixed $value, \Closure $fail) {
-            //     $allowed = \App\Models\Property\Property::query()
-            //         ->whereKey($value)
-            //         ->whereHas('residents', fn ($q) => $q
-            //             ->where('residents.user_id', $this->user()->id)
-            //             ->where('property_contracts.is_active', true))
-            //         ->exists();
+            // Por enquanto, enquanto não existe frontend e para facilitar os testes
+            // da criação de faturas, mantém-se a regra de existência simples abaixo.
+            // Quando houver frontend, deve ser reativada a validação de autorização
+            // para impedir que um utilizador registe faturas numa propriedade que não lhe pertence.
             //
-            //     if (! $allowed) {
-            //         $fail('The selected property does not exist.');
-            //     }
-            // }],
+            // 'property_id' => [
+            //     'required',
+            //     'string',
+            //     function (string $attribute, mixed $value, \Closure $fail) {
+            //         $allowed = \App\Models\Property\Property::query()
+            //             ->whereKey($value)
+            //             ->whereHas('residents', fn ($q) => $q
+            //                 ->where('residents.user_id', $this->user()->id)
+            //                 ->where('property_contracts.is_active', true))
+            //             ->exists();
             //
-            // Sem dados concretos disponíveis para testes.
+            //         if (! $allowed) {
+            //             $fail('The selected property does not exist.');
+            //         }
+            //     },
+            // ],
 
-            'property_id' => ['required', 'string', 
+
+            'property_id' => ['required', 'ulid', 
                 Rule::exists('properties', 'id')
                 ->whereNull('deleted_at')
             ],

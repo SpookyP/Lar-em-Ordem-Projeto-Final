@@ -53,7 +53,7 @@ class InvoiceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $invoiceId): JsonResponse
+    public function show(Request $request, string $invoiceId): JsonResponse
     {
         $invoice = $this->service->getInvoiceById(
             invoiceId: $invoiceId,
@@ -66,7 +66,7 @@ class InvoiceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, int $invoiceId): JsonResponse
+    public function destroy(Request $request, string $invoiceId): JsonResponse
     {
         $this->service->deleteInvoice(
             invoiceId: $invoiceId,

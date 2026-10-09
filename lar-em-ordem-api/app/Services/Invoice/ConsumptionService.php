@@ -10,7 +10,7 @@ class ConsumptionService
     /**
      * Obter a lista paginada de consumos do utilizador.
      */
-    public function getConsumptions(int $userId, ?int $propertyId = null, int $perPage = 15): LengthAwarePaginator
+    public function getConsumptions(string  $userId, ?string  $propertyId = null, int $perPage = 15): LengthAwarePaginator
     {
         $query = Consumption::query()
             ->whereHas('invoice', function ($q) use ($userId) {
@@ -30,7 +30,7 @@ class ConsumptionService
     /**
      * Obter um consumo específico pelo ID, validando o acesso do utilizador.
      */
-    public function getConsumptionById(int $consumptionId, int $userId): Consumption
+    public function getConsumptionById(string  $consumptionId, string  $userId): Consumption
     {
         $consumption = Consumption::query()
             ->where('id', $consumptionId)
