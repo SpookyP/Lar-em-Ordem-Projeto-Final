@@ -22,16 +22,58 @@ class DatabaseSeeder extends Seeder
             ResidentTypeSeeder::class,
         ]);
 
-        $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $morador = User::factory()->create([
+            'name' => 'morador',
+            'email' => 'morador@example.com',
+        ]);
+        $morador->resident()->create([
+            'name' => $morador->name,
+            'nif'  => '123456789',
+        ]);
+        $morador->assignRole('resident');
+        PropertyContract::class::factory()->count(1)->create([
+            'resident_id' => $morador->resident->id,
         ]);
 
-        $user->resident()->create([
-            'name' => $user->name,
-            'nif'  => '212345678',
+        $resident = User::factory()->create([
+            'name' => 'residente',
+            'email' => 'residente@example.com',
         ]);
-        $user->assignRole('resident');
+        $resident->resident()->create([
+            'name' => $resident->name,
+            'nif'  => '123456789',
+        ]);
+        $resident->assignRole('resident');
+        PropertyContract::class::factory()->count(6)->create([
+            'resident_id' => $resident->resident->id,
+        ]);
+
+        $partner = User::factory()->create([
+            'name' => 'parceiro',
+            'email' => 'parceiro@example.com',
+        ]);
+        $partner->partner()->create([
+            'name' => $partner->name,
+            'nif'  => '123456789',
+            "phone" => "912345678",
+            "website" => "https://parceiro.pt",
+            "description" => "Empresa parceira de gestão imobiliária."
+        ]);
+        $partner->assignRole('partner');
+
+        $serviceProvider = User::factory()->create([
+            'name' => 'service',
+            'email' => 'service@example.com',
+        ]);
+        $serviceProvider->service_provider()->create([
+            "company_name" => "Serviços Lda",
+            "nif" => "212345673",
+            "phone" => "912345678",
+            "email" => "geral@servicos.pt",
+            "description" => "Prestação de serviços de manutenção."
+        ]);
+        $serviceProvider->assignRole('service_provider');
+
 
         $this->call([
             PropertySeeder::class,
@@ -41,10 +83,6 @@ class DatabaseSeeder extends Seeder
             ConsumptionTypeSeeder::class,
             InvoiceSeeder::class,
             ConsumptionSeeder::class,
-        ]);
-
-        PropertyContract::class::factory()->count(6)->create([
-            'resident_id' => $user->resident->id,
         ]);
 
         $this->call(ServiceZoneSeeder::class);
