@@ -18,7 +18,7 @@ class DocumentResource extends JsonResource
             'document_category_id' => $this->document_category_id,
             'name' => $this->name,
             'description' => $this->description,
-            'file_path' => $this->file_path,
+            'file_id' => $this->file_id,
 
             // Formatação segura de datas
             'issue_date' => $this->data_emissao ? $this->data_emissao->toIso8601String() : null,

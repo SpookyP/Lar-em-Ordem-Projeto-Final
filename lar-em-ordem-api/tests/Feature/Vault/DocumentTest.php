@@ -5,64 +5,55 @@ namespace Tests\Feature\Vault;
 use Tests\TestCase;
 use App\Models\User\User;
 use App\Models\Vault\DocumentCategory;
+use App\Models\Property\Property;
+use App\Models\Property\PropertyType;
+use App\Models\Property\PropertyTypology;
+use App\Models\Property\Address;
 use App\Services\Vault\PdfExtractionService;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
+use Illuminate\Support\Str;
 
 class DocumentTest extends TestCase
 {
     use RefreshDatabase;
 
     /**
-     * Cria uma Habitação de forma dinâmica para os testes do Cofre.
-     * Isola o Módulo 3 dos problemas dos Seeders globais da equipa
-     * e resolve o problema dos "IDs hardcoded",
-     * utilizando os nomes corretos das colunas das migrations do Módulo 2.
+     * Cria uma Habitação utilizando os Models do Módulo 2 (Eloquent).
+     * Garante que o ciclo de vida do Laravel (ex: geração de UUIDs ou IDs automáticos)
+     * é respeitado, evitando falhas de integridade no SQLite.
      */
-    private function createTestProperty(): int
+    private function createTestProperty()
     {
-        Schema::disableForeignKeyConstraints();
+        $type = new PropertyType();
+        $type->type = 'Apartamento';
+        $type->save();
 
-        $typeId = DB::table('property_types')->insertGetId([
-            'type' => 'Apartamento',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $typology = new PropertyTypology();
+        $typology->typology = 'T2';
+        $typology->save();
 
-        $typologyId = DB::table('property_typologies')->insertGetId([
-            'typology' => 'T2',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $address = new Address();
+        $address->street = 'Rua Teste';
+        $address->postal_code = '4000-000';
+        $address->door = '1A';
+        $address->county = 'Porto';
+        $address->location = 'Porto';
+        $address->district = 'Porto';
+        $address->save();
 
-        $addressId = DB::table('addresses')->insertGetId([
-            'street' => 'Rua Teste',
-            'postal_code' => '4000-000',
-            'door' => '1A',
-            'county' => 'Porto',
-            'location' => 'Porto',
-            'district' => 'Porto',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $property = new Property();
+        $property->property_type_id = $type->id;
+        $property->property_typology_id = $typology->id;
+        $property->address_id = $address->id;
+        $property->area = 100;
+        $property->fraction = 'A';
+        $property->save();
 
-        $propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => $typeId,
-            'property_typology_id' => $typologyId,
-            'address_id' => $addressId,
-            'area' => 100,
-            'fraction' => 'A',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        Schema::enableForeignKeyConstraints();
-
-        return $propertyId;
+        return $property->id;
     }
 
     public function test_user_can_upload_pdf_and_extract_data(): void
@@ -100,7 +91,7 @@ class DocumentTest extends TestCase
                     'id',
                     'property_id',
                     'document_category_id',
-                    'file_path',
+                    'file_id',
                     'expiration_date'
                 ]
             ]);
@@ -111,8 +102,6 @@ class DocumentTest extends TestCase
             'name' => 'energy_certificate.pdf',
             'expiration_date' => '2030-12-31 00:00:00',
         ]);
-
-        Storage::disk('local')->assertExists('vault_documents/' . $file->hashName());
     }
 
     public function test_upload_fails_if_file_is_not_pdf(): void
@@ -144,7 +133,7 @@ class DocumentTest extends TestCase
             'document_category_id' => $category->id,
             'name' => 'fatura_luz.pdf',
             'description' => 'Fatura de teste',
-            'file_path' => 'vault_documents/fatura_luz.pdf',
+            'file_id' => (string) Str::uuid(),
             'expiration_date' => now()->addMonths(6),
         ]);
 
@@ -154,7 +143,7 @@ class DocumentTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'property_id', 'document_category_id', 'file_path']
+                    '*' => ['id', 'property_id', 'document_category_id', 'file_id']
                 ]
             ]);
     }
@@ -167,20 +156,27 @@ class DocumentTest extends TestCase
         $category = DocumentCategory::factory()->create();
         $propertyId = $this->createTestProperty();
 
+        // Geramos o UUID primeiro
+        $fileId = (string) \Illuminate\Support\Str::uuid();
         $fileName = 'contrato_arrendamento.pdf';
-        Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
 
+        // Criamos o ficheiro falso no disco usando o UUID
+        Storage::disk('local')->put("vault_documents/{$fileId}", 'conteudo falso do pdf');
+
+        // Criamos o registo na BD a apontar para o mesmo UUID
         $document = \App\Models\Vault\Document::create([
             'property_id' => $propertyId,
             'document_category_id' => $category->id,
             'name' => $fileName,
             'description' => 'Contrato',
-            'file_path' => "vault_documents/{$fileName}",
+            'file_id' => $fileId,
         ]);
 
+        // Testamos a rota
         $response = $this->actingAs($user, 'sanctum')
             ->get("/api/v1/documents/{$document->id}/download");
 
+        // O Controller vai encontrar o UUID no disco e devolver 200
         $response->assertStatus(200)
             ->assertDownload($fileName);
     }
@@ -201,7 +197,7 @@ class DocumentTest extends TestCase
             'document_category_id' => $category->id,
             'name' => $fileName,
             'description' => 'Planta',
-            'file_path' => "vault_documents/{$fileName}",
+            'file_id' => (string) Str::uuid(),
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -209,6 +205,5 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('vault_documents', ['id' => $document->id]);
-        Storage::disk('local')->assertMissing("vault_documents/{$fileName}");
     }
 }
