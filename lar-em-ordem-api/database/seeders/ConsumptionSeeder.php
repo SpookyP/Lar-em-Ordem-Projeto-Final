@@ -2,41 +2,40 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Eloquent\Factories\Sequence;
 use App\Models\Invoice\Consumption;
 use App\Models\Invoice\Invoice;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class ConsumptionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $invoices = Invoice::all();
+        $consumptionTypeIds = DB::table('consumption_types')->orderBy('id')->pluck('id');
 
-        $typeIds = DB::table('consumption_types')->pluck('id')->toArray();
-
-        if ($invoices->isEmpty()) {
+        if ($consumptionTypeIds->isEmpty()) {
             return;
         }
 
-        $sequence = array_map(function ($id) {
-            return ['consumption_type_id' => $id];
-        }, $typeIds);
+        // Primeiro tipo em todas as faturas; os restantes só nos últimos 3 meses.
+        $commonTypeId = $consumptionTypeIds->first();
+        $recentLimit = now()->startOfMonth()->subMonths(3);
 
-        foreach ($invoices as $invoice) {
-            Consumption::factory()
-                ->count(count($typeIds)) 
-                ->state(new Sequence(...$sequence))
-                ->create([
-                    'invoice_id'    =>   $invoice->id,
-                    'property_id'   =>   $invoice->property_id,
-                    'period_start'  =>   $invoice->period_start,
-                    'period_end'    =>   $invoice->period_end,
+        Invoice::query()->lazy()->each(function (Invoice $invoice) use ($consumptionTypeIds, $commonTypeId, $recentLimit) {
+            $isRecent = Carbon::parse($invoice->period_start)->gte($recentLimit);
+
+            $typeIds = $isRecent ? $consumptionTypeIds : collect([$commonTypeId]);
+
+            foreach ($typeIds as $typeId) {
+                Consumption::factory()->create([
+                    'invoice_id'          => $invoice->id,
+                    'property_id'         => $invoice->property_id,
+                    'consumption_type_id' => $typeId,
+                    'period_start'        => $invoice->period_start,
+                    'period_end'          => $invoice->period_end,
                 ]);
-        }
+            }
+        });
     }
 }

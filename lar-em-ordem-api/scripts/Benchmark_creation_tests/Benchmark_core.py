@@ -1,10 +1,23 @@
+"""
+Núcleo do cálculo de benchmarks de consumo.
+ 
+Ideia geral:
+  1. Vai buscar à BD os consumos que tocam o período (mês ou ano) a processar.
+  2. Para cada propriedade e tipo de consumo, calcula quanto consumiu nesse período
+     (repartindo faturas que cruzam meses proporcionalmente aos dias).
+  3. Agrupa propriedades parecidas (mesmo tipo de consumo, tipo de propriedade,
+     tipologia e região) e calcula a média de cada grupo.
+  4. Grava a média em consumption_benchmarks (só se o grupo tiver propriedades suficientes).
+"""
+
 import os
-from pathlib import Path
-from datetime import date, timedelta
 from collections import defaultdict
+from datetime import date, timedelta
+from pathlib import Path
+
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-
+from sqlalchemy.engine import URL
 
 # ============================================================
 # CONFIGURAÇÃO
@@ -13,12 +26,27 @@ from sqlalchemy import create_engine, text
 BASE_DIR = Path(__file__).resolve().parents[2]
 load_dotenv(BASE_DIR / ".env")
 
-MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "5"))
-MIN_COVERAGE = 0.90
+# Defaults baixos para testes:
+#   BENCHMARK_MIN_SAMPLE=5
+#   BENCHMARK_MIN_COVERAGE_MONTHLY=0.9
+#   BENCHMARK_MIN_COVERAGE_ANNUAL=0.75
+
+# Mínimo de propriedades por grupo para o benchmark ser gravado.
+MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "3"))
+
+# Percentagem mínima do período que tem de estar coberta por faturas.
+MIN_COVERAGE = {
+    "monthly": float(os.getenv("BENCHMARK_MIN_COVERAGE_MONTHLY", "0.25")),
+    "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.25")),
+}
+
 REGION_COLUMN = os.getenv("BENCHMARK_REGION_COLUMN", "district")
 
+if not REGION_COLUMN.replace("_", "").isalnum():
+    raise RuntimeError("BENCHMARK_REGION_COLUMN inválido")
+
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
-DB_PORT = os.getenv("DB_PORT", "3306")
+DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_DATABASE = os.getenv("DB_DATABASE")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
@@ -30,15 +58,23 @@ if not DB_USERNAME:
     raise RuntimeError("DB_USERNAME não encontrado no ficheiro .env")
 
 engine = create_engine(
-    f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}"
-    f"@{DB_HOST}:{DB_PORT}/{DB_DATABASE}"
+    URL.create(
+        "mysql+pymysql",
+        username=DB_USERNAME,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT,
+        database=DB_DATABASE,
+    )
 )
-
 
 # ============================================================
 # QUERIES
 # ============================================================
 
+
+# Consumos que se sobrepõem à janela [window_start, window_end),
+# já com as características da propriedade (tipo, tipologia, região).
 FETCH = text(f"""
     SELECT
         c.property_id,
@@ -58,6 +94,7 @@ FETCH = text(f"""
       AND a.{REGION_COLUMN} IS NOT NULL
 """)
 
+# Apaga o benchmark anterior do mesmo período (é isto que permite reprocessar sem duplicar)
 DELETE = text("""
     DELETE FROM consumption_benchmarks
     WHERE reference_period = :reference_period
@@ -66,24 +103,12 @@ DELETE = text("""
 
 INSERT = text("""
     INSERT INTO consumption_benchmarks (
-        consumption_type_id,
-        property_type_id,
-        typology_id,
-        region,
-        reference_period,
-        period_start,
-        average_value,
-        sample_size
+        consumption_type_id, property_type_id, typology_id, region,
+        reference_period, period_start, average_value, sample_size
     )
     VALUES (
-        :consumption_type_id,
-        :property_type_id,
-        :typology_id,
-        :region,
-        :reference_period,
-        :period_start,
-        :average_value,
-        :sample_size
+        :consumption_type_id, :property_type_id, :typology_id, :region,
+        :reference_period, :period_start, :average_value, :sample_size
     )
 """)
 
@@ -100,68 +125,52 @@ def next_month(d: date) -> date:
     return (d.replace(day=28) + timedelta(days=4)).replace(day=1)
 
 
+def _to_date(value):
+    return value.date() if hasattr(value, "date") else value
+
+
 # ============================================================
 # CÁLCULO DOS BENCHMARKS
 # ============================================================
 
-def build_benchmarks(
-    window_start: date,
-    window_end: date,
-    reference_period: str
-) -> int:
+def build_benchmarks(window_start: date, window_end: date, reference_period: str) -> int:
+    """Calcula e grava os benchmarks do intervalo [window_start, window_end).
+    Devolve o número de grupos gravados."""
 
     expected_days = (window_end - window_start).days
+    min_coverage = MIN_COVERAGE[reference_period]
 
     # (property_id, consumption_type_id) -> [valor, dias_cobertos]
     property_consumption = defaultdict(lambda: [0.0, 0])
-
-    # property_id -> características da propriedade
     property_data = {}
 
     with engine.connect() as conn:
         rows = conn.execute(
-            FETCH,
-            {
-                "window_start": window_start,
-                "window_end": window_end,
-            }
+            FETCH, {"window_start": window_start, "window_end": window_end}
         ).mappings().all()
 
-    # Calcula o consumo correspondente ao período analisado
     for row in rows:
-        start = row["period_start"]
-        end = row["period_end"]
-
-        if hasattr(start, "date"):
-            start = start.date()
-        if hasattr(end, "date"):
-            end = end.date()
+        start = _to_date(row["period_start"])
+        end = _to_date(row["period_end"])
 
         if end < start:
             continue
 
         total_days = (end - start).days + 1
-
         overlap_start = max(start, window_start)
-        overlap_end = min(
-            end,
-            window_end - timedelta(days=1)
-        )
+        overlap_end = min(end, window_end - timedelta(days=1))
 
         if overlap_end < overlap_start:
             continue
 
         overlap_days = (overlap_end - overlap_start).days + 1
+        key = (row["property_id"], row["consumption_type_id"])
 
-        key = (
-            row["property_id"],
-            row["consumption_type_id"]
+        property_consumption[key][0] += float(row["amount"]) * overlap_days / total_days
+        # nunca conta mais dias do que o período tem (faturas sobrepostas)
+        property_consumption[key][1] = min(
+            property_consumption[key][1] + overlap_days, expected_days
         )
-
-        value = float(row["amount"]) * overlap_days / total_days
-
-        property_consumption[key][0] += value
-        property_consumption[key][1] += overlap_days
 
         property_data[row["property_id"]] = {
             "property_type_id": row["property_type_id"],
@@ -169,94 +178,55 @@ def build_benchmarks(
             "region": row["region"],
         }
 
-    # Agrupa propriedades equivalentes
     groups = defaultdict(list)
 
-    for (property_id, consumption_type_id), (
-        total_value,
-        covered_days
-    ) in property_consumption.items():
-
-        if covered_days < expected_days * MIN_COVERAGE:
+    for (property_id, consumption_type_id), (total_value, covered_days) in property_consumption.items():
+        if covered_days < expected_days * min_coverage:
             continue
 
-        # Estima o valor para o período completo
         value = total_value * expected_days / covered_days
-
         info = property_data[property_id]
 
-        group_key = (
+        groups[(
             consumption_type_id,
             info["property_type_id"],
             info["typology_id"],
             info["region"],
-        )
+        )].append(value)
 
-        groups[group_key].append(value)
-
-    # Apaga o benchmark anterior e grava o novo
     saved = 0
 
     with engine.begin() as conn:
-
         conn.execute(
             DELETE,
-            {
-                "reference_period": reference_period,
-                "period_start": window_start,
-            }
+            {"reference_period": reference_period, "period_start": window_start},
         )
 
-        for (
-            consumption_type_id,
-            property_type_id,
-            typology_id,
-            region
-        ), values in groups.items():
-
+        for (ctype, ptype, typology, region), values in groups.items():
             if len(values) < MIN_SAMPLE:
                 continue
-
-            average_value = sum(values) / len(values)
 
             conn.execute(
                 INSERT,
                 {
-                    "consumption_type_id": consumption_type_id,
-                    "property_type_id": property_type_id,
-                    "typology_id": typology_id,
+                    "consumption_type_id": ctype,
+                    "property_type_id": ptype,
+                    "typology_id": typology,
                     "region": region,
                     "reference_period": reference_period,
                     "period_start": window_start,
-                    "average_value": round(average_value, 3),
+                    "average_value": round(sum(values) / len(values), 3),
                     "sample_size": len(values),
-                }
+                },
             )
-
             saved += 1
 
     return saved
 
 
-# ============================================================
-# BENCHMARK MENSAL
-# ============================================================
-
 def build_month(first_day: date) -> int:
-    return build_benchmarks(
-        first_day,
-        next_month(first_day),
-        "monthly"
-    )
+    return build_benchmarks(first_day, next_month(first_day), "monthly")
 
-
-# ============================================================
-# BENCHMARK ANUAL
-# ============================================================
 
 def build_year(year: int) -> int:
-    return build_benchmarks(
-        date(year, 1, 1),
-        date(year + 1, 1, 1),
-        "annual"
-    )
+    return build_benchmarks(date(year, 1, 1), date(year + 1, 1, 1), "annual")

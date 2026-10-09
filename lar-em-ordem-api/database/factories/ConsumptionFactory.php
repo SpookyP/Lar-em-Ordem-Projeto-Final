@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\Invoice\Consumption;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,7 +24,7 @@ class ConsumptionFactory extends Factory
         $start = now()->startOfYear()->addMonths($month - 1);
 
         return [
-            'consumption_type_id'   =>      1,
+            'consumption_type_id'   =>      fn () => DB::table('consumption_types')->inRandomOrder()->value('id'),
             'period_start'          =>      $start->toDateString(),
             'period_end'            =>      $start->copy()->endOfMonth()->toDateString(),
             'amount'                =>      $this->faker->randomFloat(3, 100, 300),

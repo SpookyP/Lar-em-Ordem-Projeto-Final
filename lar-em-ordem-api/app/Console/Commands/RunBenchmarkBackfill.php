@@ -2,10 +2,7 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Symfony\Component\Process\Process;
-
-class RunBenchmarkBackfill extends Command
+class RunBenchmarkBackfill extends RunBenchmarkScript
 {
     protected $signature = 'benchmarks:backfill';
 
@@ -13,23 +10,14 @@ class RunBenchmarkBackfill extends Command
 
     public function handle(): int
     {
-        $process = new Process([
-            'python',
-            base_path('scripts/Benchmark_creation_tests/Backfill_benchmark.py'),
-        ]);
+        $this->info('A criar benchmarks históricos...');
 
-        $process->setTimeout(3600);
-        $process->run(function ($type, $buffer) {
-            $this->output->write($buffer);
-        });
+        $result = $this->runScript('backfill_benchmark.py');
 
-        if (!$process->isSuccessful()) {
-            $this->error('O backfill dos benchmarks falhou.');
-            return self::FAILURE;
+        if ($result === self::SUCCESS) {
+            $this->info('Benchmarks históricos criados com sucesso.');
         }
 
-        $this->info('Backfill dos benchmarks executado com sucesso.');
-
-        return self::SUCCESS;
+        return $result;
     }
 }

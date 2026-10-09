@@ -22,3 +22,5 @@ yarn-error.log
 /.vscode
 /.zed
 .env.before_lerd
+__pycache__/
+*.pyc

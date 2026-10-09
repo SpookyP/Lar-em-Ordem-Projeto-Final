@@ -2,34 +2,22 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Symfony\Component\Process\Process;
-
-class RunAnnualBenchmark extends Command
+class RunAnnualBenchmark extends RunBenchmarkScript
 {
-    protected $signature = 'benchmarks:annual';
+    protected $signature = 'benchmarks:annual {--year= : Ano a processar}';
 
     protected $description = 'Executa o benchmark anual';
 
     public function handle(): int
     {
-        $process = new Process([
-            'python',
-            base_path('scripts/Benchmark_creation_tests/annual_benchmark.py'),
-        ]);
+        $args = $this->option('year') ? ['--year', $this->option('year')] : [];
 
-        $process->setTimeout(3600);
-        $process->run(function ($type, $buffer) {
-            $this->output->write($buffer);
-        });
+        $result = $this->runScript('annual_benchmark.py', $args);
 
-        if (!$process->isSuccessful()) {
-            $this->error('O benchmark anual falhou.');
-            return self::FAILURE;
+        if ($result === self::SUCCESS) {
+            $this->info('Benchmark anual executado com sucesso.');
         }
 
-        $this->info('Benchmark anual executado com sucesso.');
-
-        return self::SUCCESS;
+        return $result;
     }
 }

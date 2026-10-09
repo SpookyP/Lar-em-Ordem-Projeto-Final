@@ -2,34 +2,24 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Symfony\Component\Process\Process;
-
-class RunMonthlyBenchmark extends Command
+class RunMonthlyBenchmark extends RunBenchmarkScript
 {
-    protected $signature = 'benchmarks:monthly';
+    protected $signature = 'benchmarks:monthly {--month= : YYYY-MM} {--months-back=3}';
 
     protected $description = 'Executa o benchmark mensal';
 
     public function handle(): int
     {
-        $process = new Process([
-            'python',
-            base_path('scripts/Benchmark_creation_tests/monthly_benchmark.py'),
-        ]);
+        $args = $this->option('month')
+            ? ['--month', $this->option('month')]
+            : ['--months-back', (string) $this->option('months-back')];
 
-        $process->setTimeout(3600);
-        $process->run(function ($type, $buffer) {
-            $this->output->write($buffer);
-        });
+        $result = $this->runScript('monthly_benchmark.py', $args);
 
-        if (!$process->isSuccessful()) {
-            $this->error('O benchmark mensal falhou.');
-            return self::FAILURE;
+        if ($result === self::SUCCESS) {
+            $this->info('Benchmark mensal executado com sucesso.');
         }
 
-        $this->info('Benchmark mensal executado com sucesso.');
-
-        return self::SUCCESS;
+        return $result;
     }
 }
