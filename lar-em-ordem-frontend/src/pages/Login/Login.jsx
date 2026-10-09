@@ -17,7 +17,7 @@ export default function Login() {
     setAEnviar(true);
     try {
       await login(email, password);
-      navigate("/dashboard");
+      navigate("/perfis");
     } catch (erroPedido) {
       const message =
         erroPedido.response?.data?.message ??
