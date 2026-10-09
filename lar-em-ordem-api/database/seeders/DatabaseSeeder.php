@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User\User;
+use App\Models\Property\PropertyContract;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 
@@ -40,6 +41,10 @@ class DatabaseSeeder extends Seeder
             ConsumptionTypeSeeder::class,
             InvoiceSeeder::class,
             ConsumptionSeeder::class,
+        ]);
+
+        PropertyContract::class::factory()->count(6)->create([
+            'resident_id' => $user->resident->id,
         ]);
 
         $this->call(ServiceZoneSeeder::class);
