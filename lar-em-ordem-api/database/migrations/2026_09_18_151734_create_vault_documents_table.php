@@ -19,7 +19,8 @@ return new class extends Migration
 
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('file_path');
+
+            $table->uuid('file_id')->index();
 
             $table->date('issue_date')->nullable();
             $table->date('expiration_date')->nullable();

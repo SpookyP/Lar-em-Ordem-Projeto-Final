@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="tests">
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Readme e Python">
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_21_09_26,_18_36_[Changes]/shelved.patch" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_21_09_26__18_36__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_23_09_26,_17_23_[Changes]/shelved.patch" beforeDir="false" />
@@ -9,8 +9,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_23_09_26__17_23__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_23_09_26__18_36__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/.lerd.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/.lerd.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Document.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Document.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/database/migrations/2026_09_18_151734_create_vault_documents_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/database/migrations/2026_09_18_151734_create_vault_documents_table.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -224,22 +224,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "hotfix/python",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.jshint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.jshint": "",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.laravel_idea.move_run_console_settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;hotfix/python&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/lar-em-ordem-api" />
@@ -274,7 +274,10 @@
       <workItem from="1790093029193" duration="4108000" />
       <workItem from="1790167143207" duration="4906000" />
       <workItem from="1790611496030" duration="3976000" />
-      <workItem from="1791303211007" duration="2036000" />
+      <workItem from="1791303211007" duration="2766000" />
+      <workItem from="1791388321706" duration="6181000" />
+      <workItem from="1791397326481" duration="8000" />
+      <workItem from="1791401542350" duration="2932000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -324,7 +327,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790805710885</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Readme e Python">
+      <option name="closed" value="true" />
+      <created>1791305340615</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1791305340615</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -346,7 +357,8 @@
     <MESSAGE value="Merge pull request #8 from SpookyP/main&#10;&#10;Atualizar Branch" />
     <MESSAGE value="Remoção da Api_Old&#10;Leitura de Documentos" />
     <MESSAGE value="tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="tests" />
+    <MESSAGE value="Readme e Python" />
+    <option name="LAST_COMMIT_MESSAGE" value="Readme e Python" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
