@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { exampleProfiles } from "../../data/exampleData";
 import { ProfileCard } from "../../components/ui/ProfileCard";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function Profiles() {
   const navigate = useNavigate();
-
+  const { selectProfile } = useAuth();
   const [openProfile, setOpenProfile] = useState(null);
 
   function handleProfileClick(profile) {
@@ -17,7 +18,7 @@ export default function Profiles() {
   }
 
   function enter(profile, house) {
-    console.log("Entrar como", profile.label, "| casa:", house?.label ?? "-");
+    selectProfile(profile, house);
     navigate("/dashboard");
   }
 
