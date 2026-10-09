@@ -35,7 +35,7 @@ class StoreInvoiceRequest extends FormRequest
             //
             // 'property_id' => [
             //     'required',
-            //     'integer',
+            //     'string',
             //     function (string $attribute, mixed $value, \Closure $fail) {
             //         $allowed = \App\Models\Property\Property::query()
             //             ->whereKey($value)
@@ -51,7 +51,7 @@ class StoreInvoiceRequest extends FormRequest
             // ],
 
 
-            'property_id' => ['required', 'string', 
+            'property_id' => ['required', 'ulid', 
                 Rule::exists('properties', 'id')
                 ->whereNull('deleted_at')
             ],
