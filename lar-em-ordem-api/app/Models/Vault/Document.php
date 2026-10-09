@@ -15,7 +15,7 @@ class Document extends Model
         'document_category_id',
         'name',
         'description',
-        'file_path',
+        'file_id',
         'issue_date',
         'expiration_date',
         'extracted_data'

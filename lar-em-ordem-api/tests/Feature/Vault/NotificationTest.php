@@ -4,54 +4,45 @@ namespace Tests\Feature\Vault;
 
 use Tests\TestCase;
 use App\Models\User\User;
+use App\Models\Property\Property;
+use App\Models\Property\PropertyType;
+use App\Models\Property\PropertyTypology;
+use App\Models\Property\Address;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class NotificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createTestProperty(): int
+    private function createTestProperty()
     {
-        Schema::disableForeignKeyConstraints();
+        $type = new PropertyType();
+        $type->type = 'Apartamento';
+        $type->save();
 
-        $typeId = DB::table('property_types')->insertGetId([
-            'type' => 'Apartamento',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $typology = new PropertyTypology();
+        $typology->typology = 'T2';
+        $typology->save();
 
-        $typologyId = DB::table('property_typologies')->insertGetId([
-            'typology' => 'T2',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $address = new Address();
+        $address->street = 'Rua Teste';
+        $address->postal_code = '4000-000';
+        $address->door = '1A';
+        $address->county = 'Porto';
+        $address->location = 'Porto';
+        $address->district = 'Porto';
+        $address->save();
 
-        $addressId = DB::table('addresses')->insertGetId([
-            'street' => 'Rua Teste',
-            'postal_code' => '4000-000',
-            'door' => '1A',
-            'county' => 'Porto',
-            'location' => 'Porto',
-            'district' => 'Porto',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $property = new Property();
+        $property->property_type_id = $type->id;
+        $property->property_typology_id = $typology->id;
+        $property->address_id = $address->id;
+        $property->area = 100;
+        $property->fraction = 'A';
+        $property->save();
 
-        $propertyId = DB::table('properties')->insertGetId([
-            'property_type_id' => $typeId,
-            'property_typology_id' => $typologyId,
-            'address_id' => $addressId,
-            'area' => 100,
-            'fraction' => 'A',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        Schema::enableForeignKeyConstraints();
-
-        return $propertyId;
+        return $property->id;
     }
 
     public function test_user_can_list_notifications(): void
