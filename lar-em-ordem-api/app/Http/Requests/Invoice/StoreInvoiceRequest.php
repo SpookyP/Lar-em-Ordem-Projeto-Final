@@ -51,7 +51,7 @@ class StoreInvoiceRequest extends FormRequest
             // ],
 
 
-            'property_id' => ['required', 'integer', 
+            'property_id' => ['required', 'string', 
                 Rule::exists('properties', 'id')
                 ->whereNull('deleted_at')
             ],

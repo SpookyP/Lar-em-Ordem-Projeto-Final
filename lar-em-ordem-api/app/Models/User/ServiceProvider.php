@@ -8,20 +8,21 @@ use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class ServiceProvider extends Model
 {
     /** @use HasFactory<\Database\Factories\ServiceProviderFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasUlids;
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function zones()
+     public function zones()
     {
-        return $this->belongsToMany(ServiceZone::class);
+        return $this->belongsToMany(ServiceZone::class)->withTimestamps();
     }
 
    /*  ENTIDADE, PIVOT ENTRE SPEC, CAT E PROVIDER

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('service_provider_service_zone', function (Blueprint $table) {
             
             $table->primary(['service_provider_id', 'service_zone_id']);
-            $table->foreignId('service_provider_id')->constrained()->onDelete('cascade');
+            $table->foreignUlid('service_provider_id')->constrained()->onDelete('cascade');
             $table->foreignId('service_zone_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });

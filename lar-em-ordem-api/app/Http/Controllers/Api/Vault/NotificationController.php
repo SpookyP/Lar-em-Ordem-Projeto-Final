@@ -17,7 +17,7 @@ class NotificationController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $request->validate([
-            'property_id' => ['required', 'integer', 'exists:properties,id']
+            'property_id' => ['required', 'string', 'exists:properties,id']
         ]);
 
         $notifications = Notification::where('property_id', $request->property_id)

@@ -49,6 +49,19 @@ class ServiceProviderService {
      public function loadFull(ServiceProviderModel $provider): ServiceProviderModel
     {
         // return $provider->load(['specialties.category', 'specialties.specialty', 'zones']);
-        return $provider;
+        return $provider->load('zones');
+    }
+
+    /**
+     * Define as zonas onde o prestador atua. A lista recebida substitui a anterior.
+     *
+     * @param ServiceProviderModel $provider
+     * @param array<int> $zoneIds IDs das zonas
+     */
+    public function syncZones(ServiceProviderModel $provider, array $zoneIds): ServiceProviderModel
+    {
+        $provider->zones()->sync($zoneIds);
+
+        return $provider->load('zones');
     }
 }
