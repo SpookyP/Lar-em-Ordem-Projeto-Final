@@ -55,8 +55,11 @@ class InvoiceSeeder extends Seeder
         }
     }
 
-    private function createInvoice(int $userId, int $propertyId, Carbon $start): void
-    {
+    private function createInvoice(
+        string $userId,
+        string $propertyId,
+        Carbon $start
+    ): void {
         Invoice::factory()->create([
             'user_id'      => $userId,
             'property_id'  => $propertyId,
