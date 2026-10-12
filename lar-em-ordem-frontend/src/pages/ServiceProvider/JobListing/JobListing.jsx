@@ -51,8 +51,8 @@ function addressText(address) {
 function matchesAddress(address, query) {
   const text = addressText(address);
   return normalize(query)
-  .split(" ")
-  .every((token)=>text.includes(token));
+    .split(" ")
+    .every((token) => text.includes(token));
 }
 
 // dados de exemplo, depois vêm do backend
@@ -343,7 +343,7 @@ export default function JobListing() {
                     budget={job.budget}
                     urgent={job.urgent}
                     offers={job.offers}
-                    to={`/propostas/${job.id}`}
+                    to={`/teste-offer/${job.id}`}
                   />
                 ))}
               </div>
