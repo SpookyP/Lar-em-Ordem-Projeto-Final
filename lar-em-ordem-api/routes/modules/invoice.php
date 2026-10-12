@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Invoice\InvoiceController;
 use App\Http\Controllers\Api\Invoice\ConsumptionController;
 use App\Http\Controllers\Api\Invoice\ConsumptionTypeController;
+use App\Http\Controllers\Api\Invoice\MonthlyBenchmarkController;
+use App\Http\Controllers\Api\Invoice\AnnualBenchmarkController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('invoices', InvoiceController::class)
@@ -14,4 +16,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('consumption-types', ConsumptionTypeController::class)
         ->only(['index']);
+
+    Route::get('benchmarks/monthly', MonthlyBenchmarkController::class);
+    Route::get('benchmarks/annual', AnnualBenchmarkController::class);
 });
