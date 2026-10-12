@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use App\Models\ServiceProvider\ProviderSpecialty;
 
 class ServiceProvider extends Model
 {
@@ -25,12 +26,12 @@ class ServiceProvider extends Model
         return $this->belongsToMany(ServiceZone::class)->withTimestamps();
     }
 
-   /*  ENTIDADE, PIVOT ENTRE SPEC, CAT E PROVIDER
+   
     public function specialties()
     {
-        return $this->hasMany(\App\Models\Provider\ProviderSpecialty::class);
+        return $this->hasMany(ProviderSpecialty::class);
     }
-    */
+    
 
     public function proposals()
     {
