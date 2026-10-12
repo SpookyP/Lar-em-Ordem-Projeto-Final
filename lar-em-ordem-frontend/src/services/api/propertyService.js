@@ -22,5 +22,6 @@ export async function getProperties(page = 1) {
     houses,
     currentPage: response.data.meta.current_page,
     lastPage: response.data.meta.last_page,
+    total: response.data.meta.total,
   };
 }
