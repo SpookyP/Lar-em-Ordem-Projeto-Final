@@ -46,10 +46,9 @@ class ServiceProviderService {
         });
     }
 
-     public function loadFull(ServiceProviderModel $provider): ServiceProviderModel
+   public function loadFull(ServiceProviderModel $provider): ServiceProviderModel
     {
-        // return $provider->load(['specialties.category', 'specialties.specialty', 'zones']);
-        return $provider->load('zones');
+        return $provider->load(['zones', 'specialties.category', 'specialties.specialty']);
     }
 
     /**

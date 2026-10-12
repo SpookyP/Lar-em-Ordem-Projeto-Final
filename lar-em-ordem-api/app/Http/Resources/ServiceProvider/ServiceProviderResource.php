@@ -17,8 +17,8 @@ class ServiceProviderResource extends JsonResource
             'email'        => $this->email,
             'description'  => $this->description,
             'active'       => $this->active,
-            // 'specialties' => ProviderSpecialtyResource::collection($this->whenLoaded('specialties')),
-            'zones'       => ServiceZoneResource::collection($this->whenLoaded('zones')),
+            'specialties'  => ProviderSpecialtyResource::collection($this->whenLoaded('specialties')),
+            'zones'        => ServiceZoneResource::collection($this->whenLoaded('zones')),
         ];
     }
 }
