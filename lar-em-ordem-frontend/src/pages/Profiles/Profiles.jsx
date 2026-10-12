@@ -1,13 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { exampleProfiles } from "../../data/exampleData";
 import { ProfileCard } from "../../components/ui/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
+import { ROLE_INFO } from "../../data/roleInfo";
 
 export default function Profiles() {
   const navigate = useNavigate();
-  const { selectProfile } = useAuth();
+  const { user, selectProfile } = useAuth();
   const [openProfile, setOpenProfile] = useState(null);
+
+  //construir os perfis de acordo com as roles do utilizador autenticado
+  const profiles = (user?.roles ?? []).map((roleName) => ({
+    name: roleName,
+    label: ROLE_INFO[roleName]?.label ?? roleName,
+    hasHouses: ROLE_INFO[roleName]?.hasHouses ?? false,
+  }));
 
   function handleProfileClick(profile) {
     if (!profile.hasHouses) {
@@ -33,7 +40,7 @@ export default function Profiles() {
         </p>
 
         <div className="flex flex-col gap-3">
-          {exampleProfiles.map((profile) => (
+          {profiles.map((profile) => (
             <ProfileCard
               key={profile.name}
               profile={profile}
