@@ -28,6 +28,10 @@ export function HouseList({ onEnter }) {
 
       {loading ? (
         <p className="py-4 text-center text-sm text-muted">A carregar...</p>
+      ) : houses.length === 0 ? (
+        <p className="py-4 text-center text-sm text-muted">
+          Ainda não tem casas associadas.
+        </p>
       ) : (
         houses.map((house) => (
           <button
