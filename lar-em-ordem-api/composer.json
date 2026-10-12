@@ -61,14 +61,12 @@
         ],
         "setup": [
             "composer install",
-            "npm install --prefix ../lar-em-ordem-frontend",
             "pip install -r ./scripts/requirements.txt",
             "@php artisan key:generate",
             "@php artisan migrate:fresh --seed"
         ],
         "update-all": [
             "composer update",
-            "npm update --prefix ../lar-em-ordem-frontend",
             "pip install --upgrade -r requirements.txt"
         ]
     },
