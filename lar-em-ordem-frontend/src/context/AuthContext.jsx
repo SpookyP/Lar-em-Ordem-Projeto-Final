@@ -55,8 +55,7 @@ export function AuthProvider({ children }) {
 
   function hasRole(roleName) {
     if (!user?.roles) return false;
-
-    return user.roles.some((role) => role.name === roleName);
+    return user.roles.includes(roleName);
   }
 
   const value = {
