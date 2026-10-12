@@ -27,7 +27,6 @@ class ProviderSpecialtyController extends Controller
 
     /**
      * Acrescenta especialidades ao prestador: uma ou várias da lista, ou uma própria (custom).
-     * Só o dono do perfil ou o SU podem acrescentar.
      *
      * @param StoreProviderSpecialtyRequest $request Dados validados.
      * @param ServiceProviderModel $serviceProvider Instância do prestador.

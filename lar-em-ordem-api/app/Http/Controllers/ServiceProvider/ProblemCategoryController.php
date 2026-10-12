@@ -12,16 +12,21 @@ class ProblemCategoryController extends Controller
 {
     public function __construct(private ProblemCategoryService $service) {}
 
-    /**
-     * Lista as categorias de problemas.
+   /**
+     * Lista todas as categorias de problemas, por ordem alfabética.
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de categorias.
      */
     public function index()
     {
         return ProblemCategoryResource::collection($this->service->list());
     }
 
-    /**
-     * Lista as especialidades de uma categoria.
+     /**
+     * Lista as especialidades de uma categoria, por ordem alfabética.
+     *
+     * @param ProblemCategory $problemCategory Instância da categoria.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de especialidades.
      */
     public function specialties(ProblemCategory $problemCategory)
     {

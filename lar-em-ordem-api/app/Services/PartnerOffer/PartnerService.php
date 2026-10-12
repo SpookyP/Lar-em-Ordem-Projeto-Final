@@ -11,22 +11,47 @@ use Illuminate\Validation\ValidationException;
 
 class PartnerService
 {
+    /**
+     * Procura o perfil de parceiro de um utilizador.
+     *
+     * @param User $user Utilizador a procurar.
+     * @return Partner|null O parceiro, ou null se o utilizador não tiver perfil de parceiro.
+     */
     public function findByUser(User $user): ?Partner
     {
         return Partner::where('user_id', $user->id)->first();
     }
 
+    /**
+     * Devolve o perfil de parceiro de um utilizador; termina com 403 se não existir.
+     *
+     * @param User $user Utilizador a procurar.
+     * @return Partner
+     */
     public function getByUser(User $user): Partner
     {
         return $this->findByUser($user)
             ?? abort(403, 'Este utilizador não tem um perfil de parceiro.');
     }
     
+    /**
+     * Devolve todos os parceiros ativos.
+     *
+     * @return Collection
+     */
     public function listActive(): Collection 
     {
         return Partner::where('active', true)->get();
     }
 
+    /**
+     * Cria o perfil de parceiro de um utilizador e atribui-lhe a role 'partner'.
+     * Cada utilizador só pode ter um perfil de parceiro.
+     *
+     * @param array $data Dados validados para a criação do parceiro.
+     * @param User $owner Utilizador dono do perfil.
+     * @return Partner
+     */
     public function create(array $data, User $owner): Partner
     {
         if ($this->findByUser($owner)) {
@@ -43,12 +68,26 @@ class PartnerService
         });
     }
 
+    /**
+     * Atualiza os dados de um parceiro existente.
+     *
+     * @param Partner $partner Instância do parceiro a ser atualizado.
+     * @param array $data Dados validados para a atualização.
+     * @return Partner
+     */
     public function update(Partner $partner, array $data): Partner
     {
         $partner->update($data);
         return $partner;
     }
 
+    /**
+     * Remove um parceiro e as suas ofertas, e retira a role 'partner' ao utilizador.
+     * Tudo numa transação: se um passo falhar, nada é alterado.
+     *
+     * @param Partner $partner Instância do parceiro a ser removido.
+     * @return void
+     */
    public function delete(Partner $partner): void
     {
         DB::transaction(function () use ($partner) {
@@ -58,6 +97,12 @@ class PartnerService
         });
     }
 
+    /**
+     * Carrega as ofertas de um parceiro existente.
+     *
+     * @param Partner $partner Instância do parceiro.
+     * @return Partner A mesma instância, agora com a relação 'offers' carregada.
+     */
     public function loadWithOffers(Partner $partner): Partner
     {
         return $partner->load('offers');
