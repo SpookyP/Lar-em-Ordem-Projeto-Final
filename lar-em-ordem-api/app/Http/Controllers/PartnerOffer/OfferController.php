@@ -23,8 +23,8 @@ class OfferController extends Controller
     ) {}
 
     /**
-     * Cria uma nova oferta associada a um parceiro.
-     * 
+     * Cria uma nova oferta associada ao parceiro do utilizador autenticado.
+     *
      * @param StoreOfferRequest $request Dados validados.
      * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
      */
@@ -41,9 +41,9 @@ class OfferController extends Controller
     }
 
     /**
-     * Devolve os detalhes de uma oferta específica de um parceiro.
+     * Devolve os detalhes de uma oferta específica, incluindo o parceiro que a criou.
      *
-     * @param Offer $offer Instância da oferta solicitada (automatico p/ Laravel).
+     * @param Offer $offer Instância da oferta solicitada.
      * @return OfferResource
      */
     public function show(Offer $offer)
@@ -68,11 +68,11 @@ class OfferController extends Controller
         return new OfferResource($updatedOffer);    
     }
 
-   /**
-     * Remove permanentemente uma oferta do sistema.
+    /**
+     * Remove uma oferta.
      *
      * @param Offer $offer Instância da oferta.
-     * @return \Illuminate\Http\JsonResponse Confirmação da eliminação.
+     * @return \Illuminate\Http\JsonResponse Confirmação da remoção.
      */
     public function destroy(Offer $offer)
     {

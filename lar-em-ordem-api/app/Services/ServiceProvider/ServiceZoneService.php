@@ -11,6 +11,7 @@ class ServiceZoneService
      * Lista as zonas, com filtros opcionais por distrito e concelho.
      *
      * @param array $filters ['district' => ?string, 'county' => ?string]
+     * @return Collection Zonas ordenadas por distrito, concelho e localidade.
      */
     public function list(array $filters = []): Collection
     {

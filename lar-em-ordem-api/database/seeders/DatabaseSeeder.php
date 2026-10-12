@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User\User;
+use App\Models\Property\PropertyContract;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 
@@ -21,16 +22,67 @@ class DatabaseSeeder extends Seeder
             ResidentTypeSeeder::class,
         ]);
 
-        $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $morador = User::factory()->create([
+            'name' => 'morador',
+            'email' => 'morador@example.com',
+        ]);
+        $morador->resident()->create([
+            'name' => $morador->name,
+            'nif'  => '123456789',
+        ]);
+        $morador->assignRole('resident');
+        PropertyContract::class::factory()->count(1)->create([
+            'resident_id' => $morador->resident->id,
         ]);
 
-        $user->resident()->create([
-            'name' => $user->name,
-            'nif'  => '212345678',
+        $resident = User::factory()->create([
+            'name' => 'residente',
+            'email' => 'residente@example.com',
         ]);
-        $user->assignRole('resident');
+        $resident->resident()->create([
+            'name' => $resident->name,
+            'nif'  => '123456789',
+        ]);
+        $resident->assignRole('resident');
+        PropertyContract::class::factory()->count(6)->create([
+            'resident_id' => $resident->resident->id,
+        ]);
+        $resident->service_provider()->create([
+            "company_name" => "Serviçinhos Lda",
+            "nif" => "212345674",
+            "phone" => "912345679",
+            "email" => "general@servicos.pt",
+            "description" => "Prestação de serviços de manutenção."
+        ]);
+        $resident->assignRole('service_provider');
+        
+
+        $partner = User::factory()->create([
+            'name' => 'parceiro',
+            'email' => 'parceiro@example.com',
+        ]);
+        $partner->partner()->create([
+            'name' => $partner->name,
+            'nif'  => '123456789',
+            "phone" => "912345678",
+            "website" => "https://parceiro.pt",
+            "description" => "Empresa parceira de gestão imobiliária."
+        ]);
+        $partner->assignRole('partner');
+
+        $serviceProvider = User::factory()->create([
+            'name' => 'service',
+            'email' => 'service@example.com',
+        ]);
+        $serviceProvider->service_provider()->create([
+            "company_name" => "Serviços Lda",
+            "nif" => "212345673",
+            "phone" => "912345678",
+            "email" => "geral@servicos.pt",
+            "description" => "Prestação de serviços de manutenção."
+        ]);
+        $serviceProvider->assignRole('service_provider');
+
 
         $this->call([
             PropertySeeder::class,
@@ -47,5 +99,6 @@ class DatabaseSeeder extends Seeder
         // Rodar o script de Benchmark_Backfill automaticamente para criar os Benchmarks de mêses passados
         Artisan::call('benchmarks:backfill');
         $this->command->info(Artisan::output());
+        $this->call(ProblemCategorySeeder::class);
     }
 }

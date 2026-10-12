@@ -1,66 +1,35 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ServiceProvider;
 
+use App\Http\Controllers\Controller;
+use App\Http\Resources\ServiceProvider\ProblemCategoryResource;
+use App\Http\Resources\ServiceProvider\ServiceSpecialtyResource;
 use App\Models\ServiceProvider\ProblemCategory;
-use App\Http\Requests\ServiceProvider\StoreProblemCategoryRequest;
-use App\Http\Requests\ServiceProvider\UpdateProblemCategoryRequest;
+use App\Services\ServiceProvider\ProblemCategoryService;
 
 class ProblemCategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
+    public function __construct(private ProblemCategoryService $service) {}
+
+   /**
+     * Lista todas as categorias de problemas, por ordem alfabética.
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de categorias.
      */
     public function index()
     {
-        //
+        return ProblemCategoryResource::collection($this->service->list());
     }
 
-    /**
-     * Show the form for creating a new resource.
+     /**
+     * Lista as especialidades de uma categoria, por ordem alfabética.
+     *
+     * @param ProblemCategory $problemCategory Instância da categoria.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de especialidades.
      */
-    public function create()
+    public function specialties(ProblemCategory $problemCategory)
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreProblemCategoryRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(ProblemCategory $problemCategory)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ProblemCategory $problemCategory)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateProblemCategoryRequest $request, ProblemCategory $problemCategory)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ProblemCategory $problemCategory)
-    {
-        //
+        return ServiceSpecialtyResource::collection($this->service->listSpecialties($problemCategory));
     }
 }

@@ -11,6 +11,8 @@ import {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeProfile, setActiveProfile] = useState(null);
+  const [activeHouse, setActiveHouse] = useState(null);
 
   useEffect(() => {
     async function checkSession() {
@@ -35,6 +37,8 @@ export function AuthProvider({ children }) {
   async function logout() {
     await logoutService();
     setUser(null);
+    setActiveHouse(null);
+    setActiveProfile(null);
   }
 
   async function register(data) {
@@ -44,10 +48,14 @@ export function AuthProvider({ children }) {
     return user;
   }
 
+  function selectProfile(profile, house) {
+    setActiveProfile(profile);
+    setActiveHouse(house);
+  }
+
   function hasRole(roleName) {
     if (!user?.roles) return false;
-
-    return user.roles.some((role) => role.name === roleName);
+    return user.roles.includes(roleName);
   }
 
   const value = {
@@ -58,6 +66,9 @@ export function AuthProvider({ children }) {
     logout,
     register,
     hasRole,
+    activeHouse,
+    activeProfile,
+    selectProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

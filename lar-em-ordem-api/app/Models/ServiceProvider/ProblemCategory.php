@@ -20,4 +20,9 @@ class ProblemCategory extends Model
     {
         return $this->hasMany(AssistanceRequest::class);
     }
+    
+    protected $fillable = [
+        'name',
+        'description',
+    ];
 }

@@ -9,15 +9,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ServiceSpecialty extends Model
 {
     /** @use HasFactory<\Database\Factories\ServiceSpecialtyFactory> */
-     use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     public function problemCategory()
     {
         return $this->belongsTo(ProblemCategory::class);
     }
 
-    public function providers()
+    public function providerSpecialties()
     {
-        return $this->belongsToMany(ServiceProvider::class);
+        return $this->hasMany(ProviderSpecialty::class);
     }
+
+     protected $fillable = [
+        'problem_category_id',
+        'name',
+        'description',
+    ];
 }

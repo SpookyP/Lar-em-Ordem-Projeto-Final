@@ -16,4 +16,5 @@ Route::prefix('v1')->group(function () {
     require __DIR__ . '/modules/offer.php';
     require __DIR__ . '/modules/service_provider.php';
     require __DIR__ . '/modules/service_zone.php';
+    require __DIR__ . '/modules/problem_category.php';
 });
