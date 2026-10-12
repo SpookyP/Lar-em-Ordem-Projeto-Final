@@ -1,12 +1,26 @@
-import { exampleHouses } from "../../data/exampleData";
+import axiosClient from "./axiosClient";
 
-const PER_PAGE = 5;
+//Traduzir o vinculo que vem do back
+const BOND_LABELS = {
+  Owner: "Proprietário",
+  Tenant: "Morador",
+};
 
-//ENQUANTO NAO LIGA AO BACKEND
 export async function getProperties(page = 1) {
-  const start = (page - 1) * PER_PAGE;
-  const houses = exampleHouses.slice(start, start + PER_PAGE);
-  const lastPage = Math.ceil(exampleHouses.length / PER_PAGE);
+  const response = await axiosClient.get(`/api/v1/properties?page=${page}`);
 
-  return { houses, currentPage: page, lastPage };
+  //No corpo da response: data -> array com as casas e meta -> info da paginação
+  //Percorre cada casa e cria um objeto na forma que o HouseList pede
+  const houses = response.data.data.map((p) => ({
+    id: p.id,
+    label: p.fraction ? `${p.street}, ${p.fraction}` : p.street,
+    location: p.location,
+    bondLabel: BOND_LABELS[p.residentType] ?? p.residentType,
+  }));
+
+  return {
+    houses,
+    currentPage: response.data.meta.current_page,
+    lastPage: response.data.meta.last_page,
+  };
 }
