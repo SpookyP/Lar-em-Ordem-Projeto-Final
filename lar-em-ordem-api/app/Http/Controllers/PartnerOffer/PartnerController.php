@@ -49,6 +49,12 @@ class PartnerController extends Controller
         return new PartnerResource($this->service->loadWithOffers($partner));
     }
     
+     /**
+     * Cria o perfil de parceiro do utilizador autenticado e atribui-lhe a role 'partner'.
+     *
+     * @param StorePartnerRequest $request Dados validados.
+     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
+     */
     public function store(StorePartnerRequest $request)
     {
         Gate::authorize('create', Partner::class);
@@ -78,10 +84,10 @@ class PartnerController extends Controller
 
  
     /**
-     * Remove permanentemente um parceiro do sistema.
+     * Remove um parceiro, juntamente com as suas ofertas, e retira a role 'partner' ao utilizador.
      *
      * @param Partner $partner Instância do parceiro.
-     * @return \Illuminate\Http\JsonResponse Confirmação da eliminação.
+     * @return \Illuminate\Http\JsonResponse Confirmação da remoção.
      */
     public function destroy(Partner $partner)
     {

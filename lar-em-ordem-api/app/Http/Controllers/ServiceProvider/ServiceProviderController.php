@@ -16,7 +16,9 @@ class ServiceProviderController extends Controller
     public function __construct(private ServiceProviderService $service) {}
 
     /**
-     * Display a listing of the resource.
+     * Lista todos os prestadores de serviços ativos.
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de prestadores.
      */
     public function listActiveProviders()
     {
@@ -24,13 +26,22 @@ class ServiceProviderController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Devolve os detalhes de um prestador específico, incluindo as suas zonas e especialidades.
+     *
+     * @param ServiceProviderModel $serviceProvider Instância do prestador.
+     * @return ServiceProviderResource
      */
     public function show(ServiceProviderModel $serviceProvider)
     {
         return new ServiceProviderResource($this->service->loadFull($serviceProvider));
     }
 
+    /**
+     * Cria o perfil de prestador do utilizador autenticado e atribui-lhe a role 'service_provider'.
+     *
+     * @param StoreServiceProviderRequest $request Dados validados.
+     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
+     */
     public function store(StoreServiceProviderRequest $request)
     {
         Gate::authorize('create', ServiceProviderModel::class);
@@ -43,7 +54,11 @@ class ServiceProviderController extends Controller
     }
  
     /**
-     * Update the specified resource in storage.
+     * Atualiza os dados de um prestador existente.
+     *
+     * @param UpdateServiceProviderRequest $request Dados validados.
+     * @param ServiceProviderModel $serviceProvider Instância do prestador.
+     * @return ServiceProviderResource Devolve o prestador atualizado.
      */
     public function update(UpdateServiceProviderRequest $request, ServiceProviderModel $serviceProvider)
     {
@@ -55,7 +70,11 @@ class ServiceProviderController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove um prestador e retira a role 'service_provider' ao utilizador.
+     * Só o dono do perfil ou o SU podem remover.
+     *
+     * @param ServiceProviderModel $serviceProvider Instância do prestador.
+     * @return \Illuminate\Http\JsonResponse Confirmação da remoção.
      */
     public function destroy(ServiceProviderModel $serviceProvider)
     {
@@ -66,6 +85,13 @@ class ServiceProviderController extends Controller
         return response()->json(['message' => 'Prestador de serviços removido']);
     }
 
+    /**
+     * Define as zonas onde o prestador atua. A lista enviada substitui a anterior (lista vazia retira todas).
+     *
+     * @param SyncServiceProviderZonesRequest $request Lista validada de IDs de zonas.
+     * @param ServiceProviderModel $serviceProvider Instância do prestador.
+     * @return ServiceProviderResource Devolve o prestador com as zonas atualizadas.
+     */
      public function syncZones(SyncServiceProviderZonesRequest $request, ServiceProviderModel $serviceProvider)
     {
         Gate::authorize('update', $serviceProvider);

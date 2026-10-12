@@ -36,9 +36,9 @@ class OfferService
     }
 
     /**
-     * Elimina permanentemente uma oferta da base de dados.
+     * Remove uma oferta.
      *
-     * @param Offer $offer Instância da oferta a ser eliminada.
+     * @param Offer $offer Instância da oferta a ser removida.
      * @return void
      */
     public function delete(Offer $offer): void
