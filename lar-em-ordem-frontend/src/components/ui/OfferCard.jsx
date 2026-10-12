@@ -55,7 +55,9 @@ export function OfferCard({
 
       {/* talao (parte destacavel do ticket) */}
       <div className="flex items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-navy/20 px-4 py-3 sm:w-64">
-        <div className="font-display text-base whitespace-nowrap text-navy">{budget}</div>
+        <div className="font-display text-base whitespace-nowrap text-navy">
+          {budget}
+        </div>
         <Link
           to={to}
           className="rounded-full bg-navy px-3 py-1.5 text-sm whitespace-nowrap text-white transition hover:opacity-90"

@@ -47,6 +47,15 @@ class DatabaseSeeder extends Seeder
         PropertyContract::class::factory()->count(6)->create([
             'resident_id' => $resident->resident->id,
         ]);
+        $resident->service_provider()->create([
+            "company_name" => "Serviços Lda",
+            "nif" => "212345673",
+            "phone" => "912345678",
+            "email" => "geral@servicos.pt",
+            "description" => "Prestação de serviços de manutenção."
+        ]);
+        $resident->assignRole('service_provider');
+        
 
         $partner = User::factory()->create([
             'name' => 'parceiro',

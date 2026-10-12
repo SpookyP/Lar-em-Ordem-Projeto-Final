@@ -6,6 +6,7 @@ import { AppLayout } from "../components/layout/AppLayout";
 import Login from "../pages/Login/Login";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
+import Offer from "../pages/ServiceProvider/Offer/Offer";
 import NaoAutorizado from "../pages/NaoAutorizado/NaoAutorizado";
 import Register from "../pages/Register/Register";
 import Profiles from "../pages/Profiles/Profiles";
@@ -18,6 +19,7 @@ export function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path="/teste-layout" element={<Dashboard />} />
           <Route path="/teste-service" element={<JobListing />} />
+          <Route path="/teste-offer/:id" element={<Offer />} />
         </Route>
 
         {/* Rota publica: qualquer um pode aceder */}
