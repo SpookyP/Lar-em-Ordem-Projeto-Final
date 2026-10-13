@@ -8,12 +8,6 @@ services:
       MYSQL_USER: laremordemuser
       MYSQL_PASSWORD: secret_password
       MYSQL_ROOT_PASSWORD: root_password
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 20s
     ports:
       - "3306:3306"
     volumes:
@@ -29,16 +23,10 @@ services:
     restart: always
     volumes:
       - ./lar-em-ordem-api:/var/www/html
-    environment:
-      - DB_CONNECTION=mysql
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_DATABASE=laremordemdb
-      - DB_USERNAME=laremordemuser
-      - DB_PASSWORD=secret_password
+    env_file:
+      - ./lar-em-ordem-api/.env
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
     networks:
       - dev-network
 
@@ -64,40 +52,6 @@ services:
     restart: always
     ports:
       - "5173:5173"
-    networks:
-      - dev-network
-  setup:
-    profiles:
-      - setup
-    build:
-      context: ./lar-em-ordem-api
-      dockerfile: Dockerfile
-    container_name: lar_setup
-    volumes:
-      - ./lar-em-ordem-api:/var/www/html
-    environment:
-      - DB_CONNECTION=mysql
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_DATABASE=laremordemdb
-      - DB_USERNAME=laremordemuser
-      - DB_PASSWORD=secret_password
-    depends_on:
-      mysql:
-        condition: service_healthy
-    command:
-      - sh
-      - -c
-      - |
-        set -e
-        [ -f .env ] || cp .env.example .env
-        composer install --no-interaction
-        grep -q '^APP_KEY=.' .env || php artisan key:generate --force
-        if php artisan migrate:status >/dev/null 2>&1; then
-          php artisan migrate --force
-        else
-          php artisan migrate --force --seed
-        fi
     networks:
       - dev-network
 
