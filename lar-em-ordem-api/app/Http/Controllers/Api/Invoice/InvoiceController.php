@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api\Invoice;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
+use App\Http\Requests\Invoice\UploadInvoiceRequest;
 use App\Http\Resources\Invoice\InvoiceResource;
 use App\Services\Invoice\InvoiceService;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
@@ -76,5 +79,28 @@ class InvoiceController extends Controller
         return response()->json([
             'message' => 'Invoice was successfully deleted',
         ], 200);
+    }
+
+    public function upload(UploadInvoiceRequest $request): JsonResponse
+    {
+        $fileId = (string) Str::ulid();
+
+        $request->file('file')->storeAs("pending/{$request->user()->id}", "{$fileId}.pdf", 'r2');
+
+        return response()->json(['data' => ['file_id' => $fileId]], 201);
+    }
+
+    public function file(Request $request, string $invoiceId): JsonResponse
+    {
+        $invoice = $this->service->getInvoiceById($invoiceId, $request->user()->id); // 404 se não for dele
+
+        abort_if(! $invoice->file_id, 404, 'This invoice has no file.');
+
+        $url = Storage::disk('r2')->temporaryUrl(
+            "invoices/{$invoice->user_id}/{$invoice->file_id}.pdf",
+            now()->addMinutes(5)
+        );
+
+        return response()->json(['data' => ['url' => $url]]);
     }
 }

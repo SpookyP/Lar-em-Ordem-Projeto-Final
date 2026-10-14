@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('period_end');
             $table->decimal('total_amount', 10, 2);
             $table->string('supplier');
-            $table->string('file_path')->nullable();
+            $table->ulid('file_id')->nullable()->unique();
             $table->timestamps();
 
             $table->unique([
