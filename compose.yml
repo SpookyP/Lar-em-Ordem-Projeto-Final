@@ -1,0 +1,63 @@
+services:
+  mysql:
+    image: mysql:8.4.3
+    container_name: mysql_dev
+    restart: always
+    environment:
+      MYSQL_DATABASE: laremordemdb
+      MYSQL_USER: laremordemuser
+      MYSQL_PASSWORD: secret_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - dev-network
+
+  api:
+    build:
+      context: ./lar-em-ordem-api
+      dockerfile: Dockerfile
+    container_name: api_dev
+    restart: always
+    volumes:
+      - ./lar-em-ordem-api:/var/www/html
+    env_file:
+      - ./lar-em-ordem-api/.env
+    depends_on:
+      - mysql
+    networks:
+      - dev-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_dev
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ./lar-em-ordem-api:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api
+    networks:
+      - dev-network
+
+  frontend:
+    build:
+      context: ./lar-em-ordem-frontend
+      dockerfile: Dockerfile
+    container_name: frontend_dev
+    restart: always
+    ports:
+      - "5173:5173"
+    networks:
+      - dev-network
+
+volumes:
+  mysql_data:
+
+networks:
+  dev-network:
+    driver: bridge

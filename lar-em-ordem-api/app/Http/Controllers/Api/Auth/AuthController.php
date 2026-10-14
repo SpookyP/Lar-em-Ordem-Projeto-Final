@@ -94,9 +94,12 @@ class AuthController extends Controller
         };
 
         if ($alreadyHasProfile) {
-            throw ValidationException::withMessages([
-                'role' => ["You already have a {$role} profile attached to this account."],
-            ]);
+            return response()->json([
+                'message' => "The given data was invalid.",
+                'errors' => [
+                    'role' => ["You already have a {$role} profile attached to this account."],
+                ],
+            ], 422);
         }
 
         DB::transaction(function () use ($user, $validated, $role) {
