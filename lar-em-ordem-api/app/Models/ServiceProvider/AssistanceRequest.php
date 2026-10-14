@@ -38,4 +38,33 @@ class AssistanceRequest extends Model
     {
         return $this->hasMany(Proposal::class);
     }
+
+    protected $fillable = [
+        'property_id',
+        'user_id',
+        'problem_category_id',
+        'title',
+        'description',
+        'status',
+        'closed_at',
+    ];
+
+    protected $attributes = [
+        'status'=>'open',
+    ];
+
+    protected $casts = [
+        'closed_at'=>'datetime',
+    ];
+
+    /**
+     * Indica se o pedido tem status 'open'.
+     *
+     * @return bool
+     */
+    public function isOpen(): bool
+    {
+         return $this->status === 'open';
+    }
+
 }
