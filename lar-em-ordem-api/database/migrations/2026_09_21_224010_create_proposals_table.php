@@ -19,11 +19,11 @@ return new class extends Migration
             $table->text('description');
             $table->date('validity');                    
             $table->string('availability', 100);  
-            $table->enum('status', ['accepted', 'pending', 'regected']);
-            $table->dateTime('submission_date')->useCurrent();
+            $table->enum('status', ['pending', 'accepted', 'rejected', 'withdrawn'])->default('pending');
             $table->dateTime('response_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
+            $table->unique(['assistance_request_id', 'service_provider_id']);
         });
     }
 

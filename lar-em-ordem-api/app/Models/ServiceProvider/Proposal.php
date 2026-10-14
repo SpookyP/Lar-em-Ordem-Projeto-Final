@@ -2,7 +2,7 @@
 
 namespace App\Models\ServiceProvider;
 
-use App\Models\User\ServiceProvider;
+use App\Models\User\ServiceProvider as ServiceProviderModel;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +20,37 @@ class Proposal extends Model
 
     public function serviceProvider()
     {
-        return $this->belongsTo(ServiceProvider::class);
+        return $this->belongsTo(ServiceProviderModel::class);
+    }
+
+     protected $fillable = [
+        'assistance_request_id',
+        'service_provider_id',
+        'estimated_value',
+        'description',
+        'validity',
+        'availability',
+        'status',
+        'response_date',
+    ];
+
+    protected $attributes = [
+        'status' => 'pending',
+    ];
+
+    protected $casts = [
+        'estimated_value' => 'decimal:2',
+        'validity'        => 'date',
+        'response_date'   => 'datetime',
+    ];
+
+     /**
+     * Indica se a proposta tem status 'pending'.
+     *
+     * @return bool
+     */
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
     }
 }
