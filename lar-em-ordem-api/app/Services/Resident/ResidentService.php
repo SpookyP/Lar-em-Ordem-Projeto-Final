@@ -3,12 +3,13 @@ namespace App\Services\Resident;
 
 use App\Models\User\Resident;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\Uid\Ulid;
 
 class ResidentService
 {
     #region CRUD
     #region Get Resident
-    public function getResidentByUserId(int $userId){
+    public function getResidentByUserId(Ulid $userId){
         $resident = Resident::query()
             ->where('user_id',$userId)
             ->first();
@@ -19,9 +20,10 @@ class ResidentService
         return $resident;
     }
     #endregion
-    public function updateResident(int $userId, array $data): Resident
+    public function updateResident(string|Ulid $userId, array $data): Resident
     {
-        $resident = $this->getResidentByUserId($userId);
+        $ulid = is_string($userId) ? new Ulid($userId) : $userId;
+        $resident = $this->getResidentByUserId($ulid);
         return DB::transaction(function () use ($data, $resident) {
             $resident->update($data);
             return $resident->fresh();
