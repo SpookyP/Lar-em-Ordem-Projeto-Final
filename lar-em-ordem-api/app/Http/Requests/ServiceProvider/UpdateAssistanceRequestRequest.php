@@ -3,6 +3,8 @@
 namespace App\Http\Requests\ServiceProvider;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
 
 class UpdateAssistanceRequestRequest extends FormRequest
 {
@@ -11,18 +13,26 @@ class UpdateAssistanceRequestRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
+
+     public function rules(): array
     {
         return [
-            //
+            'problem_category_id' => [
+                'sometimes', 'required', 'integer',
+                Rule::exists('problem_categories', 'id')->whereNull('deleted_at'),
+            ],
+            'title'       => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string|max:5000',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'problem_category_id.exists' => 'A categoria indicada não existe.',
         ];
     }
 }

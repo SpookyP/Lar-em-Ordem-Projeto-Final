@@ -2,65 +2,52 @@
 
 namespace App\Policies;
 
-use App\Models\AssistanceRequest;
+use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\User\User;
-use Illuminate\Auth\Access\Response;
 
 class AssistanceRequestPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * O SU tem acesso a tudo; para os restantes segue para o método da ação.
+     *
+     * @param User $user Utilizador autenticado.
+     * @param string $ability Ação a autorizar.
+     * @return bool|null true para o SU; null para continuar a verificação.
      */
-    public function viewAny(User $user): bool
+    public function before(User $user, string $ability): ?bool
     {
-        return false;
+        return $user->hasRole('SU') ? true : null;
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Só o dono do pedido o pode ver.
      */
     public function view(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return false;
+        return $assistanceRequest->user_id === $user->id;
     }
 
     /**
-     * Determine whether the user can create models.
+     * Só residentes podem abrir pedidos.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasRole('resident');
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Só o dono do pedido o pode editar.
      */
     public function update(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return false;
+        return $assistanceRequest->user_id === $user->id;
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Só o dono do pedido o pode cancelar.
      */
-    public function delete(User $user, AssistanceRequest $assistanceRequest): bool
+    public function cancel(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, AssistanceRequest $assistanceRequest): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, AssistanceRequest $assistanceRequest): bool
-    {
-        return false;
+        return $assistanceRequest->user_id === $user->id;
     }
 }

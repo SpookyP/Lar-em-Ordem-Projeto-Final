@@ -1,66 +1,90 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ServiceProvider;
 
-use App\Models\ServiceProvider\AssistanceRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ServiceProvider\IndexAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\StoreAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
+use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
+use App\Models\ServiceProvider\AssistanceRequest;
+use App\Services\ServiceProvider\AssistanceRequestService;
+use Illuminate\Support\Facades\Gate;
 
 class AssistanceRequestController extends Controller
 {
+    public function __construct(private AssistanceRequestService $service) {}
+
     /**
-     * Display a listing of the resource.
+     * Lista os pedidos de assistência do utilizador autenticado.
+     * Permite filtrar através do parâmetro 'status' (ex: ?status=open).
+     *
+     * @param IndexAssistanceRequestRequest $request O pedido HTTP com o filtro validado.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos.
      */
-    public function index()
+    public function index(IndexAssistanceRequestRequest $request)
     {
-        //
+        return AssistanceRequestResource::collection(
+            $this->service->listRequestsByUser($request->user(), $request->validated('status'))
+        );
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Abre um novo pedido de assistência para uma casa do residente autenticado.
+     *
+     * @param StoreAssistanceRequestRequest $request Dados validados.
+     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201.
      */
     public function store(StoreAssistanceRequestRequest $request)
     {
-        //
+        Gate::authorize('create', AssistanceRequest::class);
+
+        $assistanceRequest = $this->service->create($request->validated(), $request->user());
+
+        return (new AssistanceRequestResource($assistanceRequest))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
-     * Display the specified resource.
+     * Devolve os detalhes de um pedido de assistência, incluindo a casa e a categoria.
+     *
+     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @return AssistanceRequestResource
      */
     public function show(AssistanceRequest $assistanceRequest)
     {
-        //
+        Gate::authorize('view', $assistanceRequest);
+
+        return new AssistanceRequestResource($this->service->loadFull($assistanceRequest));
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AssistanceRequest $assistanceRequest)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Atualiza um pedido de assistência enquanto estiver aberto.
+     *
+     * @param UpdateAssistanceRequestRequest $request Dados validados.
+     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @return AssistanceRequestResource Devolve o pedido atualizado.
      */
     public function update(UpdateAssistanceRequestRequest $request, AssistanceRequest $assistanceRequest)
     {
-        //
+        Gate::authorize('update', $assistanceRequest);
+
+        return new AssistanceRequestResource(
+            $this->service->update($assistanceRequest, $request->validated())
+        );
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Cancela um pedido de assistência aberto.
+     *
+     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @return AssistanceRequestResource Devolve o pedido cancelado.
      */
-    public function destroy(AssistanceRequest $assistanceRequest)
+    public function cancel(AssistanceRequest $assistanceRequest)
     {
-        //
+        Gate::authorize('cancel', $assistanceRequest);
+
+        return new AssistanceRequestResource($this->service->cancel($assistanceRequest));
     }
 }

@@ -7,12 +7,26 @@ import {
   register as registerService,
 } from "../services/api/authService";
 
+//Ler um objeto guardadi no LocalStorage
+function readStored(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 //Provider vai distribuir a info da autenticacao
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeProfile, setActiveProfile] = useState(null);
-  const [activeHouse, setActiveHouse] = useState(null);
+  const [activeProfile, setActiveProfile] = useState(() =>
+    readStored("activeProfile"),
+  );
+  const [activeHouse, setActiveHouse] = useState(() =>
+    readStored("activeHouse"),
+  );
 
   useEffect(() => {
     async function checkSession() {
@@ -39,6 +53,8 @@ export function AuthProvider({ children }) {
     setUser(null);
     setActiveHouse(null);
     setActiveProfile(null);
+    localStorage.removeItem("activeProfile");
+    localStorage.removeItem("activeHouse");
   }
 
   async function register(data) {
@@ -51,6 +67,8 @@ export function AuthProvider({ children }) {
   function selectProfile(profile, house) {
     setActiveProfile(profile);
     setActiveHouse(house);
+    localStorage.setItem("activeProfile", JSON.stringify(profile));
+    localStorage.setItem("activeHouse", JSON.stringify(house));
   }
 
   function hasRole(roleName) {

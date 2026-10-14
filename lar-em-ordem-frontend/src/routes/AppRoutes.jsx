@@ -1,15 +1,17 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
 import { AppLayout } from "../components/layout/AppLayout";
+import Login from "../pages/Login/Login";
+import Register from "../pages/Register/Register";
+import Profiles from "../pages/Profiles/Profiles";
+import Definicoes from "../pages/Definicoes/Definicoes";
 
 //paginas fake
-import Login from "../pages/Login/Login";
+
 import Dashboard from "../pages/Dashboard/Dashboard";
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
 import NaoAutorizado from "../pages/NaoAutorizado/NaoAutorizado";
-import Register from "../pages/Register/Register";
-import Profiles from "../pages/Profiles/Profiles";
 
 export function AppRoutes() {
   return (
@@ -33,6 +35,7 @@ export function AppRoutes() {
           <Route path="/perfis" element={<Profiles />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/definicoes" element={<Definicoes />} />
           </Route>
         </Route>
       </Routes>

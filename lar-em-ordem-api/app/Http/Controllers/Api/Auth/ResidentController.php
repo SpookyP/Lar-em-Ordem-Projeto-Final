@@ -8,16 +8,18 @@ use App\Http\Requests\Resident\UpdateResidentRequest;
 use Illuminate\Http\Request;
 use App\Http\Resources\Resident\ResidentResource;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\Uid\Ulid;
 
 class ResidentController extends Controller
 {
-    public function __construct(protected ResidentService $service)
-    {}
+    public function __construct(protected ResidentService $service) {}
 
-    private function authorizeResident(int $userId)
+    private function authorizeResident(string|Ulid $userId)
     {
+        $ulid = is_string($userId) ? new Ulid($userId) : $userId;
+
         $resident = $this->service->getResidentByUserId(
-            userId: $userId
+            userId: $ulid
         );
 
         if (!$resident) {
@@ -44,10 +46,10 @@ class ResidentController extends Controller
      */
     public function update(UpdateResidentRequest $request)
     {
-        $this->authorizeResident(userId: $request->user()->id);
+        $resident = $this->authorizeResident(userId: $request->user()->id);
 
         $property = $this->service->updateResident(
-            userId: $request->user()->id,
+            userId: $resident->user_id,
             data: $request->validated()
         );
         return ResidentResource::make($property)
