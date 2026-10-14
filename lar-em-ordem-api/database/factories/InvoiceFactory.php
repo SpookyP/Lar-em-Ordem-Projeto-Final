@@ -29,7 +29,7 @@ class InvoiceFactory extends Factory
             'period_end'        =>      $start->copy()->endOfMonth()->toDateString(),
             'total_amount'      =>      $this->faker->randomFloat(2, 20, 500),
             'supplier'          =>      $this->faker->company(),
-            'file_path'         =>      null,
+            'file_id'           =>      null,
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Invoice;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class StoreInvoiceRequest extends FormRequest
@@ -70,7 +71,13 @@ class StoreInvoiceRequest extends FormRequest
             'period_end'                            =>      ['required', 'date', 'after_or_equal:period_start'],
             'total_amount'                          =>      ['required', 'numeric', 'min:0'],
             'supplier'                              =>      ['required', 'string', 'max:255'],
-            'file_path'                             =>      ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+
+            'file_id' => ['bail', 'nullable', 'ulid', function ($attribute, $value, $fail) {
+                if (! Storage::disk('r2')->exists("pending/{$this->user()->id}/{$value}.pdf")) {
+                    $fail('The invoice file is invalid or expired.');
+                }
+            }],
+
             'consumptions'                          =>      ['required', 'array'],
             'consumptions.*.consumption_type_id'    =>      ['required', 'integer', 'exists:consumption_types,id'],
             'consumptions.*.amount'                 =>      ['required', 'numeric', 'min:0'],
@@ -91,6 +98,7 @@ class StoreInvoiceRequest extends FormRequest
             'period_end',
             'total_amount',
             'supplier',
+            'file_id',
         ]);
     }
 

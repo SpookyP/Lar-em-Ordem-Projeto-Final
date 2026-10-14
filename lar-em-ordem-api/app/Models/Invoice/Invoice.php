@@ -29,7 +29,7 @@ class Invoice extends Model
         'period_end',
         'total_amount',
         'supplier',
-        'file_path',
+        'file_id',
     ];
 
     protected function casts(): array

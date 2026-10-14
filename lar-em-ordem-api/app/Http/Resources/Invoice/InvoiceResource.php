@@ -22,6 +22,9 @@ class InvoiceResource extends JsonResource
             'period_end'      =>    $this->period_end?->toDateString(),
             'total_amount'    =>    $this->total_amount,
             'supplier'        =>    $this->supplier,
+            
+            'file_id'         =>    $this->file_id,
+            'has_file'        =>    (bool) $this->file_id,
 
             'property'        =>    $this->whenLoaded( 'property', fn () => PropertyResource::make($this->property) ),
 

@@ -69,6 +69,7 @@ return [
             'endpoint'                => env('CLOUDFLARE_R2_ENDPOINT'),
             'use_path_style_endpoint' => true,
             'throw'                   => true,
+            'http'                    => [ 'verify' => env('R2_VERIFY_SSL', true), 'timeout' => 30, 'connect_timeout' => 10 ], 
         ],
 
     ],
