@@ -83,7 +83,7 @@ export function SideBar() {
           <SidebarButton
             icon={Home}
             label="As minhas casas"
-            onClick={() => navigate("/perfis")}
+            onClick={() => navigate(`/perfis?perfil=${activeProfile.name}`)}
           />
         )}
 

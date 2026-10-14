@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ProfileCard } from "../../components/ui/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
 import { getProperties } from "../../services/api/propertyService";
+import { HouseList } from "../../components/ui/HouseList";
 
 export default function Profiles() {
   const navigate = useNavigate();
@@ -17,6 +18,10 @@ export default function Profiles() {
     label: ROLE_INFO[roleName]?.label ?? roleName,
     hasHouses: ROLE_INFO[roleName]?.hasHouses ?? false,
   }));
+
+  const [searchParams] = useSearchParams();
+  const preselectedName = searchParams.get("perfil");
+  const preselectedProfile = profiles.find((p) => p.name === preselectedName);
 
   function handleProfileClick(profile) {
     if (!profile.hasHouses) {
@@ -34,6 +39,11 @@ export default function Profiles() {
   //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /perfis
   useEffect(() => {
     if (!user) return;
+
+    if (preselectedProfile) {
+      setDeciding(false);
+      return;
+    }
 
     async function decideEntry() {
       //vários perfis
@@ -86,23 +96,31 @@ export default function Profiles() {
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
         <h1 className="font-display text-3xl text-navy text-center">
-          Olá de novo
+          {preselectedProfile ? "As minhas casas" : "Olá de novo"}
         </h1>
         <p className="text-muted text-center mb-8">
-          Com que perfil quer entrar?
+          {preselectedProfile
+            ? "Em que casa quer entrar?"
+            : "Com que perfil quer entrar?"}
         </p>
 
-        <div className="flex flex-col gap-3">
-          {profiles.map((profile) => (
-            <ProfileCard
-              key={profile.name}
-              profile={profile}
-              isOpen={openProfile === profile.name}
-              onProfileClick={handleProfileClick}
-              onEnter={(house) => enter(profile, house)}
-            />
-          ))}
-        </div>
+        {preselectedProfile ? (
+          <div className="rounded-2xl bg-card border border-border overflow-hidden">
+            <HouseList onEnter={(house) => enter(preselectedProfile, house)} />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {profiles.map((profile) => (
+              <ProfileCard
+                key={profile.name}
+                profile={profile}
+                isOpen={openProfile === profile.name}
+                onProfileClick={handleProfileClick}
+                onEnter={(house) => enter(profile, house)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
