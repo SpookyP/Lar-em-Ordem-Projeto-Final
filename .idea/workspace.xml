@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Hotfix Documento e Script">
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/StoreDocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Tests/Feature/Vault/StoreDocumentTest.php" afterDir="false" />
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Hotfix Tests">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Property/PropertyTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Property/PropertyTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Tests/Feature/Vault/DocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Tests/Feature/Vault/DocumentTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -202,11 +204,6 @@
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/commonmark" />
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/flysystem-local" />
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/flysystem" />
-      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/aws/aws-crt-php" />
-      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/aws/aws-sdk-php" />
-      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/flysystem-aws-s3-v3" />
-      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/filesystem" />
-      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/mtdowling/jmespath.php" />
     </include_path>
   </component>
   <component name="ProblemsViewState">
@@ -276,10 +273,6 @@
       <workItem from="1791397326481" duration="8000" />
       <workItem from="1791401542350" duration="2932000" />
       <workItem from="1791571050933" duration="2788000" />
-      <workItem from="1791825244636" duration="2451000" />
-      <workItem from="1791906710944" duration="19000" />
-      <workItem from="1792005555579" duration="4854000" />
-      <workItem from="1792089451869" duration="7591000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -353,15 +346,23 @@
       <option name="project" value="LOCAL" />
       <updated>1791579454520</updated>
     </task>
-    <task id="LOCAL-00010" summary="Hotfix Documento e Script">
+    <task id="LOCAL-00010" summary="Hotfix Tests">
       <option name="closed" value="true" />
-      <created>1792097683247</created>
+      <created>1792098415504</created>
       <option name="number" value="00010" />
       <option name="presentableId" value="LOCAL-00010" />
       <option name="project" value="LOCAL" />
-      <updated>1792097683247</updated>
+      <updated>1792098415504</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Hotfix Tests">
+      <option name="closed" value="true" />
+      <created>1792098431411</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1792098431411</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -386,8 +387,7 @@
     <MESSAGE value="Readme e Python" />
     <MESSAGE value="Hotfix Geral" />
     <MESSAGE value="Hotfix Tests" />
-    <MESSAGE value="Hotfix Documento e Script" />
-    <option name="LAST_COMMIT_MESSAGE" value="Hotfix Documento e Script" />
+    <option name="LAST_COMMIT_MESSAGE" value="Hotfix Tests" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
