@@ -7,7 +7,7 @@ import {
   register as registerService,
 } from "../services/api/authService";
 
-//Ler um objeto guardadi no LocalStorage
+//Ler um objeto guardado no LocalStorage
 function readStored(key) {
   try {
     const raw = localStorage.getItem(key);
@@ -64,6 +64,12 @@ export function AuthProvider({ children }) {
     return user;
   }
 
+  async function refreshUser() {
+    const currentUser = await getCurrentUser();
+    setUser(currentUser);
+    return currentUser;
+  }
+
   function selectProfile(profile, house) {
     setActiveProfile(profile);
     setActiveHouse(house);
@@ -83,6 +89,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     register,
+    refreshUser,
     hasRole,
     activeHouse,
     activeProfile,
