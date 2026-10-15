@@ -20,11 +20,20 @@ class AssistanceRequestPolicy
     }
 
     /**
-     * Só o dono do pedido o pode ver.
+     * O dono do pedido pode vê-lo; um prestador também.
      */
     public function view(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return $assistanceRequest->user_id === $user->id;
+        if ($assistanceRequest->user_id === $user->id) {
+            return true;
+        }
+
+        $provider = $user->service_provider;
+
+        return $provider !== null
+            && AssistanceRequest::availableFor($provider)
+                ->where('id', $assistanceRequest->id)
+                ->exists();
     }
 
     /**
@@ -49,5 +58,13 @@ class AssistanceRequestPolicy
     public function cancel(User $user, AssistanceRequest $assistanceRequest): bool
     {
         return $assistanceRequest->user_id === $user->id;
+    }
+
+    /**
+     * Só prestadores de serviços podem ver a lista de pedidos disponíveis.
+     */
+    public function viewAvailable(User $user): bool
+    {
+        return $user->hasRole('service_provider');
     }
 }

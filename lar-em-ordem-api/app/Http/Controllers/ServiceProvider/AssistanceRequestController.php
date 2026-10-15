@@ -10,10 +10,15 @@ use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Services\ServiceProvider\AssistanceRequestService;
 use Illuminate\Support\Facades\Gate;
+use App\Services\ServiceProvider\ServiceProviderService;
+use Illuminate\Http\Request;
 
 class AssistanceRequestController extends Controller
 {
-    public function __construct(private AssistanceRequestService $service) {}
+    public function __construct(
+        private AssistanceRequestService $service,
+        private ServiceProviderService $serviceProviderService,
+    ) {}
 
     /**
      * Lista os pedidos de assistência do utilizador autenticado.
@@ -86,5 +91,23 @@ class AssistanceRequestController extends Controller
         Gate::authorize('cancel', $assistanceRequest);
 
         return new AssistanceRequestResource($this->service->cancel($assistanceRequest));
+    }
+
+    /**
+     * Lista os pedidos abertos disponíveis para o prestador autenticado
+     * (da sua categoria e da sua zona).
+     *
+     * @param Request $request O pedido HTTP.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos.
+     */
+    public function available(Request $request)
+    {
+        Gate::authorize('viewAvailable', AssistanceRequest::class);
+
+        $provider = $this->serviceProviderService->getByUser($request->user());
+
+        return AssistanceRequestResource::collection(
+            $this->service->listAvailableFor($provider)
+        );
     }
 }

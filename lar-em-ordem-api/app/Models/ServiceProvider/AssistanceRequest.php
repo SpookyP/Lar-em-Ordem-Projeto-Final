@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use App\Models\User\ServiceProvider as ServiceProviderModel;
+use Illuminate\Database\Eloquent\Builder;
 
 class AssistanceRequest extends Model
 {
@@ -65,6 +67,42 @@ class AssistanceRequest extends Model
     public function isOpen(): bool
     {
          return $this->status === 'open';
+    }
+    /**
+     * Pedidos que um prestador pode ver e responder:
+     * abertos, numa das suas categoria, num concelho
+     * onde atua, não  abertos por ele próprio.
+     * Uso: AssistanceRequest::availableFor($provider)->get()
+     *
+     * @param Builder $query Query a que se aplicam os filtros.
+     * @param ServiceProviderModel $provider Prestador para quem se procuram pedidos.
+     * @return Builder
+     */
+    public function scopeAvailableFor(Builder $query, ServiceProviderModel $provider): Builder
+    {
+        $categoryIds = $provider->specialties()->pluck('problem_category_id')->unique();
+
+        $counties = $provider->zones()
+            ->get(['district', 'county'])
+            ->unique(fn ($zone) => $zone->district . '|' . $zone->county);
+
+        
+        if (! $provider->active || $categoryIds->isEmpty() || $counties->isEmpty()) {
+            return $query->whereRaw('1 = 0'); // condição impossível, garantindo que a consulta não devolve resultados
+        }
+
+        return $query->where('status', 'open')
+            ->where('user_id', '!=', $provider->user_id)
+            ->whereIn('problem_category_id', $categoryIds)
+            ->whereHas('property.address', function (Builder $address) use ($counties) {
+                $address->where(function (Builder $any) use ($counties) {
+                    foreach ($counties as $zone) {
+                        $any->orWhere(fn (Builder $q) => $q
+                            ->where('district', $zone->district)
+                            ->where('county', $zone->county));
+                    }
+                });
+            });
     }
 
 }
