@@ -19,7 +19,7 @@ class DocumentController extends Controller
      * automática de informações dos ficheiros PDF.
      */
     public function __construct(
-        private readonly PdfExtractionService $pdfService
+        private readonly DocumentService $documentService
     ) {}
 
     /**
@@ -81,9 +81,9 @@ class DocumentController extends Controller
      * @param StoreDocumentRequest $request Pedido validado com os dados do formulário e ficheiro.
      * @return JsonResponse Resposta JSON com o sucesso da operação e o documento criado (Código 201).
      */
-    public function store(StoreDocumentRequest $request, DocumentService $documentService): JsonResponse
+    public function store(StoreDocumentRequest $request): JsonResponse
     {
-        $document = $documentService->processAndSaveDocument(
+        $document = $this->documentService->processAndSaveDocument(
             $request->validated(),
             $request->file('file')
         );
