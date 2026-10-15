@@ -22,8 +22,8 @@ class Document extends Model
     ];
 
     protected $casts = [
-        'issue_date' => 'date',
-        'expiration_date' => 'date',
+        'issue_date' => 'date:Y-m-d',
+        'expiration_date' => 'date:Y-m-d',
         'extracted_data' => 'array',
     ];
 

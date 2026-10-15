@@ -37,6 +37,10 @@ class StoreDocumentRequest extends FormRequest
 
             // Validação do ficheiro
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+
+            // Validações de data
+            'issue_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'expiration_date' => ['nullable', 'date', 'after:issue_date'],
         ];
     }
 

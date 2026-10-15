@@ -147,6 +147,11 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/smalot/pdfparser" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-mbstring" />
+      <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/vendor/aws/aws-crt-php" />
+      <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/vendor/aws/aws-sdk-php" />
+      <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/vendor/league/flysystem-aws-s3-v3" />
+      <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/vendor/mtdowling/jmespath.php" />
+      <excludeFolder url="file://$MODULE_DIR$/lar-em-ordem-api/vendor/symfony/filesystem" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
