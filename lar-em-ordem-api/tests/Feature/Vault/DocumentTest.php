@@ -100,7 +100,7 @@ class DocumentTest extends TestCase
             'property_id' => $propertyId,
             'document_category_id' => $category->id,
             'name' => 'energy_certificate.pdf',
-            'expiration_date' => '2030-12-31 00:00:00',
+            'expiration_date' => '2030-12-31',
         ]);
     }
 
