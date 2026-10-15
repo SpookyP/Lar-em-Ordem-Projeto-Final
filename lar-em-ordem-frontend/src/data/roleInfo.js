@@ -4,5 +4,5 @@ export const ROLE_INFO = {
   resident: { label: "As minhas casas", hasHouses: true },
   service_provider: { label: "Prestador de Serviços", hasHouses: false },
   partner: { label: "Parceiro", hasHouses: false },
-  condominium_admin: { label: "Administração de Condomínio", hasHouses: false },
+  condominium_admin: { label: "Administrador de Condomínio", hasHouses: false },
 };
