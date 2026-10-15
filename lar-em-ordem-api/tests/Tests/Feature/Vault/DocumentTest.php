@@ -40,6 +40,7 @@ class DocumentTest extends TestCase
         $address->street = 'Rua Teste';
         $address->postal_code = '4000-000';
         $address->door = '1A';
+        $address->fraction = 'A';
         $address->county = 'Porto';
         $address->location = 'Porto';
         $address->district = 'Porto';
@@ -50,7 +51,6 @@ class DocumentTest extends TestCase
         $property->property_typology_id = $typology->id;
         $property->address_id = $address->id;
         $property->area = 100;
-        $property->fraction = 'A';
         $property->save();
 
         return $property->id;
