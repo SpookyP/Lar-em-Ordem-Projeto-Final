@@ -2,14 +2,31 @@ import { useState } from "react";
 import { Camera } from "lucide-react";
 
 export default function AssistanceForm({ onSubmit }) {
+  const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState(null);
+  const [photoError, setPhotoError] = useState("");
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setPhotoError("A imagem é muito grande. O limite máximo é 5MiB.");
+      setPhoto(null);
+      e.target.value = "";
+      return;
+    }
+
+    setPhotoError("");
+    setPhoto(file);
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onSubmit) {
-      onSubmit({ category, description, photo });
+      onSubmit({ title, category, description, photo });
     }
   };
 
@@ -21,12 +38,26 @@ export default function AssistanceForm({ onSubmit }) {
           Novo Pedido de Assistência
         </h2>
         <p className="text-sm text-muted">
-          <span className="text-red">*</span> Campos de preenchimento obrigatório
+          <span className="text-red">*</span> Campos de preenchimento
+          obrigatório
         </p>
       </div>
 
       {/* Formulário */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-navy">
+            Resumo do problema <span className="text-red">*</span>
+          </label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-orange/50"
+            placeholder="Exemplo: Avaria na maquina de lavar louça"
+            required
+          />
+        </div>
+
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-navy">
             Categoria da avaria <span className="text-red">*</span>
@@ -37,7 +68,9 @@ export default function AssistanceForm({ onSubmit }) {
             className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-orange/50"
             required
           >
-            <option value="" disabled>Selecionar tipo de avaria...</option>
+            <option value="" disabled>
+              Selecionar tipo de avaria...
+            </option>
             <option value="canalizacao">Canalização</option>
             <option value="eletricidade">Eletricidade</option>
             <option value="gas">Gás</option>
@@ -67,16 +100,26 @@ export default function AssistanceForm({ onSubmit }) {
             <div className="w-12 h-12 rounded-full bg-orange-light flex items-center justify-center text-orange mb-3">
               <Camera className="w-6 h-6" />
             </div>
-            <span className="text-sm font-medium text-navy">Adicionar Fotografia</span>
-            <span className="text-xs text-muted mt-1">Obrigatória — tire uma foto ou escolha da galeria</span>
-            <input 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              onChange={(e) => setPhoto(e.target.files[0])} 
-              required 
+            <span className="text-sm font-medium text-navy">
+              Adicionar Fotografia
+            </span>
+            <span className="text-xs text-muted mt-1">
+              Obrigatória — tire uma foto ou escolha da galeria
+            </span>
+            <span className="text-xs text-muted mt-0.5">
+              PNG, JPG ou WebP (Máx. 5MiB)
+            </span>
+            <input
+              type="file"
+              accept="image/jpeg, image/png, image/webp, image/heic, image/jpg"
+              className="hidden"
+              onChange={handlePhotoChange}
+              required
             />
           </label>
+          {photoError && (
+            <span className="text-xs text-red font-medium">{photoError}</span>
+          )}
         </div>
 
         <button

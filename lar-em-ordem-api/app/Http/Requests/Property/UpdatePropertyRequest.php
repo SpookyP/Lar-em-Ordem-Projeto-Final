@@ -29,7 +29,7 @@ class UpdatePropertyRequest extends FormRequest
             'address_id'           => ['sometimes', 'nullable', 'string', 'exists:addresses,id'],
             'condominium_id'       => ['sometimes', 'nullable', 'string', 'exists:condominia,id'],
             'area'                 => ['sometimes', 'nullable', 'integer', 'min:1'],
-            'fraction'             => ['sometimes', 'nullable', 'string', 'max:50'],
+            
 
             // Contract
             'resident_type_id'     => ['sometimes', 'nullable', 'integer', 'exists:resident_types,id'],
@@ -41,6 +41,7 @@ class UpdatePropertyRequest extends FormRequest
             'address.street'       => ['required_with:address', 'string', 'max:255'],
             'address.postal_code'  => ['required_with:address', 'string', 'max:20'],
             'address.door'         => ['nullable', 'string', 'max:10'],
+            'address.fraction'     => ['nullable', 'string', 'max:50'],
             'address.county'       => ['nullable', 'string', 'max:100'],
             'address.location'     => ['nullable', 'string', 'max:100'],
             'address.district'     => ['nullable', 'string', 'max:100'],

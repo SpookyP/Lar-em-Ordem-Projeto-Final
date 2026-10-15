@@ -22,9 +22,10 @@ class AddressFactory extends Factory
             'street'      => fake()->streetName(),
             'postal_code' => fake()->numerify('####-###'),
             'door'        => fake()->optional()->randomElement(['1º Dto', '2º Esq', '3º Cnt', 'R/C Dir']),
+            'fraction'    => fake()->optional()->randomElement(['A', 'B', 'C', 'D', 'E']),
             'county'      => fake()->city(),
             'location'    => fake()->city(),
             'district'    => fake()->randomElement(['Porto', 'Lisboa', 'Braga', 'Aveiro', 'Faro']),
-            ];
+        ];
     }
 }

@@ -40,7 +40,7 @@ class PropertyService
                     ->where('is_active', true);
             })
             ->with([
-                'address:id,street,location',
+                'address:id,fraction,street,location',
                 'propertyType:id,type',
                 'propertyTypology:id,typology',
                 'contracts' => fn($query) => $query->where('is_active', true)->with('residentType:id,type'),

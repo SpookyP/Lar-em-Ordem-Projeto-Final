@@ -37,6 +37,7 @@ export function AppRoutes() {
           <Route path="/perfis" element={<Profiles />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/assistencia" element={<Assistance />} />
             <Route path="/definicoes" element={<Definicoes />} />
           </Route>
         </Route>

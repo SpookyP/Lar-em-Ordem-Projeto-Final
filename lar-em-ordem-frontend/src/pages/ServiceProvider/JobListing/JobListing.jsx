@@ -73,7 +73,6 @@ const jobs = [
       postalCode: "4050-262",
     },
     postedAt: "Há 2 horas",
-    budget: "80 – 150 €",
     urgent: true,
     offers: 2,
   },
@@ -92,7 +91,6 @@ const jobs = [
       postalCode: "4460-123",
     },
     postedAt: "Há 5 horas",
-    budget: "400 – 600 €",
     urgent: false,
     offers: 4,
   },
@@ -111,7 +109,6 @@ const jobs = [
       postalCode: "4400-110",
     },
     postedAt: "Ontem",
-    budget: "60 – 90 €",
     urgent: false,
     offers: 1,
   },
@@ -130,7 +127,6 @@ const jobs = [
       postalCode: "4425-123",
     },
     postedAt: "Ontem",
-    budget: "50 – 80 €",
     urgent: false,
     offers: 0,
   },
@@ -150,7 +146,6 @@ const jobs = [
       postalCode: "4000-442",
     },
     postedAt: "Há 2 dias",
-    budget: "40 – 100 €",
     urgent: true,
     offers: 3,
   },
@@ -169,7 +164,6 @@ const jobs = [
       postalCode: "4050-114",
     },
     postedAt: "Há 2 dias",
-    budget: "70 – 120 €",
     urgent: true,
     offers: 5,
   },
@@ -188,7 +182,6 @@ const jobs = [
       postalCode: "4430-123",
     },
     postedAt: "Há 3 dias",
-    budget: "90 – 140 €",
     urgent: false,
     offers: 2,
   },
@@ -207,7 +200,6 @@ const jobs = [
       postalCode: "4470-205",
     },
     postedAt: "Há 4 dias",
-    budget: "600 – 900 €",
     urgent: false,
     offers: 6,
   },
@@ -226,7 +218,6 @@ const jobs = [
       postalCode: "4450-072",
     },
     postedAt: "Há 5 dias",
-    budget: "100 – 160 €",
     urgent: false,
     offers: 1,
   },
@@ -340,7 +331,6 @@ export default function JobListing() {
                     description={job.description}
                     location={job.address.location}
                     postedAt={job.postedAt}
-                    budget={job.budget}
                     urgent={job.urgent}
                     offers={job.offers}
                     to={`/teste-offer/${job.id}`}

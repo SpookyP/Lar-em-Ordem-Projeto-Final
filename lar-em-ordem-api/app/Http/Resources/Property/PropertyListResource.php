@@ -15,7 +15,7 @@ class PropertyListResource extends JsonResource
             'residentType' => $this->whenLoaded('contracts', function () {
                 return $this->contracts->first()?->residentType?->type;
             }),
-            'fraction'     => $this->fraction,
+            'fraction'     => $this->whenLoaded('address', fn() => $this->address->fraction),
             'street'       => $this->whenLoaded('address', fn() => $this->address->street),
             'location'     => $this->whenLoaded('address', fn() => $this->address->location),
             'propertyType' => $this->whenLoaded('propertyType', fn() => $this->propertyType->type),

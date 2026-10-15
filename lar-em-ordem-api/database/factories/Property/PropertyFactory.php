@@ -25,7 +25,6 @@ class PropertyFactory extends Factory
             'address_id'           => Address::factory(),
             'condominium_id'       => null,
             'area'                 => fake()->numberBetween(3500, 25000),
-            'fraction'             => fake()->optional()->randomElement(['A', 'B', 'C', 'D', 'E']),
         ];
     }
 }
