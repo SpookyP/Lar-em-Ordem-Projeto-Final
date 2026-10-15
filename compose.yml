@@ -48,10 +48,14 @@ services:
     build:
       context: ./lar-em-ordem-frontend
       dockerfile: Dockerfile
+      target: development
     container_name: frontend_dev
     restart: always
     ports:
       - "5173:5173"
+    volumes:
+      - ./lar-em-ordem-frontend:/app:z
+      - /app/node_modules
     networks:
       - dev-network
 

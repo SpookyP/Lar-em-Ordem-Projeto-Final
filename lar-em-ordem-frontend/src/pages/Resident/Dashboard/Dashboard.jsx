@@ -1,7 +1,7 @@
 import { Droplet, Zap, Flame, FolderClosed } from "lucide-react";
-import { SummaryCard } from "../../components/ui/SummaryCard";
-import { ShortcutCard } from "../../components/ui/ShortcutCard";
-import { ConsumptionChart } from "../../components/ui/ConsumptionChart";
+import { SummaryCard } from "../../../components/ui/SummaryCard";
+import { ShortcutCard } from "../../../components/ui/ShortcutCard";
+import { ConsumptionChart } from "../../../components/ui/ConsumptionChart";
 import { useState } from "react";
 
 const periods = ["1 mês", "2 meses", "6 meses"];

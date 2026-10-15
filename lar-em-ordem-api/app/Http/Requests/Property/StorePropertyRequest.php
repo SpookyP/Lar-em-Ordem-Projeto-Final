@@ -29,7 +29,6 @@ class StorePropertyRequest extends FormRequest
             'address_id'           => ['nullable', 'string', 'exists:addresses,id'],
             'condominium_id'       => ['nullable', 'string', 'exists:condominia,id'],
             'area'                 => ['required', 'integer', 'min:1'],
-            'fraction'             => ['required', 'string', 'max:50'],
 
             // Contract
             'resident_type_id'     => ['required', 'integer', 'exists:resident_types,id'],
@@ -41,6 +40,7 @@ class StorePropertyRequest extends FormRequest
             'address.street'       => ['required_with:address', 'string', 'max:255'],
             'address.postal_code'  => ['required_with:address', 'string', 'max:20'],
             'address.door'         => ['nullable', 'string', 'max:10'],
+            'address.fraction'             => ['nullable', 'string', 'max:50'],
             'address.county'       => ['required', 'string', 'max:100'],
             'address.location'     => ['required', 'string', 'max:100'],
             'address.district'     => ['required', 'string', 'max:100'],

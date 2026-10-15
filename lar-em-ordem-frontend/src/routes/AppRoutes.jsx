@@ -8,7 +8,8 @@ import Definicoes from "../pages/Definicoes/Definicoes";
 
 //paginas fake
 
-import Dashboard from "../pages/Dashboard/Dashboard";
+import Dashboard from "../pages/Resident/Dashboard/Dashboard";
+import Assistance from "../pages/Resident/Assistance/Assistance";
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
 import NaoAutorizado from "../pages/NaoAutorizado/NaoAutorizado";
@@ -20,6 +21,7 @@ export function AppRoutes() {
         {/* TEMPORARIO - ROTA DE TESTE */}
         <Route element={<AppLayout />}>
           <Route path="/teste-layout" element={<Dashboard />} />
+          <Route path="/teste-support" element={<Assistance />} />
           <Route path="/teste-service" element={<JobListing />} />
           <Route path="/teste-offer/:id" element={<Offer />} />
         </Route>
@@ -35,6 +37,7 @@ export function AppRoutes() {
           <Route path="/perfis" element={<Profiles />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/assistencia" element={<Assistance />} />
             <Route path="/definicoes" element={<Definicoes />} />
           </Route>
         </Route>
