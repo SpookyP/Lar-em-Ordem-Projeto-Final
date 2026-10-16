@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth as AuthFacade;
+use App\Http\Requests\Resident\StoreResidentRequest;
+use App\Http\Requests\PartnerOffer\StorePartnerRequest;
+use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+
 
 class AuthController extends Controller
 {
@@ -65,22 +69,9 @@ class AuthController extends Controller
         $role = $rules['role'];
 
         $roleRules = match ($role) {
-            'resident' => [
-                'nif' => ['required', 'string', 'digits:9'],
-            ],
-            'partner' => [
-                'nif'         => ['required', 'string', 'digits:9'],
-                'phone'       => ['required', 'string', 'max:15'],
-                'description' => ['required', 'string'],
-                'website'     => ['nullable', 'string', 'url'],
-            ],
-            'service_provider' => [
-                'company_name'   => ['required', 'string', 'max:255'],
-                'nif'            => ['required', 'string', 'digits:9'],
-                'phone'          => ['required', 'string', 'max:15'],
-                'provider_email' => ['required', 'string', 'email', 'unique:service_providers,email'],
-                'description'    => ['required', 'string'],
-            ],
+            'resident' => (new StoreResidentRequest())->rules(),
+            'partner' => (new StorePartnerRequest())->rules(),
+            'service_provider' => (new StoreServiceProviderRequest())->rules(),
             default => [],
         };
 
@@ -109,12 +100,11 @@ class AuthController extends Controller
 
             match ($role) {
                 'resident' => $user->resident()->create([
-                    'name' => $user->name,
                     'nif'  => $validated['nif'],
                 ]),
 
                 'partner' => $user->partner()->create([
-                    'name'        => $user->name,
+                    'company_name'=> $validated['company_name'],
                     'nif'         => $validated['nif'],
                     'phone'       => $validated['phone'],
                     'website'     => $validated['website'] ?? null,

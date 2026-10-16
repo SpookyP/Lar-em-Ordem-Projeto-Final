@@ -21,7 +21,6 @@ class ResidentFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'name'    => fake()->name(),
             'nif'     => fake()->numerify('2########'),
         ];
     }

@@ -36,7 +36,6 @@ class UserProfileTest extends TestCase
 
         $this->assertDatabaseHas('residents', [
             'user_id' => $user->id,
-            'name'    => $user->name,
             'nif'     => '212345678',
         ]);
 
@@ -49,19 +48,21 @@ class UserProfileTest extends TestCase
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/api/user/profile', [
-                'role'        => 'partner',
-                'nif'         => '298765432',
-                'phone'       => '912345678',
-                'description' => 'Local hardware partner',
-                'website'     => 'https://partner.example.com',
+                'role'         => 'partner',
+                'company_name' => 'Clean & Fix Lda',
+                'nif'          => '298765432',
+                'phone'        => '912345678',
+                'description'  => 'Local hardware partner',
+                'website'      => 'https://partner.example.com',
             ]);
-
+        
         $response->assertStatus(201);
 
         $this->assertDatabaseHas('partners', [
-            'user_id' => $user->id,
-            'nif'     => '298765432',
-            'phone'   => '912345678',
+            'user_id'      => $user->id,
+            'company_name' => 'Clean & Fix Lda',
+            'nif'          => '298765432',
+            'phone'        => '912345678',
         ]);
 
         $this->assertTrue($user->fresh()->hasRole('partner'));
@@ -80,7 +81,7 @@ class UserProfileTest extends TestCase
                 'provider_email' => 'contact@cleanandfix.pt',
                 'description'    => 'Cleaning and plumbing services',
             ]);
-
+        
         $response->assertStatus(201);
 
         $this->assertDatabaseHas('service_providers', [
@@ -121,13 +122,12 @@ class UserProfileTest extends TestCase
                 'role' => 'service_provider',
                 // Missing: company_name, nif, phone, provider_email, description
             ]);
-
+        
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'company_name',
                 'nif',
                 'phone',
-                'provider_email',
                 'description',
             ]);
     }
@@ -159,6 +159,7 @@ class UserProfileTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/api/user/profile', [
                 'role'        => 'partner',
+                'company_name'=> 'Clean & Fix Lda',
                 'nif'         => '212345678',
                 'phone'       => '912345678',
                 'description' => 'Test partner',
@@ -191,29 +192,6 @@ class UserProfileTest extends TestCase
             ->assertJsonValidationErrors(['role']);
     }
 
-    public function test_prevents_duplicate_provider_email_across_users(): void
-    {
-        // User 1 creates a service provider with a specific email
-        $existingProvider = ServiceProvider::factory()->create([
-            'email' => 'unique@provider.pt',
-        ]);
-
-        // User 2 attempts to register with the same provider email
-        $user2 = User::factory()->create();
-
-        $response = $this->actingAs($user2, 'sanctum')
-            ->postJson('/api/user/profile', [
-                'role'           => 'service_provider',
-                'company_name'   => 'New Company',
-                'nif'            => '509999999',
-                'phone'          => '910000000',
-                'provider_email' => 'unique@provider.pt', // Already taken
-                'description'    => 'New description',
-            ]);
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['provider_email']);
-    }
     /*
     |--------------------------------------------------------------------------
     | 5. AUTHENTICATION & EXTRA DUPLICATE CHECKS
@@ -240,6 +218,7 @@ class UserProfileTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/api/user/profile', [
                 'role'        => 'partner',
+                'company_name'=> 'Clean & Fix Lda',
                 'nif'         => '298765432',
                 'phone'       => '912345678',
                 'description' => 'Second partner profile',

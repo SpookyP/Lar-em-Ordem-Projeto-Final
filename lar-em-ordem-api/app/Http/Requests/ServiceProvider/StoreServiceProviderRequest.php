@@ -17,7 +17,7 @@ class StoreServiceProviderRequest extends FormRequest
             'company_name' => 'required|string|max:255',
             'nif'          => 'required|string|digits:9',
             'phone'        => 'required|string|max:15',
-            'email'        => 'nullable|email|max:255',
+            'provider_email'        => 'nullable|email|max:255',
             'description'  => 'required|string',
         ];
     }
