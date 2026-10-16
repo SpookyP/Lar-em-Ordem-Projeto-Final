@@ -10,6 +10,10 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Requests\Resident\StoreResidentRequest;
+use App\Http\Requests\PartnerOffer\StorePartnerRequest;
+use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+
 class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
@@ -32,26 +36,9 @@ class CreateNewUser implements CreatesNewUsers
         ];
 
         $roleRules = match ($role) {
-            'resident' => [
-                'nif' => [
-                    'required',
-                    'string',
-                    'digits:9'
-                ],
-            ],
-            'partner' => [
-                'nif'         => ['required', 'string', 'digits:9'],
-                'phone'       => ['required', 'string', 'max:15'],
-                'description' => ['required', 'string'],
-                'website'     => ['nullable', 'string', 'url'],
-            ],
-            'service_provider' => [
-                'company_name'   => ['required', 'string', 'max:255'],
-                'nif'            => ['required', 'string', 'digits:9'],
-                'phone'          => ['required', 'string', 'max:15'],
-                'provider_email' => ['required', 'string', 'email', 'unique:service_providers,email'],
-                'description'    => ['required', 'string'],
-            ],
+            'resident' => (new StoreResidentRequest())->rules(),
+            'partner' => (new StorePartnerRequest())->rules(),
+            'service_provider' => (new StoreServiceProviderRequest())->rules(),
             default => [],
         };
 
@@ -62,7 +49,10 @@ class CreateNewUser implements CreatesNewUsers
         if ($user) {
             if (!Hash::check($input['password'], $user->password)) {
                 throw ValidationException::withMessages([
-                    'password' => ['Invalid credentials for existing account.'],
+                    'message' => "The given data was invalid.",
+                    'errors' => [
+                        'password' => ['Invalid credentials for existing account.'],
+                    ],
                 ]);
             }
 
@@ -75,7 +65,10 @@ class CreateNewUser implements CreatesNewUsers
 
             if ($alreadyHasProfile) {
                 throw ValidationException::withMessages([
-                    'role' => ["User already has a {$role} profile."],
+                    'message' => "The given data was invalid.",
+                    'errors' => [
+                        'role' => ["User already has a {$role} profile."],
+                    ],
                 ]);
             }
         }
@@ -97,12 +90,11 @@ class CreateNewUser implements CreatesNewUsers
 
             match ($role) {
                 'resident' => $user->resident()->create([
-                    'name' => $user->name,
                     'nif'  => $input['nif'],
                 ]),
 
                 'partner' => $user->partner()->create([
-                    'name'        => $user->name,
+                    'company_name'=> $input['company_name'],
                     'nif'         => $input['nif'],
                     'phone'       => $input['phone'],
                     'website'     => $input['website'] ?? null,

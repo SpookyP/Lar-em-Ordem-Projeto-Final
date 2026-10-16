@@ -27,7 +27,7 @@ class UpdateServiceProviderRequest extends FormRequest
             'company_name' => 'sometimes|required|string|max:255',
             'nif'          => 'sometimes|required|string|digits:9',
             'phone'       => 'sometimes|required|string|max:15',
-            'email'        => 'sometimes|nullable|email|max:255',
+            'provider_email'        => 'sometimes|nullable|email|max:255',
             'description' => 'sometimes|required|string',
             'active'      => 'sometimes|boolean',
         ];    

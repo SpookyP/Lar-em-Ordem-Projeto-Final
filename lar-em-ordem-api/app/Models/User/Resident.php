@@ -12,7 +12,7 @@ class Resident extends Model
     /** @use HasFactory<\Database\Factories\ResidentFactory> */
     use HasFactory, SoftDeletes, HasUlids;
 
-	protected $fillable = ['user_id','name','nif','is_active'];
+	protected $fillable = ['user_id','nif','is_active'];
 
 	protected function casts(): array
     {

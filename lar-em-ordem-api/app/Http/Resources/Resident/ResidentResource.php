@@ -10,11 +10,11 @@ class ResidentResource extends JsonResource
     {
         return [
             'id'          => $this->id,
-            'name'        => $this->name,
             'nif'         => $this->nif,
             'isActive'  => $this->is_active,
             'user'      => $this->whenLoaded('user', fn () => [
                 'id'    => $this->user->id,
+                'name' => $this->user->name,
                 'email' => $this->user->email,
             ]),
 

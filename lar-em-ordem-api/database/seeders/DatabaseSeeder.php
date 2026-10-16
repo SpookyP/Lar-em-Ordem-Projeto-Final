@@ -27,7 +27,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'morador@example.com',
         ]);
         $morador->resident()->create([
-            'name' => $morador->name,
             'nif'  => '123456789',
         ]);
         $morador->assignRole('resident');
@@ -40,7 +39,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'residente@example.com',
         ]);
         $resident->resident()->create([
-            'name' => $resident->name,
             'nif'  => '123456789',
         ]);
         $resident->assignRole('resident');
