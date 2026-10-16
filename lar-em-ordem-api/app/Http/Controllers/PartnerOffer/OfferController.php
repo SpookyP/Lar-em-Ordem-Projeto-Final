@@ -23,6 +23,26 @@ class OfferController extends Controller
     ) {}
 
     /**
+     * Lista as ofertas do parceiro autenticado (ativas e inativas).
+     * Permite filtrar por estado através do parâmetro 'active' no URL (ex: ?active=true).
+     *
+     * @param \Illuminate\Http\Request $request O pedido HTTP com o filtro opcional.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas.
+     */
+    public function index(Request $request)
+    {
+        $partner = $this->partnerService->getByUser($request->user());
+
+        $active = $request->has('active')
+            ? $request->boolean('active')
+            : null;
+
+        return OfferResource::collection(
+            $this->service->listByPartner($partner, $active)
+        );
+    }
+
+    /**
      * Cria uma nova oferta associada ao parceiro do utilizador autenticado.
      *
      * @param StoreOfferRequest $request Dados validados.
@@ -41,13 +61,16 @@ class OfferController extends Controller
     }
 
     /**
-     * Devolve os detalhes de uma oferta específica, incluindo o parceiro que a criou.
+     * Devolve os detalhes de uma oferta, incluindo o parceiro que a criou.
+     * O parceiro dono vê sempre; os restantes só veem ofertas em vigor (senão 404).
      *
      * @param Offer $offer Instância da oferta solicitada.
      * @return OfferResource
      */
     public function show(Offer $offer)
     {
+        Gate::authorize('view', $offer);
+
         return new OfferResource($this->service->loadWithPartner($offer));
     }
 
@@ -85,22 +108,15 @@ class OfferController extends Controller
 
 
     /**
-     * Lista as ofertas de um parceiro específico.
-     * Permite filtrar por estado enviando o parâmetro 'active' (ex: ?active=true) no URL.
+     * Lista as ofertas em vigor de um parceiro (vista pública, ex: residentes).
      *
-     * @param \Illuminate\Http\Request $request O pedido HTTP com os parâmetros de pesquisa.
      * @param \App\Models\User\Partner $partner Instância do parceiro.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas.
      */
-    public function listByPartner(Request $request, Partner $partner)
+    public function listByPartner(Partner $partner)
     {
-        
-        $active = $request->has('active')
-            ? $request->boolean('active')
-            : null;
-
         return OfferResource::collection(
-            $this->service->listByPartner($partner, $active)
+            $this->service->listCurrentByPartner($partner)
         );
     }
 
