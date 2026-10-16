@@ -13,18 +13,23 @@ class Address extends Model
     /** @use HasFactory<\Database\Factories\AddressFactory> */
     use HasFactory, SoftDeletes, HasUlids;
 
-    protected $fillable = ['street',
-    'postal_code',
-    'door',
-    'county',
-    'location',
-    'district'];
+    protected $fillable = [
+        'street',
+        'postal_code',
+        'door',
+        'fraction',
+        'county',
+        'location',
+        'district'
+    ];
 
-    public function properties(){
-        	return $this->hasMany(Property::class);
-	}
+    public function properties()
+    {
+        return $this->hasMany(Property::class);
+    }
 
-    public function condominiums(){
-        	return $this->hasMany(Condominium::class);
-	}
+    public function condominiums()
+    {
+        return $this->hasMany(Condominium::class);
+    }
 }

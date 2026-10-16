@@ -22,7 +22,7 @@ class UpdatePartnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'sometimes|required|string|max:255',
+            'company_name' => 'sometimes|required|string|max:255',
             'nif'         => 'sometimes|required|string|digits:9',
             'phone'       => 'sometimes|required|string|max:15',
             'website'     => 'nullable|string|url|max:255',

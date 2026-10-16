@@ -25,10 +25,8 @@ class UpdateResidentRequest extends FormRequest
     {
         $residentId = $this->user()->resident?->id;
         return [
-            // Resident
-            'nif'              => ['sometimes', 'string', 'digits:9', Rule::unique('residents', 'nif')->ignore($residentId)],
-            'name'             => ['sometimes', 'string', 'max:255'],
-            'is_active'        => ['sometimes', 'boolean'],
+            'nif'       => ['sometimes', 'string', 'digits:9', Rule::unique('residents', 'nif')->ignore($residentId)],
+            'is_active' => ['sometimes', 'boolean'],
         ];
     }
 }

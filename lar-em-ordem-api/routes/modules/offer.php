@@ -10,7 +10,8 @@ Route::get('offers/recommendations', [OfferController::class, 'listActiveOffers'
 Route::apiResource('offers', OfferController::class)
     ->whereUlid('offer');
 
-
 /*
-offers/partner/{partner} devolve { "data": [ {oferta}, {oferta} ] }, uma lista de ofertas de 1 partner.
+offers                    → as ofertas do parceiro autenticado (todas; filtro ?active=).
+offers/partner/{partner}  → as ofertas em vigor de um parceiro (vista pública).
+offers/recommendations    → as ofertas em vigor de todos os parceiros.
  */

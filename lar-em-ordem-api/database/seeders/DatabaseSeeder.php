@@ -27,7 +27,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'morador@example.com',
         ]);
         $morador->resident()->create([
-            'name' => $morador->name,
             'nif'  => '123456789',
         ]);
         $morador->assignRole('resident');
@@ -40,7 +39,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'residente@example.com',
         ]);
         $resident->resident()->create([
-            'name' => $resident->name,
             'nif'  => '123456789',
         ]);
         $resident->assignRole('resident');
@@ -51,7 +49,7 @@ class DatabaseSeeder extends Seeder
             "company_name" => "Serviçinhos Lda",
             "nif" => "212345674",
             "phone" => "912345679",
-            "email" => "general@servicos.pt",
+            "provider_email" => "general@servicos.pt",
             "description" => "Prestação de serviços de manutenção."
         ]);
         $resident->assignRole('service_provider');
@@ -62,7 +60,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'parceiro@example.com',
         ]);
         $partner->partner()->create([
-            'name' => $partner->name,
+            'company_name' => 'Parceiro Lda',
             'nif'  => '123456789',
             "phone" => "912345678",
             "website" => "https://parceiro.pt",
@@ -78,7 +76,7 @@ class DatabaseSeeder extends Seeder
             "company_name" => "Serviços Lda",
             "nif" => "212345673",
             "phone" => "912345678",
-            "email" => "geral@servicos.pt",
+            "provider_email" => "geral@servicos.pt",
             "description" => "Prestação de serviços de manutenção."
         ]);
         $serviceProvider->assignRole('service_provider');

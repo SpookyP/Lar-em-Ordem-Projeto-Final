@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Offer\Offer;
 use App\Models\User\User;
+use Illuminate\Auth\Access\Response;
 
 
 class OfferPolicy
@@ -21,11 +22,22 @@ class OfferPolicy
     }
 
     /**
-     * Determine whether the user can view the model.
+     * O parceiro dono vê sempre a oferta; os restantes só a veem se estiver em vigor.
+     * Para quem não é dono, uma oferta fora de vigor responde 404.
      */
-    public function view(User $user, Offer $offer): bool
+    public function view(User $user, Offer $offer): Response
     {
-        return true;
+        if ($offer->partner->user_id === $user->id) {
+            return Response::allow();
+        }
+
+        $isCurrent = Offer::current()
+            ->where('id', $offer->id)
+            ->exists();
+
+        return $isCurrent
+            ? Response::allow()
+            : Response::denyAsNotFound();
     }
 
     /**

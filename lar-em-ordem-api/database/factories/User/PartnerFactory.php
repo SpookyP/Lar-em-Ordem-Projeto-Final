@@ -20,7 +20,7 @@ class PartnerFactory extends Factory
     {
         return [
             'user_id'     => User::factory(),
-            'name'        => fake()->name(),
+            'company_name' => fake()->company(),
             'nif'         => fake()->numerify('2########'),
             'phone'       => fake()->numerify('9########'),
             'website'     => fake()->optional()->url(),

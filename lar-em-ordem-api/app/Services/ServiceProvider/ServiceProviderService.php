@@ -97,4 +97,16 @@ class ServiceProviderService {
 
         return $provider->load('zones');
     }
+
+    /**
+     * Devolve o perfil de prestador de um utilizador; termina com 403 se não existir.
+     *
+     * @param User $user Utilizador a procurar.
+     * @return ServiceProviderModel
+     */
+    public function getByUser(User $user): ServiceProviderModel
+    {
+        return ServiceProviderModel::where('user_id', $user->id)->first()
+            ?? abort(403, 'Este utilizador não tem um perfil de prestador de serviços.');
+    }
 }

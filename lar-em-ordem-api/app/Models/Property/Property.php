@@ -15,7 +15,6 @@ class Property extends Model
 
 	protected $fillable = [
 		'area',
-		'fraction',
 		'property_type_id',
 		'property_typology_id',
 		'address_id',

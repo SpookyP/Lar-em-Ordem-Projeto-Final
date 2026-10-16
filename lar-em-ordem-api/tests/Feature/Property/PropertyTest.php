@@ -125,7 +125,6 @@ class PropertyTest extends TestCase
             'property_typology_id' => 1,
             'condominium_id'       => null,
             'area'                 => 120,
-            'fraction'             => '2º Dto',
             'resident_type_id'     => 1,
             'start_date'           => '2026-10-01',
             'end_date'             => null,
@@ -133,6 +132,7 @@ class PropertyTest extends TestCase
                 'street'      => 'Rua Principal',
                 'postal_code' => '4000-000',
                 'door'        => '100',
+                'fraction'    => '2º Dto',
                 'county'      => 'Matosinhos',
                 'location'    => 'Senhora da Hora',
                 'district'    => 'Porto',
@@ -147,7 +147,6 @@ class PropertyTest extends TestCase
         $this->assertDatabaseHas('properties', [
             'property_type_id'     => 1,
             'property_typology_id' => 1,
-            'fraction'             => '2º Dto',
             'area'                 => 120,
         ]);
 
@@ -155,6 +154,7 @@ class PropertyTest extends TestCase
             'street'      => 'Rua Principal',
             'postal_code' => '4000-000',
             'door'        => '100',
+            'fraction'    => '2º Dto',
             'county'      => 'Matosinhos',
         ]);
     }
@@ -195,7 +195,6 @@ class PropertyTest extends TestCase
                 'resident_type_id'     => 1,
                 'start_date'           => '2026-10-01',
                 'area'                 => 120,
-                'fraction'             => '2º Dto',
                 'address'              => [],
             ]);
 
@@ -338,11 +337,11 @@ class PropertyTest extends TestCase
                 'start_date'           => '2026-10-01',
                 'end_date'             => '2026-09-01',
                 'area'                 => 100,
-                'fraction'             => '1º A',
                 'address'              => [
                     'street'      => 'Rua Teste',
                     'postal_code' => '4000-000',
                     'door'        => '1',
+                    'fraction'    => '1º A',
                     'county'      => 'Porto',
                     'location'    => 'Porto',
                     'district'    => 'Porto',

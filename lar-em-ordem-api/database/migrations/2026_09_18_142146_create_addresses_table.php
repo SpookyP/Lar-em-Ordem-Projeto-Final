@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string("street");
             $table->string("postal_code");
             $table->string("door")->nullable();
+            $table->string("fraction")->nullable();
             $table->string("county");
             $table->string("location");
             $table->string("district");

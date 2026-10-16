@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignUlid("address_id")->constrained()->cascadeOnDelete();
             $table->foreignUlid("condominium_id")->nullable()->constrained()->restrictOnDelete();
             $table->integer("area");
-            $table->string("fraction")->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

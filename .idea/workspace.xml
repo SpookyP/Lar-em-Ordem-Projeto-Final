@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Hotfix Tests">
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Hotfix Tests - namespace">
+      <change beforePath="$PROJECT_DIR$/.idea/Lar-em-Ordem-Projeto-Final.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Lar-em-Ordem-Projeto-Final.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Tests/Feature/Property/PropertyTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Tests/Feature/Vault/DocumentTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Tests/Feature/Vault/NotificationTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Tests/Feature/Vault/StoreDocumentTest.php" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -202,6 +207,11 @@
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/commonmark" />
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/flysystem-local" />
       <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/flysystem" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/aws/aws-crt-php" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/aws/aws-sdk-php" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/league/flysystem-aws-s3-v3" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/symfony/filesystem" />
+      <path value="$PROJECT_DIR$/lar-em-ordem-api/vendor/mtdowling/jmespath.php" />
     </include_path>
   </component>
   <component name="ProblemsViewState">
@@ -216,22 +226,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "#59 on hotfix/python",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.jshint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.jshint": "",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.laravel_idea.move_run_console_settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;tests&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/lar-em-ordem-api" />
@@ -271,6 +281,7 @@
       <workItem from="1791397326481" duration="8000" />
       <workItem from="1791401542350" duration="2932000" />
       <workItem from="1791571050933" duration="2788000" />
+      <workItem from="1792101295562" duration="1001000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -344,7 +355,23 @@
       <option name="project" value="LOCAL" />
       <updated>1791579454520</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Hotfix Tests">
+      <option name="closed" value="true" />
+      <created>1792099782527</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1792099782527</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Hotfix Tests - namespace">
+      <option name="closed" value="true" />
+      <created>1792099801938</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1792099801938</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -369,7 +396,8 @@
     <MESSAGE value="Readme e Python" />
     <MESSAGE value="Hotfix Geral" />
     <MESSAGE value="Hotfix Tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="Hotfix Tests" />
+    <MESSAGE value="Hotfix Tests - namespace" />
+    <option name="LAST_COMMIT_MESSAGE" value="Hotfix Tests - namespace" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

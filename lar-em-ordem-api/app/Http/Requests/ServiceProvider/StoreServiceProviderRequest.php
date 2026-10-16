@@ -17,15 +17,8 @@ class StoreServiceProviderRequest extends FormRequest
             'company_name' => 'required|string|max:255',
             'nif'          => 'required|string|digits:9',
             'phone'        => 'required|string|max:15',
-            'email'        => 'required|email|max:255|unique:service_providers,email',
+            'provider_email'        => 'nullable|email|max:255',
             'description'  => 'required|string',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'email.unique' => 'Já existe um prestador de serviços com este email.',
         ];
     }
 }

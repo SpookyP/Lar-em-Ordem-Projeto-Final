@@ -11,11 +11,8 @@ export function OfferCard({
   iconColor,
   id,
   title,
-  description,
   location,
   postedAt,
-  budget,
-  urgent,
   offers,
   to,
 }) {
@@ -34,8 +31,7 @@ export function OfferCard({
             <h3 className="truncate font-display text-base text-navy">
               {title}
             </h3>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted">
             <span>#{id}</span>
             <span className="flex items-center gap-1">
               <MapPin size={12} />
@@ -50,14 +46,13 @@ export function OfferCard({
               {offersLabel(offers)}
             </span>
           </div>
+          </div>
+          
         </div>
       </div>
 
       {/* talao (parte destacavel do ticket) */}
-      <div className="flex items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-navy/20 px-4 py-3 sm:w-64">
-        <div className="font-display text-base whitespace-nowrap text-navy">
-          {budget}
-        </div>
+      <div className="flex items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-navy/20 px-4 py-3">
         <Link
           to={to}
           className="rounded-full bg-navy px-3 py-1.5 text-sm whitespace-nowrap text-white transition hover:opacity-90"

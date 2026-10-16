@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
+use App\Models\User\ServiceProvider as ServiceProviderModel;
 
 class AssistanceRequestService
 {
@@ -23,6 +24,20 @@ class AssistanceRequestService
     {
         return AssistanceRequest::where('user_id', $user->id)
             ->when($status, fn ($q) => $q->where('status', $status))
+            ->with(['property.address', 'problemCategory'])
+            ->orderByDesc('created_at')
+            ->get();
+    }
+    
+    /**
+     * Devolve os pedidos disponíveis para um prestador, do mais recente para o mais antigo.
+     *
+     * @param ServiceProviderModel $provider Prestador para quem se procuram pedidos.
+     * @return Collection
+     */
+    public function listAvailableFor(ServiceProviderModel $provider): Collection
+    {
+        return AssistanceRequest::availableFor($provider)
             ->with(['property.address', 'problemCategory'])
             ->orderByDesc('created_at')
             ->get();

@@ -9,6 +9,8 @@ class AssistanceRequestResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $isOwner = $request->user()?->id === $this->user_id;
+
         return [
             'id'          => $this->id,
             'title'       => $this->title,
@@ -19,8 +21,8 @@ class AssistanceRequestResource extends JsonResource
             'category'    => new ProblemCategoryResource($this->whenLoaded('problemCategory')),
             'property'    => $this->whenLoaded('property', fn () => [
                 'id'       => $this->property->id,
-                'fraction' => $this->property->fraction,
-                'street'   => $this->property->address?->street,
+                'fraction' => $isOwner ? $this->property->fraction : null,
+                'street'   => $isOwner ? $this->property->address?->street : null,
                 'location' => $this->property->address?->location,
                 'county'   => $this->property->address?->county,
                 'district' => $this->property->address?->district,

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('residents', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->foreignUlid("user_id")->constrained()->cascadeOnDelete();
-            $table->string("name");
             $table->string("nif");
             $table->boolean("is_active")->default(true);
             $table->softDeletes();

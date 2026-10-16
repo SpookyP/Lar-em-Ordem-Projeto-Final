@@ -12,7 +12,6 @@ class PropertyResource extends JsonResource
             'id'               => $this->id,
             'addressId'        => $this->address_id,
             'area'             => $this->area,
-            'fraction'         => $this->fraction,
 
             // Inline Address transformation
             'address'          => $this->whenLoaded('address', fn() => [
@@ -20,6 +19,7 @@ class PropertyResource extends JsonResource
                 'street'     => $this->address->street,
                 'postalCode' => $this->address->postal_code,
                 'door'       => $this->address->door,
+                'fraction'   => $this->address->fraction,
                 'county'     => $this->address->county,
                 'location'   => $this->address->location,
                 'district'   => $this->address->district,
