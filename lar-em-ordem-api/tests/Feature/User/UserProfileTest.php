@@ -122,7 +122,7 @@ class UserProfileTest extends TestCase
                 'role' => 'service_provider',
                 // Missing: company_name, nif, phone, provider_email, description
             ]);
-        $response->dump();
+        
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'company_name',
