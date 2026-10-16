@@ -118,7 +118,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'company_name' => $input['company_name'],
                 'nif'          => $input['nif'],
                 'phone'        => $input['phone'],
-                'email'        => $input['provider_email'],
+                'provider_email'=> $input['provider_email'] ?? null,
                 'description'  => $input['description'],
             ]),
             default => null,

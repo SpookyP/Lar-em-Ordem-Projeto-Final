@@ -115,7 +115,7 @@ class AuthController extends Controller
                     'company_name' => $validated['company_name'],
                     'nif'          => $validated['nif'],
                     'phone'        => $validated['phone'],
-                    'email'        => $validated['provider_email'],
+                    'provider_email'        => $validated['provider_email'],
                     'description'  => $validated['description'],
                 ]),
 
