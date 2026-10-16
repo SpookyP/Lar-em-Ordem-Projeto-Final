@@ -68,11 +68,17 @@ class AuthController extends Controller
 
         $role = $rules['role'];
 
+        $makeRules = function (string $class) use ($user) {
+            $request = new $class();
+            $request->setUserResolver(fn() => $user);
+            return $request->rules();
+        };
+
         $roleRules = match ($role) {
-            'resident' => (new StoreResidentRequest())->rules(),
-            'partner' => (new StorePartnerRequest())->rules(),
-            'service_provider' => (new StoreServiceProviderRequest())->rules(),
-            default => [],
+            'resident'         => $makeRules(StoreResidentRequest::class),
+            'partner'          => $makeRules(StorePartnerRequest::class),
+            'service_provider' => $makeRules(StoreServiceProviderRequest::class),
+            default            => [],
         };
 
         $validated = $request->validate($roleRules);
@@ -115,7 +121,7 @@ class AuthController extends Controller
                     'company_name' => $validated['company_name'],
                     'nif'          => $validated['nif'],
                     'phone'        => $validated['phone'],
-                    'provider_email'        => $validated['provider_email'],
+                    'provider_email' => $validated['provider_email']  ?? null,
                     'description'  => $validated['description'],
                 ]),
 
