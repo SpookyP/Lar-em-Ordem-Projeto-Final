@@ -87,7 +87,7 @@ class UserProfileTest extends TestCase
         $this->assertDatabaseHas('service_providers', [
             'user_id'      => $user->id,
             'company_name' => 'Clean & Fix Lda',
-            'email'        => 'contact@cleanandfix.pt',
+            'provider_email'=> 'contact@cleanandfix.pt',
         ]);
 
         $this->assertTrue($user->fresh()->hasRole('service_provider'));
