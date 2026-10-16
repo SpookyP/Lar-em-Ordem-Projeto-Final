@@ -13,7 +13,7 @@ class StoreResidentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->resident !== null;
+        return true;
     }
 
     /**
@@ -24,7 +24,7 @@ class StoreResidentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nif' => ['required', 'string', 'digits:9', Rule::unique('residents', 'nif')],
+            'nif' => ['required', 'string', 'digits:9'],
         ];
     }
 }

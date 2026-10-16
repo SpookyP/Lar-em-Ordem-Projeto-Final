@@ -27,9 +27,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     public function update(User $user, array $input): void
     {
         $rules = [
-            'name' => ['sometimes','nullable', 'string', 'max:255'],
+            'name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'email' => [
-                'sometimes','nullable',
+                'sometimes',
+                'nullable',
                 'string',
                 'email',
                 'max:255',
@@ -42,10 +43,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         if (!$user->hasRole($role)) {
             throw ValidationException::withMessages([
-                'message' => "The given data was invalid.",
-                'errors' => [
-                    'role' => ["User does not have a {$role} profile attached to this account."],
-                ],
+                'role' => ["User does not have a {$role} profile attached to this account."],
             ]);
         }
 
@@ -56,11 +54,17 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             default            => abort(403),
         };
 
+        $makeRules = function (string $class) use ($user) {
+            $request = new $class();
+            $request->setUserResolver(fn() => $user);
+            return $request->rules();
+        };
+
         $roleRules = match ($role) {
-            'resident' => (new UpdateResidentRequest())->rules(),
-            'partner' => (new UpdatePartnerRequest())->rules(),
-            'service_provider' => (new UpdateServiceProviderRequest())->rules(),
-            default => [],
+            'resident'         => $makeRules(UpdateResidentRequest::class),
+            'partner'          => $makeRules(UpdatePartnerRequest::class),
+            'service_provider' => $makeRules(UpdateServiceProviderRequest::class),
+            default            => [],
         };
 
         Validator::make($input, array_merge($rules, $roleRules))->validateWithBag('updateProfileInformation');
@@ -104,23 +108,29 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     protected function updateAssociatedProfile(User $user, array $input, string $role): void
     {
         match ($role) {
-            'resident' => $user->resident()->update([
-                'nif'  => $input['nif'],
-            ]),
-            'partner' => $user->partner()->update([
-                'company_name' => $input['company_name'],
-                'nif'          => $input['nif'],
-                'phone'        => $input['phone'],
-                'website'      => $input['website'] ?? null,
-                'description'  => $input['description'],
-            ]),
-            'service_provider' => $user->service_provider()->update([
-                'company_name' => $input['company_name'],
-                'nif'          => $input['nif'],
-                'phone'        => $input['phone'],
-                'provider_email'=> $input['provider_email'] ?? null,
-                'description'  => $input['description'],
-            ]),
+            'resident' => $user->resident()->update(
+                collect($input)->only([
+                    'nif',
+                ])->toArray()
+            ),
+            'partner' => $user->partner()->update(
+                collect($input)->only([
+                    'company_name',
+                    'nif',
+                    'phone',
+                    'website',
+                    'description'
+                ])->toArray()
+            ),
+            'service_provider' => $user->service_provider()->update(
+                collect($input)->only([
+                    'company_name',
+                    'nif',
+                    'phone',
+                    'provider_email',
+                    'description'
+                ])->toArray()
+            ),
             default => null,
         };
     }
