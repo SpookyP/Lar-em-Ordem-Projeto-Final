@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 
+
 class Offer extends Model
 {
     /** @use HasFactory<\Database\Factories\OfferFactory> */
@@ -40,5 +41,22 @@ class Offer extends Model
         'start_date' => 'date',
         'end_date'   => 'date',
     ];
+
+    /**
+     * Ofertas em vigor hoje: ativas, já começaram e ainda não terminaram.
+     * Uso: Offer::current()->get() ou $partner->offers()->current()->get()
+     *
+     * @param Builder $query Query a que se aplicam os filtros.
+     * @return Builder
+     */
+    public function scopeCurrent(Builder $query): Builder
+    {
+        $today = now()->toDateString();
+
+        return $query->where('active', true)
+            ->where('start_date', '<=', $today)
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $today))
+            ->whereHas('partner', fn ($q) => $q->where('active', true));
+    }
 
 }

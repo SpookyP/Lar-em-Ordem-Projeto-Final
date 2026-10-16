@@ -11,5 +11,5 @@ Route::apiResource('partners', PartnerController::class)
 
 
 /*
-partners/offers/{partner} devolve { "data": { parceiro, "offers": [...] } }, um objeto do parceiro com todas as suas ofertas.
+partners/offers/{partner} devolve { "data": { parceiro, "offers": [...] } }, o parceiro com as suas ofertas em vigor.
  */

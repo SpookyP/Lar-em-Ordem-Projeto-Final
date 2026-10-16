@@ -38,8 +38,8 @@ class PartnerController extends Controller
     }
 
 
-    /**
-     * Devolve os detalhes de um parceiro específico carregando em conjunto a sua lista de ofertas.
+   /**
+     * Devolve os detalhes de um parceiro com as suas ofertas em vigor.
      *
      * @param Partner $partner Instância do parceiro.
      * @return PartnerResource

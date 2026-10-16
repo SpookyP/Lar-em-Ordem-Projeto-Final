@@ -15,21 +15,27 @@ class UpdateOfferRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
+     public function rules(): array
     {
+        // Se não vier start_date no pedido, compara com o da oferta guardada
+        $startDate = $this->input('start_date')
+            ?? $this->route('offer')->start_date->toDateString();
+
         return [
             'title'       => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
             'type'        => 'sometimes|required|string|max:100',
-            'url'         => 'nullable|string|max:500',
+            'url'         => 'nullable|url|max:255',
             'start_date'  => 'sometimes|required|date',
-            'end_date'    => 'nullable|date|after_or_equal:start_date',
+            'end_date'    => 'nullable|date|after_or_equal:' . $startDate,
             'active'      => 'sometimes|boolean',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'end_date.after_or_equal' => 'A data de fim não pode ser anterior à data de início.',
         ];
     }
 }

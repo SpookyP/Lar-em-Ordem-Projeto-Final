@@ -97,14 +97,16 @@ class PartnerService
         });
     }
 
-    /**
-     * Carrega as ofertas de um parceiro existente.
+     /**
+     * Carrega as ofertas em vigor de um parceiro (vista pública).
      *
      * @param Partner $partner Instância do parceiro.
-     * @return Partner A mesma instância, agora com a relação 'offers' carregada.
+     * @return Partner A mesma instância, com a relação 'offers' carregada.
      */
     public function loadWithOffers(Partner $partner): Partner
     {
-        return $partner->load('offers');
+        return $partner->load([
+            'offers' => fn ($query) => $query->current()->orderByDesc('start_date'),
+        ]);
     }
 }
