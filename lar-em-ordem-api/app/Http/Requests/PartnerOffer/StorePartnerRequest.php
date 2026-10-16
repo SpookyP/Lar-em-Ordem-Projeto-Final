@@ -14,7 +14,7 @@ class StorePartnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
+            'company_name' => 'required|string|max:255',
             'nif'         => 'required|string|digits:9',
             'phone'       => 'required|string|max:15',
             'website'     => 'nullable|string|url|max:255',

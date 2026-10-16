@@ -62,7 +62,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'parceiro@example.com',
         ]);
         $partner->partner()->create([
-            'name' => $partner->name,
+            'company_name' => 'Parceiro Lda',
             'nif'  => '123456789',
             "phone" => "912345678",
             "website" => "https://parceiro.pt",
