@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
 use App\Http\Requests\Invoice\UploadInvoiceRequest;
 use App\Http\Resources\Invoice\InvoiceResource;
+use App\Services\Invoice\InvoiceExtractionService;
 use App\Services\Invoice\InvoiceService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
@@ -81,13 +82,23 @@ class InvoiceController extends Controller
         ], 200);
     }
 
-    public function upload(UploadInvoiceRequest $request): JsonResponse
+    public function upload(UploadInvoiceRequest $request, InvoiceExtractionService $extraction): JsonResponse
     {
+        $file   = $request->file('file');
         $fileId = (string) Str::ulid();
-
-        $request->file('file')->storeAs("pending/{$request->user()->id}", "{$fileId}.pdf", 'r2');
-
-        return response()->json(['data' => ['file_id' => $fileId]], 201);
+ 
+        // Fica em "pending" até a fatura ser criada (o bucket apaga-o ao fim de 1 dia se ninguém a criar)
+        $file->storeAs("pending/{$request->user()->id}", "{$fileId}.pdf", 'r2');
+ 
+        // Extrai a partir do ficheiro temporário do upload
+        $extracted = $extraction->extract($file->getRealPath());
+ 
+        return response()->json([
+            'data' => [
+                'file_id'   => $fileId,
+                'extracted' => $extracted, // null = a extração falhou, o utilizador preenche à mão
+            ],
+        ], 201);
     }
 
     public function file(Request $request, string $invoiceId): JsonResponse
