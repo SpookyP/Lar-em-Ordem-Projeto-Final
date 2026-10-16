@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('company_name');
             $table->string('nif', 9);
             $table->string('phone', 15);
-            $table->string('email')->nullable();
+            $table->string('provider_email')->nullable();
             $table->text('description');
             $table->boolean('active')->default(true);
             $table->timestamps();

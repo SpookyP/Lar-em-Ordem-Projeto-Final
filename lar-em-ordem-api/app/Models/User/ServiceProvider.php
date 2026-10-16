@@ -21,17 +21,15 @@ class ServiceProvider extends Model
         return $this->belongsTo(User::class);
     }
 
-     public function zones()
+    public function zones()
     {
         return $this->belongsToMany(ServiceZone::class)->withTimestamps();
     }
 
-   
     public function specialties()
     {
         return $this->hasMany(ProviderSpecialty::class);
     }
-    
 
     public function proposals()
     {
@@ -39,7 +37,7 @@ class ServiceProvider extends Model
     }
 
     protected $attributes = [
-        'active' => true,
+        'active' => true
     ];
 
     protected $fillable = [
@@ -47,7 +45,7 @@ class ServiceProvider extends Model
         'company_name',
         'nif',
         'phone',
-        'email',
+        'provider_email',
         'description',
         'active',
     ];
@@ -55,5 +53,4 @@ class ServiceProvider extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
-
 }
