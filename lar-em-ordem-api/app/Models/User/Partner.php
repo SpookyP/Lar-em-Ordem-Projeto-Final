@@ -34,7 +34,7 @@ class Partner extends Model
     ];
 
     protected $fillable = [
-        'name',
+        'company_name',
         'nif',
         'phone',
         'website',

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('partners', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->foreignUlid('user_id')->constrained();
-            $table->string('name');
+            $table->string('company_name');
             $table->string('nif', 9);
             $table->string('phone', 15);
             $table->string('website')->nullable();
