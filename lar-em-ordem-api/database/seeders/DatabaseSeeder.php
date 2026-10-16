@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
             "company_name" => "Serviçinhos Lda",
             "nif" => "212345674",
             "phone" => "912345679",
-            "email" => "general@servicos.pt",
+            "provider_email" => "general@servicos.pt",
             "description" => "Prestação de serviços de manutenção."
         ]);
         $resident->assignRole('service_provider');
@@ -76,7 +76,7 @@ class DatabaseSeeder extends Seeder
             "company_name" => "Serviços Lda",
             "nif" => "212345673",
             "phone" => "912345678",
-            "email" => "geral@servicos.pt",
+            "provider_email" => "geral@servicos.pt",
             "description" => "Prestação de serviços de manutenção."
         ]);
         $serviceProvider->assignRole('service_provider');

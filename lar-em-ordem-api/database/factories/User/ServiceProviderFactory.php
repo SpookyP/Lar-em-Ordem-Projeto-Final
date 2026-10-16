@@ -19,12 +19,12 @@ class ServiceProviderFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'      => User::factory(),
-            'company_name' => fake()->company(),
-            'nif'          => fake()->numerify('5########'),
-            'phone'        => fake()->numerify('9########'),
-            'email'        => fake()->unique()->companyEmail(),
-            'description'  => fake()->sentence(),
+            'user_id'        => User::factory(),
+            'company_name'   => fake()->company(),
+            'nif'            => fake()->numerify('5########'),
+            'phone'          => fake()->numerify('9########'),
+            'provider_email' => fake()->unique()->companyEmail(),
+            'description'    => fake()->sentence(),
         ];
     }
 }
