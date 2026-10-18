@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
+import { PasswordInput } from "../../components/ui/PasswordInput";
 
 export default function Login() {
   const { login } = useAuth();
@@ -55,8 +56,7 @@ export default function Login() {
           </label>
           <label className=" flex flex-col gap-4">
             <span className="text-sm font-medium text-text mr-2">Password</span>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}

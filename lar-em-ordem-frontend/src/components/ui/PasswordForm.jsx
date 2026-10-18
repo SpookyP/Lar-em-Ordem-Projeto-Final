@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { updatePassword } from "../../services/api/accountService";
+import { PasswordInput } from "./PasswordInput";
 
 export function PasswordForm() {
   const [form, setForm] = useState({
@@ -47,10 +48,9 @@ export function PasswordForm() {
         <label htmlFor="current_password" className="text-sm text-muted">
           Password atual
         </label>
-        <input
+        <PasswordInput
           id="current_password"
           name="current_password"
-          type="password"
           value={form.current_password}
           onChange={handleChange}
           required
@@ -62,10 +62,9 @@ export function PasswordForm() {
         <label htmlFor="password" className="text-sm text-muted">
           Nova password
         </label>
-        <input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           value={form.password}
           onChange={handleChange}
           required
@@ -77,10 +76,9 @@ export function PasswordForm() {
         <label htmlFor="password_confirmation" className="text-sm text-muted">
           Confirmar nova password
         </label>
-        <input
+        <PasswordInput
           id="password_confirmation"
           name="password_confirmation"
-          type="password"
           value={form.password_confirmation}
           onChange={handleChange}
           required
