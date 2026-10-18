@@ -5,26 +5,29 @@ import {
 } from "../../services/api/propertyService";
 import { useHouses } from "../../hooks/useHouses";
 
+const EMPTY_FORM = {
+  property_type_id: "",
+  property_typology_id: "",
+  resident_type_id: "",
+  area: "",
+  start_date: "",
+  end_date: "",
+  street: "",
+  postal_code: "",
+  door: "",
+  fraction: "",
+  county: "",
+  location: "",
+  district: "",
+};
+
 export function PropertyForm({ onCreated }) {
   const [options, setOptions] = useState(null);
-  const [form, setForm] = useState({
-    property_type_id: "",
-    property_typology_id: "",
-    resident_type_id: "",
-    area: "",
-    start_date: "",
-    end_date: "",
-    street: "",
-    postal_code: "",
-    door: "",
-    fraction: "",
-    county: "",
-    location: "",
-    district: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [status, setStatus] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const { refreshHouses } = useHouses();
+  const [createdSummary, setCreatedSummary] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -68,6 +71,24 @@ export function PropertyForm({ onCreated }) {
     try {
       const created = await createProperty(payload);
       await refreshHouses();
+
+      setCreatedSummary({
+        morada: form.fraction
+          ? `${form.street}, ${form.door}, ${form.fraction}, ${form.postal_code}`
+          : `${form.street}, ${form.door}, ${form.postal_code}`,
+        localidade: form.location,
+        area: form.area,
+        tipo: options.propertyTypes.find(
+          (t) => t.id === Number(form.property_type_id),
+        )?.label,
+        tipologia: options.typologies.find(
+          (t) => t.id === Number(form.property_typology_id),
+        )?.label,
+        vinculo: options.residentTypes.find(
+          (t) => t.id === Number(form.resident_type_id),
+        )?.label,
+      });
+
       setStatus("success");
       if (onCreated) onCreated(created);
     } catch (error) {
@@ -76,6 +97,53 @@ export function PropertyForm({ onCreated }) {
         error.response?.data?.message ?? "Não foi possível criar a habitação.",
       );
     }
+  }
+  function handleCreateAnother() {
+    setForm(EMPTY_FORM);
+    setCreatedSummary(null);
+    setStatus(null);
+  }
+
+  if (createdSummary) {
+    return (
+      <div className="flex flex-col gap-4">
+        <h2 className="font-medium text-text">Habitação adicionada à lista</h2>
+        <p className="text-sm text-green-600">
+          A habitação foi criada com sucesso.
+        </p>
+
+        <div className="rounded-lg border border-border bg-surface p-4 flex flex-col gap-1 text-sm text-text">
+          <p>
+            <span className="text-muted">Morada: </span>
+            {createdSummary.morada}
+          </p>
+          <p>
+            <span className="text-muted">Localidade: </span>
+            {createdSummary.localidade}
+          </p>
+          <p>
+            <span className="text-muted">Tipo: </span>
+            {createdSummary.tipo} · {createdSummary.tipologia}
+          </p>
+          <p>
+            <span className="text-muted">Vínculo: </span>
+            {createdSummary.vinculo}
+          </p>
+          <p>
+            <span className="text-muted">Área: </span>
+            {createdSummary.area} m²
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleCreateAnother}
+          className="self-start rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-dark"
+        >
+          Criar outra habitação
+        </button>
+      </div>
+    );
   }
 
   if (!options) {
@@ -319,9 +387,6 @@ export function PropertyForm({ onCreated }) {
       </div>
 
       {status === "error" && <p className="text-sm text-red-600">{errorMsg}</p>}
-      {status === "success" && (
-        <p className="text-sm text-green-600">Habitação criada com sucesso.</p>
-      )}
 
       <button
         type="submit"
