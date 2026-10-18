@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
+import { PasswordInput } from "../../components/ui/PasswordInput";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -26,6 +27,39 @@ export default function Login() {
     } finally {
       setAEnviar(false);
     }
+  }
+
+  async function handleLogout() {
+    await logout();
+  }
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface px-4">
+        <div className="w-full max-w-sm rounded-2xl bg-card p-8 shadow-lg text-center">
+          <h1 className="font-display text-2xl text-navy">
+            Já existe uma sessão iniciada
+          </h1>
+          <p className="mt-2 text-sm text-muted">
+            Clique em continuar para aceder à aplicação ou termine sessão.
+          </p>
+          <div className="mt-6 flex flex-col gap-3">
+            <button
+              onClick={() => navigate("/perfis")}
+              className="rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
+            >
+              Continuar
+            </button>
+            <button
+              onClick={handleLogout}
+              className="rounded-xl border border-border px-5 py-3 font-medium text-text transition hover:bg-surface"
+            >
+              Terminar sessão
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -55,8 +89,7 @@ export default function Login() {
           </label>
           <label className=" flex flex-col gap-4">
             <span className="text-sm font-medium text-text mr-2">Password</span>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
