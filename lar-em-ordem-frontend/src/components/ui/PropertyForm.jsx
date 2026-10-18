@@ -3,6 +3,7 @@ import {
   getFormOptions,
   createProperty,
 } from "../../services/api/propertyService";
+import { useHouses } from "../../hooks/useHouses";
 
 export function PropertyForm({ onCreated }) {
   const [options, setOptions] = useState(null);
@@ -23,6 +24,7 @@ export function PropertyForm({ onCreated }) {
   });
   const [status, setStatus] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const { refreshHouses } = useHouses();
 
   useEffect(() => {
     let active = true;
@@ -65,6 +67,7 @@ export function PropertyForm({ onCreated }) {
 
     try {
       const created = await createProperty(payload);
+      await refreshHouses();
       setStatus("success");
       if (onCreated) onCreated(created);
     } catch (error) {

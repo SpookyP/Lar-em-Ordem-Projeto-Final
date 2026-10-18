@@ -28,7 +28,7 @@ export default function Dashboard() {
               <div className="flex rounded-full bg-surface p-1">
                 {periods.map((p) => (
                   <button
-                    hey={p}
+                    key={p}
                     onClick={() => setPeriod(p)}
                     className={`rounded-full px-3 py-1 text-sm transition ${
                       period === p

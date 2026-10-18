@@ -28,6 +28,7 @@ export const roleFields = {
     { name: "description", label: "Descrição", type: "textarea" },
   ],
   partner: [
+    { name: "company_name", label: "Nome da Empresa", type: "text" },
     { name: "nif", label: "NIF da Empresa", type: "text" },
     { name: "phone", label: "Número de Telemóvel/Telefone", type: "tel" },
     { name: "website", label: "Website", type: "url" },
