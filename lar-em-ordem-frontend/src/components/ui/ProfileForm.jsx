@@ -7,7 +7,7 @@ import { accountTypes, roleFields } from "../../data/registerFields";
 export function ProfileForm() {
   const { user, refreshUser } = useAuth();
   const [role, setRole] = useState("");
-  const [form, setForm] = useState({ role: "", nif: "" });
+  const [form, setForm] = useState({});
   const [status, setStatus] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
 

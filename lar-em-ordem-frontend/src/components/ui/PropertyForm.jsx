@@ -50,12 +50,11 @@ export function PropertyForm({ onCreated }) {
       resident_type_id: Number(form.resident_type_id),
       condominium_id: null,
       area: Number(form.area),
-      fraction: form.fraction || null,
       start_date: form.start_date,
       end_date: form.end_date || null,
       address: {
         street: form.street,
-        //FRACTION VEM PARA CA
+        fraction: form.fraction || null,
         postal_code: form.postal_code,
         door: form.door,
         county: form.county,
