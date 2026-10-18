@@ -56,3 +56,13 @@ export async function createProperty(data) {
   const response = await axiosClient.post("/api/v1/properties", data);
   return response.data;
 }
+
+export async function getAllProperties() {
+  const first = await getProperties(1);
+  let all = first.houses;
+  for (let page = 2; page <= first.lastPage; page++) {
+    const next = await getProperties(page);
+    all = all.concat(next.houses);
+  }
+  return all;
+}
