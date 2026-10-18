@@ -65,7 +65,7 @@ export default function Registar() {
     try {
       setLoading(true);
       await register(payload);
-      navigate("/dashboard");
+      navigate("/perfis");
     } catch (error) {
       setError("Não foi possível criar a conta. Verifique os dados.");
       console.error(error);

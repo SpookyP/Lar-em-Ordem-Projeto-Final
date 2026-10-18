@@ -71,9 +71,8 @@ export default function Profiles() {
         }
 
         //0 casas
-        //TODO: encaminhar p pag de inserir habitaçao
         if (total === 0) {
-          setDeciding(false);
+          navigate("/welcome");
           return;
         }
 
@@ -81,7 +80,7 @@ export default function Profiles() {
         setOpenProfile(unique.name);
         setDeciding(false);
       } catch (error) {
-        console.error(erro);
+        console.error(error);
         setDeciding(false);
       }
     }
