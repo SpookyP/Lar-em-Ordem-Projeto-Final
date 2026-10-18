@@ -21,7 +21,7 @@ const EMPTY_FORM = {
   district: "",
 };
 
-export function PropertyForm({ onCreated }) {
+export function PropertyForm({ onCreated, secondaryAction }) {
   const [options, setOptions] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [status, setStatus] = useState(null);
@@ -388,13 +388,16 @@ export function PropertyForm({ onCreated }) {
 
       {status === "error" && <p className="text-sm text-red-600">{errorMsg}</p>}
 
-      <button
-        type="submit"
-        disabled={status === "saving"}
-        className="self-start rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-dark disabled:opacity-60"
-      >
-        {status === "saving" ? "A guardar..." : "Criar habitação"}
-      </button>
+      <div className="flex gap-3 self-start">
+        <button
+          type="submit"
+          disabled={status === "saving"}
+          className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-dark disabled:opacity-60"
+        >
+          {status === "saving" ? "A guardar..." : "Criar habitação"}
+        </button>
+        {secondaryAction}
+      </div>
     </form>
   );
 }
