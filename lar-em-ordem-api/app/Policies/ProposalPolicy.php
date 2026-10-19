@@ -2,65 +2,60 @@
 
 namespace App\Policies;
 
-use App\Models\Proposal;
+use App\Models\ServiceProvider\Proposal;
 use App\Models\User\User;
-use Illuminate\Auth\Access\Response;
 
 class ProposalPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * O SU tem acesso a tudo; para os restantes segue para o método da ação.
+     *
+     * @param User $user Utilizador autenticado.
+     * @param string $ability Ação a autorizar.
+     * @return bool|null true para o SU; null para continuar a verificação.
      */
-    public function viewAny(User $user): bool
+    public function before(User $user, string $ability): ?bool
     {
-        return false;
+        return $user->hasRole('SU') ? true : null;
     }
 
     /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Proposal $proposal): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can create models.
+     * Só prestadores podem enviar e listar as suas propostas.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasRole('service_provider');
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Só o prestador dono da proposta a pode editar.
      */
     public function update(User $user, Proposal $proposal): bool
     {
-        return false;
+        return $proposal->serviceProvider->user_id === $user->id;
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Só o prestador dono da proposta a pode retirar.
      */
-    public function delete(User $user, Proposal $proposal): bool
+    public function withdraw(User $user, Proposal $proposal): bool
     {
-        return false;
+        return $proposal->serviceProvider->user_id === $user->id;
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Só o dono do pedido pode aceitar uma proposta.
      */
-    public function restore(User $user, Proposal $proposal): bool
+    public function accept(User $user, Proposal $proposal): bool
     {
-        return false;
+        return $proposal->assistanceRequest->user_id === $user->id;
     }
 
     /**
-     * Determine whether the user can permanently delete the model.
+     * Só o dono do pedido pode rejeitar uma proposta.
      */
-    public function forceDelete(User $user, Proposal $proposal): bool
+     public function reject(User $user, Proposal $proposal): bool
     {
-        return false;
+        return $proposal->assistanceRequest->user_id === $user->id;
     }
 }

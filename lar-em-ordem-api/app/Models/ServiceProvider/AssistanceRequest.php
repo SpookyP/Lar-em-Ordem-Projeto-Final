@@ -40,8 +40,16 @@ class AssistanceRequest extends Model
     {
         return $this->hasMany(Proposal::class);
     }
+    
+    /**
+     * A proposta aceite deste pedido (no máximo uma).
+     */
+    public function acceptedProposal()
+    {
+        return $this->hasOne(Proposal::class)->where('status', 'accepted');
+    }
 
-    protected $fillable = [
+   protected $fillable = [
         'property_id',
         'user_id',
         'problem_category_id',
@@ -55,8 +63,8 @@ class AssistanceRequest extends Model
         'status'=>'open',
     ];
 
-    protected $casts = [
-        'closed_at'=>'datetime',
+     protected $casts = [
+        'closed_at' => 'datetime',
     ];
 
     /**
