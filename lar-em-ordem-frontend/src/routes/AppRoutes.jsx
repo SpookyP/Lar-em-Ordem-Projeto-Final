@@ -5,6 +5,7 @@ import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Profiles from "../pages/Profiles/Profiles";
 import Definicoes from "../pages/Definicoes/Definicoes";
+import Onboarding from "../pages/Onboarding/Onboarding";
 
 //paginas fake
 
@@ -35,6 +36,7 @@ export function AppRoutes() {
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>
           <Route path="/perfis" element={<Profiles />} />
+          <Route path="/welcome" element={<Onboarding />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/assistencia" element={<Assistance />} />
