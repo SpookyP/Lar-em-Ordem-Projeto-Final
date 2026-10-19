@@ -79,7 +79,8 @@ class AssistanceRequest extends Model
     /**
      * Pedidos que um prestador pode ver e responder:
      * abertos, numa das suas categoria, num concelho
-     * onde atua, não  abertos por ele próprio.
+     * onde atua, não  abertos por ele próprio,
+     * e ainda não enviou proposta para o pedido
      * Uso: AssistanceRequest::availableFor($provider)->get()
      *
      * @param Builder $query Query a que se aplicam os filtros.
@@ -102,6 +103,7 @@ class AssistanceRequest extends Model
         return $query->where('status', 'open')
             ->where('user_id', '!=', $provider->user_id)
             ->whereIn('problem_category_id', $categoryIds)
+            ->whereDoesntHave('proposals', fn (Builder $q) => $q->where('service_provider_id', $provider->id))
             ->whereHas('property.address', function (Builder $address) use ($counties) {
                 $address->where(function (Builder $any) use ($counties) {
                     foreach ($counties as $zone) {
