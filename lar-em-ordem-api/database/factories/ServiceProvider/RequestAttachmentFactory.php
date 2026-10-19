@@ -1,14 +1,14 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\ServiceProvider;
 
-use App\Models\ServiceSpecialty;
+use App\Models\RequestAttachment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<ServiceSpecialty>
+ * @extends Factory<RequestAttachment>
  */
-class ServiceSpecialtyFactory extends Factory
+class RequestAttachmentFactory extends Factory
 {
     /**
      * Define the model's default state.

@@ -1,8 +1,8 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\ServiceProvider;
 
-use App\Models\ProblemCategory;
+use App\Models\ServiceProvider\ProblemCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +18,8 @@ class ProblemCategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name'        => fake()->unique()->words(2, true),
+            'description' => fake()->sentence(),
         ];
     }
 }

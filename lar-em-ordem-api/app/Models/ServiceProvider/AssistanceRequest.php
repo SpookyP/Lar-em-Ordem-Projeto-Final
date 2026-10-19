@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AssistanceRequest extends Model
 {
-    /** @use HasFactory<\Database\Factories\AssistanceRequestFactory> */
+     /** @use HasFactory<\Database\Factories\ServiceProvider\AssistanceRequestFactory> */
     use HasFactory, SoftDeletes, HasUlids;
 
     public function user()

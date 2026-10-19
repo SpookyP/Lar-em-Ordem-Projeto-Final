@@ -98,5 +98,12 @@ class DatabaseSeeder extends Seeder
         Artisan::call('benchmarks:backfill');
         $this->command->info(Artisan::output());
         $this->call(ProblemCategorySeeder::class);
+
+         // Módulos 5, 6 e 7: precisam das zonas, das categorias e dos parceiros criados acima
+        $this->call([
+            ServiceProviderSeeder::class,
+            AssistanceRequestSeeder::class,
+            OfferSeeder::class,
+        ]);
     }
 }

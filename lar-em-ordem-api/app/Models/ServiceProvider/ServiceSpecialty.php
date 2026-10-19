@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ServiceSpecialty extends Model
 {
-    /** @use HasFactory<\Database\Factories\ServiceSpecialtyFactory> */
+    /** @use HasFactory<\Database\Factories\ServiceProvider\ServiceSpecialtyFactory> */
     use HasFactory, SoftDeletes;
 
     public function problemCategory()
