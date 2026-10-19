@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { accountTypes, roleFields } from "../../data/registerFields";
 import { useAuth } from "../../hooks/useAuth";
 import { Field } from "../../components/ui/Field";
+import { isPasswordValid } from "../../utils/passwordValidation";
+import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
 
 const INITIAL_FORM = {
   name: "",
@@ -35,6 +37,12 @@ export default function Registar() {
   function handleNext(e) {
     e.preventDefault();
     setError("");
+
+    if (!isPasswordValid(form.password)) {
+      setError("A password não cumpre todos os requisitos.");
+      return;
+    }
+
     if (form.password !== form.password_confirmation) {
       setError("As palavras-passe não coincidem.");
       return;
@@ -67,7 +75,15 @@ export default function Registar() {
       await register(payload);
       navigate("/perfis");
     } catch (error) {
-      setError("Não foi possível criar a conta. Verifique os dados.");
+      const errors = error.response?.data?.errors;
+      if (errors?.password) {
+        setError(
+          "A password escolhida não é segura. Por favor, escolha outra.",
+        );
+        setStep(1);
+      } else {
+        setError("Não foi possível criar a conta. Verifique os dados.");
+      }
       console.error(error);
     } finally {
       setLoading(false);
@@ -108,6 +124,9 @@ export default function Registar() {
               value={form.password}
               onChange={handleChange}
             />
+
+            {form.password && <PasswordRequirements password={form.password} />}
+
             <Field
               label="Confirmar password"
               name="password_confirmation"
@@ -116,9 +135,18 @@ export default function Registar() {
               onChange={handleChange}
             />
 
+            {form.password_confirmation &&
+              form.password !== form.password_confirmation && (
+                <p className="text-sm text-red">As passwords não coincidem.</p>
+              )}
+
             <button
               type="submit"
-              className="rounded-lg bg-navy px-4 py-2 font-medium text-white transition hover:bg-navy-light"
+              disabled={
+                !isPasswordValid(form.password) ||
+                form.password !== form.password_confirmation
+              }
+              className="rounded-lg bg-navy px-4 py-2 font-medium text-white transition hover:bg-navy-light disabled:opacity-50"
             >
               Continuar
             </button>
