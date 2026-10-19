@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { updatePassword } from "../../services/api/accountService";
 import { PasswordInput } from "./PasswordInput";
+import { isPasswordValid } from "../../utils/passwordValidation";
+import { PasswordRequirements } from "./PasswordRequirements";
 
 export function PasswordForm() {
   const [form, setForm] = useState({
@@ -29,11 +31,19 @@ export function PasswordForm() {
         password: "",
         password_confirmation: "",
       });
-    } catch (erro) {
+    } catch (error) {
       setStatus("error");
-      setErrorMsg(
-        erro.response?.data?.message ?? "Não foi possível alterar a password.",
-      );
+      const errors = error.response?.data?.errors;
+      if (errors?.password) {
+        setErrorMsg(
+          "A password escolhida não é segura. Por favor, escolha outra.",
+        );
+      } else {
+        setErrorMsg(
+          error.response?.data?.message ??
+            "Não foi possível alterar a password.",
+        );
+      }
     }
   }
 
@@ -72,6 +82,8 @@ export function PasswordForm() {
         />
       </div>
 
+      {form.password && <PasswordRequirements password={form.password} />}
+
       <div className="flex flex-col gap-1">
         <label htmlFor="password_confirmation" className="text-sm text-muted">
           Confirmar nova password
@@ -86,6 +98,11 @@ export function PasswordForm() {
         />
       </div>
 
+      {form.password_confirmation &&
+        form.password !== form.password_confirmation && (
+          <p className="text-sm text-red-600">As passwords não coincidem.</p>
+        )}
+
       {status === "error" && <p className="text-sm text-red-600">{errorMsg}</p>}
       {status === "success" && (
         <p className="text-sm text-green-600">Password alterada com sucesso.</p>
@@ -93,7 +110,11 @@ export function PasswordForm() {
 
       <button
         type="submit"
-        disabled={status === "saving"}
+        disabled={
+          status === "saving" ||
+          !isPasswordValid(form.password) ||
+          form.password !== form.password_confirmation
+        }
         className="self-start rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-dark disabled:opacity-60"
       >
         {status === "saving" ? "A guardar..." : "Guardar"}
