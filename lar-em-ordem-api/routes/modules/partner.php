@@ -4,6 +4,7 @@ use App\Http\Controllers\PartnerOffer\PartnerController;
 use Illuminate\Support\Facades\Route;
 
 
+Route::get('partners/me', [PartnerController::class, 'showMyProfile']);
 Route::get('partners/offers/{partner}', [PartnerController::class, 'showWithOffers'])
     ->whereUlid('partner');
 Route::apiResource('partners', PartnerController::class)

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('service-providers/active', [ServiceProviderController::class, 'listActiveProviders']);
-
+Route::get('service-providers/me', [ServiceProviderController::class, 'showMyProfile']);
 
 Route::put('service-providers/{service_provider}/zones', [ServiceProviderController::class, 'syncZones'])
     ->whereUlid('service_provider');
