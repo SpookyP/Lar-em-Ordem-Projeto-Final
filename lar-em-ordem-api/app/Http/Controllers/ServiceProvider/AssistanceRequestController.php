@@ -9,9 +9,9 @@ use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Services\ServiceProvider\AssistanceRequestService;
-use Illuminate\Support\Facades\Gate;
 use App\Services\ServiceProvider\ServiceProviderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class AssistanceRequestController extends Controller
 {

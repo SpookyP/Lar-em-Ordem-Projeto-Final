@@ -23,13 +23,15 @@ class Proposal extends Model
         return $this->belongsTo(ServiceProviderModel::class);
     }
 
-     protected $fillable = [
+    protected $fillable = [
         'assistance_request_id',
         'service_provider_id',
         'estimated_value',
         'description',
         'validity',
-        'availability',
+        'available_date',
+        'available_from',
+        'available_until',
         'status',
         'response_date',
     ];
@@ -38,9 +40,10 @@ class Proposal extends Model
         'status' => 'pending',
     ];
 
-    protected $casts = [
+     protected $casts = [
         'estimated_value' => 'decimal:2',
         'validity'        => 'date',
+        'available_date'  => 'date',
         'response_date'   => 'datetime',
     ];
 

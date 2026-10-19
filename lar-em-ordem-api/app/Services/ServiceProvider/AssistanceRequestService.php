@@ -110,15 +110,19 @@ class AssistanceRequestService
         return $this->loadFull($assistanceRequest);
     }
 
-    /**
-     * Carrega a casa (com morada) e a categoria de um pedido.
+     /**
+     * Carrega a casa (com morada), a categoria e a proposta aceite (com o prestador) de um pedido.
      *
      * @param AssistanceRequest $assistanceRequest Instância do pedido.
      * @return AssistanceRequest A mesma instância, com as relações carregadas.
      */
     public function loadFull(AssistanceRequest $assistanceRequest): AssistanceRequest
     {
-        return $assistanceRequest->load(['property.address', 'problemCategory']);
+        return $assistanceRequest->load([
+            'property.address',
+            'problemCategory',
+            'acceptedProposal.serviceProvider',
+        ]);
     }
 
     /**
