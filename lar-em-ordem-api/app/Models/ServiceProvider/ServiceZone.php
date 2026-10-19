@@ -9,7 +9,7 @@ use App\Models\User\ServiceProvider as ServiceProviderModel;
 
 class ServiceZone extends Model
 {
-    /** @use HasFactory<\Database\Factories\ServiceZoneFactory> */
+    /** @use HasFactory<\Database\Factories\ServiceProvider\ServiceZoneFactory> */
      use HasFactory, SoftDeletes;
 
     public function providers()

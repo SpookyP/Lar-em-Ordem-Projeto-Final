@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Offer extends Model
 {
-    /** @use HasFactory<\Database\Factories\OfferFactory> */
+    /** @use HasFactory<\Database\Factories\Offer\OfferFactory> */
     use HasFactory, SoftDeletes, HasUlids;
 
     public function partner()

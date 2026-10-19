@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Proposal extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProposalFactory> */
+    /** @use HasFactory<\Database\Factories\ServiceProvider\ProposalFactory> */
     use HasFactory, SoftDeletes, HasUlids;
 
     public function assistanceRequest()
