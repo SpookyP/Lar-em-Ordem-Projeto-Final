@@ -2,7 +2,9 @@
 
 namespace Database\Factories\ServiceProvider;
 
-use App\Models\RequestAttachment;
+use App\Models\File\File;
+use App\Models\ServiceProvider\AssistanceRequest;
+use App\Models\ServiceProvider\RequestAttachment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +20,12 @@ class RequestAttachmentFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'assistance_request_id' => AssistanceRequest::factory(),
+            'file_id'               => File::factory()->state([
+                'original_name' => 'foto.jpg',
+                'mime_type'     => 'image/jpeg',
+                'category'      => 'assistance_requests',
+            ]),
         ];
     }
 }

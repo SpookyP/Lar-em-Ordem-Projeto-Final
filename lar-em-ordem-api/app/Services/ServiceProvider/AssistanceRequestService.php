@@ -145,6 +145,7 @@ class AssistanceRequestService
             'property.address',
             'problemCategory',
             'acceptedProposal.serviceProvider',
+            'attachments.file',
         ]);
     }
 

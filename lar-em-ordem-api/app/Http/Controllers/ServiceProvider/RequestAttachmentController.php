@@ -1,66 +1,50 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ServiceProvider;
 
-use App\Models\ServiceProvider\RequestAttachment;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ServiceProvider\StoreRequestAttachmentRequest;
-use App\Http\Requests\ServiceProvider\UpdateRequestAttachmentRequest;
+use App\Http\Resources\ServiceProvider\RequestAttachmentResource;
+use App\Models\ServiceProvider\AssistanceRequest;
+use App\Models\ServiceProvider\RequestAttachment;
+use App\Services\ServiceProvider\RequestAttachmentService;
+use Illuminate\Support\Facades\Gate;
 
 class RequestAttachmentController extends Controller
 {
+    public function __construct(private RequestAttachmentService $service) {}
+
     /**
-     * Display a listing of the resource.
+     * Junta 1 ou 2 imagens a um pedido aberto. Só o dono do pedido.
+     *
+     * @param StoreRequestAttachmentRequest $request Imagens validadas ('images[]').
+     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @return \Illuminate\Http\JsonResponse Todas as imagens do pedido, com o status 201 (Created).
      */
-    public function index()
+    public function store(StoreRequestAttachmentRequest $request, AssistanceRequest $assistanceRequest)
     {
-        //
+        Gate::authorize('update', $assistanceRequest);
+
+        $attachments = $this->service->addImages($assistanceRequest, $request->user(), $request->file('images'));
+
+        return RequestAttachmentResource::collection($attachments)
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Remove uma imagem de um pedido aberto. Só o dono do pedido.
+     *
+     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @param RequestAttachment $attachment Imagem a remover (tem de pertencer ao pedido).
+     * @return \Illuminate\Http\JsonResponse Confirmação da remoção.
      */
-    public function create()
+    public function destroy(AssistanceRequest $assistanceRequest, RequestAttachment $attachment)
     {
-        //
-    }
+        Gate::authorize('update', $assistanceRequest);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreRequestAttachmentRequest $request)
-    {
-        //
-    }
+        $this->service->delete($assistanceRequest, $attachment);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(RequestAttachment $requestAttachment)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RequestAttachment $requestAttachment)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateRequestAttachmentRequest $request, RequestAttachment $requestAttachment)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(RequestAttachment $requestAttachment)
-    {
-        //
+        return response()->json(['message' => 'Imagem removida.']);
     }
 }

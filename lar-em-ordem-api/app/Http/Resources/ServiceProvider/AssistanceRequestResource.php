@@ -24,6 +24,7 @@ class AssistanceRequestResource extends JsonResource
             'closed_at'         => $this->closed_at,
             'category'          => new ProblemCategoryResource($this->whenLoaded('problemCategory')),
             'accepted_proposal' => new ProposalResource($this->whenLoaded('acceptedProposal')),
+            'attachments'       => RequestAttachmentResource::collection($this->whenLoaded('attachments')),
             'property'          => $this->whenLoaded('property', fn () => [
                 'id'       => $this->property->id,
                 'fraction' => $canSeeAddress ? $this->property->address?->fraction : null,
