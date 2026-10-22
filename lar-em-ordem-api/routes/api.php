@@ -21,3 +21,6 @@ Route::prefix('v1')->group(function () {
         require __DIR__ . '/modules/proposal.php';
     });
 });
+
+Route::delete('/user/profile', [AuthController::class, 'destroyProfile'])->middleware('auth:sanctum');
+Route::delete('/user', [AuthController::class, 'destroyAccount'])->middleware('auth:sanctum');

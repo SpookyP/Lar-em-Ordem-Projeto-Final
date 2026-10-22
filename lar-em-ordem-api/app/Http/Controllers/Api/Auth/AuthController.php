@@ -137,4 +137,74 @@ class AuthController extends Controller
             'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner']),
         ], 201);
     }
+
+    /**
+     * Remove a role/profile from the authenticated user.
+     */
+
+    public function destroyProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+        ]);
+
+        $role = $validated['role'];
+
+        $hasProfile = match ($role) {
+            'resident'         => $user->resident()->exists(),
+            'service_provider' => $user->service_provider()->exists(),
+            'partner'          => $user->partner()->exists(),
+            default            => false,
+        };
+
+        if (!$hasProfile) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors'  => ['role' => ["You do not have a {$role} profile attached to this account."]],
+            ], 422);
+        }
+
+        if ($user->roles()->count() <= 1) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors'  => ['role' => ['You cannot remove your only profile. Delete the account instead.']],
+            ], 422);
+        }
+
+        DB::transaction(function () use ($user, $role) {
+            match ($role) {
+                'resident'         => $user->resident()->delete(),
+                'partner'          => $user->partner()->delete(),
+                'service_provider' => $user->service_provider()->delete(),
+                default            => null,
+            };
+
+            if ($user->hasRole($role)) {
+                $user->removeRole($role);
+            }
+        });
+
+        return response()->json([
+            'message' => "Profile '{$role}' removed successfully.",
+            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner']),
+        ]);
+    }
+
+    /**
+     * Soft-delete the authenticated user's account and end the session.
+     */
+    public function destroyAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        AuthFacade::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        $user->delete();
+
+        return response()->json(['message' => 'Account deleted successfully.']);
+    }
 }
