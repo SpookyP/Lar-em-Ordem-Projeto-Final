@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import {
   getFormOptions,
   createProperty,
+  updateProperty,
 } from "../../services/api/propertyService";
 import { useHouses } from "../../hooks/useHouses";
 
@@ -21,13 +22,39 @@ const EMPTY_FORM = {
   district: "",
 };
 
-export function PropertyForm({ onCreated, secondaryAction }) {
+function propertyToForm(p) {
+  return {
+    property_type_id: p.propertyTypeId ? String(p.propertyTypeId) : "",
+    property_typology_id: p.typologyId ? String(p.typologyId) : "",
+    resident_type_id: p.residentTypeId ? String(p.residentTypeId) : "",
+    area: p.area ?? "",
+    start_date: (p.startDate ?? "").slice(0, 10),
+    end_date: (p.endDate ?? "").slice(0, 10),
+    street: p.address?.street ?? "",
+    postal_code: p.address?.postalCode ?? "",
+    door: p.address?.door ?? "",
+    fraction: p.address?.fraction ?? "",
+    county: p.address?.county ?? "",
+    location: p.address?.location ?? "",
+    district: p.address?.district ?? "",
+  };
+}
+
+export function PropertyForm({
+  onCreated,
+  onUpdated,
+  secondaryAction,
+  property,
+}) {
   const [options, setOptions] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(() =>
+    property ? propertyToForm(property) : EMPTY_FORM,
+  );
   const [status, setStatus] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const { refreshHouses } = useHouses();
   const [createdSummary, setCreatedSummary] = useState(null);
+  const isEditing = Boolean(property);
 
   useEffect(() => {
     let active = true;
@@ -69,28 +96,35 @@ export function PropertyForm({ onCreated, secondaryAction }) {
     };
 
     try {
-      const created = await createProperty(payload);
-      await refreshHouses();
+      if (isEditing) {
+        const updated = await updateProperty(property.id, payload);
+        await refreshHouses();
+        setStatus("success");
+        if (onUpdated) onUpdated(updated);
+      } else {
+        const created = await createProperty(payload);
+        await refreshHouses();
 
-      setCreatedSummary({
-        morada: form.fraction
-          ? `${form.street}, ${form.door}, ${form.fraction}, ${form.postal_code}`
-          : `${form.street}, ${form.door}, ${form.postal_code}`,
-        localidade: form.location,
-        area: form.area,
-        tipo: options.propertyTypes.find(
-          (t) => t.id === Number(form.property_type_id),
-        )?.label,
-        tipologia: options.typologies.find(
-          (t) => t.id === Number(form.property_typology_id),
-        )?.label,
-        vinculo: options.residentTypes.find(
-          (t) => t.id === Number(form.resident_type_id),
-        )?.label,
-      });
+        setCreatedSummary({
+          morada: form.fraction
+            ? `${form.street}, ${form.door}, ${form.fraction}, ${form.postal_code}`
+            : `${form.street}, ${form.door}, ${form.postal_code}`,
+          localidade: form.location,
+          area: form.area,
+          tipo: options.propertyTypes.find(
+            (t) => t.id === Number(form.property_type_id),
+          )?.label,
+          tipologia: options.typologies.find(
+            (t) => t.id === Number(form.property_typology_id),
+          )?.label,
+          vinculo: options.residentTypes.find(
+            (t) => t.id === Number(form.resident_type_id),
+          )?.label,
+        });
 
-      setStatus("success");
-      if (onCreated) onCreated(created);
+        setStatus("success");
+        if (onCreated) onCreated(created);
+      }
     } catch (error) {
       setStatus("error");
       setErrorMsg(
@@ -98,6 +132,7 @@ export function PropertyForm({ onCreated, secondaryAction }) {
       );
     }
   }
+
   function handleCreateAnother() {
     setForm(EMPTY_FORM);
     setCreatedSummary(null);
@@ -394,7 +429,11 @@ export function PropertyForm({ onCreated, secondaryAction }) {
           disabled={status === "saving"}
           className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-dark disabled:opacity-60"
         >
-          {status === "saving" ? "A guardar..." : "Criar habitação"}
+          {status === "saving"
+            ? "A guardar..."
+            : isEditing
+              ? "Guardar alterações"
+              : "Criar habitação"}
         </button>
         {secondaryAction}
       </div>

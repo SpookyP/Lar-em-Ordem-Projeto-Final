@@ -78,6 +78,9 @@ export async function getProperty(id) {
   return {
     id: p.id,
     area: p.area,
+    propertyTypeId: p.propertyType?.id ?? "",
+    typologyId: p.propertyTypology?.id ?? "",
+    residentTypeId: contract?.residentType?.id ?? "",
     address: {
       street: address.street,
       door: address.door,
@@ -94,4 +97,9 @@ export async function getProperty(id) {
     startDate: contract?.startDate ?? null,
     endDate: contract?.endDate ?? null,
   };
+}
+
+export async function updateProperty(id, data) {
+  const response = await axiosClient.put(`/api/v1/properties/${id}`, data);
+  return response.data;
 }
