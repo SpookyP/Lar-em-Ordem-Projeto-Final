@@ -6,6 +6,8 @@ import Register from "../pages/Register/Register";
 import Profiles from "../pages/Profiles/Profiles";
 import Definicoes from "../pages/Definicoes/Definicoes";
 import Onboarding from "../pages/Onboarding/Onboarding";
+import ForgotPassword from "../pages/Password/ForgotPassword";
+import ResetPassword from "../pages/Password/ResetPassword";
 
 //paginas fake
 
@@ -31,6 +33,8 @@ export function AppRoutes() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/nao-autorizado" element={<NaoAutorizado />} />
 
         {/* Rotas protegidas: so quem tem login */}

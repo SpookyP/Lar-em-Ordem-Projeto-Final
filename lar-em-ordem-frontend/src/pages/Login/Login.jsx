@@ -103,7 +103,15 @@ export default function Login() {
           >
             {aEnviar ? "A entrar..." : "Entrar"}
           </button>
-          <p className="mt-4 text-center text-sm text-muted">
+          <div className="mt-3 text-center">
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-navy hover:underline"
+            >
+              Esqueceu-se da password?
+            </Link>
+          </div>
+          <p className="-mt-3 text-center text-sm text-muted">
             Não tem conta?{" "}
             <Link to="/register" className="font-medium text-navy">
               Criar conta
