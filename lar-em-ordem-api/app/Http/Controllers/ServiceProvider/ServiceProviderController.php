@@ -52,6 +52,7 @@ class ServiceProviderController extends Controller
 
     /**
      * Cria o perfil de prestador do utilizador autenticado e atribui-lhe a role 'service_provider'.
+     * Pode receber logo as zonas (zone_ids) e as especialidades (service_specialty_ids, custom_specialties).
      *
      * @param StoreServiceProviderRequest $request Dados validados.
      * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
@@ -68,7 +69,8 @@ class ServiceProviderController extends Controller
     }
  
     /**
-     * Atualiza os dados de um prestador existente.
+     * Atualiza os dados de um prestador existente, incluindo as zonas e as especialidades.
+     * Cada lista enviada substitui a anterior; as que não forem enviadas ficam iguais.
      *
      * @param UpdateServiceProviderRequest $request Dados validados.
      * @param ServiceProviderModel $serviceProvider Instância do prestador.

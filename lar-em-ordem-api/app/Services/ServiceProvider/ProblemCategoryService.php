@@ -19,15 +19,4 @@ class ProblemCategoryService
             ->orderBy('name')
             ->get();
     }
-
-    /**
-     * Devolve as especialidades de uma categoria, por ordem alfabética.
-     *
-     * @param ProblemCategory $category Instância da categoria.
-     * @return Collection
-     */
-    public function listSpecialties(ProblemCategory $category): Collection
-    {
-        return $category->specialties()->orderBy('name')->get();
-    }
 }
