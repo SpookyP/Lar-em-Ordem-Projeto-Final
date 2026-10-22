@@ -13,6 +13,7 @@ class ProblemCategoryResource extends JsonResource
             'id'          => $this->id,
             'name'        => $this->name,
             'description' => $this->description,
+            'specialties' => ServiceSpecialtyResource::collection($this->whenLoaded('specialties')),
         ];
     }
 }

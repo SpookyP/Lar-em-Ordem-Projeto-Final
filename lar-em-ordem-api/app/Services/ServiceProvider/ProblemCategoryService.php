@@ -8,13 +8,16 @@ use Illuminate\Database\Eloquent\Collection;
 class ProblemCategoryService
 {
     /**
-     * Devolve todas as categorias de problemas, por ordem alfabética.
+     * Devolve todas as categorias de problemas com as respetivas especialidades,
+     * ambas por ordem alfabética.
      *
      * @return Collection
      */
     public function list(): Collection
     {
-        return ProblemCategory::orderBy('name')->get();
+        return ProblemCategory::with(['specialties' => fn ($q) => $q->orderBy('name')])
+            ->orderBy('name')
+            ->get();
     }
 
     /**
