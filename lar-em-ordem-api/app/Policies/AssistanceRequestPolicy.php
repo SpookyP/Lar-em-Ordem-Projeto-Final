@@ -19,8 +19,9 @@ class AssistanceRequestPolicy
         return $user->hasRole('SU') ? true : null;
     }
 
-    /**
-     * O dono do pedido pode vê-lo; um prestador também.
+     /**
+     * Pode ver o pedido: o dono; um prestador que já enviou proposta;
+     * ou um prestador para quem o pedido está disponível.
      */
     public function view(User $user, AssistanceRequest $assistanceRequest): bool
     {
@@ -30,10 +31,26 @@ class AssistanceRequestPolicy
 
         $provider = $user->service_provider;
 
-        return $provider !== null
-            && AssistanceRequest::availableFor($provider)
+        if ($provider === null) {
+            return false;
+        }
+
+        $hasProposal = $assistanceRequest->proposals()
+            ->where('service_provider_id', $provider->id)
+            ->exists();
+
+        return $hasProposal
+            || AssistanceRequest::availableFor($provider)
                 ->where('id', $assistanceRequest->id)
                 ->exists();
+    }
+
+    /**
+     * Só o dono do pedido pode ver as propostas recebidas.
+     */
+    public function viewProposals(User $user, AssistanceRequest $assistanceRequest): bool
+    {
+        return $assistanceRequest->user_id === $user->id;
     }
 
     /**

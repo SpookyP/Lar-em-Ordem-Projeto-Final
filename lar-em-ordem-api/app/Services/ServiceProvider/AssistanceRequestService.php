@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
+use Illuminate\Support\Arr;
 
 class AssistanceRequestService
 {
+    public function __construct(private RequestAttachmentService $attachmentService) {}
+
     /**
      * Devolve os pedidos de um utilizador, do mais recente para o mais antigo.
      *
@@ -25,6 +28,7 @@ class AssistanceRequestService
         return AssistanceRequest::where('user_id', $user->id)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->with(['property.address', 'problemCategory'])
+            ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->where('status', 'pending')])
             ->orderByDesc('created_at')
             ->get();
     }
@@ -44,10 +48,11 @@ class AssistanceRequestService
     }
 
     /**
-     * Abre um pedido de assistência para uma casa do utilizador.
+     * Abre um pedido de assistência para uma casa do utilizador, com imagens opcionais (máx. 2).
      * A casa tem de ter um contrato ativo do utilizador.
+     * Transação: se o upload de uma imagem falhar, o pedido não é criado.
      *
-     * @param array $data Dados validados para a criação do pedido.
+     * @param array $data Dados validados para a criação do pedido (pode incluir 'images').
      * @param User $owner Residente que abre o pedido.
      * @return AssistanceRequest
      */
@@ -62,15 +67,22 @@ class AssistanceRequestService
             ]);
         }
 
-        $assistanceRequest = AssistanceRequest::create($data + [
-            'user_id' => $owner->id,
-        ]);
+        $assistanceRequest = DB::transaction(function () use ($data, $owner) {
+            $assistanceRequest = AssistanceRequest::create(Arr::except($data, 'images') + [
+                'user_id' => $owner->id,
+            ]);
+
+            $this->attachmentService->sync($assistanceRequest, $data['images'] ?? []);
+
+            return $assistanceRequest;
+        });
 
         return $this->loadFull($assistanceRequest);
     }
 
     /**
-     * Atualiza um pedido. Só é possível enquanto estiver aberto.
+     * Atualiza um pedido e as suas imagens (junta 'images', remove 'remove_attachment_ids').
+     * Só é possível enquanto estiver aberto. Transação.
      *
      * @param AssistanceRequest $assistanceRequest Instância do pedido a ser atualizado.
      * @param array $data Dados validados para a atualização.
@@ -80,11 +92,19 @@ class AssistanceRequestService
     {
         $this->ensureOpen($assistanceRequest, 'Só é possível editar pedidos abertos.');
 
-        $assistanceRequest->update($data);
+        DB::transaction(function () use ($assistanceRequest, $data) {
+            $assistanceRequest->update(Arr::except($data, ['images', 'remove_attachment_ids']));
 
-        return $this->loadFull($assistanceRequest);
+            $this->attachmentService->sync(
+                $assistanceRequest,
+                $data['images'] ?? [],
+                $data['remove_attachment_ids'] ?? [],
+            );
+        });
+
+        return $this->loadFull($assistanceRequest->refresh());
     }
-
+    
     /**
      * Cancela um pedido aberto e rejeita as propostas que ainda estavam pendentes.
      * Transação.
@@ -110,15 +130,41 @@ class AssistanceRequestService
         return $this->loadFull($assistanceRequest);
     }
 
-    /**
-     * Carrega a casa (com morada) e a categoria de um pedido.
+     /**
+     * Carrega o pedido para o ecrã de detalhe. Se quem vê for o dono,
+     * junta também as propostas recebidas (com o prestador), da mais recente para a mais antiga.
+     *
+     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @param User $viewer Utilizador que está a ver o pedido.
+     * @return AssistanceRequest
+     */
+    public function loadForShow(AssistanceRequest $assistanceRequest, User $viewer): AssistanceRequest
+    {
+        $this->loadFull($assistanceRequest);
+
+        if (Gate::forUser($viewer)->allows('viewProposals', $assistanceRequest)) {
+            $assistanceRequest->load([
+                'proposals' => fn ($q) => $q->with('serviceProvider')->orderByDesc('created_at'),
+            ]);
+        }
+
+        return $assistanceRequest;
+    }
+    
+     /**
+     * Carrega a casa (com morada), a categoria e a proposta aceite (com o prestador) de um pedido.
      *
      * @param AssistanceRequest $assistanceRequest Instância do pedido.
      * @return AssistanceRequest A mesma instância, com as relações carregadas.
      */
     public function loadFull(AssistanceRequest $assistanceRequest): AssistanceRequest
     {
-        return $assistanceRequest->load(['property.address', 'problemCategory']);
+        return $assistanceRequest->load([
+            'property.address',
+            'problemCategory',
+            'acceptedProposal.serviceProvider',
+            'attachments.file',
+        ]);
     }
 
     /**

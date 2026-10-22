@@ -7,26 +7,34 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class AssistanceRequestResource extends JsonResource
 {
-    public function toArray(Request $request): array
+   public function toArray(Request $request): array
     {
-        $isOwner = $request->user()?->id === $this->user_id;
+        $userId = $request->user()?->id;
+
+        $canSeeAddress = $userId === $this->user_id
+            || ($this->relationLoaded('acceptedProposal')
+                && $this->acceptedProposal?->serviceProvider?->user_id === $userId);
 
         return [
-            'id'          => $this->id,
-            'title'       => $this->title,
-            'description' => $this->description,
-            'status'      => $this->status,
-            'created_at'  => $this->created_at,
-            'closed_at'   => $this->closed_at,
-            'category'    => new ProblemCategoryResource($this->whenLoaded('problemCategory')),
-            'property'    => $this->whenLoaded('property', fn () => [
+            'id'                => $this->id,
+            'title'             => $this->title,
+            'description'       => $this->description,
+            'status'            => $this->status,
+            'created_at'        => $this->created_at,
+            'closed_at'         => $this->closed_at,
+            'pending_proposals_count' => $this->whenCounted('pending_proposals'),
+            'category'          => new ProblemCategoryResource($this->whenLoaded('problemCategory')),
+            'accepted_proposal' => new ProposalResource($this->whenLoaded('acceptedProposal')),
+            'attachments'       => RequestAttachmentResource::collection($this->whenLoaded('attachments')),
+            'property'          => $this->whenLoaded('property', fn () => [
                 'id'       => $this->property->id,
-                'fraction' => $isOwner ? $this->property->fraction : null,
-                'street'   => $isOwner ? $this->property->address?->street : null,
+                'fraction' => $canSeeAddress ? $this->property->address?->fraction : null,
+                'street'   => $canSeeAddress ? $this->property->address?->street : null,
                 'location' => $this->property->address?->location,
                 'county'   => $this->property->address?->county,
                 'district' => $this->property->address?->district,
             ]),
+            'proposals'         => ProposalResource::collection($this->whenLoaded('proposals')),
         ];
     }
 }

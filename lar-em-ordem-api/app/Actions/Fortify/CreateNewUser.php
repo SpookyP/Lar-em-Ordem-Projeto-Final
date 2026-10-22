@@ -49,10 +49,7 @@ class CreateNewUser implements CreatesNewUsers
         if ($user) {
             if (!Hash::check($input['password'], $user->password)) {
                 throw ValidationException::withMessages([
-                    'message' => "The given data was invalid.",
-                    'errors' => [
-                        'password' => ['Invalid credentials for existing account.'],
-                    ],
+                    'password' => ['Invalid credentials for existing account.']
                 ]);
             }
 
@@ -65,10 +62,7 @@ class CreateNewUser implements CreatesNewUsers
 
             if ($alreadyHasProfile) {
                 throw ValidationException::withMessages([
-                    'message' => "The given data was invalid.",
-                    'errors' => [
-                        'role' => ["User already has a {$role} profile."],
-                    ],
+                    'role' => ["User already has a {$role} profile."],
                 ]);
             }
         }
@@ -94,7 +88,7 @@ class CreateNewUser implements CreatesNewUsers
                 ]),
 
                 'partner' => $user->partner()->create([
-                    'company_name'=> $input['company_name'],
+                    'company_name' => $input['company_name'],
                     'nif'         => $input['nif'],
                     'phone'       => $input['phone'],
                     'website'     => $input['website'] ?? null,
@@ -105,7 +99,7 @@ class CreateNewUser implements CreatesNewUsers
                     'company_name' => $input['company_name'],
                     'nif'          => $input['nif'],
                     'phone'        => $input['phone'],
-                    'provider_email'        => $input['provider_email'],
+                    'provider_email' => $input['provider_email'] ?? null,
                     'description'  => $input['description'],
                 ]),
 

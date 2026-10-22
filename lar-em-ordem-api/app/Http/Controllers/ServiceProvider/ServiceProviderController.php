@@ -10,6 +10,7 @@ use App\Services\ServiceProvider\ServiceProviderService;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Http\Requests\ServiceProvider\SyncServiceProviderZonesRequest;
+use Illuminate\Http\Request;
 
 class ServiceProviderController extends Controller
 {
@@ -34,6 +35,19 @@ class ServiceProviderController extends Controller
     public function show(ServiceProviderModel $serviceProvider)
     {
         return new ServiceProviderResource($this->service->loadFull($serviceProvider));
+    }
+
+    /**
+     * Devolve o perfil de prestador do utilizador autenticado, incluindo as suas zonas e especialidades.
+     *
+     * @param Request $request Pedido com o utilizador autenticado.
+     * @return ServiceProviderResource
+     */
+    public function showMyProfile(Request $request)
+    {
+        $provider = $this->service->getByUser($request->user());
+
+        return new ServiceProviderResource($this->service->loadFull($provider));
     }
 
     /**

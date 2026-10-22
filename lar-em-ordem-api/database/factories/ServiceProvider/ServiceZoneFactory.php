@@ -1,8 +1,8 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\ServiceProvider;
 
-use App\Models\ServiceZone;
+use App\Models\ServiceProvider\ServiceZone;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +18,9 @@ class ServiceZoneFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'district' => fake()->randomElement(['Porto', 'Lisboa', 'Braga', 'Aveiro', 'Faro']),
+            'county'   => fake()->unique()->city(),
+            'location' => fake()->city(),
         ];
     }
 }

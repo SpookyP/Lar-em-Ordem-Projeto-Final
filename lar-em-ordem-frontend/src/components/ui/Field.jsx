@@ -1,3 +1,5 @@
+import { PasswordInput } from "./PasswordInput";
+
 export function Field({ label, name, value, onChange, type = "text" }) {
   const shared =
     "rounded-lg border border-border px-3 py-2 text-text outline-none focus:border-navy";
@@ -11,6 +13,13 @@ export function Field({ label, name, value, onChange, type = "text" }) {
           value={value}
           onChange={onChange}
           rows={3}
+          className={shared}
+        />
+      ) : type === "password" ? (
+        <PasswordInput
+          name={name}
+          value={value}
+          onChange={onChange}
           className={shared}
         />
       ) : (

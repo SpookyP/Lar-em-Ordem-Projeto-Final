@@ -13,7 +13,7 @@ class ProblemCategoryController extends Controller
     public function __construct(private ProblemCategoryService $service) {}
 
    /**
-     * Lista todas as categorias de problemas, por ordem alfabética.
+     * Lista todas as categorias de problemas com as respetivas especialidades, por ordem alfabética.
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de categorias.
      */

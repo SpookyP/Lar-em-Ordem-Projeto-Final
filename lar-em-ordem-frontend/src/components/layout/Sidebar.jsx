@@ -3,8 +3,7 @@ import { navItems } from "./navItems";
 import { LogOut, Settings, Repeat, Home } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
-import { getProperties } from "../../services/api/propertyService";
-import { useState, useEffect } from "react";
+import { useHouses } from "../../hooks/useHouses";
 import { SidebarButton, SidebarLink } from "./SidebarItem";
 
 function getInitials(text) {
@@ -25,27 +24,13 @@ function firstLastName(name) {
 export function SideBar() {
   const { user, activeProfile, logout } = useAuth();
   const navigate = useNavigate();
-  const [housesCount, setHousesCount] = useState(0);
+  const { houses } = useHouses();
 
   const profiles = (user?.roles ?? []).map((roleName) => ({
     name: roleName,
     label: ROLE_INFO[roleName]?.label ?? roleName,
     hasHouses: ROLE_INFO[roleName]?.hasHouses ?? false,
   }));
-
-  useEffect(() => {
-    let active = true;
-    if (activeProfile?.hasHouses) {
-      getProperties().then((data) => {
-        if (active) setHousesCount(data.total);
-      });
-    } else {
-      setHousesCount(0);
-    }
-    return () => {
-      active = false;
-    };
-  }, [activeProfile]);
 
   async function handleLogout() {
     await logout();
@@ -79,7 +64,7 @@ export function SideBar() {
         </div>
 
         {/* Trocar de casa */}
-        {activeProfile?.hasHouses && housesCount > 1 && (
+        {activeProfile?.hasHouses && houses.length > 1 && (
           <SidebarButton
             icon={Home}
             label="As minhas casas"

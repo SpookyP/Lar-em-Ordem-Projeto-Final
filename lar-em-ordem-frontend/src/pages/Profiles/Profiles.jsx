@@ -46,39 +46,43 @@ export default function Profiles() {
     }
 
     async function decideEntry() {
-      //vários perfis
-      if (profiles.length !== 1) {
+      try {
+        //vários perfis
+        if (profiles.length !== 1) {
+          setDeciding(false);
+          return;
+        }
+
+        const unique = profiles[0];
+
+        //Perfil que n tem casas (prestador/partner)
+        if (!unique.hasHouses) {
+          enter(unique, null);
+          return;
+        }
+
+        //meta.total
+        const { houses, total } = await getProperties(1);
+
+        //1 casa
+        if (total === 1) {
+          enter(unique, houses[0]);
+          return;
+        }
+
+        //0 casas
+        if (total === 0) {
+          navigate("/welcome");
+          return;
+        }
+
+        //Varias casas
+        setOpenProfile(unique.name);
         setDeciding(false);
-        return;
-      }
-
-      const unique = profiles[0];
-
-      //Perfil que n tem casas (prestador/partner)
-      if (!unique.hasHouses) {
-        enter(unique, null);
-        return;
-      }
-
-      //meta.total
-      const { houses, total } = await getProperties(1);
-
-      //1 casa
-      if (total === 1) {
-        enter(unique, houses[0]);
-        return;
-      }
-
-      //0 casas
-      //TODO: encaminhar p pag de inserir habitaçao
-      if (total === 0) {
+      } catch (error) {
+        console.error(error);
         setDeciding(false);
-        return;
       }
-
-      //Varias casas
-      setOpenProfile(unique.name);
-      setDeciding(false);
     }
 
     decideEntry();

@@ -9,9 +9,9 @@ use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Services\ServiceProvider\AssistanceRequestService;
-use Illuminate\Support\Facades\Gate;
 use App\Services\ServiceProvider\ServiceProviderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class AssistanceRequestController extends Controller
 {
@@ -53,20 +53,25 @@ class AssistanceRequestController extends Controller
 
     /**
      * Devolve os detalhes de um pedido de assistência, incluindo a casa e a categoria.
+     * Se for o dono a ver, inclui também as propostas recebidas.
      *
+     * @param Request $request O pedido HTTP.
      * @param AssistanceRequest $assistanceRequest Instância do pedido.
      * @return AssistanceRequestResource
      */
-    public function show(AssistanceRequest $assistanceRequest)
+    public function show(Request $request, AssistanceRequest $assistanceRequest)
     {
         Gate::authorize('view', $assistanceRequest);
 
-        return new AssistanceRequestResource($this->service->loadFull($assistanceRequest));
+        return new AssistanceRequestResource(
+            $this->service->loadForShow($assistanceRequest, $request->user())
+        );
     }
-
+    
     /**
-     * Atualiza um pedido de assistência enquanto estiver aberto.
-     *
+     * Atualiza um pedido de assistência enquanto estiver aberto, incluindo as imagens.
+     * Com imagens, enviar multipart com POST e '_method=PATCH'.
+     * 
      * @param UpdateAssistanceRequestRequest $request Dados validados.
      * @param AssistanceRequest $assistanceRequest Instância do pedido.
      * @return AssistanceRequestResource Devolve o pedido atualizado.

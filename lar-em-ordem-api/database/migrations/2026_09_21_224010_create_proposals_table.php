@@ -18,7 +18,9 @@ return new class extends Migration
             $table->decimal('estimated_value', 12, 2);
             $table->text('description');
             $table->date('validity');                    
-            $table->string('availability', 100);  
+            $table->date('available_date');
+            $table->time('available_from');
+            $table->time('available_until');
             $table->enum('status', ['pending', 'accepted', 'rejected', 'withdrawn'])->default('pending');
             $table->dateTime('response_date')->nullable();
             $table->timestamps();

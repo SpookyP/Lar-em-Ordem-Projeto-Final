@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('problem_category_id')->constrained();
             $table->string('title');
             $table->text('description');
-            $table->enum('status', ['open', 'in_progress', 'closed', 'cancelled'])->default('open');
+            $table->enum('status', ['open', 'closed', 'cancelled'])->default('open');
             $table->dateTime('closed_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
