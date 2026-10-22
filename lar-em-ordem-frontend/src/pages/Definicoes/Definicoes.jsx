@@ -2,12 +2,14 @@ import { useState } from "react";
 import { PropertyForm } from "../../components/ui/PropertyForm";
 import { PasswordForm } from "../../components/ui/PasswordForm";
 import { ProfileForm } from "../../components/ui/ProfileForm";
-import { KeyRound, UserPlus, Home } from "lucide-react";
+import { User, KeyRound, UserPlus, Home } from "lucide-react";
+import { AccountForm } from "../../components/ui/AccountForm";
 
 const SECTIONS = [
   { id: "password", label: "Mudar password", icon: KeyRound },
   { id: "profile", label: "Adicionar perfil", icon: UserPlus },
   { id: "property", label: "Adicionar habitação", icon: Home },
+  { id: "account", label: "Os meus dados", icon: User },
 ];
 
 export default function Definicoes() {
@@ -50,6 +52,7 @@ export default function Definicoes() {
             {section === "password" && <PasswordForm />}
             {section === "property" && <PropertyForm />}
             {section === "profile" && <ProfileForm />}
+            {section === "account" && <AccountForm />}
           </div>
         </div>
       </div>

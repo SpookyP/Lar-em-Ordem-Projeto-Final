@@ -6,8 +6,12 @@ export async function updatePassword(data) {
 }
 
 //Adicionar perfil a uma conta
-
 export async function addProfile(data) {
   const response = await axiosClient.post("/api/user/profile", data);
   return response.data;
+}
+
+//Alterar os dados do utilizador (nome, email e campos do perfil ativo)
+export async function updateProfileInformation(data) {
+  await axiosClient.put("/user/profile-information", data);
 }
