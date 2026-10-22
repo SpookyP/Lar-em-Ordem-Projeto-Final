@@ -58,7 +58,7 @@ export async function createProperty(data) {
 }
 
 export async function getAllProperties() {
-  const first = await getProperties(1);
+  const first = await getProperties(1); //TODO: Rever items por pagina, do endpoint
   let all = first.houses;
   for (let page = 2; page <= first.lastPage; page++) {
     const next = await getProperties(page);

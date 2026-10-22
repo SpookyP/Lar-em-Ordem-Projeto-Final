@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Property\Property;
 use App\Models\User\User;
-use Illuminate\Auth\Access\Response;
 
 class PropertyPolicy
 {
