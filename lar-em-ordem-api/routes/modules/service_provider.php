@@ -5,7 +5,6 @@ use App\Http\Controllers\ServiceProvider\ServiceProviderController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('service-providers/active', [ServiceProviderController::class, 'listActiveProviders']);
 Route::get('service-providers/me', [ServiceProviderController::class, 'showMyProfile']);
 
 Route::put('service-providers/{service_provider}/zones', [ServiceProviderController::class, 'syncZones'])
@@ -16,5 +15,4 @@ Route::delete('service-providers/{service_provider}/specialties/{specialty}', [P
     ->whereUlid(['service_provider', 'specialty'])
     ->scopeBindings();
 Route::apiResource('service-providers', ServiceProviderController::class)
-    ->except(['index'])
     ->whereUlid('service_provider');

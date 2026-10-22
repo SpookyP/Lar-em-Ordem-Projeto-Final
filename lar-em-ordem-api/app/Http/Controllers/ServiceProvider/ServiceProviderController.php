@@ -16,14 +16,14 @@ class ServiceProviderController extends Controller
 {
     public function __construct(private ServiceProviderService $service) {}
 
-    /**
-     * Lista todos os prestadores de serviços ativos.
+     /**
+     * Lista todos os prestadores de serviços.
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de prestadores.
      */
-    public function listActiveProviders()
+    public function index()
     {
-        return ServiceProviderResource::collection(($this->service->listActive()));
+        return ServiceProviderResource::collection($this->service->list());
     }
 
     /**

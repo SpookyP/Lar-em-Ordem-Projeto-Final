@@ -15,14 +15,14 @@ class PartnerController extends Controller
 {
     public function __construct(private PartnerService $service) {}
 
-    /**
-     * Lista todos os parceiros ativos no sistema.
+   /**
+     * Lista todos os parceiros.
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de parceiros.
      */
     public function index()
     {
-        $partners= $this->service->listActive();
+        $partners= $this->service->list();
 
         return PartnerResource::collection($partners);
     }

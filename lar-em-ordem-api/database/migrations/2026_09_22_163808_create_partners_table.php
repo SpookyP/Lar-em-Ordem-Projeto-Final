@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('phone', 15);
             $table->string('website')->nullable();
             $table->text('description');
-            $table->boolean('active')->default(true);
             $table->timestamps();
             $table->softDeletes();
         });
