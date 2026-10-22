@@ -23,3 +23,13 @@ export async function register(data) {
   await getCookieCsrf();
   return axiosClient.post("/register", data);
 }
+
+export async function forgotPassword(email) {
+  await getCookieCsrf();
+  return axiosClient.post("/forgot-password", { email });
+}
+
+export async function resetPassword(data) {
+  await getCookieCsrf();
+  return axiosClient.post("/reset-password", data);
+}

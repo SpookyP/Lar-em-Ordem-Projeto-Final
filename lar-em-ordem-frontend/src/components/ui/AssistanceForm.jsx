@@ -1,5 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
+import { getCategories } from "../../services/api/assistanceService";
+
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function getErrorMessage(err) {
+  const status = err.response?.status;
+  if (status === 422) {
+    const errors = err.response.data.errors ?? {};
+    return Object.values(errors)[0]?.[0] ?? err.response.data.message;
+  }
+  if (status === 429) {
+    return "Demasiados pedidos. Tente novamente dentro de um minuto.";
+  }
+  if (err.response || err.isAxiosError) {
+    return "Não foi possível enviar o pedido.";
+  }
+  return err.message;
+}
 
 export default function AssistanceForm({ onSubmit }) {
   const [title, setTitle] = useState("");
@@ -8,12 +27,39 @@ export default function AssistanceForm({ onSubmit }) {
   const [photo, setPhoto] = useState(null);
   const [photoError, setPhotoError] = useState("");
 
+  const [categories, setCategories] = useState([]);
+  const [categoriesError, setCategoriesError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getCategories()
+      .then((list) => {
+        if (active) setCategories(list);
+      })
+      .catch(() => {
+        if (active)
+          setCategoriesError("Não foi possível carregar as categorias.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
+    if (!PHOTO_TYPES.includes(file.type)) {
+      setPhotoError("A imagem tem de ser JPG, PNG ou WebP.");
+      setPhoto(null);
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_PHOTO_SIZE) {
       setPhotoError("A imagem é muito grande. O limite máximo é 5MiB.");
       setPhoto(null);
       e.target.value = "";
@@ -23,10 +69,32 @@ export default function AssistanceForm({ onSubmit }) {
     setPhotoError("");
     setPhoto(file);
   };
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onSubmit) {
-      onSubmit({ title, category, description, photo });
+    const form = e.currentTarget;
+
+    //o input de ficheiro esta escondido, o required do browser nao avisa
+    if (!photo) {
+      setPhotoError("Adicione uma fotografia da avaria.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+    setNotice("");
+    try {
+      const warning = await onSubmit({ title, category, description, photo });
+      form.reset();
+      setTitle("");
+      setCategory("");
+      setDescription("");
+      setPhoto(null);
+      if (warning) setNotice(warning);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -54,6 +122,7 @@ export default function AssistanceForm({ onSubmit }) {
             onChange={(e) => setTitle(e.target.value)}
             className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-orange/50"
             placeholder="Exemplo: Avaria na maquina de lavar louça"
+            maxLength={255}
             required
           />
         </div>
@@ -71,11 +140,17 @@ export default function AssistanceForm({ onSubmit }) {
             <option value="" disabled>
               Selecionar tipo de avaria...
             </option>
-            <option value="canalizacao">Canalização</option>
-            <option value="eletricidade">Eletricidade</option>
-            <option value="gas">Gás</option>
-            <option value="outro">Outro</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
           </select>
+          {categoriesError && (
+            <span className="text-xs text-red font-medium">
+              {categoriesError}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -85,11 +160,16 @@ export default function AssistanceForm({ onSubmit }) {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Descreva detalhadamente a avaria: localização, quando começou, o que já tentou fazer..."
+            placeholder="Descreva detalhadamente a avaria: onde na casa, quando começou, o que já tentou fazer..."
             rows={4}
+            maxLength={5000}
             className="w-full rounded-xl border border-border bg-background p-4 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-orange/50 resize-none"
             required
           />
+          <span className="text-xs text-muted">
+            Não inclua moradas nem contactos: o pedido é visível para
+            prestadores da sua zona.
+          </span>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -101,7 +181,7 @@ export default function AssistanceForm({ onSubmit }) {
               <Camera className="w-6 h-6" />
             </div>
             <span className="text-sm font-medium text-navy">
-              Adicionar Fotografia
+              {photo ? photo.name : "Adicionar Fotografia"}
             </span>
             <span className="text-xs text-muted mt-1">
               Obrigatória — tire uma foto ou escolha da galeria
@@ -111,10 +191,9 @@ export default function AssistanceForm({ onSubmit }) {
             </span>
             <input
               type="file"
-              accept="image/jpeg, image/png, image/webp, image/heic, image/jpg"
+              accept="image/jpeg, image/png, image/webp"
               className="hidden"
               onChange={handlePhotoChange}
-              required
             />
           </label>
           {photoError && (
@@ -122,11 +201,15 @@ export default function AssistanceForm({ onSubmit }) {
           )}
         </div>
 
+        {error && <p className="text-sm text-red font-medium">{error}</p>}
+        {notice && <p className="text-sm text-orange font-medium">{notice}</p>}
+
         <button
           type="submit"
-          className="w-full mt-2 rounded-xl bg-orange py-3.5 text-sm font-medium text-white shadow-sm hover:bg-orange/90 transition-colors cursor-pointer"
+          disabled={submitting}
+          className="w-full mt-2 rounded-xl bg-orange py-3.5 text-sm font-medium text-white shadow-sm hover:bg-orange/90 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Submeter Pedido
+          {submitting ? "A enviar..." : "Submeter Pedido"}
         </button>
       </form>
     </div>
