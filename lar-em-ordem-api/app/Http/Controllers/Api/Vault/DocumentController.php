@@ -3,35 +3,25 @@
 namespace App\Http\Controllers\Api\Vault;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property\Property;
 use App\Models\Vault\Document;
 use App\Services\Vault\DocumentService;
-use App\Services\Vault\PdfExtractionService;
 use App\Http\Requests\Vault\StoreDocumentRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
-    /**
-     * Construtor do controlador. Injeta o serviço responsável pela extração
-     * automática de informações dos ficheiros PDF.
-     */
     public function __construct(
         private readonly DocumentService $documentService
     ) {}
 
-    /**
-     * Lista todos os documentos de uma habitação.
-     */
-    public function index(Request $request)
+    public function index(Property $property)
     {
-        $request->validate([
-            'property_id' => ['required', 'string', 'exists:properties,id']
-        ]);
+        $this->authorize('view', $property);
 
-        $documents = Document::where('property_id', $request->property_id)
+        $documents = Document::where('property_id', $property->id)
             ->with('category')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -39,50 +29,38 @@ class DocumentController extends Controller
         return \App\Http\Resources\Vault\DocumentResource::collection($documents);
     }
 
-    /**
-     * Faz o download do ficheiro PDF.
-     */
     public function download(Document $document)
     {
-        // O ficheiro é agora procurado pelo file_id gerado (UUID)
-        $path = 'vault_documents/' . $document->file_id;
+        $this->authorize('view', $document->property);
+
+        $path = $document->ficheiro_path ?? ('vault_documents/' . $document->file_id);
 
         if (!Storage::disk('local')->exists($path)) {
             return response()->json(['message' => 'Ficheiro não encontrado no servidor.'], 404);
         }
 
-        // Faz o download servindo o nome original que o utilizador enviou
         return Storage::disk('local')->download($path, $document->name);
     }
 
-    /**
-     * Apaga um documento e o respetivo ficheiro físico.
-     */
     public function destroy(Document $document)
     {
-        // Apagar o ficheiro físico do disco usando o file_id
-        $path = 'vault_documents/' . $document->file_id;
+        $this->authorize('update', $document->property);
+
+        $path = $document->ficheiro_path ?? ('vault_documents/' . $document->file_id);
 
         if (Storage::disk('local')->exists($path)) {
             Storage::disk('local')->delete($path);
         }
 
-        // Apagar o registo da base de dados
         $document->delete();
 
         return response()->json(['message' => 'Documento eliminado com sucesso.']);
     }
 
-    /**
-     * Processa o upload de um novo documento, armazena-o de forma segura,
-     * executa a extração inteligente de dados (via serviço de PDF) e
-     * guarda o registo final na base de dados.
-     *
-     * @param StoreDocumentRequest $request Pedido validado com os dados do formulário e ficheiro.
-     * @return JsonResponse Resposta JSON com o sucesso da operação e o documento criado (Código 201).
-     */
-    public function store(StoreDocumentRequest $request): JsonResponse
+    public function store(StoreDocumentRequest $request, Property $property): JsonResponse
     {
+        $this->authorize('update', $property);
+
         $document = $this->documentService->processAndSaveDocument(
             $request->validated(),
             $request->file('file')
