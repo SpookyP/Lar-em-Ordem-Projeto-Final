@@ -27,7 +27,6 @@ class UpdatePartnerRequest extends FormRequest
             'phone'       => 'sometimes|required|string|max:15',
             'website'     => 'nullable|string|url|max:255',
             'description' => 'sometimes|required|string',
-            'active'      => 'sometimes|required|boolean'
         ];
     }
 }

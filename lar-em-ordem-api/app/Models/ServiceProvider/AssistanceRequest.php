@@ -96,7 +96,7 @@ class AssistanceRequest extends Model
             ->unique(fn ($zone) => $zone->district . '|' . $zone->county);
 
         
-        if (! $provider->active || $categoryIds->isEmpty() || $counties->isEmpty()) {
+        if ($categoryIds->isEmpty() || $counties->isEmpty()) {
             return $query->whereRaw('1 = 0'); // condição impossível, garantindo que a consulta não devolve resultados
         }
 

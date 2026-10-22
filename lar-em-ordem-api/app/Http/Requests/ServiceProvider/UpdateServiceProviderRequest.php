@@ -29,7 +29,6 @@ class UpdateServiceProviderRequest extends FormRequest
             'phone'       => 'sometimes|required|string|max:15',
             'provider_email'        => 'sometimes|nullable|email|max:255',
             'description' => 'sometimes|required|string',
-            'active'      => 'sometimes|boolean',
 
             'zone_ids'   => 'sometimes|array',
             'zone_ids.*' => [

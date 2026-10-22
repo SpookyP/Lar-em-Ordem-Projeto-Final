@@ -35,13 +35,13 @@ class PartnerService
     }
     
     /**
-     * Devolve todos os parceiros ativos.
+     * Devolve todos os parceiros (os apagados ficam de fora pelo soft delete).
      *
      * @return Collection
      */
-    public function listActive(): Collection 
+    public function list(): Collection
     {
-        return Partner::where('active', true)->get();
+        return Partner::all();
     }
 
     /**

@@ -36,10 +36,6 @@ class ServiceProvider extends Model
         return $this->hasMany(Proposal::class);
     }
 
-    protected $attributes = [
-        'active' => true
-    ];
-
     protected $fillable = [
         'user_id',
         'company_name',
@@ -47,10 +43,5 @@ class ServiceProvider extends Model
         'phone',
         'provider_email',
         'description',
-        'active',
-    ];
-
-    protected $casts = [
-        'active' => 'boolean',
     ];
 }

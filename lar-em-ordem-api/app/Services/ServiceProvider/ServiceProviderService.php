@@ -17,13 +17,13 @@ class ServiceProviderService {
     public function __construct(private ProviderSpecialtyService $specialtyService) {}
 
     /**
-     * Devolve todos os prestadores de serviços ativos.
+     * Devolve todos os prestadores de serviços (os apagados ficam de fora pelo soft delete).
      *
      * @return Collection
      */
-    public function listActive():Collection
+    public function list(): Collection
     {
-        return ServiceProviderModel::where('active', true)->get();
+        return ServiceProviderModel::all();
     }
 
     /**
