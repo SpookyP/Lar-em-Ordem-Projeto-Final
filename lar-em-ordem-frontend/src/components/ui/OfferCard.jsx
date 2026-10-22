@@ -41,10 +41,13 @@ export function OfferCard({
               <Clock size={12} />
               {postedAt}
             </span>
-            <span className="flex items-center gap-1">
-              <Users size={12} />
-              {offersLabel(offers)}
-            </span>
+            {/* so mostra se a API enviar o numero de propostas */}
+            {offers != null && (
+              <span className="flex items-center gap-1">
+                <Users size={12} />
+                {offersLabel(offers)}
+              </span>
+            )}
           </div>
           </div>
           

@@ -25,10 +25,17 @@ RUN { \
     echo 'opcache.revalidate_freq=2'; \
 } > /usr/local/etc/php/conf.d/opcache.ini
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY scripts/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --break-system-packages -r /tmp/requirements.txt
 
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --prefer-dist --no-scripts
+
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 9000
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]
