@@ -64,8 +64,8 @@ class BenchmarkService
         return [
             'reference_period' => $period,
             'period_start'     => $start->toDateString(),
-            'property_type'    => $property->propertyType?->name,
-            'typology'         => $property->propertyTypology?->name,
+            'property_type'    => $property->propertyType?->type,
+            'typology'         => $property->propertyTypology?->typology,
             'region'           => $region,
             'comparisons'      => $comparisons,
         ];

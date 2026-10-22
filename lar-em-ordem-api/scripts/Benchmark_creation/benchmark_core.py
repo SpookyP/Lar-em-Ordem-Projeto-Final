@@ -32,12 +32,12 @@ load_dotenv(BASE_DIR / ".env")
 #   BENCHMARK_MIN_COVERAGE_ANNUAL=0.75
 
 # Mínimo de propriedades por grupo para o benchmark ser gravado.
-MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "3"))
+MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "2"))
 
 # Percentagem mínima do período que tem de estar coberta por faturas.
 MIN_COVERAGE = {
-    "monthly": float(os.getenv("BENCHMARK_MIN_COVERAGE_MONTHLY", "0.25")),
-    "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.25")),
+    "monthly": float(os.getenv("BENCHMARK_MIN_COVERAGE_MONTHLY", "0.20")),
+    "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.20")),
 }
 
 REGION_COLUMN = os.getenv("BENCHMARK_REGION_COLUMN", "district")
