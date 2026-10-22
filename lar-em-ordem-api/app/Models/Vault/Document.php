@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Document extends Model
 {
-    protected $table = 'vault_documents';
+    protected $table = 'vault_documents'; // ou 'documents' dependendo da tua migration
 
     protected $fillable = [
         'property_id',
@@ -18,21 +18,22 @@ class Document extends Model
         'file_id',
         'issue_date',
         'expiration_date',
-        'extracted_data'
+        'extracted_data',
+        'ficheiro_path',
     ];
 
     protected $casts = [
         'issue_date' => 'date:Y-m-d',
         'expiration_date' => 'date:Y-m-d',
-        'extracted_data' => 'array',
+        'extracted_data' => 'array', // Essencial para guardar o JSON do Python
     ];
 
     public function property(): BelongsTo
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Property::class, 'property_id');
     }
 
-    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function category(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Vault\DocumentCategory::class, 'document_category_id');
     }

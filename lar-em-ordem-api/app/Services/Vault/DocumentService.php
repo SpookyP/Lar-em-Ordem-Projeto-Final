@@ -3,42 +3,50 @@
 namespace App\Services\Vault;
 
 use App\Models\Vault\Document;
+use App\Services\FileStorage\FileStorageService;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class DocumentService
 {
-    protected PdfExtractionService $pdfExtractionService;
-
-    public function __construct(PdfExtractionService $pdfExtractionService)
-    {
-        $this->pdfExtractionService = $pdfExtractionService;
-    }
+    public function __construct(
+        protected PdfExtractionService $pdfExtractionService,
+        protected FileStorageService $fileStorageService
+    ) {}
 
     public function processAndSaveDocument(array $validatedData, UploadedFile $file): Document
     {
-        $fileId = (string) Str::uuid();
-        $file->storeAs('vault_documents', $fileId, 'local');
-        $absolutePath = Storage::disk('local')->path('vault_documents/' . $fileId);
+        // Extração inteligente via script Python
+        $extractedData = $this->pdfExtractionService->extractInfo($file->getRealPath());
 
-        // Extração via Python
-        $extractedData = $this->pdfExtractionService->extractInfo($absolutePath);
+        // Upload para o Cloudflare
+        $user = auth()->user();
+        $fileRecord = $this->fileStorageService->uploadUserFile(
+            $user,
+            $file,
+            'vault_documents',
+            $validatedData['name'] ?? null
+        );
 
+        // Hierarquia de datas: Input manual > Detetado pelo Python > Fallback
         $issueDate = $validatedData['issue_date']
-            ?? $extractedData['issue_date']
+            ?? ($extractedData['issue_date'] ?? $extractedData['dados']['data_emissao'] ?? null)
             ?? now()->toDateString();
 
         $expirationDate = $validatedData['expiration_date']
-            ?? $extractedData['expiration_date']
-            ?? null;
+            ?? ($extractedData['expiration_date'] ?? $extractedData['dados']['data_validade'] ?? null);
 
+        // Nome inteligente sugerido pelo Python ou nome original do ficheiro
+        $documentName = $validatedData['name']
+            ?? ($extractedData['suggested_title'] ?? $extractedData['dados']['tipo_documento'] ?? null)
+            ?? $file->getClientOriginalName();
+
+        // Guarda o Documento com a Foreign Key (file_id) correta
         return Document::create([
             'property_id' => $validatedData['property_id'],
             'document_category_id' => $validatedData['document_category_id'],
-            'name' => $file->getClientOriginalName(),
-            'description' => $validatedData['description'],
-            'file_id' => $fileId,
+            'name' => $documentName,
+            'description' => $validatedData['description'] ?? null,
+            'file_id' => $fileRecord->id,
             'issue_date' => $issueDate,
             'expiration_date' => $expirationDate,
             'extracted_data' => $extractedData,

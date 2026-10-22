@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Vault;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property\Property;
 use App\Models\Vault\Notification;
 use App\Http\Resources\Vault\NotificationResource;
 use Illuminate\Http\Request;
@@ -14,13 +15,11 @@ class NotificationController extends Controller
     /**
      * Lista as notificações de uma determinada habitação.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Property $property): AnonymousResourceCollection
     {
-        $request->validate([
-            'property_id' => ['required', 'string', 'exists:properties,id']
-        ]);
+        $this->authorize('view', $property);
 
-        $notifications = Notification::where('property_id', $request->property_id)
+        $notifications = Notification::where('property_id', $property->id)
             ->orderBy('alert_date', 'desc')
             ->get();
 
@@ -32,6 +31,8 @@ class NotificationController extends Controller
      */
     public function markAsRead(Notification $notification): JsonResponse
     {
+        $this->authorize('update', $notification->property);
+
         if (is_null($notification->read_at)) {
             $notification->update(['read_at' => now()]);
         }
