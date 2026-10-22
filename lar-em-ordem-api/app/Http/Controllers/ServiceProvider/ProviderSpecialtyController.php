@@ -15,17 +15,6 @@ class ProviderSpecialtyController extends Controller
     public function __construct(private ProviderSpecialtyService $service) {}
 
     /**
-     * Lista as especialidades de um prestador.
-     *
-     * @param ServiceProviderModel $serviceProvider Instância do prestador.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de especialidades.
-     */
-    public function index(ServiceProviderModel $serviceProvider)
-    {
-        return ProviderSpecialtyResource::collection($this->service->list($serviceProvider));
-    }
-
-    /**
      * Acrescenta especialidades ao prestador: uma ou várias da lista, ou uma própria (custom).
      *
      * @param StoreProviderSpecialtyRequest $request Dados validados.
