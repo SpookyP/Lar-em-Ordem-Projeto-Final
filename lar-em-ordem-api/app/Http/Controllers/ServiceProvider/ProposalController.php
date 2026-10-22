@@ -95,7 +95,7 @@ class ProposalController extends Controller
     }
 
     /**
-     * Aceita uma proposta: rejeita as restantes pendentes e passa o pedido a 'in_progress'.
+     * Aceita uma proposta: rejeita as restantes pendentes e passa o pedido a 'closed'.
      * Só o dono do pedido a pode aceitar.
      *
      * @param Proposal $proposal Instância da proposta.
@@ -109,7 +109,7 @@ class ProposalController extends Controller
     }
 
     /**
-     * Rejeita uma proposta pendente. Só o dono do pedido a pode rejeitar.
+    * Rejeita uma proposta pendente; o pedido continua aberto. Só o dono do pedido a pode rejeitar.
      *
      * @param Proposal $proposal Instância da proposta.
      * @return ProposalResource Devolve a proposta rejeitada.

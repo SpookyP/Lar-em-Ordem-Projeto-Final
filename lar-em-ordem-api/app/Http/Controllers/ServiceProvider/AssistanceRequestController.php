@@ -93,20 +93,6 @@ class AssistanceRequestController extends Controller
         return new AssistanceRequestResource($this->service->cancel($assistanceRequest));
     }
 
-     /**
-     * Conclui um pedido de assistência em curso (o trabalho foi feito).
-     * Só o residente dono do pedido o pode concluir.
-     *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @return AssistanceRequestResource Devolve o pedido concluído.
-     */
-    public function close(AssistanceRequest $assistanceRequest)
-    {
-        Gate::authorize('close', $assistanceRequest);
-
-        return new AssistanceRequestResource($this->service->close($assistanceRequest));
-    }
-
     /**
      * Lista os pedidos abertos disponíveis para o prestador autenticado
      * (da sua categoria e da sua zona).

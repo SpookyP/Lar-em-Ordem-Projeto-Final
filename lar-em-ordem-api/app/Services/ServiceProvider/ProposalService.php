@@ -115,7 +115,7 @@ class ProposalService
 
     /**
      * Aceita uma proposta: as outras pendentes do mesmo pedido são rejeitadas
-     * e o pedido passa a 'in_progress'. Tudo numa transação.
+     * e o pedido passa a 'closed'. Tudo numa transação.
      *
      * @param Proposal $proposal Proposta a aceitar.
      * @return Proposal
@@ -149,14 +149,17 @@ class ProposalService
                 ->where('status', 'pending')
                 ->update(['status' => 'rejected', 'response_date' => now()]);
 
-            $assistanceRequest->update(['status' => 'in_progress']);
+            $assistanceRequest->update([
+                'status'    => 'closed',
+                'closed_at' => now(),
+            ]);
         });
 
         return $proposal->load('serviceProvider');
     }
 
     /**
-     * Rejeita uma proposta pendente.
+     * Rejeita uma proposta pendente sem aceitar outra: o pedido continua aberto.
      *
      * @param Proposal $proposal Proposta a rejeitar.
      * @return Proposal

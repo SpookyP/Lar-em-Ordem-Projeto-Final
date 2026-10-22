@@ -32,15 +32,7 @@ class AssistanceRequestFactory extends Factory
     }
 
     /**
-     * Pedido em curso (o residente já aceitou uma proposta).
-     */
-    public function inProgress(): static
-    {
-        return $this->state(['status' => 'in_progress']);
-    }
-
-    /**
-     * Pedido concluído pelo residente.
+     * Pedido fechado (o residente aceitou uma proposta).
      */
     public function closed(): static
     {

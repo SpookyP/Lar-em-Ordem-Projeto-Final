@@ -17,7 +17,7 @@ class IndexAssistanceRequestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'sometimes|in:open,in_progress,closed,cancelled',
+             'status' => 'sometimes|in:open,closed,cancelled',
         ];
     }
 }
