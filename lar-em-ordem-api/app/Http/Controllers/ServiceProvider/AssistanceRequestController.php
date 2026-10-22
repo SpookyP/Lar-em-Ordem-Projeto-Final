@@ -65,8 +65,9 @@ class AssistanceRequestController extends Controller
     }
 
     /**
-     * Atualiza um pedido de assistência enquanto estiver aberto.
-     *
+     * Atualiza um pedido de assistência enquanto estiver aberto, incluindo as imagens.
+     * Com imagens, enviar multipart com POST e '_method=PATCH'.
+     * 
      * @param UpdateAssistanceRequestRequest $request Dados validados.
      * @param AssistanceRequest $assistanceRequest Instância do pedido.
      * @return AssistanceRequestResource Devolve o pedido atualizado.

@@ -3,10 +3,7 @@
 namespace App\Services\ServiceProvider;
 
 use App\Models\ServiceProvider\AssistanceRequest;
-use App\Models\ServiceProvider\RequestAttachment;
-use App\Models\User\User;
 use App\Services\FileStorage\FileStorageService;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
@@ -17,61 +14,44 @@ class RequestAttachmentService
     public function __construct(private FileStorageService $fileStorage) {}
 
     /**
-     * Guarda as imagens no R2 e associa-as ao pedido.
-     * Só com o pedido aberto e até ao máximo de 2 imagens por pedido (contando as que já tem).
+     * Atualiza as imagens de um pedido: guarda as novas no R2 e remove as indicadas.
+     * No fim o pedido não pode ter mais de 2 imagens.
+     * As novas são guardadas antes de apagar as antigas, para que uma falha no upload
+     * não deixe o pedido sem as imagens que já tinha.
      *
-     * @param AssistanceRequest $assistanceRequest Pedido a que se juntam as imagens.
-     * @param User $user Utilizador que envia (dono dos ficheiros).
-     * @param array<UploadedFile> $images Imagens validadas.
-     * @return Collection Todas as imagens do pedido, com o ficheiro carregado.
+     * @param AssistanceRequest $assistanceRequest Pedido a que pertencem as imagens.
+     * @param array<UploadedFile> $newImages Imagens validadas a juntar.
+     * @param array<string> $removeIds IDs das imagens (RequestAttachment) a remover.
+     * @return void
      */
-    public function addImages(AssistanceRequest $assistanceRequest, User $user, array $images): Collection
+    public function sync(AssistanceRequest $assistanceRequest, array $newImages = [], array $removeIds = []): void
     {
-        $this->ensureOpen($assistanceRequest);
+        //vai buscar à base de dados as imagens que o morador pediu para remover, que pertencem a este pedido
+        $toRemove = $assistanceRequest->attachments()->with('file')->whereIn('id', $removeIds)->get();
 
-        if ($assistanceRequest->attachments()->count() + count($images) > self::MAX_IMAGES) {
+        if ($toRemove->count() !== count($removeIds)) {
+            throw ValidationException::withMessages([
+                'remove_attachment_ids' => 'Uma ou mais imagens indicadas não pertencem a este pedido.',
+            ]);
+        }
+
+        $total = $assistanceRequest->attachments()->count() - $toRemove->count() + count($newImages);
+
+        if ($total > self::MAX_IMAGES) {
             throw ValidationException::withMessages([
                 'images' => 'Cada pedido pode ter no máximo ' . self::MAX_IMAGES . ' imagens.',
             ]);
         }
 
-        foreach ($images as $image) {
-            $file = $this->fileStorage->uploadUserFile($user, $image, 'assistance_requests');
+        foreach ($newImages as $image) {
+            $file = $this->fileStorage->uploadUserFile($assistanceRequest->user, $image, 'assistance_requests');
 
             $assistanceRequest->attachments()->create(['file_id' => $file->id]);
         }
 
-        return $assistanceRequest->attachments()->with('file')->get();
-    }
-    
-
-    /**
-     * Remove uma imagem do pedido: apaga o ficheiro do R2 e o registo
-     * (o anexo é apagado em cascata com o ficheiro). Só com o pedido aberto.
-     *
-     * @param AssistanceRequest $assistanceRequest Pedido a que a imagem pertence.
-     * @param RequestAttachment $attachment Imagem a remover.
-     * @return void
-     */
-    public function delete(AssistanceRequest $assistanceRequest, RequestAttachment $attachment): void
-    {
-        $this->ensureOpen($assistanceRequest);
-
-        $this->fileStorage->deleteFile($attachment->file);
-    }
-
-    /**
-     * Garante que o pedido está aberto; depois de aceite uma proposta as imagens já não mudam.
-     *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @return void
-     */
-    private function ensureOpen(AssistanceRequest $assistanceRequest): void
-    {
-        if (! $assistanceRequest->isOpen()) {
-            throw ValidationException::withMessages([
-                'status' => 'Só é possível alterar as imagens de pedidos abertos.',
-            ]);
+        // apaga o ficheiro do R2 e o registo em files; o anexo é apagado em cascata
+        foreach ($toRemove as $attachment) {
+            $this->fileStorage->deleteFile($attachment->file);
         }
     }
 }

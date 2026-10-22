@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
+use Illuminate\Support\Arr;
 
 class AssistanceRequestService
 {
+    public function __construct(private RequestAttachmentService $attachmentService) {}
+
     /**
      * Devolve os pedidos de um utilizador, do mais recente para o mais antigo.
      *
@@ -44,10 +47,11 @@ class AssistanceRequestService
     }
 
     /**
-     * Abre um pedido de assistência para uma casa do utilizador.
+     * Abre um pedido de assistência para uma casa do utilizador, com imagens opcionais (máx. 2).
      * A casa tem de ter um contrato ativo do utilizador.
+     * Transação: se o upload de uma imagem falhar, o pedido não é criado.
      *
-     * @param array $data Dados validados para a criação do pedido.
+     * @param array $data Dados validados para a criação do pedido (pode incluir 'images').
      * @param User $owner Residente que abre o pedido.
      * @return AssistanceRequest
      */
@@ -62,15 +66,22 @@ class AssistanceRequestService
             ]);
         }
 
-        $assistanceRequest = AssistanceRequest::create($data + [
-            'user_id' => $owner->id,
-        ]);
+        $assistanceRequest = DB::transaction(function () use ($data, $owner) {
+            $assistanceRequest = AssistanceRequest::create(Arr::except($data, 'images') + [
+                'user_id' => $owner->id,
+            ]);
+
+            $this->attachmentService->sync($assistanceRequest, $data['images'] ?? []);
+
+            return $assistanceRequest;
+        });
 
         return $this->loadFull($assistanceRequest);
     }
 
     /**
-     * Atualiza um pedido. Só é possível enquanto estiver aberto.
+     * Atualiza um pedido e as suas imagens (junta 'images', remove 'remove_attachment_ids').
+     * Só é possível enquanto estiver aberto. Transação.
      *
      * @param AssistanceRequest $assistanceRequest Instância do pedido a ser atualizado.
      * @param array $data Dados validados para a atualização.
@@ -80,11 +91,19 @@ class AssistanceRequestService
     {
         $this->ensureOpen($assistanceRequest, 'Só é possível editar pedidos abertos.');
 
-        $assistanceRequest->update($data);
+        DB::transaction(function () use ($assistanceRequest, $data) {
+            $assistanceRequest->update(Arr::except($data, ['images', 'remove_attachment_ids']));
 
-        return $this->loadFull($assistanceRequest);
+            $this->attachmentService->sync(
+                $assistanceRequest,
+                $data['images'] ?? [],
+                $data['remove_attachment_ids'] ?? [],
+            );
+        });
+
+        return $this->loadFull($assistanceRequest->refresh());
     }
-
+    
     /**
      * Cancela um pedido aberto e rejeita as propostas que ainda estavam pendentes.
      * Transação.
