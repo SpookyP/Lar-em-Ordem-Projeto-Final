@@ -273,6 +273,7 @@ export function PropertyForm({
           type="number"
           value={form.area}
           onChange={handleChange}
+          onWheel={(e) => e.currentTarget.blur()}
           required
           placeholder="ex: 100"
           className={inputClass}
