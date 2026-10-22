@@ -22,6 +22,7 @@ class AssistanceRequestResource extends JsonResource
             'status'            => $this->status,
             'created_at'        => $this->created_at,
             'closed_at'         => $this->closed_at,
+            'pending_proposals_count' => $this->whenCounted('pending_proposals'),
             'category'          => new ProblemCategoryResource($this->whenLoaded('problemCategory')),
             'accepted_proposal' => new ProposalResource($this->whenLoaded('acceptedProposal')),
             'attachments'       => RequestAttachmentResource::collection($this->whenLoaded('attachments')),
@@ -33,6 +34,7 @@ class AssistanceRequestResource extends JsonResource
                 'county'   => $this->property->address?->county,
                 'district' => $this->property->address?->district,
             ]),
+            'proposals'         => ProposalResource::collection($this->whenLoaded('proposals')),
         ];
     }
 }

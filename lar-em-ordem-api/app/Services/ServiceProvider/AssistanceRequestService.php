@@ -28,6 +28,7 @@ class AssistanceRequestService
         return AssistanceRequest::where('user_id', $user->id)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->with(['property.address', 'problemCategory'])
+            ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->where('status', 'pending')])
             ->orderByDesc('created_at')
             ->get();
     }
@@ -129,6 +130,27 @@ class AssistanceRequestService
         return $this->loadFull($assistanceRequest);
     }
 
+     /**
+     * Carrega o pedido para o ecrã de detalhe. Se quem vê for o dono,
+     * junta também as propostas recebidas (com o prestador), da mais recente para a mais antiga.
+     *
+     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @param User $viewer Utilizador que está a ver o pedido.
+     * @return AssistanceRequest
+     */
+    public function loadForShow(AssistanceRequest $assistanceRequest, User $viewer): AssistanceRequest
+    {
+        $this->loadFull($assistanceRequest);
+
+        if (Gate::forUser($viewer)->allows('viewProposals', $assistanceRequest)) {
+            $assistanceRequest->load([
+                'proposals' => fn ($q) => $q->with('serviceProvider')->orderByDesc('created_at'),
+            ]);
+        }
+
+        return $assistanceRequest;
+    }
+    
      /**
      * Carrega a casa (com morada), a categoria e a proposta aceite (com o prestador) de um pedido.
      *
