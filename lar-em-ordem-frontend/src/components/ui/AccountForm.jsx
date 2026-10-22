@@ -3,6 +3,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { roleFields } from "../../data/registerFields";
 import { Field } from "./Field";
 import { updateProfileInformation } from "../../services/api/accountService";
+import { DataRow } from "./DataRow";
 
 export function AccountForm() {
   const { user, activeProfile, refreshUser } = useAuth();
@@ -139,14 +140,5 @@ export function AccountForm() {
         </button>
       </div>
     </form>
-  );
-}
-
-function DataRow({ label, value }) {
-  return (
-    <div className="flex flex-col">
-      <dt className="text-muted">{label}</dt>
-      <dd className="text-text">{value || "—"}</dd>
-    </div>
   );
 }
