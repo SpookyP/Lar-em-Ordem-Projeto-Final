@@ -15,3 +15,13 @@ export async function addProfile(data) {
 export async function updateProfileInformation(data) {
   await axiosClient.put("/user/profile-information", data);
 }
+
+//Apagar um perfil (role) da conta
+export async function deleteProfile(role) {
+  await axiosClient.delete("/api/user/profile", { data: { role } });
+}
+
+//Apagar a conta inteira
+export async function deleteAccount() {
+  await axiosClient.delete("/api/user");
+}
