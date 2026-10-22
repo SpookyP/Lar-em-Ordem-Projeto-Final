@@ -103,3 +103,7 @@ export async function updateProperty(id, data) {
   const response = await axiosClient.put(`/api/v1/properties/${id}`, data);
   return response.data;
 }
+
+export async function deleteProperty(id) {
+  await axiosClient.delete(`/api/v1/properties/${id}`);
+}

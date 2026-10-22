@@ -1,24 +1,54 @@
 import { useState } from "react";
 import { useHouses } from "../../hooks/useHouses";
-import { getProperty } from "../../services/api/propertyService";
+import {
+  getProperty,
+  deleteProperty,
+} from "../../services/api/propertyService";
 import { PropertyForm } from "./PropertyForm";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 export function ManageHouses() {
-  const { houses, loading } = useHouses();
+  const { houses, loading, refreshHouses } = useHouses();
   const [editing, setEditing] = useState(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [error, setError] = useState("");
+  const [confirmingId, setConfirmingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const { activeHouse } = useAuth();
+  const navigate = useNavigate();
 
   async function handleEdit(id) {
     setError("");
     setLoadingEdit(true);
     try {
-      const property = await getProperty(id); // detalhes completos (com ids)
+      const property = await getProperty(id);
       setEditing(property);
     } catch {
       setError("Não foi possível carregar a habitação.");
     } finally {
       setLoadingEdit(false);
+    }
+  }
+
+  async function handleDelete(id) {
+    setError("");
+    setDeletingId(id);
+    try {
+      await deleteProperty(id);
+      await refreshHouses();
+
+      if (activeHouse?.id === id) {
+        navigate("/perfis");
+        return;
+      }
+
+      setConfirmingId(null);
+    } catch {
+      setError("Não foi possível eliminar a habitação.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -64,13 +94,41 @@ export function ManageHouses() {
                 {h.location} · {h.bondLabel}
               </p>
             </div>
-            <button
-              onClick={() => handleEdit(h.id)}
-              disabled={loadingEdit}
-              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-navy hover:bg-surface transition disabled:opacity-60"
-            >
-              Editar
-            </button>
+
+            {confirmingId === h.id ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted">Tens a certeza?</span>
+                <button
+                  onClick={() => handleDelete(h.id)}
+                  disabled={deletingId === h.id}
+                  className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition disabled:opacity-60"
+                >
+                  {deletingId === h.id ? "A eliminar..." : "Sim, eliminar"}
+                </button>
+                <button
+                  onClick={() => setConfirmingId(null)}
+                  className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface transition"
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleEdit(h.id)}
+                  disabled={loadingEdit}
+                  className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-navy hover:bg-surface transition disabled:opacity-60"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => setConfirmingId(h.id)}
+                  className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                >
+                  Eliminar
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>
