@@ -93,10 +93,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(ServiceZoneSeeder::class);
+        $this->call(ProblemCategorySeeder::class);
 
         // Rodar o script de Benchmark_Backfill automaticamente para criar os Benchmarks de mêses passados
         Artisan::call('benchmarks:backfill');
         $this->command->info(Artisan::output());
-        $this->call(ProblemCategorySeeder::class);
     }
 }
