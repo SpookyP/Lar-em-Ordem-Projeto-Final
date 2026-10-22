@@ -10,8 +10,6 @@ Route::get('service-providers/me', [ServiceProviderController::class, 'showMyPro
 
 Route::put('service-providers/{service_provider}/zones', [ServiceProviderController::class, 'syncZones'])
     ->whereUlid('service_provider');
-Route::get('service-providers/{service_provider}/specialties', [ProviderSpecialtyController::class, 'index'])
-    ->whereUlid('service_provider');
 Route::post('service-providers/{service_provider}/specialties', [ProviderSpecialtyController::class, 'store'])
     ->whereUlid('service_provider');
 Route::delete('service-providers/{service_provider}/specialties/{specialty}', [ProviderSpecialtyController::class, 'destroy'])

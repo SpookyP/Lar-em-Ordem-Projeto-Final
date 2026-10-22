@@ -11,16 +11,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProviderSpecialtyService
 {
-    /**
-     * Devolve as especialidades de um prestador, com a categoria e a especialidade do catálogo.
-     *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @return Collection
-     */
-    public function list(ServiceProviderModel $provider): Collection
-    {
-        return $provider->specialties()->with(['category', 'specialty'])->get();
-    }
 
      /**
      * Acrescenta especialidades ao prestador.
