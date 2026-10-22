@@ -7,8 +7,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('assistance-requests/available', [AssistanceRequestController::class, 'available']);
 Route::patch('assistance-requests/{assistance_request}/cancel', [AssistanceRequestController::class, 'cancel'])
     ->whereUlid('assistance_request');
-Route::patch('assistance-requests/{assistance_request}/close', [AssistanceRequestController::class, 'close'])
-    ->whereUlid('assistance_request');
 Route::post('assistance-requests/{assistance_request}/attachments', [RequestAttachmentController::class, 'store'])
     ->whereUlid('assistance_request');
 Route::delete('assistance-requests/{assistance_request}/attachments/{attachment}', [RequestAttachmentController::class, 'destroy'])

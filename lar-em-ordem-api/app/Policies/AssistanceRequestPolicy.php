@@ -78,14 +78,6 @@ class AssistanceRequestPolicy
     }
 
     /**
-     * Só o dono do pedido o pode concluir.
-     */
-    public function close(User $user, AssistanceRequest $assistanceRequest): bool
-    {
-        return $assistanceRequest->user_id === $user->id;
-    }
-
-    /**
      * Só prestadores de serviços podem ver a lista de pedidos disponíveis.
      */
     public function viewAvailable(User $user): bool

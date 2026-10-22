@@ -57,7 +57,8 @@ class AssistanceRequestSeeder extends Seeder
             'description'         => 'Está sempre a pingar e o armário já tem a madeira inchada.',
         ]);
 
-        // 2. Aberto, com duas propostas pendentes: o residente pode aceitar ou recusar
+        // 2. Aberto: duas propostas pendentes (o residente pode aceitar ou recusar)
+        //    e uma recusada individualmente (o pedido continua aberto)
         $tomada = AssistanceRequest::factory()->create($base + [
             'problem_category_id' => $eletricidade,
             'title'               => 'Tomada da sala sem corrente',
@@ -75,9 +76,14 @@ class AssistanceRequestSeeder extends Seeder
             'estimated_value'       => 60,
             'description'           => 'Diagnóstico e reparação, material incluído.',
         ]);
+        Proposal::factory()->rejected()->create([
+            'assistance_request_id' => $tomada->id,
+            'service_provider_id'   => $outro->id,
+            'estimated_value'       => 150,
+        ]);
 
-        // 3. Em curso: proposta do "Serviços Lda" aceite, a do outro prestador recusada
-        $sanita = AssistanceRequest::factory()->inProgress()->create($base + [
+        // 3. Fechado: proposta do "Serviços Lda" aceite, a do outro prestador recusada automaticamente
+        $sanita = AssistanceRequest::factory()->closed()->create($base + [
             'problem_category_id' => $canalizacao,
             'title'               => 'Sanita entupida',
             'description'         => 'A água não escoa e já tentei com desentupidor.',
@@ -94,7 +100,7 @@ class AssistanceRequestSeeder extends Seeder
             'estimated_value'       => 95,
         ]);
 
-        // 4. Concluído: serviço feito pelo "Serviços Lda" no mês passado
+        // 4. Fechado no mês passado, com uma proposta retirada pelo prestador antes da aceitação
         $esquentador = AssistanceRequest::factory()->closed()->create($base + [
             'problem_category_id' => $canalizacao,
             'title'               => 'Esquentador não aquece a água',
@@ -107,6 +113,12 @@ class AssistanceRequestSeeder extends Seeder
             'description'           => 'Limpeza do esquentador e substituição da membrana.',
             'validity'              => now()->subMonth()->addDays(10)->toDateString(),
             'available_date'        => now()->subMonth()->addDays(3)->toDateString(),
+        ]);
+    
+        Proposal::factory()->withdrawn()->create([
+            'assistance_request_id' => $esquentador->id,
+            'service_provider_id'   => $servicinhos->id,
+            'estimated_value'       => 140,
         ]);
 
         // 5. Cancelado: a proposta que estava pendente passou a recusada

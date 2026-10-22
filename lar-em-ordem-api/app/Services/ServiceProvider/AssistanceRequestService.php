@@ -110,29 +110,6 @@ class AssistanceRequestService
         return $this->loadFull($assistanceRequest);
     }
 
-    /**
-     * Conclui um pedido em curso (com proposta aceite): passa a 'closed' e regista a data de fecho.
-     * Só é possível quando o pedido está 'in_progress'.
-     *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido a concluir.
-     * @return AssistanceRequest
-     */
-    public function close(AssistanceRequest $assistanceRequest): AssistanceRequest
-    {
-        if ($assistanceRequest->status !== 'in_progress') {
-            throw ValidationException::withMessages([
-                'status' => 'Só é possível concluir pedidos que estão em curso.',
-            ]);
-        }
-
-        $assistanceRequest->update([
-            'status'    => 'closed',
-            'closed_at' => now(),
-        ]);
-
-        return $this->loadFull($assistanceRequest);
-    }
-
      /**
      * Carrega a casa (com morada), a categoria e a proposta aceite (com o prestador) de um pedido.
      *
