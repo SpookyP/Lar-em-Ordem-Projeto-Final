@@ -20,9 +20,14 @@ export default function Login() {
       await login(email, password);
       navigate("/perfis");
     } catch (erroPedido) {
-      const message =
-        erroPedido.response?.data?.message ??
-        "Não foi possível iniciar sessão. Verifique os dados e tente novamente.";
+      const status = erroPedido.response?.status;
+      let message = "Não foi possível iniciar sessão. Tente novamente.";
+
+      if (status === 422 || status === 401) {
+        message = "Email ou password incorretos.";
+      } else if (status === 429) {
+        message = "Demasiadas tentativas. Aguarde um pouco e tente novamente.";
+      }
       setErro(message);
     } finally {
       setAEnviar(false);
