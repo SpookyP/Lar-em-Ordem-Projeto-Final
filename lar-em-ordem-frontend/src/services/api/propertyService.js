@@ -66,3 +66,44 @@ export async function getAllProperties() {
   }
   return all;
 }
+
+export async function getProperty(id) {
+  const response = await axiosClient.get(`/api/v1/properties/${id}`);
+  const p = response.data.data;
+
+  const address = p.address ?? {};
+  const contract = p.contracts?.[0] ?? null;
+  const bondName = contract?.residentType?.type;
+
+  return {
+    id: p.id,
+    area: p.area,
+    propertyTypeId: p.propertyType?.id ?? "",
+    typologyId: p.propertyTypology?.id ?? "",
+    residentTypeId: contract?.residentType?.id ?? "",
+    address: {
+      street: address.street,
+      door: address.door,
+      fraction: address.fraction,
+      postalCode: address.postalCode,
+      location: address.location,
+      county: address.county,
+      district: address.district,
+    },
+    typeLabel:
+      PROPERTY_TYPE_LABELS[p.propertyType?.type] ?? p.propertyType?.type,
+    typologyLabel: p.propertyTypology?.typology,
+    bondLabel: BOND_LABELS[bondName] ?? bondName,
+    startDate: contract?.startDate ?? null,
+    endDate: contract?.endDate ?? null,
+  };
+}
+
+export async function updateProperty(id, data) {
+  const response = await axiosClient.put(`/api/v1/properties/${id}`, data);
+  return response.data;
+}
+
+export async function deleteProperty(id) {
+  await axiosClient.delete(`/api/v1/properties/${id}`);
+}

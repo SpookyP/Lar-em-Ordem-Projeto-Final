@@ -7,7 +7,7 @@ Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum')
 Route::post('/user/profile', [AuthController::class, 'store'])->middleware('auth:sanctum');
 
 Route::prefix('v1')->group(function () {
-    Route::middleware(['auth:sanctum','throttle:10,1'])->group(function () {
+    Route::middleware(['auth:sanctum','throttle:20,1'])->group(function () {
         require __DIR__ . '/modules/vault.php';
         require __DIR__ . '/modules/property.php';
         require __DIR__ . '/modules/resident.php';
@@ -21,3 +21,6 @@ Route::prefix('v1')->group(function () {
         require __DIR__ . '/modules/proposal.php';
     });
 });
+
+Route::delete('/user/profile', [AuthController::class, 'destroyProfile'])->middleware('auth:sanctum');
+Route::delete('/user', [AuthController::class, 'destroyAccount'])->middleware('auth:sanctum');

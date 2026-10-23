@@ -1,7 +1,9 @@
 import { useHouses } from "../../hooks/useHouses";
+import { useNavigate } from "react-router-dom";
 
 export function HouseList({ onEnter }) {
   const { houses, loading } = useHouses();
+  const navigate = useNavigate();
 
   return (
     <div className="border-t border-border p-4 flex flex-col gap-2">
@@ -10,9 +12,17 @@ export function HouseList({ onEnter }) {
       {loading ? (
         <p className="py-4 text-center text-sm text-muted">A carregar...</p>
       ) : houses.length === 0 ? (
-        <p className="py-4 text-center text-sm text-muted">
-          Ainda não tem casas associadas.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-4 text-center">
+          <p className="text-center text-sm text-muted">
+            Ainda não tem casas associadas.
+          </p>
+          <button
+            onClick={() => navigate("/welcome")}
+            className="rounded-xl bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-light"
+          >
+            Criar a minha primeira habitação
+          </button>
+        </div>
       ) : (
         <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
           {houses.map((house) => (
