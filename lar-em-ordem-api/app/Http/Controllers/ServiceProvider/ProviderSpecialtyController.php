@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ServiceProvider\StoreProviderSpecialtyRequest;
-use App\Http\Resources\ServiceProvider\ProviderSpecialtyResource;
 use App\Models\ServiceProvider\ProviderSpecialty;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Services\ServiceProvider\ProviderSpecialtyService;
@@ -13,24 +11,6 @@ use Illuminate\Support\Facades\Gate;
 class ProviderSpecialtyController extends Controller
 {
     public function __construct(private ProviderSpecialtyService $service) {}
-
-    /**
-     * Acrescenta especialidades ao prestador: uma ou várias da lista, ou uma própria (custom).
-     *
-     * @param StoreProviderSpecialtyRequest $request Dados validados.
-     * @param ServiceProviderModel $serviceProvider Instância do prestador.
-     * @return \Illuminate\Http\JsonResponse Coleção das especialidades criadas, com o status 201 (Created).
-     */
-       public function store(StoreProviderSpecialtyRequest $request, ServiceProviderModel $serviceProvider)
-    {
-        Gate::authorize('update', $serviceProvider);
-
-        $created = $this->service->add($serviceProvider, $request->validated());
-
-        return ProviderSpecialtyResource::collection($created)
-            ->response()
-            ->setStatusCode(201);
-    }
 
     /**
      * Remove uma especialidade do prestador.

@@ -6,8 +6,6 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('service-providers/me', [ServiceProviderController::class, 'showMyProfile']);
-Route::post('service-providers/{service_provider}/specialties', [ProviderSpecialtyController::class, 'store'])
-    ->whereUlid('service_provider');
 Route::delete('service-providers/{service_provider}/specialties/{specialty}', [ProviderSpecialtyController::class, 'destroy'])
     ->whereUlid(['service_provider', 'specialty'])
     ->scopeBindings();
