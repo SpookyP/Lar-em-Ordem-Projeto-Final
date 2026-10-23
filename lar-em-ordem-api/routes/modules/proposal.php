@@ -4,9 +4,6 @@ use App\Http\Controllers\ServiceProvider\ProposalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('proposals/mine', [ProposalController::class, 'listProviderProposals']);
-
-Route::get('assistance-requests/{assistance_request}/proposals', [ProposalController::class, 'index'])
-    ->whereUlid('assistance_request');
 Route::post('assistance-requests/{assistance_request}/proposals', [ProposalController::class, 'store'])
     ->whereUlid('assistance_request');
 

@@ -73,21 +73,6 @@ class OfferService
     {
         return $offer->load('partner');
     }
-
-/**
-       * Devolve as ofertas em vigor de um parceiro, ordenadas pela data de início (desc).
-       * É a lista que os outros utilizadores (ex: residentes) podem ver.
-       *
-       * @param Partner $partner Instância do parceiro.
-       * @return Collection
-       */
-      public function listCurrentByPartner(Partner $partner): Collection
-      {
-          return $partner->offers()
-              ->current()
-              ->orderByDesc('start_date')
-              ->get();
-      }
       
     /**
      * Devolve todas as ofertas em vigor hoje.

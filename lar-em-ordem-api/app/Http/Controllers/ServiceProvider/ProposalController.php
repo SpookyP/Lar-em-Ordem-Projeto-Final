@@ -21,19 +21,6 @@ class ProposalController extends Controller
     ) {}
 
     /**
-     * Lista as propostas recebidas por um pedido. Só o dono do pedido as pode ver.
-     *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de propostas.
-     */
-    public function index(AssistanceRequest $assistanceRequest)
-    {
-        Gate::authorize('viewProposals', $assistanceRequest);
-
-        return ProposalResource::collection($this->service->listByRequest($assistanceRequest));
-    }
-
-    /**
      * Lista as propostas enviadas pelo prestador autenticado.
      *
      * @param Request $request O pedido HTTP.

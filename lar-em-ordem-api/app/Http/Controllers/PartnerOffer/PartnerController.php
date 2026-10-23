@@ -28,14 +28,14 @@ class PartnerController extends Controller
     }
    
     /**
-     * Devolve os detalhes de um parceiro específico.
+     * Devolve os detalhes de um parceiro específico, com as suas ofertas em vigor.
      *
      * @param Partner $partner Instância do parceiro solicitada.
      * @return PartnerResource
      */
     public function show(Partner $partner)
     {
-        return new PartnerResource($partner);
+        return new PartnerResource($this->service->loadWithOffers($partner));
     }
 
     /**
@@ -49,17 +49,6 @@ class PartnerController extends Controller
         return new PartnerResource($this->service->getByUser($request->user()));
     }
 
-   /**
-     * Devolve os detalhes de um parceiro com as suas ofertas em vigor.
-     *
-     * @param Partner $partner Instância do parceiro.
-     * @return PartnerResource
-     */
-    public function showWithOffers(Partner $partner): PartnerResource
-    {
-        return new PartnerResource($this->service->loadWithOffers($partner));
-    }
-    
      /**
      * Cria o perfil de parceiro do utilizador autenticado e atribui-lhe a role 'partner'.
      *

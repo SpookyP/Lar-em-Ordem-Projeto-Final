@@ -11,19 +11,6 @@ use Illuminate\Validation\ValidationException;
 
 class ProposalService
 {
-     /**
-     * Devolve as propostas recebidas por um pedido, da mais recente para a mais antiga.
-     *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @return Collection
-     */
-    public function listByRequest(AssistanceRequest $assistanceRequest): Collection
-    {
-        return $assistanceRequest->proposals()
-            ->with('serviceProvider')
-            ->orderByDesc('created_at')
-            ->get();
-    }
 
     /**
      * Devolve as propostas enviadas por um prestador, da mais recente para a mais antiga,
