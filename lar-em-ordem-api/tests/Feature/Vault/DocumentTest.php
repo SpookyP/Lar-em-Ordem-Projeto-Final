@@ -54,7 +54,7 @@ class DocumentTest extends TestCase
 
     public function test_authorized_user_can_upload_pdf_and_extract_data(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2');
 
         $this->mock(PdfExtractionService::class, function (MockInterface $mock) {
             $mock->shouldReceive('extractInfo')
@@ -74,7 +74,7 @@ class DocumentTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/v1/properties/{$property->id}/documents", [
             'property_id' => $property->id,
             'document_category_id' => $category->id,
-            'description' => 'Test document payload', // Corrigido para description
+            'description' => 'Test document payload',
             'file' => $file,
         ]);
 
@@ -120,10 +120,10 @@ class DocumentTest extends TestCase
         \App\Models\Vault\Document::create([
             'property_id' => $property->id,
             'document_category_id' => $category->id,
-            'name' => 'fatura_luz.pdf',             // Corrigido
-            'description' => 'Fatura de teste',      // Corrigido
+            'name' => 'fatura_luz.pdf',
+            'description' => 'Fatura de teste',
             'file_id' => (string) Str::uuid(),
-            'expiration_date' => now()->addMonths(6),// Corrigido
+            'expiration_date' => now()->addMonths(6),
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -146,8 +146,8 @@ class DocumentTest extends TestCase
         $document = \App\Models\Vault\Document::create([
             'property_id' => $property->id,
             'document_category_id' => $category->id,
-            'name' => $fileName,              // Corrigido
-            'description' => 'Contrato',       // Corrigido
+            'name' => $fileName,
+            'description' => 'Contrato',
             'file_id' => $fileId,
         ]);
 
@@ -170,8 +170,8 @@ class DocumentTest extends TestCase
         $document = \App\Models\Vault\Document::create([
             'property_id' => $property->id,
             'document_category_id' => $category->id,
-            'name' => $fileName,               // Corrigido
-            'description' => 'Planta',          // Corrigido
+            'name' => $fileName,
+            'description' => 'Planta',
             'file_id' => (string) Str::uuid(),
         ]);
 
