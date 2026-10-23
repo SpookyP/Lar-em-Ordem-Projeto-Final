@@ -4,7 +4,6 @@ namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ServiceProvider\ServiceZoneResource;
-use App\Models\ServiceProvider\ServiceZone;
 use App\Services\ServiceProvider\ServiceZoneService;
 use App\Http\Requests\ServiceProvider\IndexServiceZoneRequest;
 
@@ -25,16 +24,5 @@ class ServiceZoneController extends Controller
         return ServiceZoneResource::collection(
             $this->service->list($request->validated())
         );
-    }
-
-  /**
-     * Devolve os detalhes de uma zona de serviço específica.
-     *
-     * @param ServiceZone $serviceZone Instância da zona de serviço.
-     * @return ServiceZoneResource
-     */
-    public function show(ServiceZone $serviceZone)
-    {
-        return new ServiceZoneResource($serviceZone);
     }
 }
