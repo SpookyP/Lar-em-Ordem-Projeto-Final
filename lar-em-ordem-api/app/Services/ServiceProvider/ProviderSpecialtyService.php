@@ -2,7 +2,6 @@
 
 namespace App\Services\ServiceProvider;
 
-use App\Models\ServiceProvider\ProviderSpecialty;
 use App\Models\ServiceProvider\ServiceSpecialty;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use Illuminate\Validation\ValidationException;
@@ -88,16 +87,5 @@ class ProviderSpecialtyService
         $provider->specialties()->createMany(
             $wanted->reject(fn ($c) => $currentKeys->contains($key($c)))->values()->all()
         );
-    }
-    
-    /**
-     * Remove uma especialidade do prestador.
-     *
-     * @param ProviderSpecialty $providerSpecialty Especialidade a remover.
-     * @return void
-     */
-     public function remove(ProviderSpecialty $providerSpecialty): void
-    {
-        $providerSpecialty->delete();
-    }
+    } 
 }
