@@ -36,10 +36,15 @@ class AssistanceRequestFactory extends Factory
      */
     public function closed(): static
     {
-        return $this->state([
-            'status'    => 'closed',
-            'closed_at' => now()->subDays(fake()->numberBetween(1, 30)),
-        ]);
+        return $this->state(function () {
+            $closedAt = now()->subDays(fake()->numberBetween(1, 30));
+
+            return [
+                'status'     => 'closed',
+                'created_at' => $closedAt->copy()->subDays(fake()->numberBetween(1, 10)),
+                'closed_at'  => $closedAt,
+            ];
+        });
     }
 
     /**
@@ -47,9 +52,14 @@ class AssistanceRequestFactory extends Factory
      */
     public function cancelled(): static
     {
-        return $this->state([
-            'status'    => 'cancelled',
-            'closed_at' => now()->subDays(fake()->numberBetween(1, 30)),
-        ]);
+        return $this->state(function () {
+            $closedAt = now()->subDays(fake()->numberBetween(1, 30));
+
+            return [
+                'status'     => 'cancelled',
+                'created_at' => $closedAt->copy()->subDays(fake()->numberBetween(1, 10)),
+                'closed_at'  => $closedAt,
+            ];
+        });
     }
 }

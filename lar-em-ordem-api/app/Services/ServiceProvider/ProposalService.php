@@ -5,7 +5,7 @@ namespace App\Services\ServiceProvider;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\Proposal;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -14,12 +14,13 @@ class ProposalService
 
     /**
      * Devolve as propostas enviadas por um prestador, da mais recente para a mais antiga,
-     * com o pedido a que respondem.
+     * com o pedido a que respondem, paginadas.
      *
      * @param ServiceProviderModel $provider Instância do prestador.
-     * @return Collection
+     * @param int $perPage Número de propostas por página.
+     * @return LengthAwarePaginator
      */
-    public function listByProvider(ServiceProviderModel $provider): Collection
+    public function listByProvider(ServiceProviderModel $provider, int $perPage = 5): LengthAwarePaginator
     {
         return $provider->proposals()
             ->with([
@@ -28,7 +29,9 @@ class ProposalService
                 'assistanceRequest.acceptedProposal.serviceProvider',
             ])
             ->orderByDesc('created_at')
-            ->get();
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     /**

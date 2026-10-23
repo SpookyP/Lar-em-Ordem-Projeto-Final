@@ -4,6 +4,7 @@ namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ServiceProvider\IndexAssistanceRequestRequest;
+use App\Http\Requests\ServiceProvider\PerPageRequest;
 use App\Http\Requests\ServiceProvider\StoreAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
@@ -21,8 +22,8 @@ class AssistanceRequestController extends Controller
     ) {}
 
      /**
-     * Lista os pedidos de assistência do utilizador autenticado numa casa (?property_id=, obrigatório).
-     * Permite filtrar através do parâmetro 'status' (ex: ?status=open).
+     * Lista os pedidos de assistência do utilizador autenticado numa casa (?property_id=, obrigatório), paginados.
+     * Permite filtrar através do parâmetro 'status' (ex: ?status=open) e escolher o tamanho da página (?per_page=).
      *
      * @param IndexAssistanceRequestRequest $request O pedido HTTP com o filtro validado.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos.
@@ -34,6 +35,7 @@ class AssistanceRequestController extends Controller
                 $request->user(),
                 $request->validated('property_id'),
                 $request->validated('status'),
+                $request->integer('per_page', 5),
             )
         );
     }
@@ -106,17 +108,17 @@ class AssistanceRequestController extends Controller
      * Lista os pedidos abertos disponíveis para o prestador autenticado
      * (da sua categoria e da sua zona).
      *
-     * @param Request $request O pedido HTTP.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos.
+     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos (paginada).
      */
-    public function available(Request $request)
+    public function available(PerPageRequest $request)
     {
         Gate::authorize('viewAvailable', AssistanceRequest::class);
 
         $provider = $this->serviceProviderService->getByUser($request->user());
 
         return AssistanceRequestResource::collection(
-            $this->service->listAvailableFor($provider)
+            $this->service->listAvailableFor($provider, $request->integer('per_page', 5))
         );
     }
 }
