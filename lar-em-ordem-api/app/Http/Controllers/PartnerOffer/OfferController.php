@@ -7,7 +7,6 @@ use App\Http\Requests\PartnerOffer\StoreOfferRequest;
 use App\Http\Requests\PartnerOffer\UpdateOfferRequest;
 use App\Http\Resources\PartnerOffer\OfferResource;
 use App\Models\Offer\Offer;
-use App\Models\User\Partner;
 use App\Services\PartnerOffer\OfferService;
 use App\Services\PartnerOffer\PartnerService;
 use Illuminate\Http\Request;
@@ -104,20 +103,6 @@ class OfferController extends Controller
         $this->service->delete($offer);
 
         return response()->json(['message' => 'Oferta removida.']);
-    }
-
-
-    /**
-     * Lista as ofertas em vigor de um parceiro (vista pública, ex: residentes).
-     *
-     * @param \App\Models\User\Partner $partner Instância do parceiro.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas.
-     */
-    public function listByPartner(Partner $partner)
-    {
-        return OfferResource::collection(
-            $this->service->listCurrentByPartner($partner)
-        );
     }
 
     /**
