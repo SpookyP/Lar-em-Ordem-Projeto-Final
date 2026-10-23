@@ -5,7 +5,7 @@ namespace App\Services\ServiceProvider;
 use App\Models\Property\Property;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\User\User;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -16,15 +16,16 @@ class AssistanceRequestService
 {
     public function __construct(private RequestAttachmentService $attachmentService) {}
 
-    /**
-     * Devolve os pedidos de um utilizador numa casa, do mais recente para o mais antigo.
+     /**
+     * Devolve os pedidos de um utilizador numa casa, do mais recente para o mais antigo, paginados.
      *
      * @param User $user Dono dos pedidos.
      * @param string $propertyId Casa onde o morador está.
      * @param string|null $status (Opcional) Filtro por estado.
-     * @return Collection
+     * @param int $perPage Número de pedidos por página.
+     * @return LengthAwarePaginator
      */
-    public function listRequestsByUser(User $user, string $propertyId, ?string $status = null): Collection
+    public function listRequestsByUser(User $user, string $propertyId, ?string $status = null, int $perPage = 5): LengthAwarePaginator
     {
         return AssistanceRequest::where('user_id', $user->id)
             ->where('property_id', $propertyId)
@@ -32,21 +33,26 @@ class AssistanceRequestService
             ->with(['property.address', 'problemCategory'])
             ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->where('status', 'pending')])
             ->orderByDesc('created_at')
-            ->get();
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
     
-    /**
-     * Devolve os pedidos disponíveis para um prestador, do mais recente para o mais antigo.
+     /**
+     * Devolve os pedidos disponíveis para um prestador, do mais recente para o mais antigo, paginados.
      *
      * @param ServiceProviderModel $provider Prestador para quem se procuram pedidos.
-     * @return Collection
+     * @param int $perPage Número de pedidos por página.
+     * @return LengthAwarePaginator
      */
-    public function listAvailableFor(ServiceProviderModel $provider): Collection
+    public function listAvailableFor(ServiceProviderModel $provider, int $perPage = 5): LengthAwarePaginator
     {
         return AssistanceRequest::availableFor($provider)
             ->with(['property.address', 'problemCategory'])
             ->orderByDesc('created_at')
-            ->get();
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     /**

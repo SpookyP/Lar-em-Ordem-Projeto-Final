@@ -10,7 +10,7 @@ use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\Proposal;
 use App\Services\ServiceProvider\ProposalService;
 use App\Services\ServiceProvider\ServiceProviderService;
-use Illuminate\Http\Request;
+use App\Http\Requests\ServiceProvider\PerPageRequest;
 use Illuminate\Support\Facades\Gate;
 
 class ProposalController extends Controller
@@ -23,16 +23,18 @@ class ProposalController extends Controller
     /**
      * Lista as propostas enviadas pelo prestador autenticado.
      *
-     * @param Request $request O pedido HTTP.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de propostas.
+     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de propostas (paginada).
      */
-    public function listProviderProposals(Request $request)
+    public function listProviderProposals(PerPageRequest $request)
     {
         Gate::authorize('create', Proposal::class);
 
         $provider = $this->serviceProviderService->getByUser($request->user());
 
-        return ProposalResource::collection($this->service->listByProvider($provider));
+        return ProposalResource::collection(
+            $this->service->listByProvider($provider, $request->integer('per_page', 5))
+        );
     }
 
     /**

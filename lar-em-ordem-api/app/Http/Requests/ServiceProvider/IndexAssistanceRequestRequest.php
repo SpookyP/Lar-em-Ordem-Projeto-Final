@@ -13,8 +13,8 @@ class IndexAssistanceRequestRequest extends FormRequest
     }
 
     /**
-     * Casa obrigatória (a casa onde o morador está) e filtro opcional por estado:
-     * ?property_id=01...&status=open
+     * Casa obrigatória (a casa onde o morador está), filtro opcional por estado e paginação:
+     * ?property_id=01...&status=open&per_page=5 (por defeito 5 por página, máximo 15)
      */
     public function rules(): array
     {
@@ -24,6 +24,7 @@ class IndexAssistanceRequestRequest extends FormRequest
                 Rule::exists('properties', 'id')->whereNull('deleted_at'),
             ],
             'status' => 'sometimes|in:open,closed,cancelled',
+            'per_page' => 'sometimes|integer|between:1,15',
         ];
     }
 
@@ -32,6 +33,7 @@ class IndexAssistanceRequestRequest extends FormRequest
         return [
             'property_id.required' => 'Indique a casa.',
             'property_id.exists'   => 'A casa indicada não existe.',
+            'per_page.between'     => 'O número de resultados por página tem de estar entre 1 e 15.',
         ];
     }
 }
