@@ -16,14 +16,15 @@ class ServiceProviderService {
 
     public function __construct(private ProviderSpecialtyService $specialtyService) {}
 
-    /**
-     * Devolve todos os prestadores de serviços (os apagados ficam de fora pelo soft delete).
+     /**
+     * Devolve todos os prestadores de serviços, com as zonas e as especialidades
+     * (os apagados ficam de fora pelo soft delete).
      *
      * @return Collection
      */
     public function list(): Collection
     {
-        return ServiceProviderModel::all();
+        return ServiceProviderModel::with(['zones', 'specialties.category', 'specialties.specialty'])->get();
     }
 
     /**
