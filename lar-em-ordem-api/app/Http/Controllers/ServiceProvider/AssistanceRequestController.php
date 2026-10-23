@@ -20,8 +20,8 @@ class AssistanceRequestController extends Controller
         private ServiceProviderService $serviceProviderService,
     ) {}
 
-    /**
-     * Lista os pedidos de assistência do utilizador autenticado.
+     /**
+     * Lista os pedidos de assistência do utilizador autenticado numa casa (?property_id=, obrigatório).
      * Permite filtrar através do parâmetro 'status' (ex: ?status=open).
      *
      * @param IndexAssistanceRequestRequest $request O pedido HTTP com o filtro validado.
@@ -30,7 +30,11 @@ class AssistanceRequestController extends Controller
     public function index(IndexAssistanceRequestRequest $request)
     {
         return AssistanceRequestResource::collection(
-            $this->service->listRequestsByUser($request->user(), $request->validated('status'))
+            $this->service->listRequestsByUser(
+                $request->user(),
+                $request->validated('property_id'),
+                $request->validated('status'),
+            )
         );
     }
 
