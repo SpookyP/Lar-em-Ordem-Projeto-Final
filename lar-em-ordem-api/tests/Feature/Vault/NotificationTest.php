@@ -4,10 +4,12 @@ namespace Tests\Feature\Vault;
 
 use Tests\TestCase;
 use App\Models\User\User;
+use App\Models\User\Resident;
+use App\Models\User\ResidentType;
 use App\Models\Property\Property;
+use App\Models\Property\PropertyContract;
 use App\Models\Property\PropertyType;
 use App\Models\Property\PropertyTypology;
-use App\Models\Property\Address;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -15,43 +17,42 @@ class NotificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createTestProperty()
+    private function createAuthorizedUserAndProperty(): array
     {
-        $type = new PropertyType();
-        $type->type = 'Apartamento';
-        $type->save();
+        $this->seed([
+            \Database\Seeders\PropertyTypeSeeder::class,
+            \Database\Seeders\PropertyTypologySeeder::class,
+            \Database\Seeders\ResidentTypeSeeder::class,
+        ]);
 
-        $typology = new PropertyTypology();
-        $typology->typology = 'T2';
-        $typology->save();
+        $propertyTypeId = PropertyType::first()->id;
+        $propertyTypologyId = PropertyTypology::first()->id;
+        $residentTypeId = ResidentType::first()->id;
 
-        $address = new Address();
-        $address->street = 'Rua Teste';
-        $address->postal_code = '4000-000';
-        $address->door = '1A';
-        $address->fraction = 'A';
-        $address->county = 'Porto';
-        $address->location = 'Porto';
-        $address->district = 'Porto';
-        $address->save();
+        $user = User::factory()->create();
+        $resident = Resident::factory()->create(['user_id' => $user->id]);
 
-        $property = new Property();
-        $property->property_type_id = $type->id;
-        $property->property_typology_id = $typology->id;
-        $property->address_id = $address->id;
-        $property->area = 100;
-        $property->save();
+        $property = Property::factory()->create([
+            'property_type_id' => $propertyTypeId,
+            'property_typology_id' => $propertyTypologyId,
+        ]);
 
-        return $property->id;
+        PropertyContract::factory()->create([
+            'resident_id' => $resident->id,
+            'property_id' => $property->id,
+            'resident_type_id' => $residentTypeId,
+            'is_active' => true,
+        ]);
+
+        return [$user, $property];
     }
 
     public function test_user_can_list_notifications(): void
     {
-        $user = User::factory()->create();
-        $propertyId = $this->createTestProperty();
+        [$user, $property] = $this->createAuthorizedUserAndProperty();
 
         DB::table('vault_notifications')->insert([
-            'property_id' => $propertyId,
+            'property_id' => $property->id,
             'type' => 'Alerta',
             'title' => 'Documento a expirar',
             'message' => 'O seu certificado energético expira em 30 dias.',
@@ -61,7 +62,7 @@ class NotificationTest extends TestCase
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson("/api/v1/notifications?property_id={$propertyId}");
+            ->getJson("/api/v1/properties/{$property->id}/notifications");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -81,11 +82,10 @@ class NotificationTest extends TestCase
 
     public function test_user_can_mark_notification_as_read(): void
     {
-        $user = User::factory()->create();
-        $propertyId = $this->createTestProperty();
+        [$user, $property] = $this->createAuthorizedUserAndProperty();
 
         $notificationId = DB::table('vault_notifications')->insertGetId([
-            'property_id' => $propertyId,
+            'property_id' => $property->id,
             'type' => 'Alerta',
             'title' => 'Documento a expirar',
             'message' => 'O seu certificado energético expira em 30 dias.',
