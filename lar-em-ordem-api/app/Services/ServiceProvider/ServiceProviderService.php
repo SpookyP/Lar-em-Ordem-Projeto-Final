@@ -103,20 +103,6 @@ class ServiceProviderService {
         return $provider->load(['zones', 'specialties.category', 'specialties.specialty']);
     }
 
-     /**
-     * Define as zonas onde o prestador atua. A lista recebida substitui a anterior.
-     *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @param array<int> $zoneIds IDs das zonas.
-     * @return ServiceProviderModel A mesma instância, com a relação 'zones' carregada.
-     */
-    public function syncZones(ServiceProviderModel $provider, array $zoneIds): ServiceProviderModel
-    {
-        $provider->zones()->sync($zoneIds);
-
-        return $provider->load('zones');
-    }
-
     /**
      * Substitui as zonas e/ou as especialidades do prestador, só as listas que vierem nos dados.
      *

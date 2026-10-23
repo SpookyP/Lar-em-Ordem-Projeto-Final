@@ -9,7 +9,6 @@ use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Services\ServiceProvider\ServiceProviderService;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
-use App\Http\Requests\ServiceProvider\SyncServiceProviderZonesRequest;
 use Illuminate\Http\Request;
 
 class ServiceProviderController extends Controller
@@ -99,22 +98,6 @@ class ServiceProviderController extends Controller
         $this->service->delete($serviceProvider);
 
         return response()->json(['message' => 'Prestador de serviços removido']);
-    }
-
-    /**
-     * Define as zonas onde o prestador atua. A lista enviada substitui a anterior (lista vazia retira todas).
-     *
-     * @param SyncServiceProviderZonesRequest $request Lista validada de IDs de zonas.
-     * @param ServiceProviderModel $serviceProvider Instância do prestador.
-     * @return ServiceProviderResource Devolve o prestador com as zonas atualizadas.
-     */
-     public function syncZones(SyncServiceProviderZonesRequest $request, ServiceProviderModel $serviceProvider)
-    {
-        Gate::authorize('update', $serviceProvider);
-
-        $updated = $this->service->syncZones($serviceProvider, $request->validated('zone_ids'));
-
-        return new ServiceProviderResource($updated);
     }
 
 }
