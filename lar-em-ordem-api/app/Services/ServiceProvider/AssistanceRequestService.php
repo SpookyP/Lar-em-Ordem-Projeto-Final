@@ -17,15 +17,17 @@ class AssistanceRequestService
     public function __construct(private RequestAttachmentService $attachmentService) {}
 
     /**
-     * Devolve os pedidos de um utilizador, do mais recente para o mais antigo.
+     * Devolve os pedidos de um utilizador numa casa, do mais recente para o mais antigo.
      *
      * @param User $user Dono dos pedidos.
+     * @param string $propertyId Casa onde o morador está.
      * @param string|null $status (Opcional) Filtro por estado.
      * @return Collection
      */
-    public function listRequestsByUser(User $user, ?string $status = null): Collection
+    public function listRequestsByUser(User $user, string $propertyId, ?string $status = null): Collection
     {
         return AssistanceRequest::where('user_id', $user->id)
+            ->where('property_id', $propertyId)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->with(['property.address', 'problemCategory'])
             ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->where('status', 'pending')])
