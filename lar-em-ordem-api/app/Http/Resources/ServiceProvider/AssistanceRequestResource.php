@@ -27,7 +27,7 @@ class AssistanceRequestResource extends JsonResource
             'accepted_proposal' => new ProposalResource($this->whenLoaded('acceptedProposal')),
             'attachments'       => RequestAttachmentResource::collection($this->whenLoaded('attachments')),
             'property'          => $this->whenLoaded('property', fn () => [
-                'id'       => $this->property->id,
+                'id'       => $canSeeAddress ? $this->property->id : null,
                 'fraction' => $canSeeAddress ? $this->property->address?->fraction : null,
                 'street'   => $canSeeAddress ? $this->property->address?->street : null,
                 'location' => $this->property->address?->location,
