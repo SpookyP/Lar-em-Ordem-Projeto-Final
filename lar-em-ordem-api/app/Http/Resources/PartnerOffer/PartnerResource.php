@@ -14,15 +14,18 @@ class PartnerResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = $request->user();
+
+        // O NIF só é mostrado ao próprio parceiro
+        $canSeeNif = $user && ($user->id === $this->user_id || $user->hasRole('SU'));
+
         return [
             'id'          => $this->id,
             'company_name' => $this->company_name,
-            'nif'         => $this->nif,
+            'nif'         => $this->when($canSeeNif, $this->nif),
             'phone'       => $this->phone,
             'website'     => $this->website,
             'description' => $this->description,
-            // A relação devolve uma Collection. O método ::collection encarrega-se 
-            // de percorrer a lista e aplicar o OfferResource a cada oferta individualmente.
             'offers'      => OfferResource::collection($this->whenLoaded('offers')),
         ];
     }
