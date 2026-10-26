@@ -280,8 +280,10 @@ def extract_property(f, o):
     cps = re.findall(r"\b\d{4}-\d{3}\b", f)
     return {
         "codigo_postal": cps[0] if cps else None,
-        "freguesia": search(r"freguesia(?: de| da| do)?[:\s]+([^\n]{3,60})", f, o),
-        "concelho": search(r"concelho(?: de| da| do)?[:\s]+([^\n]{3,40})", f, o),
+        # Aqui está a correção: usar [^\n,]+ em vez de [^\n]+
+        "freguesia": search(r"freguesia(?: de| da| do)?[:\s]+([^\n,]{3,60})", f, o),
+        "concelho": search(r"concelho(?: de| da| do)?[:\s]+([^\n,]{3,40})", f, o),
+
         "artigo_matricial": search(r"artigo(?: matricial)?\W{0,6}(?:n[ºo.]*\W{0,3})?(\d{1,6}(?:-[a-z])?)\b", f, o),
         "descricao_predial": search(r"descricao(?: predial)?\W{0,6}(?:n[ºo.]*\W{0,3})?(\d{1,6}(?:/\d{4,8})?)", f, o),
         "fracao": search(r"fracao(?: autonoma)?\W{0,4}([a-z]{1,3})\b", f, o),
