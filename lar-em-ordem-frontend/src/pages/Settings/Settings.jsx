@@ -44,7 +44,7 @@ const GROUPS = [
   },
 ];
 
-export default function Definicoes() {
+export default function Settings() {
   const [section, setSection] = useState(null);
   const { activeProfile } = useAuth();
   const canHaveHouses = activeProfile?.hasHouses ?? false;

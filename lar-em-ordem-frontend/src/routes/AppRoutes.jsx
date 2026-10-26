@@ -4,7 +4,7 @@ import { AppLayout } from "../components/layout/AppLayout";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Profiles from "../pages/Profiles/Profiles";
-import Definicoes from "../pages/Definicoes/Definicoes";
+import Settings from "../pages/settings/settings";
 import Onboarding from "../pages/Onboarding/Onboarding";
 import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
@@ -17,7 +17,7 @@ import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetai
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
 import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
-import NaoAutorizado from "../pages/NaoAutorizado/NaoAutorizado";
+import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import { ROLES } from "../utils/roles";
 
 export function AppRoutes() {
@@ -38,15 +38,15 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/nao-autorizado" element={<NaoAutorizado />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>
-          <Route path="/perfis" element={<Profiles />} />
+          <Route path="/profiles" element={<Profiles />} />
           <Route path="/welcome" element={<Onboarding />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/definicoes" element={<Definicoes />} />
+            <Route path="/settings" element={<Settings />} />
 
             <Route element={<PrivateRoute allowedRoles={[ROLES.RESIDENT]} />}>
               <Route path="/assistencia" element={<Assistance />} />

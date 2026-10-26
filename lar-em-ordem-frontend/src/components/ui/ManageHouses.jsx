@@ -53,7 +53,7 @@ export function ManageHouses() {
       await refreshHouses();
 
       if (activeHouse?.id === id) {
-        navigate("/perfis");
+        navigate("/profiles");
         return;
       }
 
