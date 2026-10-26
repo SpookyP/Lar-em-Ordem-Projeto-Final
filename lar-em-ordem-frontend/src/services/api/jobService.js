@@ -1,5 +1,6 @@
 import axiosClient from "./axiosClient";
 import { slugify } from "../../data/assistanceInfo";
+import { cleanParams, toPage } from "./pagination";
 
 function toJob(a) {
   const name = a.category?.name ?? "";
@@ -13,7 +14,10 @@ function toJob(a) {
   };
 }
 
-export async function getAvailableJobs() {
-  const response = await axiosClient.get("/api/v1/assistance-requests/available");
-  return response.data.data.map(toJob);
+export async function getAvailableJobs({ page, perPage, search, location }) {
+  const response = await axiosClient.get(
+    "/api/v1/assistance-requests/available",
+    { params: cleanParams({ page, per_page: perPage, search, location }) },
+  );
+  return toPage(response, toJob);
 }

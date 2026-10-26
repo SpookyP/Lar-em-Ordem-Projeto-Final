@@ -18,3 +18,13 @@ export function formatRelative(iso) {
   if (abs < 60 * 24 * 30) return rtf.format(Math.trunc(minutes / (60 * 24)), "day");
   return formatDate(iso);
 }
+
+export function formatDay(day) {
+  if (!day) return "";
+  const [year, month, date] = day.split("-").map(Number);
+  return new Date(year, month - 1, date).toLocaleDateString(LOCALE);
+}
+
+export function todayISO() {
+  return new Date().toLocaleDateString("sv-SE");
+}

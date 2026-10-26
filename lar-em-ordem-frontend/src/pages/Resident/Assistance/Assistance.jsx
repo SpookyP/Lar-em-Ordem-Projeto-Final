@@ -2,33 +2,27 @@ import AssistanceForm from "../../../components/ui/AssistanceForm";
 import ProblemList from "../../../components/ui/ProblemList";
 import { useAuth } from "../../../hooks/useAuth";
 import { useAssistanceRequests } from "../../../hooks/useAssistanceRequests";
-import {
-  createAssistanceRequest,
-  uploadAttachments,
-} from "../../../services/api/assistanceService";
+import { createAssistanceRequest } from "../../../services/api/assistanceService";
 
 export default function Assistance() {
   const { activeHouse } = useAuth();
-  const { requests, loading, error, addRequest } = useAssistanceRequests();
+  const list = useAssistanceRequests(activeHouse?.id);
 
   async function handleNewRequest({ title, category, description, photo }) {
     if (!activeHouse) {
       throw new Error("Selecione uma casa antes de abrir um pedido.");
     }
 
-    const created = await createAssistanceRequest({
+    await createAssistanceRequest({
       property_id: activeHouse.id,
       problem_category_id: Number(category),
       title,
       description,
+      images: [photo],
     });
-    addRequest(created);
 
-    try {
-      await uploadAttachments(created.id, [photo]);
-    } catch {
-      return "O pedido foi criado, mas não foi possível enviar a fotografia.";
-    }
+    list.setPage(1);
+    list.reload();
   }
 
   return (
@@ -41,7 +35,15 @@ export default function Assistance() {
 
       <div className="flex flex-col gap-6">
         <AssistanceForm onSubmit={handleNewRequest} />
-        <ProblemList requests={requests} loading={loading} error={error} />
+        <ProblemList
+          requests={list.items}
+          loading={list.loading}
+          error={list.error}
+          page={list.page}
+          totalPages={list.totalPages}
+          total={list.total}
+          onPageChange={list.setPage}
+        />
       </div>
     </div>
   );

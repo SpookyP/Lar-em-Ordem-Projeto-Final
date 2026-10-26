@@ -1,10 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { navItems } from "./navItems";
+import { getNavItems } from "./navItems";
+import { useAuth } from "../../hooks/useAuth";
 
 export function BottomNav() {
+    const { activeProfile } = useAuth();
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around border-t border-border bg-card">
-            {navItems.map((item) => {
+            {getNavItems(activeProfile?.name).map((item) => {
                 const Icon = item.icon;
                 return (
                     <NavLink

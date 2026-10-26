@@ -15,11 +15,22 @@ export const categoryInfo = (slug) => CATEGORY_INFO[slug] ?? FALLBACK;
 
 export const STATUS_LABELS = {
   open: "Pendente",
-  in_progress: "Em progresso",
-  closed: "Concluído",
+  closed: "Proposta aceite",
   cancelled: "Cancelado",
 };
 
 export function slugify(text) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
+
+const PROPOSAL_FALLBACK = { label: "Desconhecido", style: "bg-surface text-muted" };
+
+export const PROPOSAL_STATUS = {
+  pending: { label: "Pendente", style: "bg-amber-light text-amber" },
+  accepted: { label: "Aceite", style: "bg-green-light text-green" },
+  rejected: { label: "Rejeitada", style: "bg-red-light text-red" },
+  withdrawn: { label: "Retirada", style: "bg-surface text-muted" },
+};
+
+export const proposalStatus = (status) =>
+  PROPOSAL_STATUS[status] ?? PROPOSAL_FALLBACK;

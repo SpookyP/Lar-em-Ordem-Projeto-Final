@@ -13,9 +13,12 @@ import ResetPassword from "../pages/Password/ResetPassword";
 
 import Dashboard from "../pages/Resident/Dashboard/Dashboard";
 import Assistance from "../pages/Resident/Assistance/Assistance";
+import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetail";
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
+import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
 import NaoAutorizado from "../pages/NaoAutorizado/NaoAutorizado";
+import { ROLES } from "../utils/roles";
 
 export function AppRoutes() {
   return (
@@ -43,8 +46,20 @@ export function AppRoutes() {
           <Route path="/welcome" element={<Onboarding />} />
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/assistencia" element={<Assistance />} />
             <Route path="/definicoes" element={<Definicoes />} />
+
+            <Route element={<PrivateRoute allowedRoles={[ROLES.RESIDENT]} />}>
+              <Route path="/assistencia" element={<Assistance />} />
+              <Route path="/assistencia/:id" element={<AssistanceDetail />} />
+            </Route>
+
+            <Route
+              element={<PrivateRoute allowedRoles={[ROLES.SERVICE_PROVIDER]} />}
+            >
+              <Route path="/prestador/pedidos" element={<JobListing />} />
+              <Route path="/prestador/pedidos/:id" element={<Offer />} />
+              <Route path="/prestador/propostas" element={<Proposals />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

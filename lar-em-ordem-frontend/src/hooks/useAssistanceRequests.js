@@ -1,31 +1,13 @@
-import { useState, useEffect } from "react";
 import { getAssistanceRequests } from "../services/api/assistanceService";
+import { usePagedList } from "./usePagedList";
 
-export function useAssistanceRequests() {
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    getAssistanceRequests()
-      .then((list) => {
-        if (active) setRequests(list);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar os pedidos.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  function addRequest(created) {
-    setRequests((prev) => [created, ...prev]);
-  }
-
-  return { requests, loading, error, addRequest };
+export function useAssistanceRequests(propertyId) {
+  return usePagedList(
+    getAssistanceRequests,
+    { propertyId, perPage: 5 },
+    {
+      enabled: Boolean(propertyId),
+      errorMessage: "Não foi possível carregar os pedidos.",
+    },
+  );
 }
