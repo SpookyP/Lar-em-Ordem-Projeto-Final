@@ -12,10 +12,11 @@ export function SidebarButton({ icon: Icon, label, onClick }) {
   );
 }
 
-export function SidebarLink({ icon: Icon, label, to }) {
+export function SidebarLink({ icon: Icon, label, to, onClick }) {
   return (
     <NavLink
       to={to}
+      onClick={onClick}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
           isActive
