@@ -24,7 +24,7 @@ function firstLastName(name) {
 export function SideBar() {
   const { user, activeProfile, logout } = useAuth();
   const navigate = useNavigate();
-  const { houses } = useHouses();
+  const { count } = useHouses();
 
   const profiles = (user?.roles ?? []).map((roleName) => ({
     name: roleName,
@@ -64,7 +64,7 @@ export function SideBar() {
         </div>
 
         {/* Trocar de casa */}
-        {activeProfile?.hasHouses && houses.length > 1 && (
+        {activeProfile?.hasHouses && count > 1 && (
           <SidebarButton
             icon={Home}
             label="As minhas casas"
