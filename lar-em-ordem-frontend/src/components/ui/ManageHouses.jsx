@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHouses } from "../../hooks/useHouses";
+import { useHousesPage } from "../../hooks/useHousesPage";
 import {
   getProperty,
   deleteProperty,
@@ -7,9 +8,20 @@ import {
 import { PropertyForm } from "./PropertyForm";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { Pager } from "./Pager";
 
 export function ManageHouses() {
-  const { houses, loading, refreshHouses } = useHouses();
+  const { refreshHouses } = useHouses();
+  const {
+    items: houses,
+    page,
+    totalPages,
+    loading,
+    error: listError,
+    setPage,
+    reload,
+  } = useHousesPage({ perPage: 5 });
+
   const [editing, setEditing] = useState(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [error, setError] = useState("");
@@ -45,6 +57,12 @@ export function ManageHouses() {
       }
 
       setConfirmingId(null);
+
+      if (houses.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        reload();
+      }
     } catch {
       setError("Não foi possível eliminar a habitação.");
     } finally {
@@ -67,7 +85,11 @@ export function ManageHouses() {
         <PropertyForm
           key={editing.id}
           property={editing}
-          onUpdated={() => setEditing(null)}
+          onUpdated={() => {
+            setEditing(null);
+            refreshHouses();
+            reload();
+          }}
         />
       </div>
     );
@@ -76,7 +98,9 @@ export function ManageHouses() {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="font-medium text-text">Gerir habitações</h2>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {(error || listError) && (
+        <p className="text-sm text-red-600">{error || listError}</p>
+      )}
       {loading && <p className="text-sm text-muted">A carregar...</p>}
       {!loading && houses.length === 0 && (
         <p className="text-sm text-muted">Ainda não tens habitações.</p>
@@ -132,6 +156,7 @@ export function ManageHouses() {
           </li>
         ))}
       </ul>
+      <Pager page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }
