@@ -5,6 +5,9 @@ export function useHousesPage({ perPage = 5 } = {}) {
   return usePagedList(
     getPropertiesPage,
     { perPage },
-    { errorMessage: "Não foi possível carregar as casas." },
+    {
+      errorMessage:
+        "Não foi possível carregar as casas. Tente de novo dentro de um minuto.",
+    },
   );
 }
