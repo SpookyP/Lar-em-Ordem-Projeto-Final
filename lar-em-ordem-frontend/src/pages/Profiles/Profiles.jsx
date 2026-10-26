@@ -8,7 +8,7 @@ import { HouseList } from "../../components/ui/HouseList";
 
 export default function Profiles() {
   const navigate = useNavigate();
-  const { user, selectProfile } = useAuth();
+  const { user, selectProfile, logout } = useAuth();
   const [openProfile, setOpenProfile] = useState(null);
   const [deciding, setDeciding] = useState(true);
 
@@ -34,6 +34,11 @@ export default function Profiles() {
   function enter(profile, house) {
     selectProfile(profile, house);
     navigate(ROLE_INFO[profile.name]?.home ?? "/dashboard");
+  }
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login");
   }
 
   //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /perfis
@@ -125,6 +130,23 @@ export default function Profiles() {
             ))}
           </div>
         )}
+
+        <div className="mt-6 flex flex-col items-center gap-2">
+          {preselectedProfile && (
+            <button
+              onClick={() => navigate(-1)}
+              className="text-sm text-navy hover:underline"
+            >
+              ← Voltar
+            </button>
+          )}
+          <button
+            onClick={handleLogout}
+            className="text-sm text-muted hover:text-navy transition"
+          >
+            Terminar sessão
+          </button>
+        </div>
       </div>
     </div>
   );

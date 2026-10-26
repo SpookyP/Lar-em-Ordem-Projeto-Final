@@ -16,6 +16,7 @@ export function ManageHouses() {
     items: houses,
     page,
     totalPages,
+    total,
     loading,
     error: listError,
     setPage,
@@ -102,7 +103,7 @@ export function ManageHouses() {
         <p className="text-sm text-red-600">{error || listError}</p>
       )}
       {loading && <p className="text-sm text-muted">A carregar...</p>}
-      {!loading && houses.length === 0 && (
+      {!loading && !listError && total === 0 && (
         <p className="text-sm text-muted">Ainda não tens habitações.</p>
       )}
 

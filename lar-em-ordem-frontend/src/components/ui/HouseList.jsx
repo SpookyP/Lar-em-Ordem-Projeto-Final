@@ -11,6 +11,7 @@ export function HouseList({ onEnter }) {
     loading,
     error,
     setPage,
+    reload,
   } = useHousesPage({ perPage: 5 });
   const navigate = useNavigate();
 
