@@ -9,13 +9,16 @@ export function AssistanceCard({
   description,
   postedAt,
   status,
+  proposals = 0,
   to,
 }) {
   return (
     <div className="flex flex-col sm:flex-row rounded-xl bg-surface border border-border/50 hover:border-orange/40 transition-colors overflow-hidden">
       {/* Corpo do ticket */}
       <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3">
-        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconColor}`}>
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconColor}`}
+        >
           <Icon size={16} />
         </div>
 
@@ -40,9 +43,17 @@ export function AssistanceCard({
 
       {/* Talão totalmente responsivo utilizando classes padrão do Tailwind */}
       <div className="flex items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-navy/20 px-4 py-3 sm:w-64 shrink-0">
-        <span className="font-medium text-[11px] capitalize bg-orange-light text-orange px-2.5 py-1 rounded-md whitespace-nowrap">
-          {status || "Pendente"}
-        </span>
+        <div className="flex flex-col items-start gap-1">
+          <span className="font-medium text-[11px] capitalize bg-orange-light text-orange px-2.5 py-1 rounded-md whitespace-nowrap">
+            {status || "Pendente"}
+          </span>
+          {proposals > 0 && (
+            <span className="text-[11px] text-navy font-medium">
+              {proposals}{" "}
+              {proposals === 1 ? "proposta nova" : "propostas novas"}
+            </span>
+          )}
+        </div>
         {to && (
           <Link
             to={to}

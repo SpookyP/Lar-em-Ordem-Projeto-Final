@@ -31,7 +31,6 @@ export default function AssistanceForm({ onSubmit }) {
   const [categoriesError, setCategoriesError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -82,15 +81,13 @@ export default function AssistanceForm({ onSubmit }) {
 
     setSubmitting(true);
     setError("");
-    setNotice("");
     try {
-      const warning = await onSubmit({ title, category, description, photo });
+      await onSubmit({ title, category, description, photo });
       form.reset();
       setTitle("");
       setCategory("");
       setDescription("");
       setPhoto(null);
-      if (warning) setNotice(warning);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -202,8 +199,7 @@ export default function AssistanceForm({ onSubmit }) {
         </div>
 
         {error && <p className="text-sm text-red font-medium">{error}</p>}
-        {notice && <p className="text-sm text-orange font-medium">{notice}</p>}
-
+        
         <button
           type="submit"
           disabled={submitting}

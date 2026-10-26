@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { navItems } from "./navItems";
+import { getNavItems } from "./navItems";
 import { LogOut, Settings, Repeat, Home } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
@@ -42,7 +42,7 @@ export function SideBar() {
       <div className="font-display text-xl mb-8 px-2">Lar em Ordem</div>
 
       <nav className="flex flex-col gap-1">
-        {navItems.map((item) => (
+        {getNavItems(activeProfile?.name).map((item) => (
           <SidebarLink
             key={item.path}
             to={item.path}

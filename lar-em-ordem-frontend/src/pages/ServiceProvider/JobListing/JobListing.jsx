@@ -1,13 +1,10 @@
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { OfferCard } from "../../../components/ui/OfferCard";
-import { useState, useEffect } from "react";
-import { getAvailableJobs } from "../../../services/api/jobService";
+import { useAvailableJobs } from "../../../hooks/useAvailableJobs";
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { categoryInfo } from "../../../data/assistanceInfo";
 import { formatRelative } from "../../../utils/date";
-
-const PAGE_SIZE = 10;
-
-
 
 function getPages(page, total) {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -22,87 +19,22 @@ function getPages(page, total) {
   return result;
 }
 
-function normalize(text) {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function addressText(address) {
-  return normalize(
-    [
-      address.district,
-      address.location,
-      address.county,
-      address.street,
-      address.door,
-      address.fraction,
-      address.postalCode,
-    ]
-      .filter(Boolean)
-      .join(" "),
-  );
-}
-
-function matchesQuery(text, query) {
-  return normalize(query)
-    .split(" ")
-    .every((token) => text.includes(token));
-}
-
-function matchesAddress(address, query) {
-  return matchesQuery(addressText(address), query);
-}
-
-
 export default function JobListing() {
   const [search, setSearch] = useState("");
-  const [addressSearch, setAddressSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [location, setLocation] = useState("");
 
-  useEffect(() => {
-    let active = true;
-    getAvailableJobs()
-      .then((list) => {
-        if (active) setJobs(list);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar os pedidos.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  function applyFilter(setter, value) {
-    setter(value);
-    setPage(1);
-  }
+  //so pede ao servidor quando o utilizador para de escrever
+  const debouncedSearch = useDebouncedValue(search).trim();
+  const debouncedLocation = useDebouncedValue(location).trim();
+  const { items: jobs, page, totalPages, total, loading, error, setPage } =
+    useAvailableJobs({ search: debouncedSearch, location: debouncedLocation });
+  const hasFilters = Boolean(debouncedSearch || debouncedLocation);
+  const pages = getPages(page, totalPages);
 
   function clearFilters() {
     setSearch("");
-    setAddressSearch("");
-    setPage(1);
+    setLocation("");
   }
-
-  const filtered = jobs.filter(
-    (job) =>
-      matchesQuery(normalize(`${job.title} ${job.description}`), search) &&
-      matchesAddress(job.address, addressSearch),
-  );
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const pages = getPages(page, totalPages);
 
   return (
     // 8.5rem = footer (~4.25rem) + padding vertical do main (~4rem)
@@ -125,7 +57,7 @@ export default function JobListing() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => applyFilter(setSearch, e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Ex.: caldeira"
                 className="rounded-lg bg-surface px-3 py-2 text-sm text-navy outline-none focus:ring-2 focus:ring-navy/20"
               />
@@ -135,9 +67,9 @@ export default function JobListing() {
               Localidade
               <input
                 type="text"
-                value={addressSearch}
-                onChange={(e) => applyFilter(setAddressSearch, e.target.value)}
-                placeholder="Ex.: Ex.: Porto, Matosinhos"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Ex.: Porto, Matosinhos"
                 className="rounded-lg bg-surface px-3 py-2 text-sm text-navy outline-none focus:ring-2 focus:ring-navy/20"
               />
             </label>
@@ -160,28 +92,25 @@ export default function JobListing() {
                   Pedidos abertos
                 </h2>
                 <p className="text-sm text-muted">
-                  {filtered.length}{" "}
-                  {filtered.length === 1
-                    ? "pedido disponível"
-                    : "pedidos disponíveis"}
+                  {total} {total === 1 ? "pedido disponível" : "pedidos disponíveis"}
                 </p>
               </div>
             </div>
 
-                        {/* lista de tickets */}
+            {/* lista de tickets */}
             {loading ? (
               <p className="text-sm text-muted">A carregar...</p>
             ) : error ? (
               <p className="text-sm text-red">{error}</p>
-            ) : visible.length === 0 ? (
+            ) : jobs.length === 0 ? (
               <p className="text-sm text-muted">
-                {jobs.length === 0
-                  ? "Não há pedidos disponíveis para si neste momento."
-                  : "Nenhum pedido encontrado. Experimente alterar os filtros."}
+                {hasFilters
+                  ? "Nenhum pedido encontrado. Experimente alterar os filtros."
+                  : "Não há pedidos disponíveis para si neste momento."}
               </p>
             ) : (
               <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-2">
-                {visible.map((job) => {
+                {jobs.map((job) => {
                   const { icon, color } = categoryInfo(job.category.slug);
                   return (
                     <OfferCard
@@ -192,7 +121,7 @@ export default function JobListing() {
                       title={job.title}
                       location={job.address.location}
                       postedAt={formatRelative(job.createdAt)}
-                      to={`/teste-offer/${job.id}`}
+                      to={`/prestador/pedidos/${job.id}`}
                     />
                   );
                 })}
@@ -203,7 +132,7 @@ export default function JobListing() {
             {totalPages > 1 && (
               <div className="flex shrink-0 items-center justify-center gap-2 mt-6">
                 <button
-                  onClick={() => setPage((p) => p - 1)}
+                  onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                   aria-label="Página anterior"
                   className="rounded-full p-2 text-muted transition hover:text-navy disabled:opacity-40 disabled:hover:text-muted"
@@ -232,7 +161,7 @@ export default function JobListing() {
                 )}
 
                 <button
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
                   aria-label="Página seguinte"
                   className="rounded-full p-2 text-muted transition hover:text-navy disabled:opacity-40 disabled:hover:text-muted"

@@ -2,7 +2,11 @@
 
 export const ROLE_INFO = {
   resident: { label: "Gestor de casas", hasHouses: true },
-  service_provider: { label: "Prestador de Serviços", hasHouses: false },
+  service_provider: {
+    label: "Prestador de Serviços",
+    hasHouses: false,
+    home: "/prestador/pedidos",
+  },
   partner: { label: "Parceiro", hasHouses: false },
   condominium_admin: { label: "Administrador de Condomínio", hasHouses: false },
 };

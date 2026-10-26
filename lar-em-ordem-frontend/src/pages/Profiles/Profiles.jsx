@@ -33,7 +33,7 @@ export default function Profiles() {
 
   function enter(profile, house) {
     selectProfile(profile, house);
-    navigate("/dashboard");
+    navigate(ROLE_INFO[profile.name]?.home ?? "/dashboard");
   }
 
   //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /perfis
