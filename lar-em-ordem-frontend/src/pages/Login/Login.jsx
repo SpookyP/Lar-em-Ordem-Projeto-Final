@@ -9,18 +9,18 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [erro, setErro] = useState("");
-  const [aEnviar, setAEnviar] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setErro("");
-    setAEnviar(true);
+    setError("");
+    setSubmitting(true);
     try {
       await login(email, password);
-      navigate("/perfis");
-    } catch (erroPedido) {
-      const status = erroPedido.response?.status;
+      navigate("/profiles");
+    } catch (requestError) {
+      const status = requestError.response?.status;
       let message = "Não foi possível iniciar sessão. Tente novamente.";
 
       if (status === 422 || status === 401) {
@@ -28,9 +28,9 @@ export default function Login() {
       } else if (status === 429) {
         message = "Demasiadas tentativas. Aguarde um pouco e tente novamente.";
       }
-      setErro(message);
+      setError(message);
     } finally {
-      setAEnviar(false);
+      setSubmitting(false);
     }
   }
 
@@ -50,7 +50,7 @@ export default function Login() {
           </p>
           <div className="mt-6 flex flex-col gap-3">
             <button
-              onClick={() => navigate("/perfis")}
+              onClick={() => navigate("/profiles")}
               className="rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
             >
               Continuar
@@ -75,9 +75,9 @@ export default function Login() {
           Inicie sessão para continuar
         </p>
 
-        {erro && (
+        {error && (
           <div className="mb-4 rounded-lg bg-red-light px-3 py-2 text-sm text-red">
-            {erro}
+            {error}
           </div>
         )}
 
@@ -103,10 +103,10 @@ export default function Login() {
           </label>
           <button
             type="submit"
-            disabled={aEnviar}
+            disabled={submitting}
             className="mt-2 rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
           >
-            {aEnviar ? "A entrar..." : "Entrar"}
+            {submitting ? "A entrar..." : "Entrar"}
           </button>
           <div className="mt-3 text-center">
             <Link

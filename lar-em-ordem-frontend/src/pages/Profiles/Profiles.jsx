@@ -20,7 +20,7 @@ export default function Profiles() {
   }));
 
   const [searchParams] = useSearchParams();
-  const preselectedName = searchParams.get("perfil");
+  const preselectedName = searchParams.get("profile");
   const preselectedProfile = profiles.find((p) => p.name === preselectedName);
 
   function handleProfileClick(profile) {
@@ -41,7 +41,7 @@ export default function Profiles() {
     navigate("/login");
   }
 
-  //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /perfis
+  //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /profiles
   useEffect(() => {
     if (!user) return;
 
@@ -60,28 +60,23 @@ export default function Profiles() {
 
         const unique = profiles[0];
 
-        //Perfil que n tem casas (prestador/partner)
         if (!unique.hasHouses) {
           enter(unique, null);
           return;
         }
 
-        //meta.total
         const { houses, total } = await getProperties(1);
 
-        //1 casa
         if (total === 1) {
           enter(unique, houses[0]);
           return;
         }
 
-        //0 casas
         if (total === 0) {
           navigate("/welcome");
           return;
         }
 
-        //Varias casas
         setOpenProfile(unique.name);
         setDeciding(false);
       } catch (error) {

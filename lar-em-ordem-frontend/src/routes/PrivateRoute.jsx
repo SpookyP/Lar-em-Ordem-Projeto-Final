@@ -1,22 +1,23 @@
-import {Navigate, Outlet} from 'react-router-dom';
-import {useAuth} from '../hooks/useAuth';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
-export function PrivateRoute({allowedRoles}) {
-    const {isAuthenticated, loading, hasRole} = useAuth();
+export function PrivateRoute({ allowedRoles }) {
+  const { isAuthenticated, loading, hasRole } = useAuth();
 
-    if(loading){
-        return null;
-    }
+  if (loading) {
+    return null;
+  }
 
-    if(!isAuthenticated){
-        return <Navigate to="/login" replace />;
-    }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-    const hasPermission = !allowedRoles || allowedRoles.length === 0 || allowedRoles.some(hasRole);
+  const hasPermission =
+    !allowedRoles || allowedRoles.length === 0 || allowedRoles.some(hasRole);
 
-    if(!hasPermission){
-        return <Navigate to="/nao-autorizado" replace />;
-    } 
+  if (!hasPermission) {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
-    return <Outlet />;
+  return <Outlet />;
 }

@@ -59,7 +59,7 @@ export function AccountActions({ onAction }) {
         <SidebarButton
           icon={Home}
           label="As minhas casas"
-          onClick={() => go(`/perfis?perfil=${activeProfile.name}`)}
+          onClick={() => go(`/profiles?profile=${activeProfile.name}`)}
         />
       )}
 
@@ -68,14 +68,14 @@ export function AccountActions({ onAction }) {
         <SidebarButton
           icon={Repeat}
           label="Trocar de perfil"
-          onClick={() => go("/perfis")}
+          onClick={() => go("/profiles")}
         />
       )}
 
       <SidebarLink
         icon={Settings}
         label="Definições de conta"
-        to="/definicoes"
+        to="/settings"
         onClick={onAction}
       />
 
