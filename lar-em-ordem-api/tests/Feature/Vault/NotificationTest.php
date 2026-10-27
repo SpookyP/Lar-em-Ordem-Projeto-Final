@@ -69,7 +69,6 @@ class NotificationTest extends TestCase
                 'data' => [
                     '*' => [
                         'id',
-                        'property_id',
                         'type',
                         'title',
                         'message',
