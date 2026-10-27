@@ -6,4 +6,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('partners/me', [PartnerController::class, 'showMyProfile']);
 Route::apiResource('partners', PartnerController::class)
+    ->only(['index', 'show'])
     ->whereUlid('partner');

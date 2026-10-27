@@ -58,21 +58,22 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             default            => abort(403),
         };
 
-        $makeRules = function (string $class) use ($user) {
+        // o FormRequest do perfil dá as regras E as mensagens
+        $makeRequest = function (string $class) use ($user) {
             $request = new $class();
             $request->setUserResolver(fn() => $user);
-            return $request->rules();
+            return $request;
         };
 
-        $roleRules = match ($role) {
-            'resident'         => $makeRules(UpdateResidentRequest::class),
-            'partner'          => $makeRules(UpdatePartnerRequest::class),
-            'service_provider' => $makeRules(UpdateServiceProviderRequest::class),
-            default            => [],
+        $roleRequest = match ($role) {
+            'resident'         => $makeRequest(UpdateResidentRequest::class),
+            'partner'          => $makeRequest(UpdatePartnerRequest::class),
+            'service_provider' => $makeRequest(UpdateServiceProviderRequest::class),
         };
 
         // só os campos validados seguem para a frente (nunca o $input bruto: protege user_id, etc.)
-        $validated = Validator::make($input, array_merge($rules, $roleRules))->validateWithBag('updateProfileInformation');
+        $validated = Validator::make($input, array_merge($rules, $roleRequest->rules()), $roleRequest->messages())
+            ->validateWithBag('updateProfileInformation');
 
         DB::transaction(function () use ($user, $input, $validated, $role) {
             $newName = $input['name'] ?? $user->name;

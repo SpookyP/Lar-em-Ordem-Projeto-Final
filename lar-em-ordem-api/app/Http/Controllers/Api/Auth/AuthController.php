@@ -73,20 +73,20 @@ class AuthController extends Controller
 
         $role = $rules['role'];
 
-        $makeRules = function (string $class) use ($user) {
+        // o FormRequest do perfil dá as regras E as mensagens
+        $makeRequest = function (string $class) use ($user) {
             $request = new $class();
             $request->setUserResolver(fn() => $user);
-            return $request->rules();
+            return $request;
         };
 
-        $roleRules = match ($role) {
-            'resident'         => $makeRules(StoreResidentRequest::class),
-            'partner'          => $makeRules(StorePartnerRequest::class),
-            'service_provider' => $makeRules(StoreServiceProviderRequest::class),
-            default            => [],
+        $roleRequest = match ($role) {
+            'resident'         => $makeRequest(StoreResidentRequest::class),
+            'partner'          => $makeRequest(StorePartnerRequest::class),
+            'service_provider' => $makeRequest(StoreServiceProviderRequest::class),
         };
 
-        $validated = $request->validate($roleRules);
+        $validated = $request->validate($roleRequest->rules(), $roleRequest->messages());
 
         $this->profileService->create($user, $role, $validated);
 
