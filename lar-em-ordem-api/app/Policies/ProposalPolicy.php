@@ -48,7 +48,7 @@ class ProposalPolicy
      */
     public function accept(User $user, Proposal $proposal): bool
     {
-        return $proposal->assistanceRequest->user_id === $user->id;
+        return $proposal->assistanceRequest->isOwnedBy($user);
     }
 
     /**
@@ -56,6 +56,6 @@ class ProposalPolicy
      */
      public function reject(User $user, Proposal $proposal): bool
     {
-        return $proposal->assistanceRequest->user_id === $user->id;
+        return $proposal->assistanceRequest->isOwnedBy($user);
     }
 }

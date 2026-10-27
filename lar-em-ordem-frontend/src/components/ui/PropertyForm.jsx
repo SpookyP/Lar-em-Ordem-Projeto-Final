@@ -106,18 +106,18 @@ export function PropertyForm({
         await refreshHouses();
 
         setCreatedSummary({
-          morada: form.fraction
+          address: form.fraction
             ? `${form.street}, ${form.door}, ${form.fraction}, ${form.postal_code}`
             : `${form.street}, ${form.door}, ${form.postal_code}`,
-          localidade: form.location,
+          location: form.location,
           area: form.area,
-          tipo: options.propertyTypes.find(
+          type: options.propertyTypes.find(
             (t) => t.id === Number(form.property_type_id),
           )?.label,
-          tipologia: options.typologies.find(
+          typology: options.typologies.find(
             (t) => t.id === Number(form.property_typology_id),
           )?.label,
-          vinculo: options.residentTypes.find(
+          bond: options.residentTypes.find(
             (t) => t.id === Number(form.resident_type_id),
           )?.label,
         });
@@ -150,19 +150,19 @@ export function PropertyForm({
         <div className="rounded-lg border border-border bg-surface p-4 flex flex-col gap-1 text-sm text-text">
           <p>
             <span className="text-muted">Morada: </span>
-            {createdSummary.morada}
+            {createdSummary.address}
           </p>
           <p>
             <span className="text-muted">Localidade: </span>
-            {createdSummary.localidade}
+            {createdSummary.location}
           </p>
           <p>
             <span className="text-muted">Tipo: </span>
-            {createdSummary.tipo} · {createdSummary.tipologia}
+            {createdSummary.type} · {createdSummary.typology}
           </p>
           <p>
             <span className="text-muted">Vínculo: </span>
-            {createdSummary.vinculo}
+            {createdSummary.bond}
           </p>
           <p>
             <span className="text-muted">Área: </span>

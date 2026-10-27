@@ -25,7 +25,7 @@ class AssistanceRequestPolicy
      */
     public function view(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        if ($assistanceRequest->user_id === $user->id) {
+         if ($assistanceRequest->isOwnedBy($user)) {
             return true;
         }
 
@@ -50,7 +50,7 @@ class AssistanceRequestPolicy
      */
     public function viewProposals(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return $assistanceRequest->user_id === $user->id;
+        return $assistanceRequest->isOwnedBy($user);
     }
 
     /**
@@ -66,7 +66,7 @@ class AssistanceRequestPolicy
      */
     public function update(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return $assistanceRequest->user_id === $user->id;
+        return $assistanceRequest->isOwnedBy($user);
     }
 
     /**
@@ -74,7 +74,7 @@ class AssistanceRequestPolicy
      */
     public function cancel(User $user, AssistanceRequest $assistanceRequest): bool
     {
-        return $assistanceRequest->user_id === $user->id;
+        return $assistanceRequest->isOwnedBy($user);
     }
 
     /**

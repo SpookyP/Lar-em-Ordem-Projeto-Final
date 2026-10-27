@@ -19,7 +19,7 @@ const INITIAL_FORM = {
   description: "",
 };
 
-export default function Registar() {
+export default function Register() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [step, setStep] = useState(1);
@@ -73,7 +73,7 @@ export default function Registar() {
     try {
       setLoading(true);
       await register(payload);
-      navigate("/perfis");
+      navigate("/profiles");
     } catch (error) {
       const errors = error.response?.data?.errors;
       if (errors?.password) {

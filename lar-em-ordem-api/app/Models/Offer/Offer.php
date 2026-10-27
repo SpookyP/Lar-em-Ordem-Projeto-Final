@@ -54,9 +54,8 @@ class Offer extends Model
         $today = now()->toDateString();
 
         return $query->where('active', true)
-            ->where('start_date', '<=', $today)
-            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $today))
+            ->whereDate('start_date', '<=', $today)
+            ->where(fn ($q) => $q->whereNull('end_date')->orWhereDate('end_date', '>=', $today))
             ->whereHas('partner');
     }
-
 }

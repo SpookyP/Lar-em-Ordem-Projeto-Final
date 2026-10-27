@@ -13,10 +13,14 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+use Illuminate\Support\Arr;
+use App\Services\Auth\ProfileService;
 
 class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
+
+    public function __construct(private ProfileService $profileService) {}
 
     /**
      * Validate and create a newly registered user.
@@ -27,22 +31,28 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        $role = $input['role'] ?? null;;
+        $role = $input['role'] ?? null;
         $rules = [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255'],
             'password' => $this->passwordRules(),
-            'role'     => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])], // No Futuro Adicionar 'condominium_admin'
+            'role'     => ['required', 'string', Rule::in(ProfileService::ROLES)], // No Futuro Adicionar 'condominium_admin'
         ];
 
-        $roleRules = match ($role) {
-            'resident' => (new StoreResidentRequest())->rules(),
-            'partner' => (new StorePartnerRequest())->rules(),
-            'service_provider' => (new StoreServiceProviderRequest())->rules(),
-            default => [],
+        // o FormRequest do perfil dá as regras E as mensagens (senão os erros vinham com o texto genérico do Laravel)
+        $roleRequest = match ($role) {
+            'resident'         => new StoreResidentRequest(),
+            'partner'          => new StorePartnerRequest(),
+            'service_provider' => new StoreServiceProviderRequest(),
+            default            => null, // role inválido: falha na regra 'role'
         };
 
-        Validator::make($input, array_merge($rules, $roleRules))->validate();
+        // só os campos validados seguem para o perfil (nunca o $input bruto)
+        $validated = Validator::make(
+            $input,
+            array_merge($rules, $roleRequest?->rules() ?? []),
+            $roleRequest?->messages() ?? []
+        )->validate();
 
         $user = User::where('email', $input['email'])->first();
 
@@ -52,22 +62,9 @@ class CreateNewUser implements CreatesNewUsers
                     'password' => ['Invalid credentials for existing account.']
                 ]);
             }
-
-            $alreadyHasProfile = match ($role) {
-                'resident'         => $user->resident()->exists(),
-                'service_provider' => $user->service_provider()->exists(),
-                'partner'          => $user->partner()->exists(),
-                default            => false,
-            };
-
-            if ($alreadyHasProfile) {
-                throw ValidationException::withMessages([
-                    'role' => ["User already has a {$role} profile."],
-                ]);
-            }
         }
 
-        return DB::transaction(function () use ($input, $user, $role) {
+            return DB::transaction(function () use ($input, $validated, $user, $role) {
             if (!$user) {
                 $user = User::create([
                     'name'     => $input['name'],
@@ -76,37 +73,11 @@ class CreateNewUser implements CreatesNewUsers
                 ]);
             }
 
-            if ($role) {
-                if (!$user->hasRole($role)) {
-                    $user->assignRole($role);
-                }
-            }
-
-            match ($role) {
-                'resident' => $user->resident()->create([
-                    'nif'  => $input['nif'],
-                ]),
-
-                'partner' => $user->partner()->create([
-                    'company_name' => $input['company_name'],
-                    'nif'         => $input['nif'],
-                    'phone'       => $input['phone'],
-                    'website'     => $input['website'] ?? null,
-                    'description' => $input['description'],
-                ]),
-
-                'service_provider' => $user->service_provider()->create([
-                    'company_name' => $input['company_name'],
-                    'nif'          => $input['nif'],
-                    'phone'        => $input['phone'],
-                    'provider_email' => $input['provider_email'] ?? null,
-                    'description'  => $input['description'],
-                ]),
-
-                default => null,
-            };
+            // perfil + role (e zonas/especialidades do prestador) — "já tem este perfil" dá 422
+            $this->profileService->create($user, $role, Arr::except($validated, ['name', 'email', 'password', 'role']));
 
             return $user;
         });
     }
 }
+

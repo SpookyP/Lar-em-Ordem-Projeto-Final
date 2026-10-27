@@ -100,7 +100,7 @@ class DocumentTest extends TestCase
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = DocumentCategory::factory()->create();
 
-        $file = UploadedFile::fake()->image('photo.jpg');
+        $file = UploadedFile::fake()->create('documento.txt', 100, 'text/plain');
 
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/v1/properties/{$property->id}/documents", [
             'property_id' => $property->id,

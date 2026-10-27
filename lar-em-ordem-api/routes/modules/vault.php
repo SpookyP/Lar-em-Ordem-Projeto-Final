@@ -14,4 +14,8 @@ Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
 
 // Notificações
 Route::get('/properties/{property}/notifications', [NotificationController::class, 'index']);
+Route::get('/properties/{property}/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+Route::patch('/properties/{property}/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
 Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);

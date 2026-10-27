@@ -4,48 +4,72 @@ namespace App\Services\Vault;
 
 use App\Models\Vault\Document;
 use App\Models\Vault\Notification;
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
 
 class DocumentExpiryService
 {
     /**
-     * Verifica documentos a expirar num intervalo de dias e gera notificações.
-     * Retorna o número total de novos alertas criados para efeitos de log.
+     * Verifica todos os documentos com data de validade definida (usado pelo Job diário).
      */
-    public function generateExpiryAlerts(int $daysWarning = 30): int
+    public function checkAllDocuments(): int
     {
-        // Define a janela temporal de pesquisa.
-        // startOfDay() garante que a pesquisa começa às 00:00:00.
-        $targetDate = now()->addDays($daysWarning)->startOfDay();
-        $today = now()->startOfDay();
+        $count = 0;
 
-        $notificationsCreated = 0;
+        Document::whereNotNull('expiration_date')
+            ->chunkById(100, function ($documents) use (&$count) {
+                foreach ($documents as $document) {
+                    if ($this->checkSingleDocument($document)) {
+                        $count++;
+                    }
+                }
+            });
 
-        // Procurar documentos cuja validade cai entre hoje e daqui a 30 dias
-        $expiringDocuments = Document::whereNotNull('expiration_date')
-            ->whereBetween('expiration_date', [$today, $targetDate])
-            ->get();
+        return $count;
+    }
 
-        foreach ($expiringDocuments as $document) {
-            // Verificar se já gerámos um alerta de caducidade para este documento específico
-            $alertExists = Notification::where('document_id', $document->id)
-                ->where('type', 'document_expiry')
-                ->exists();
-
-            if (!$alertExists) {
-                Notification::create([
-                    'property_id' => $document->property_id,
-                    'document_id' => $document->id,
-                    'type' => 'document_expiry',
-                    'title' => 'Documento a Expirar',
-                    'message' => "O documento '{$document->name}' expira no dia " . Carbon::parse($document->expiration_date)->format('d/m/Y') . ".",
-                    'alert_date' => now(),
-                ]);
-
-                $notificationsCreated++;
-            }
+    /**
+     * Avalia a validade de um único documento e cria notificação se estiver nos escalões de alerta.
+     */
+    public function checkSingleDocument(Document $document): ?Notification
+    {
+        if (!$document->expiration_date) {
+            return null;
         }
 
-        return $notificationsCreated;
+        $today = Carbon::today();
+        $expiryDate = Carbon::parse($document->expiration_date)->startOfDay();
+        $daysLeft = $today->diffInDays($expiryDate, false); // Negativo se já expirou
+
+        // Definir o escalão de alerta
+        if ($daysLeft < 0) {
+            $type = 'expired';
+            $title = "Documento Expirado: {$document->name}";
+            $message = "O documento '{$document->name}' expirou em {$expiryDate->format('d/m/Y')}.";
+        } elseif ($daysLeft <= 7) {
+            $type = 'expiring_7_days';
+            $title = "Urgente: {$document->name} expira em {$daysLeft} dias";
+            $message = "O documento '{$document->name}' perde a validade a {$expiryDate->format('d/m/Y')}.";
+        } elseif ($daysLeft <= 30) {
+            $type = 'expiring_30_days';
+            $title = "Aviso: {$document->name} expira em {$daysLeft} dias";
+            $message = "Renove o documento '{$document->name}' antes de {$expiryDate->format('d/m/Y')}.";
+        } else {
+            return null; // Mais de 30 dias de validade, não gera alerta
+        }
+
+        // firstOrCreate evita criar notificações repetidas para o mesmo documento e escalão
+        return Notification::firstOrCreate(
+            [
+                'property_id' => $document->property_id,
+                'document_id' => $document->id,
+                'type'        => $type,
+            ],
+            [
+                'title'      => $title,
+                'message'    => $message,
+                'alert_date' => now(),
+                'read_at'    => null,
+            ]
+        );
     }
 }

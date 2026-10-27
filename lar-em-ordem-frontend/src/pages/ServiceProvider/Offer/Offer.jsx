@@ -15,7 +15,7 @@ export default function Offer() {
 
   async function handleSubmit(data) {
     await createProposal(id, data);
-    navigate("/prestador/propostas");
+    navigate("/provider/proposals");
   }
 
   const { icon: Icon, color } = categoryInfo(request?.category.slug);
@@ -24,7 +24,7 @@ export default function Offer() {
     <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="flex shrink-0 items-center gap-4">
         <Link
-          to="/prestador/pedidos"
+          to="/provider/requests"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-sm text-muted transition hover:text-navy"
           aria-label="Voltar"
         >
@@ -48,7 +48,7 @@ export default function Offer() {
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-2 pb-6">
           {/* Banner com Categoria */}
-          <div className="relative flex shrink-0 items-end justify-between overflow-hidden rounded-2xl bg-navy p-8 text-white min-h-[140px] shadow-sm">
+          <div className="relative flex shrink-0 items-end justify-between overflow-hidden rounded-2xl bg-navy p-8 text-white min-h-35 shadow-sm">
             <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-10">
               <Icon size={120} />
             </div>
@@ -63,7 +63,9 @@ export default function Offer() {
           {/* Detalhes do Pedido */}
           <div className="rounded-2xl bg-card p-8 shadow-sm flex flex-col gap-6 shrink-0">
             <div className="flex flex-col gap-2">
-              <h2 className="font-display text-xl text-navy">{request.title}</h2>
+              <h2 className="font-display text-xl text-navy">
+                {request.title}
+              </h2>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
                 <span className="flex items-center gap-1.5">
@@ -79,7 +81,7 @@ export default function Offer() {
 
             <div className="flex flex-col gap-2 border-t border-surface pt-4">
               <h3 className="text-sm font-semibold text-muted">Descrição</h3>
-              <p className="text-sm text-navy leading-relaxed whitespace-pre-line break-words">
+              <p className="text-sm text-navy leading-relaxed whitespace-pre-line wrap-break-word">
                 {request.description}
               </p>
             </div>

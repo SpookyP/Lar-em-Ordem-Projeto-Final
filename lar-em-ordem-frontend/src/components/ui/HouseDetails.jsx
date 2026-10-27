@@ -23,8 +23,8 @@ export function HouseDetails() {
     }
     setLoading(true);
     getProperty(activeHouse.id)
-      .then((dados) => {
-        if (active) setHouse(dados);
+      .then((data) => {
+        if (active) setHouse(data);
       })
       .catch(() => {
         if (active) setError("Não foi possível carregar a habitação.");
@@ -44,13 +44,13 @@ export function HouseDetails() {
   if (!house) return null;
 
   const a = house.address;
-  const morada = [a.street, a.door, a.fraction].filter(Boolean).join(", ");
+  const addressLine = [a.street, a.door, a.fraction].filter(Boolean).join(", ");
 
   return (
     <div className="flex flex-col gap-4">
       <h2 className="font-medium text-text">A minha habitação</h2>
       <dl className="flex flex-col gap-3 text-sm">
-        <DataRow label="Morada" value={morada} />
+        <DataRow label="Morada" value={addressLine} />
         <DataRow label="Código postal" value={a.postalCode} />
         <DataRow label="Localidade" value={a.location} />
         <DataRow label="Concelho" value={a.county} />

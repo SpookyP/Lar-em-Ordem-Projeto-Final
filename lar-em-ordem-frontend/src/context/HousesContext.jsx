@@ -1,34 +1,28 @@
 import { useState, useEffect } from "react";
 import { HousesContext } from "./housesContextObject";
 import { useAuth } from "../hooks/useAuth";
-import { getAllProperties } from "../services/api/propertyService";
+import { getProperties } from "../services/api/propertyService";
 import { ROLE_INFO } from "../data/roleInfo";
 
 export function HousesProvider({ children }) {
   const { user } = useAuth();
-  const [houses, setHouses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
     let active = true;
-
     const hasHouses = (user?.roles ?? []).some((r) => ROLE_INFO[r]?.hasHouses);
 
     if (!user || !hasHouses) {
-      setHouses([]);
+      setCount(0);
       return;
     }
 
-    setLoading(true);
-    getAllProperties()
-      .then((lista) => {
-        if (active) setHouses(lista);
+    getProperties(1)
+      .then((data) => {
+        if (active) setCount(data.total);
       })
       .catch(() => {
-        if (active) setHouses([]);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
+        if (active) setCount(0);
       });
 
     return () => {
@@ -37,16 +31,11 @@ export function HousesProvider({ children }) {
   }, [user]);
 
   async function refreshHouses() {
-    setLoading(true);
-    try {
-      const lista = await getAllProperties();
-      setHouses(lista);
-    } finally {
-      setLoading(false);
-    }
+    const data = await getProperties(1);
+    setCount(data.total);
   }
 
-  const value = { houses, loading, refreshHouses };
+  const value = { count, refreshHouses };
 
   return (
     <HousesContext.Provider value={value}>{children}</HousesContext.Provider>

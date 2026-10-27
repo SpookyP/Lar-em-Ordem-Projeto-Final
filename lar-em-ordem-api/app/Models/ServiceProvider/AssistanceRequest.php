@@ -10,15 +10,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\User\Resident;
 
 class AssistanceRequest extends Model
 {
      /** @use HasFactory<\Database\Factories\ServiceProvider\AssistanceRequestFactory> */
     use HasFactory, SoftDeletes, HasUlids;
 
-    public function user()
+    public function resident()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Resident::class);
     }
 
     public function property()
@@ -40,6 +41,19 @@ class AssistanceRequest extends Model
     {
         return $this->hasMany(Proposal::class);
     }
+
+    /**
+     * O pedido é deste utilizador? (compara com o perfil de residente dele)
+     *
+     * @param User|null $user Utilizador autenticado.
+     * @return bool
+     */
+    public function isOwnedBy(?User $user): bool
+    {
+        $residentId = $user?->resident?->id;
+
+        return $residentId !== null && $this->resident_id === $residentId;
+    }
     
     /**
      * A proposta aceite deste pedido (no máximo uma).
@@ -51,7 +65,7 @@ class AssistanceRequest extends Model
 
    protected $fillable = [
         'property_id',
-        'user_id',
+        'resident_id',
         'problem_category_id',
         'title',
         'description',
@@ -101,7 +115,7 @@ class AssistanceRequest extends Model
         }
 
         return $query->where('status', 'open')
-            ->where('user_id', '!=', $provider->user_id)
+            ->whereHas('resident', fn (Builder $r) => $r->where('user_id', '!=', $provider->user_id))
             ->whereIn('problem_category_id', $categoryIds)
             ->whereDoesntHave('proposals', fn (Builder $q) => $q->where('service_provider_id', $provider->id))
             ->whereHas('property.address', function (Builder $address) use ($counties) {
@@ -114,5 +128,4 @@ class AssistanceRequest extends Model
                 });
             });
     }
-
 }

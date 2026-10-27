@@ -19,7 +19,7 @@ export function DeleteProfile() {
     try {
       await deleteProfile(role);
       await refreshUser();
-      navigate("/perfis");
+      navigate("/profiles");
     } catch (err) {
       setStatus(null);
       setError(
