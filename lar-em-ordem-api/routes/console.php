@@ -9,7 +9,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::job(new CheckDocumentExpiry)->dailyAt('00:00');
+Schedule::job(new CheckDocumentExpiry)->dailyAt('08:00');
 
 // Criar Benchmarks do mes ou ano aumaticamente
 Schedule::command('benchmarks:monthly')

@@ -10,7 +10,8 @@ class DocumentService
 {
     public function __construct(
         protected PdfExtractionService $pdfExtractionService,
-        protected FileStorageService $fileStorageService
+        protected FileStorageService $fileStorageService,
+        protected DocumentExpiryService $documentExpiryService
     ) {}
 
     public function processAndSaveDocument(array $validatedData, UploadedFile $file): Document
@@ -40,8 +41,8 @@ class DocumentService
             ?? ($extractedData['suggested_title'] ?? $extractedData['dados']['tipo_documento'] ?? null)
             ?? $file->getClientOriginalName();
 
-        // Guarda o Documento com a Foreign Key (file_id) correta
-        return Document::create([
+        // Guardar na variável em vez de fazer return imediato
+        $document = Document::create([
             'property_id' => $validatedData['property_id'],
             'document_category_id' => $validatedData['document_category_id'],
             'name' => $documentName,
@@ -51,5 +52,12 @@ class DocumentService
             'expiration_date' => $expirationDate,
             'extracted_data' => $extractedData,
         ]);
+
+        // Disparar a verificação de validade
+        // Se a data de validade extraída estiver a expirar, a notificação é criada na hora.
+        $this->documentExpiryService->checkSingleDocument($document);
+
+        // Devolver o documento
+        return $document;
     }
 }
