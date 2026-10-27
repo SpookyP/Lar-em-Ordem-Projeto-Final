@@ -11,6 +11,7 @@ use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\Proposal;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Models\User\User;
+use App\Models\User\Resident;
 use Illuminate\Http\Request;
 use Tests\TestCase;
 
@@ -22,12 +23,19 @@ class ResourcesTest extends TestCase
 {
     // ---------------------------------------------------------------- helpers
 
-    /** Utilizador em memória, sem roles (o hasRole não precisa de ir à base de dados). */
+    /**
+     * Utilizador em memória, sem roles (o hasRole não precisa de ir à base de dados),
+     * com perfil de residente "res-{id}".
+     */
     private function utilizador(string $id): User
     {
         $user = new User();
         $user->id = $id;
         $user->setRelation('roles', collect());
+
+        $residente = new Resident();
+        $residente->id = "res-{$id}";
+        $user->setRelation('resident', $residente);
 
         return $user;
     }
@@ -58,7 +66,7 @@ class ResourcesTest extends TestCase
 
         $pedido = new AssistanceRequest(['title' => 'Tomada', 'status' => 'open']);
         $pedido->id = 'pedido-1';
-        $pedido->user_id = 'dono';
+        $pedido->resident_id = 'res-dono';
         $pedido->setRelation('property', $casa);
 
         $aceite = null;
@@ -121,7 +129,7 @@ class ResourcesTest extends TestCase
     public function test_relacoes_nao_carregadas_nao_aparecem_na_resposta(): void
     {
         $pedido = new AssistanceRequest(['title' => 'Tomada', 'status' => 'open']);
-        $pedido->user_id = 'dono';
+        $pedido->resident_id = 'res-dono';
 
         $dados = (new AssistanceRequestResource($pedido))->resolve($this->pedidoHttp($this->utilizador('dono')));
 
