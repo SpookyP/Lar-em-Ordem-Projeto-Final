@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { accountTypes, roleFields } from "../../data/registerFields";
 import { useAuth } from "../../hooks/useAuth";
 import { Field } from "../../components/ui/Field";
 import { isPasswordValid } from "../../utils/passwordValidation";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
+import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
+import { getSocialPending } from "../../services/api/authService";
+import { getErrorMessage } from "../../utils/apiError";
 
 const INITIAL_FORM = {
   name: "",
@@ -19,6 +22,8 @@ const INITIAL_FORM = {
   description: "",
 };
 
+const PROVIDER_NAMES = { google: "Google", microsoft: "Microsoft" };
+
 export default function Register() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
@@ -26,9 +31,50 @@ export default function Register() {
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, registerSocial } = useAuth();
 
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const wantsSocial = searchParams.get("social") === "1";
+  const [social, setSocial] = useState(null);
+  const [socialStatus, setSocialStatus] = useState(
+    wantsSocial ? "checking" : "idle",
+  );
+
+  useEffect(() => {
+    if (!wantsSocial) return;
+
+    //em desenvolvimento (StrictMode) este efeito corre duas vezes: ignora a resposta da primeira
+    let cancelled = false;
+
+    getSocialPending()
+      .then((data) => {
+        if (cancelled) return;
+        setSocial(data);
+        setSocialStatus("ok");
+      })
+      .catch(() => {
+        if (!cancelled) setSocialStatus("expired");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [wantsSocial]);
+
+  const checkingSocial = wantsSocial && socialStatus === "checking";
+  const socialExpired = wantsSocial && socialStatus === "expired";
+  const socialMode = wantsSocial && socialStatus === "ok" && social !== null;
+
+  //no registo social nao ha passo 1: nome e email vieram do fornecedor e nao ha password
+  const currentStep = socialMode ? 2 : step;
+
+  const shownError =
+    error ||
+    (socialExpired
+      ? "O registo expirou. Volte a entrar com Google ou Microsoft."
+      : "");
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -59,24 +105,37 @@ export default function Register() {
       return;
     }
 
-    const payload = {
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      password_confirmation: form.password_confirmation,
-      role: role,
-    };
+    const payload = socialMode
+      ? { role: role }
+      : {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          password_confirmation: form.password_confirmation,
+          role: role,
+        };
     roleFields[role].forEach((field) => {
       payload[field.name] = form[field.name];
     });
 
     try {
       setLoading(true);
-      await register(payload);
+      if (socialMode) {
+        await registerSocial(payload);
+      } else {
+        await register(payload);
+      }
       navigate("/profiles");
     } catch (error) {
       const errors = error.response?.data?.errors;
-      if (errors?.password) {
+      if (socialMode) {
+        setError(
+          getErrorMessage(
+            error,
+            "Não foi possível criar a conta. Verifique os dados.",
+          ),
+        );
+      } else if (errors?.password) {
         setError(
           "A password escolhida não é segura. Por favor, escolha outra.",
         );
@@ -90,19 +149,40 @@ export default function Register() {
     }
   }
 
+  if (checkingSocial) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center p-6">
+        <p className="text-muted">A verificar o registo...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center p-6">
       <div className="w-full max-w-md rounded-2xl bg-card border border-border p-8">
         <h1 className="font-display text-3xl text-navy">Criar conta</h1>
-        <p className="text-muted mb-6">Passo {step} de 2</p>
+        {socialMode ? (
+          <p className="text-muted mb-6">
+            A continuar com{" "}
+            {Object.hasOwn(PROVIDER_NAMES, social.provider)
+              ? PROVIDER_NAMES[social.provider]
+              : "o seu fornecedor"}
+            : <span className="font-medium text-text">{social.name}</span> (
+            {social.email}). Falta escolher o tipo de conta.
+          </p>
+        ) : (
+          <p className="text-muted mb-6">Passo {currentStep} de 2</p>
+        )}
 
-        {error && (
+        {shownError && (
           <p className="mb-4 rounded-lg bg-red-light px-3 py-2 text-sm text-red">
-            {error}
+            {shownError}
           </p>
         )}
 
-        {step === 1 && (
+        {currentStep === 1 && <SocialLoginButtons />}
+
+        {currentStep === 1 && (
           <form onSubmit={handleNext} className="flex flex-col gap-4">
             <Field
               label="Nome"
@@ -160,7 +240,7 @@ export default function Register() {
           </form>
         )}
 
-        {step === 2 && (
+        {currentStep === 2 && (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <p className="mb-2 text-sm text-muted">Tipo de Conta</p>
@@ -195,13 +275,22 @@ export default function Register() {
               ))}
 
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="flex-1 rounded-lg border border-border px-4 py-2 font-medium text-text transition hover:bg-surface"
-              >
-                Voltar
-              </button>
+              {socialMode ? (
+                <Link
+                  to="/register"
+                  className="flex-1 rounded-lg border border-border px-4 py-2 text-center font-medium text-text transition hover:bg-surface"
+                >
+                  Cancelar
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="flex-1 rounded-lg border border-border px-4 py-2 font-medium text-text transition hover:bg-surface"
+                >
+                  Voltar
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={loading}
