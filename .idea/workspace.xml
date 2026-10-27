@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Correção, script de extração de documentos">
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Hotfix Tests - namespace">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Jobs/CheckDocumentExpiry.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Jobs/CheckDocumentExpiry.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentExpiryService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentExpiryService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/console.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/console.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Resources/Vault/NotificationResource.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Resources/Vault/NotificationResource.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Property/Property.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Property/Property.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/bootstrap/cache/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/bootstrap/cache/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/database/seeders/DatabaseSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/database/seeders/DatabaseSeeder.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/app/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/app/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/app/private/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/app/private/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/app/public/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/app/public/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/cache/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/cache/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/cache/data/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/cache/data/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/lsp-0126e2664a599169.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/lsp-0126e2664a599169.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/sessions/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/sessions/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/testing/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/testing/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/views/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/framework/views/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/storage/logs/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/storage/logs/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -232,8 +245,7 @@
     "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "feature/Notificacoes",
-    "last_opened_file_path": "/home/hyper/Área de Trabalho/FT01_Flexbox",
+    "git-widget-placeholder": "feature/EndPoints__Notificacoes",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -281,13 +293,7 @@
       <workItem from="1791397326481" duration="8000" />
       <workItem from="1791401542350" duration="2932000" />
       <workItem from="1791571050933" duration="2788000" />
-      <workItem from="1792139934834" duration="1299000" />
-      <workItem from="1792181366832" duration="111000" />
-      <workItem from="1792428653948" duration="3455000" />
-      <workItem from="1792446934464" duration="1201000" />
-      <workItem from="1792528192484" duration="19000" />
-      <workItem from="1792694056335" duration="10255000" />
-      <workItem from="1793119847434" duration="2299000" />
+      <workItem from="1792101295562" duration="1001000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -363,19 +369,19 @@
     </task>
     <task id="LOCAL-00010" summary="Hotfix Tests">
       <option name="closed" value="true" />
-      <created>1792098415504</created>
+      <created>1792099782527</created>
       <option name="number" value="00010" />
       <option name="presentableId" value="LOCAL-00010" />
       <option name="project" value="LOCAL" />
-      <updated>1792098415504</updated>
+      <updated>1792099782527</updated>
     </task>
-    <task id="LOCAL-00011" summary="Hotfix Tests">
+    <task id="LOCAL-00011" summary="Hotfix Tests - namespace">
       <option name="closed" value="true" />
-      <created>1792098431411</created>
+      <created>1792099801938</created>
       <option name="number" value="00011" />
       <option name="presentableId" value="LOCAL-00011" />
       <option name="project" value="LOCAL" />
-      <updated>1792098431411</updated>
+      <updated>1792099801938</updated>
     </task>
     <option name="localTasksCounter" value="12" />
     <servers />
@@ -402,7 +408,8 @@
     <MESSAGE value="Readme e Python" />
     <MESSAGE value="Hotfix Geral" />
     <MESSAGE value="Hotfix Tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="Hotfix Tests" />
+    <MESSAGE value="Hotfix Tests - namespace" />
+    <option name="LAST_COMMIT_MESSAGE" value="Hotfix Tests - namespace" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -4,6 +4,7 @@ namespace App\Models\Property;
 
 use App\Models\Condominium\Condominium;
 use App\Models\User\Resident;
+use App\Models\Vault\Notification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -51,4 +52,9 @@ class Property extends Model
     public function contracts(){
         	return $this->hasMany(PropertyContract::class);
 	}
+
+    public function notifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
 }
