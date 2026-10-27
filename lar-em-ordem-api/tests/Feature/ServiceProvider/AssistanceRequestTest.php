@@ -107,7 +107,7 @@ class AssistanceRequestTest extends TestCase
             'is_active'   => true,
         ]);
         AssistanceRequest::factory()->create([
-            'user_id'             => $this->morador->id,
+            'resident_id'         => $this->morador->resident->id,
             'property_id'         => $outraCasa->id,
             'problem_category_id' => 1,
         ]);
@@ -183,7 +183,7 @@ class AssistanceRequestTest extends TestCase
 
         $this->assertDatabaseHas('assistance_requests', [
             'title'   => 'Torneira a pingar',
-            'user_id' => $this->morador->id,
+            'resident_id' => $this->morador->resident->id,
             'status'  => 'open',
         ]);
     }
@@ -215,15 +215,16 @@ class AssistanceRequestTest extends TestCase
     {
         $this->actingAs($this->morador)
             ->postJson('/api/v1/assistance-requests', $this->dadosNovoPedido([
-                'user_id' => $this->servicos->id,
-                'status'  => 'closed',
+                'resident_id' => User::where('email', 'residente@example.com')->first()->resident->id,
+                'user_id'     => $this->servicos->id,
+                'status'      => 'closed',
             ]))
             ->assertCreated()
             ->assertJsonPath('data.status', 'open');
 
         $this->assertDatabaseHas('assistance_requests', [
-            'title'   => 'Torneira a pingar',
-            'user_id' => $this->morador->id,
+            'title'       => 'Torneira a pingar',
+            'resident_id' => $this->morador->resident->id,
         ]);
     }
 
@@ -469,6 +470,27 @@ class AssistanceRequestTest extends TestCase
             ->assertOk()
             ->assertJsonPath('meta.per_page', 1)
             ->assertJsonPath('meta.total', 1);
+    }
+    public function test_o_prestador_nao_ve_os_pedidos_que_abriu_como_residente(): void
+    {
+        // o "Serviçinhos Lda" (residente@example.com) também é residente: abre um pedido de eletricidade em Matosinhos
+        $eletricidade = ProblemCategory::where('name', 'Eletricidade')->value('id');
+        AssistanceRequest::factory()->create([
+            'resident_id'         => $this->servicinhos->resident->id,
+            'property_id'         => $this->casa,
+            'problem_category_id' => $eletricidade,
+            'title'               => 'Luz da cozinha',
+        ]);
+
+        // o "Serviços Lda" (eletricidade, Matosinhos) vê-o
+        $this->assertContains('Luz da cozinha', collect(
+            $this->actingAs($this->servicos)->getJson('/api/v1/assistance-requests/available')->json('data')
+        )->pluck('title'));
+
+        // o próprio, como prestador, não
+        $this->assertNotContains('Luz da cozinha', collect(
+            $this->actingAs($this->servicinhos)->getJson('/api/v1/assistance-requests/available')->json('data')
+        )->pluck('title'));
     }
 
     public function test_so_prestadores_veem_os_pedidos_disponiveis(): void

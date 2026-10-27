@@ -27,7 +27,7 @@ class AssistanceRequestService
      */
     public function listRequestsByUser(User $user, string $propertyId, ?string $status = null, int $perPage = 5): LengthAwarePaginator
     {
-        return AssistanceRequest::where('user_id', $user->id)
+        return AssistanceRequest::where('resident_id', $user->resident?->id)
             ->where('property_id', $propertyId)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->with(['property.address', 'problemCategory'])
@@ -77,7 +77,7 @@ class AssistanceRequestService
 
         $assistanceRequest = DB::transaction(function () use ($data, $owner) {
             $assistanceRequest = AssistanceRequest::create(Arr::except($data, 'images') + [
-                'user_id' => $owner->id,
+                'resident_id' => $owner->resident->id,
             ]);
 
             $this->attachmentService->sync($assistanceRequest, $data['images'] ?? []);

@@ -9,11 +9,11 @@ class AssistanceRequestResource extends JsonResource
 {
    public function toArray(Request $request): array
     {
-        $userId = $request->user()?->id;
+        $user = $request->user();
 
-        $canSeeAddress = $userId === $this->user_id
-            || ($this->relationLoaded('acceptedProposal')
-                && $this->acceptedProposal?->serviceProvider?->user_id === $userId);
+        $canSeeAddress = $this->resource->isOwnedBy($user)
+            || ($user && $this->relationLoaded('acceptedProposal')
+                && $this->acceptedProposal?->serviceProvider?->user_id === $user->id);
 
         return [
             'id'                => $this->id,

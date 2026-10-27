@@ -5,7 +5,7 @@ namespace Database\Factories\ServiceProvider;
 use App\Models\Property\Property;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\ProblemCategory;
-use App\Models\User\User;
+use App\Models\User\Resident;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,7 +22,7 @@ class AssistanceRequestFactory extends Factory
     {
         return [
             'property_id'         => Property::factory(),
-            'user_id'             => User::factory(),
+            'resident_id'         => Resident::factory(),
             'problem_category_id' => ProblemCategory::factory(),
             'title'               => fake()->sentence(4),
             'description'         => fake()->paragraph(),
