@@ -26,8 +26,18 @@ export default function JobListing() {
   //so pede ao servidor quando o utilizador para de escrever
   const debouncedSearch = useDebouncedValue(search).trim();
   const debouncedLocation = useDebouncedValue(location).trim();
-  const { items: jobs, page, totalPages, total, loading, error, setPage } =
-    useAvailableJobs({ search: debouncedSearch, location: debouncedLocation });
+  const {
+    items: jobs,
+    page,
+    totalPages,
+    total,
+    loading,
+    error,
+    setPage,
+  } = useAvailableJobs({
+    search: debouncedSearch,
+    location: debouncedLocation,
+  });
   const hasFilters = Boolean(debouncedSearch || debouncedLocation);
   const pages = getPages(page, totalPages);
 
@@ -92,7 +102,8 @@ export default function JobListing() {
                   Pedidos abertos
                 </h2>
                 <p className="text-sm text-muted">
-                  {total} {total === 1 ? "pedido disponível" : "pedidos disponíveis"}
+                  {total}{" "}
+                  {total === 1 ? "pedido disponível" : "pedidos disponíveis"}
                 </p>
               </div>
             </div>
@@ -121,7 +132,7 @@ export default function JobListing() {
                       title={job.title}
                       location={job.address.location}
                       postedAt={formatRelative(job.createdAt)}
-                      to={`/prestador/pedidos/${job.id}`}
+                      to={`/provider/requests/${job.id}`}
                     />
                   );
                 })}
