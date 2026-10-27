@@ -12,8 +12,9 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * Prestadores de serviços (módulo 6): listagem, perfil próprio, detalhe,
- * criação e edição com zonas e especialidades num só pedido, e remoção.
+ * Prestadores de serviços (módulo 6): listagem, perfil próprio e detalhe.
+ * A criação, a edição (com zonas e especialidades num só pedido) e a remoção do perfil passam pelos
+ * endpoints dos perfis (POST/DELETE /api/user/profile e PUT /user/profile-information), que usam o ServiceProviderService.
  * Usa os dados do ServiceProviderSeeder ("Serviços Lda" = service@example.com).
  */
 class ServiceProviderTest extends TestCase
@@ -49,6 +50,7 @@ class ServiceProviderTest extends TestCase
     private function dadosPrestador(array $extra = []): array
     {
         return $extra + [
+            'role'         => 'service_provider',
             'company_name' => 'Reparações Lda',
             'nif'          => '123456789',
             'phone'        => '912345678',
@@ -59,6 +61,19 @@ class ServiceProviderTest extends TestCase
     private function idServicos(): string
     {
         return $this->servicos->service_provider->id;
+    }
+
+    /** Edita o perfil de prestador do "Serviços Lda" (o Fortify responde 200 sem corpo). */
+    private function editar(array $dados)
+    {
+        return $this->actingAs($this->servicos)
+            ->putJson('/user/profile-information', ['role' => 'service_provider'] + $dados);
+    }
+
+    /** O perfil do "Serviços Lda" tal como a API o mostra. */
+    private function meuPerfil()
+    {
+        return $this->actingAs($this->servicos)->getJson('/api/v1/service-providers/me')->assertOk();
     }
 
     // ------------------------------------------------------------ index / me
@@ -127,19 +142,20 @@ class ServiceProviderTest extends TestCase
             ->assertJsonMissingPath('data.active');
     }
 
-    // ------------------------------------------------------------------ store
+    // ------------------------------------------ criação (POST /api/user/profile)
 
     public function test_cria_o_perfil_sem_zonas_nem_especialidades(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/service-providers', $this->dadosPrestador())
-            ->assertCreated()
-            ->assertJsonPath('data.nif', '123456789')
-            ->assertJsonCount(0, 'data.zones')
-            ->assertJsonCount(0, 'data.specialties');
+            ->postJson('/api/user/profile', $this->dadosPrestador())
+            ->assertCreated();
 
+        $prestador = $user->fresh()->service_provider;
+        $this->assertSame('123456789', $prestador->nif);
+        $this->assertCount(0, $prestador->zones);
+        $this->assertCount(0, $prestador->specialties);
         $this->assertTrue($user->fresh()->hasRole('service_provider'));
     }
 
@@ -148,17 +164,18 @@ class ServiceProviderTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/service-providers', $this->dadosPrestador([
+            ->postJson('/api/user/profile', $this->dadosPrestador([
                 'zone_ids'              => [$this->zonas[0], $this->zonas[1]],
                 'service_specialty_ids' => [$this->especialidades[0], $this->especialidades[1]],
                 'custom_specialties'    => [['problem_category_id' => $this->canalizacao, 'name' => 'Pladur']],
             ]))
-            ->assertCreated()
-            ->assertJsonCount(2, 'data.zones')
-            ->assertJsonCount(3, 'data.specialties');
+            ->assertCreated();
 
+        $prestador = $user->fresh()->service_provider;
+        $this->assertCount(2, $prestador->zones);
+        $this->assertCount(3, $prestador->specialties);
         $this->assertDatabaseHas('provider_specialties', [
-            'service_provider_id' => $user->service_provider->id,
+            'service_provider_id' => $prestador->id,
             'custom_name'         => 'Pladur',
         ]);
     }
@@ -168,7 +185,7 @@ class ServiceProviderTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/service-providers', $this->dadosPrestador(['user_id' => $this->morador->id]))
+            ->postJson('/api/user/profile', $this->dadosPrestador(['user_id' => $this->morador->id]))
             ->assertCreated();
 
         $this->assertNotNull($user->fresh()->service_provider);
@@ -178,9 +195,9 @@ class ServiceProviderTest extends TestCase
     public function test_cada_utilizador_so_tem_um_perfil_de_prestador(): void
     {
         $this->actingAs($this->servicos)
-            ->postJson('/api/v1/service-providers', $this->dadosPrestador())
+            ->postJson('/api/user/profile', $this->dadosPrestador())
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['user_id' => 'Este utilizador já tem um perfil de prestador de serviços.']);
+            ->assertJsonValidationErrors(['role' => 'Esta conta já tem um perfil de service_provider associado.']);
     }
 
     public function test_um_erro_nas_especialidades_desfaz_a_criacao_toda(): void
@@ -188,7 +205,7 @@ class ServiceProviderTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/service-providers', $this->dadosPrestador([
+            ->postJson('/api/user/profile', $this->dadosPrestador([
                 'custom_specialties' => [
                     ['problem_category_id' => $this->canalizacao, 'name' => 'Pladur'],
                     ['problem_category_id' => $this->canalizacao, 'name' => 'pladur'],
@@ -202,12 +219,13 @@ class ServiceProviderTest extends TestCase
         $this->assertFalse($user->hasRole('service_provider'));
     }
 
-    public function test_store_valida_os_campos_e_as_listas(): void
+    public function test_a_criacao_valida_os_campos_e_as_listas_com_as_mensagens_do_modulo(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/service-providers', [
+            ->postJson('/api/user/profile', [
+                'role'                  => 'service_provider',
                 'nif'                   => '123',
                 'zone_ids'              => [999999],
                 'service_specialty_ids' => [$this->especialidades[0], $this->especialidades[0]],
@@ -217,22 +235,42 @@ class ServiceProviderTest extends TestCase
             ->assertJsonValidationErrors([
                 'company_name',
                 'nif',
-                'zone_ids.0'                             => 'Uma das zonas indicadas não existe.',
-                'service_specialty_ids.0'                => 'A lista de especialidades tem valores repetidos.',
+                'zone_ids.0'                               => 'Uma das zonas indicadas não existe.',
+                'service_specialty_ids.0'                  => 'A lista de especialidades tem valores repetidos.',
                 'custom_specialties.0.problem_category_id' => 'Indique a categoria da especialidade própria.',
             ]);
     }
 
-    // ----------------------------------------------------------------- update
+    // ---------------------------------- edição (PUT /user/profile-information)
 
     public function test_mudar_so_um_campo_nao_mexe_nas_listas(): void
     {
-        $this->actingAs($this->servicos)
-            ->patchJson('/api/v1/service-providers/' . $this->idServicos(), ['phone' => '911111111'])
-            ->assertOk()
+        $zonas = $this->servicos->service_provider->zones()->count();
+
+        $this->editar(['phone' => '911111111'])->assertOk();
+
+        $this->meuPerfil()
             ->assertJsonPath('data.phone', '911111111')
-            ->assertJsonCount($this->servicos->service_provider->zones()->count(), 'data.zones')
+            ->assertJsonCount($zonas, 'data.zones')
             ->assertJsonCount(4, 'data.specialties');
+    }
+
+    public function test_muda_todos_os_campos_do_perfil(): void
+    {
+        $this->editar([
+            'company_name'   => 'Serviços Renovados Lda',
+            'nif'            => '987654321',
+            'phone'          => '922222222',
+            'provider_email' => 'novo@servicos.pt',
+            'description'    => 'Nova descrição.',
+        ])->assertOk();
+
+        $this->meuPerfil()
+            ->assertJsonPath('data.company_name', 'Serviços Renovados Lda')
+            ->assertJsonPath('data.nif', '987654321')
+            ->assertJsonPath('data.phone', '922222222')
+            ->assertJsonPath('data.provider_email', 'novo@servicos.pt')
+            ->assertJsonPath('data.description', 'Nova descrição.');
     }
 
     public function test_as_listas_enviadas_substituem_as_anteriores_e_mantem_os_ids(): void
@@ -243,13 +281,13 @@ class ServiceProviderTest extends TestCase
         $desentupimentos = ServiceSpecialty::where('name', 'Desentupimentos')->value('id');
         $idAntes = $prestador->specialties()->where('service_specialty_id', $desentupimentos)->value('id');
 
-        $resposta = $this->actingAs($this->servicos)
-            ->patchJson('/api/v1/service-providers/' . $prestador->id, [
-                'zone_ids'              => [$this->zonas[2]],
-                'service_specialty_ids' => [$desentupimentos],
-                'custom_specialties'    => [['problem_category_id' => $this->canalizacao, 'name' => 'Pladur']],
-            ])
-            ->assertOk()
+        $this->editar([
+            'zone_ids'              => [$this->zonas[2]],
+            'service_specialty_ids' => [$desentupimentos],
+            'custom_specialties'    => [['problem_category_id' => $this->canalizacao, 'name' => 'Pladur']],
+        ])->assertOk();
+
+        $resposta = $this->meuPerfil()
             ->assertJsonCount(1, 'data.zones')
             ->assertJsonPath('data.zones.0.id', $this->zonas[2])
             ->assertJsonCount(2, 'data.specialties');
@@ -260,59 +298,57 @@ class ServiceProviderTest extends TestCase
 
     public function test_listas_vazias_retiram_tudo_dessa_lista(): void
     {
-        $this->actingAs($this->servicos)
-            ->patchJson('/api/v1/service-providers/' . $this->idServicos(), [
-                'zone_ids'              => [],
-                'service_specialty_ids' => [],
-            ])
-            ->assertOk()
+        $this->editar(['zone_ids' => [], 'service_specialty_ids' => []])->assertOk();
+
+        $this->meuPerfil()
             ->assertJsonCount(0, 'data.zones')
             ->assertJsonCount(0, 'data.specialties');
     }
 
-    public function test_um_erro_no_update_nao_grava_nada(): void
+    public function test_um_erro_na_edicao_nao_grava_nada(): void
     {
-        $this->actingAs($this->servicos)
-            ->patchJson('/api/v1/service-providers/' . $this->idServicos(), [
-                'company_name'       => 'Não deve gravar',
-                'custom_specialties' => [
-                    ['problem_category_id' => $this->canalizacao, 'name' => 'A'],
-                    ['problem_category_id' => $this->canalizacao, 'name' => 'a'],
-                ],
-            ])
-            ->assertStatus(422);
+        $this->editar([
+            'company_name'       => 'Não deve gravar',
+            'custom_specialties' => [
+                ['problem_category_id' => $this->canalizacao, 'name' => 'A'],
+                ['problem_category_id' => $this->canalizacao, 'name' => 'a'],
+            ],
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['custom_specialties' => 'A lista de especialidades próprias tem valores repetidos.']);
 
         $this->assertSame('Serviços Lda', $this->servicos->service_provider->fresh()->company_name);
     }
 
-    public function test_o_active_enviado_no_body_e_ignorado(): void
+    public function test_campos_sensiveis_no_body_sao_ignorados(): void
     {
-        $this->actingAs($this->servicos)
-            ->patchJson('/api/v1/service-providers/' . $this->idServicos(), ['active' => false, 'phone' => '922222222'])
-            ->assertOk()
-            ->assertJsonPath('data.phone', '922222222')
-            ->assertJsonMissingPath('data.active');
+        $this->editar(['active' => false, 'user_id' => $this->morador->id, 'phone' => '922222222'])->assertOk();
+
+        $prestador = $this->servicos->service_provider->fresh();
+        $this->assertSame('922222222', $prestador->phone);
+        $this->assertSame($this->servicos->id, $prestador->user_id);
+        $this->meuPerfil()->assertJsonMissingPath('data.active');
     }
 
-    public function test_so_o_dono_edita_o_perfil(): void
+    public function test_so_se_edita_um_perfil_de_prestador_que_se_tem(): void
     {
-        $outro = User::where('email', 'residente@example.com')->firstOrFail();
-
-        $this->actingAs($outro)
-            ->patchJson('/api/v1/service-providers/' . $this->idServicos(), ['phone' => '900000000'])
-            ->assertForbidden();
+        // o morador não é prestador
+        $this->actingAs($this->morador)
+            ->putJson('/user/profile-information', ['role' => 'service_provider', 'phone' => '900000000'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['role']);
     }
 
-    // ---------------------------------------------------------------- destroy
+    // ---------------------------------------- remoção (DELETE /api/user/profile)
 
     public function test_o_dono_apaga_o_perfil_e_perde_a_role(): void
     {
         $id = $this->idServicos();
+        $this->servicos->assignRole('resident'); // para não ser o único perfil da conta
 
         $this->actingAs($this->servicos)
-            ->deleteJson("/api/v1/service-providers/{$id}")
-            ->assertOk()
-            ->assertJsonPath('message', 'Prestador de serviços removido');
+            ->deleteJson('/api/user/profile', ['role' => 'service_provider'])
+            ->assertOk();
 
         $this->assertSoftDeleted('service_providers', ['id' => $id]);
         $this->assertFalse($this->servicos->fresh()->hasRole('service_provider'));
@@ -323,11 +359,14 @@ class ServiceProviderTest extends TestCase
         $this->assertFalse($lista->contains('id', $id));
     }
 
-    public function test_so_o_dono_apaga_o_perfil(): void
+    public function test_nao_se_apaga_o_unico_perfil_da_conta(): void
     {
-        $this->actingAs($this->morador)
-            ->deleteJson('/api/v1/service-providers/' . $this->idServicos())
-            ->assertForbidden();
+        $this->actingAs($this->servicos)
+            ->deleteJson('/api/user/profile', ['role' => 'service_provider'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['role' => 'Não pode remover o seu único perfil. Elimine a conta.']);
+
+        $this->assertNotNull($this->servicos->fresh()->service_provider);
     }
 
     // ------------------------------------------------------- rotas removidas
@@ -339,5 +378,10 @@ class ServiceProviderTest extends TestCase
         $this->actingAs($this->servicos)->getJson('/api/v1/service-providers/active')->assertNotFound();
         $this->actingAs($this->servicos)->putJson("/api/v1/service-providers/{$id}/zones", ['zone_ids' => []])->assertNotFound();
         $this->actingAs($this->servicos)->postJson("/api/v1/service-providers/{$id}/specialties", [])->assertNotFound();
+
+        // criar, editar e apagar o perfil passou para os endpoints dos perfis (o URL existe para GET: 405)
+        $this->actingAs($this->servicos)->postJson('/api/v1/service-providers', [])->assertStatus(405);
+        $this->actingAs($this->servicos)->patchJson("/api/v1/service-providers/{$id}", ['phone' => '900000000'])->assertStatus(405);
+        $this->actingAs($this->servicos)->deleteJson("/api/v1/service-providers/{$id}")->assertStatus(405);
     }
 }

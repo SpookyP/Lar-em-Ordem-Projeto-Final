@@ -9,10 +9,14 @@ use Illuminate\Http\Request;
 use App\Http\Resources\Resident\ResidentResource;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\Uid\Ulid;
+use App\Services\Auth\ProfileService;
 
 class ResidentController extends Controller
 {
-    public function __construct(protected ResidentService $service) {}
+    public function __construct(
+        protected ResidentService $service,
+        protected ProfileService $profileService,
+    ) {}
 
     private function authorizeResident(string|Ulid $userId)
     {
@@ -55,5 +59,20 @@ class ResidentController extends Controller
         return ResidentResource::make($property)
             ->additional(['message' => 'Resident updated successfully.'])
             ->response();
+    }
+
+    /**
+     * Remove the authenticated user's resident profile (soft delete) and the 'resident' role.
+     * Same rules as DELETE /api/user/profile: it cannot be the account's only profile.
+     */
+    public function delete(Request $request): JsonResponse
+    {
+        $resident = $this->authorizeResident(userId: $request->user()->id);
+
+        $this->authorize('delete', $resident);
+
+        $this->profileService->delete($request->user(), 'resident');
+
+        return response()->json(['message' => 'Resident profile removed successfully.']);
     }
 }

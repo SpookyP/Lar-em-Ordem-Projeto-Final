@@ -10,10 +10,11 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * Parceiros (módulo 7): listagem, perfil próprio, detalhe com as ofertas em vigor,
- * criação, edição e remoção. Usa os dados do DatabaseSeeder/OfferSeeder:
- * "Parceiro Lda" (parceiro@example.com, NIF 123456789) com 3 ofertas em vigor,
- * 1 expirada, 1 futura e 1 inativa.
+ * Parceiros (módulo 7): listagem, perfil próprio e detalhe com as ofertas em vigor.
+ * A criação, a edição e a remoção do perfil passam pelos endpoints dos perfis
+ * (POST/DELETE /api/user/profile e PUT /user/profile-information), que usam o PartnerService.
+ * Usa os dados do DatabaseSeeder/OfferSeeder: "Parceiro Lda" (parceiro@example.com, NIF 123456789)
+ * com 3 ofertas em vigor, 1 expirada, 1 futura e 1 inativa.
  */
 class PartnerTest extends TestCase
 {
@@ -44,12 +45,20 @@ class PartnerTest extends TestCase
     private function dadosParceiro(array $extra = []): array
     {
         return $extra + [
+            'role'         => 'partner',
             'company_name' => 'Seguros Lda',
             'nif'          => '987654321',
             'phone'        => '912345678',
             'website'      => 'https://seguros.pt',
             'description'  => 'Seguros para a casa.',
         ];
+    }
+
+    /** Edita o perfil do "Parceiro Lda" (o Fortify responde 200 sem corpo). */
+    private function editar(array $dados)
+    {
+        return $this->actingAs($this->parceiro)
+            ->putJson('/user/profile-information', ['role' => 'partner'] + $dados);
     }
 
     // ------------------------------------------------------------ index / me
@@ -139,20 +148,18 @@ class PartnerTest extends TestCase
         }
     }
 
-    // ------------------------------------------------------------------ store
+    // ------------------------------------------ criação (POST /api/user/profile)
 
     public function test_cria_o_perfil_de_parceiro_e_atribui_a_role(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/partners', $this->dadosParceiro())
-            ->assertCreated()
-            ->assertJsonPath('data.company_name', 'Seguros Lda')
-            ->assertJsonPath('data.nif', '987654321');
+            ->postJson('/api/user/profile', $this->dadosParceiro())
+            ->assertCreated();
 
         $this->assertTrue($user->fresh()->hasRole('partner'));
-        $this->assertDatabaseHas('partners', ['user_id' => $user->id, 'nif' => '987654321']);
+        $this->assertDatabaseHas('partners', ['user_id' => $user->id, 'company_name' => 'Seguros Lda', 'nif' => '987654321']);
     }
 
     public function test_o_user_id_nao_vem_do_body(): void
@@ -160,7 +167,7 @@ class PartnerTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/partners', $this->dadosParceiro(['user_id' => $this->morador->id]))
+            ->postJson('/api/user/profile', $this->dadosParceiro(['user_id' => $this->morador->id]))
             ->assertCreated();
 
         $this->assertNotNull($user->fresh()->partner);
@@ -170,64 +177,94 @@ class PartnerTest extends TestCase
     public function test_cada_utilizador_so_tem_um_perfil_de_parceiro(): void
     {
         $this->actingAs($this->parceiro)
-            ->postJson('/api/v1/partners', $this->dadosParceiro())
+            ->postJson('/api/user/profile', $this->dadosParceiro())
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['user_id' => 'Este utilizador já tem um perfil de parceiro.']);
+            ->assertJsonValidationErrors(['role' => 'Esta conta já tem um perfil de partner associado.']);
     }
 
-    public function test_store_valida_os_campos(): void
+    public function test_a_criacao_valida_os_campos(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson('/api/v1/partners', ['nif' => '12', 'website' => 'não é url'])
+            ->postJson('/api/user/profile', ['role' => 'partner', 'nif' => '12', 'website' => 'não é url'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['company_name', 'nif', 'phone', 'description', 'website']);
 
         $this->assertNull($user->fresh()->partner);
     }
 
-    // ----------------------------------------------------------------- update
+    // ---------------------------------- edição (PUT /user/profile-information)
 
     public function test_o_parceiro_atualiza_so_os_campos_enviados(): void
     {
+        $this->editar(['phone' => '911111111'])->assertOk();
+
         $this->actingAs($this->parceiro)
-            ->patchJson('/api/v1/partners/' . $this->idParceiro(), ['phone' => '911111111'])
-            ->assertOk()
+            ->getJson('/api/v1/partners/me')
             ->assertJsonPath('data.phone', '911111111')
             ->assertJsonPath('data.company_name', 'Parceiro Lda')
             ->assertJsonPath('data.nif', '123456789');
     }
 
-    public function test_o_active_enviado_no_body_e_ignorado(): void
+    public function test_muda_todos_os_campos_do_perfil(): void
     {
+        $this->editar([
+            'company_name' => 'Parceiro Renovado Lda',
+            'nif'          => '987654321',
+            'phone'        => '933333333',
+            'website'      => 'https://renovado.pt',
+            'description'  => 'Nova descrição.',
+        ])->assertOk();
+
         $this->actingAs($this->parceiro)
-            ->patchJson('/api/v1/partners/' . $this->idParceiro(), ['active' => false])
-            ->assertOk()
-            ->assertJsonMissingPath('data.active');
+            ->getJson('/api/v1/partners/me')
+            ->assertJsonPath('data.company_name', 'Parceiro Renovado Lda')
+            ->assertJsonPath('data.nif', '987654321')
+            ->assertJsonPath('data.phone', '933333333')
+            ->assertJsonPath('data.website', 'https://renovado.pt')
+            ->assertJsonPath('data.description', 'Nova descrição.');
+    }
+
+    public function test_a_edicao_valida_os_campos(): void
+    {
+        $this->editar(['nif' => '12', 'website' => 'não é url'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nif', 'website']);
+
+        $this->assertSame('123456789', $this->parceiro->partner->fresh()->nif);
+    }
+
+    public function test_campos_sensiveis_no_body_sao_ignorados(): void
+    {
+        $this->editar(['active' => false, 'user_id' => $this->morador->id])->assertOk();
+
+        $this->assertSame($this->parceiro->id, $this->parceiro->partner->fresh()->user_id);
 
         // continua a aparecer na lista
         $lista = collect($this->actingAs($this->morador)->getJson('/api/v1/partners')->json('data'));
         $this->assertTrue($lista->contains('id', $this->idParceiro()));
     }
 
-    public function test_so_o_dono_atualiza_o_perfil(): void
+    public function test_so_se_edita_um_perfil_de_parceiro_que_se_tem(): void
     {
+        // o morador não é parceiro
         $this->actingAs($this->morador)
-            ->patchJson('/api/v1/partners/' . $this->idParceiro(), ['phone' => '900000000'])
-            ->assertForbidden();
+            ->putJson('/user/profile-information', ['role' => 'partner', 'phone' => '900000000'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['role']);
     }
 
-    // ---------------------------------------------------------------- destroy
+    // ---------------------------------------- remoção (DELETE /api/user/profile)
 
     public function test_o_dono_apaga_o_perfil_as_ofertas_e_perde_a_role(): void
     {
         $id = $this->idParceiro();
+        $this->parceiro->assignRole('resident'); // para não ser o único perfil da conta
 
         $this->actingAs($this->parceiro)
-            ->deleteJson("/api/v1/partners/{$id}")
-            ->assertOk()
-            ->assertJsonPath('message', 'Parceiro removido.');
+            ->deleteJson('/api/user/profile', ['role' => 'partner'])
+            ->assertOk();
 
         $this->assertSoftDeleted('partners', ['id' => $id]);
         $this->assertSame(0, Offer::where('partner_id', $id)->count());
@@ -240,11 +277,14 @@ class PartnerTest extends TestCase
         $this->assertFalse($recomendacoes->contains(fn ($o) => $o['partner']['id'] === $id));
     }
 
-    public function test_so_o_dono_apaga_o_perfil(): void
+    public function test_nao_se_apaga_o_unico_perfil_da_conta(): void
     {
-        $this->actingAs($this->morador)
-            ->deleteJson('/api/v1/partners/' . $this->idParceiro())
-            ->assertForbidden();
+        $this->actingAs($this->parceiro)
+            ->deleteJson('/api/user/profile', ['role' => 'partner'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['role' => 'Não pode remover o seu único perfil. Elimine a conta.']);
+
+        $this->assertNotNull($this->parceiro->fresh()->partner);
     }
 
     // ------------------------------------------------------- rotas removidas
@@ -255,5 +295,10 @@ class PartnerTest extends TestCase
 
         $this->actingAs($this->morador)->getJson("/api/v1/partners/offers/{$id}")->assertNotFound();
         $this->actingAs($this->morador)->getJson("/api/v1/offers/partner/{$id}")->assertNotFound();
+
+        // criar, editar e apagar o perfil passou para os endpoints dos perfis (o URL existe para GET: 405)
+        $this->actingAs($this->parceiro)->postJson('/api/v1/partners', [])->assertStatus(405);
+        $this->actingAs($this->parceiro)->patchJson("/api/v1/partners/{$id}", ['phone' => '900000000'])->assertStatus(405);
+        $this->actingAs($this->parceiro)->deleteJson("/api/v1/partners/{$id}")->assertStatus(405);
     }
 }
