@@ -4,7 +4,7 @@ import { AppLayout } from "../components/layout/AppLayout";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Profiles from "../pages/Profiles/Profiles";
-import Settings from "../pages/settings/settings";
+import Settings from "../pages/Settings/Settings";
 import Onboarding from "../pages/Onboarding/Onboarding";
 import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
