@@ -2,9 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\SocialRegisterController;
 
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 Route::post('/user/profile', [AuthController::class, 'store'])->middleware('auth:sanctum');
+
+Route::get('/auth/social/pending', [SocialRegisterController::class, 'show'])->middleware('throttle:20,1');
+Route::post('/auth/social/register', [SocialRegisterController::class, 'store'])->middleware('throttle:10,1');
 
 Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum','throttle:20,1'])->group(function () {
