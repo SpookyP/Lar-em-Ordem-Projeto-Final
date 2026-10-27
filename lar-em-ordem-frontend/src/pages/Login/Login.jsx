@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { PasswordInput } from "../../components/ui/PasswordInput";
+import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
+import { socialErrorMessage } from "../../utils/socialErrors";
 
 export default function Login() {
   const { login, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  
+  const [searchParams] = useSearchParams();
+  const erroSocial = socialErrorMessage(searchParams.get("erro"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [erro, setErro] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
@@ -75,11 +80,13 @@ export default function Login() {
           Inicie sessão para continuar
         </p>
 
-        {error && (
+        {(erro || erroSocial) && (
           <div className="mb-4 rounded-lg bg-red-light px-3 py-2 text-sm text-red">
-            {error}
+            {erro || erroSocial}
           </div>
         )}
+
+        <SocialLoginButtons />
 
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <label className=" flex flex-col gap-4">

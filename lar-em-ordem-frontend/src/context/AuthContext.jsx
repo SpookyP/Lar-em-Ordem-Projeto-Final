@@ -5,6 +5,7 @@ import {
   logout as logoutService,
   getCurrentUser,
   register as registerService,
+  registerSocial as registerSocialService,
 } from "../services/api/authService";
 
 //Ler um objeto guardado no LocalStorage
@@ -64,6 +65,13 @@ export function AuthProvider({ children }) {
     return user;
   }
 
+  async function registerSocial(data) {
+    await registerSocialService(data);
+    const user = await getCurrentUser();
+    setUser(user);
+    return user;
+  }
+
   async function refreshUser() {
     const currentUser = await getCurrentUser();
     setUser(currentUser);
@@ -89,6 +97,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     register,
+    registerSocial,
     refreshUser,
     hasRole,
     activeHouse,

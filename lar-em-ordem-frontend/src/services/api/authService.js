@@ -24,6 +24,16 @@ export async function register(data) {
   return axiosClient.post("/register", data);
 }
 
+export async function getSocialPending() {
+  const response = await axiosClient.get("/api/auth/social/pending");
+  return response.data;
+}
+
+export async function registerSocial(data) {
+  await getCookieCsrf();
+  return axiosClient.post("/api/auth/social/register", data);
+}
+
 export async function forgotPassword(email) {
   await getCookieCsrf();
   return axiosClient.post("/forgot-password", { email });
