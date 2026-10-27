@@ -16,7 +16,7 @@ class ConsumptionService
             ->whereHas('invoice', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
-            ->with(['invoice', 'property', 'consumptionType'])
+            ->with(['invoice', 'property', 'consumptionType', 'items'])
             ->latest()
             ->latest('id');
 
@@ -37,7 +37,7 @@ class ConsumptionService
             ->whereHas('invoice', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
-            ->with(['invoice', 'property', 'consumptionType'])
+            ->with(['invoice', 'property', 'consumptionType', 'items'])
             ->first();
 
         if (!$consumption) {

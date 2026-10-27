@@ -191,11 +191,11 @@ class InvoiceTest extends TestCase
             'sample_size'         => 8,
         ]);
 
-        $this->getJson("/api/v1/benchmarks/monthly?month=2025-03&consumption_type_id={$this->type->id}")
+        $this->getJson("/api/v1/benchmarks/monthly?month=2025-03&consumption_type_id={$this->type->id}&property_id={$this->property->id}")
             ->assertOk()
             ->assertJsonPath('reference_period', 'monthly');
 
-        $this->getJson("/api/v1/benchmarks/annual?year=2025&consumption_type_id={$this->type->id}")
+        $this->getJson("/api/v1/benchmarks/annual?year=2025&consumption_type_id={$this->type->id}&property_id={$this->property->id}")
             ->assertOk();
     }
 

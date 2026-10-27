@@ -43,7 +43,7 @@ class InvoiceController extends Controller
         $invoice = $this->service->createInvoiceWithConsumptions(
             userId: $request->user()->id,
             invoiceData: $request->invoiceData(),
-            consumptionsData: $request->input('consumptions', [])
+            consumptionsData: $request->consumptionsData()
         );
 
         return InvoiceResource::make($invoice)

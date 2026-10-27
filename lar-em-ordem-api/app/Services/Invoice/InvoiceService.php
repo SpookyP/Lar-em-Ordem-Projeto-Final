@@ -16,7 +16,7 @@ class InvoiceService
     {
         return Invoice::query()
             ->where('user_id', $userId)
-            ->with(['property', 'consumptions.consumptionType'])
+            ->with(['property', 'consumptions.consumptionType', 'consumptions.items'])
             ->latest()
             ->latest('id')
             ->paginate($perPage);
@@ -30,7 +30,7 @@ class InvoiceService
         $invoice = Invoice::query()
             ->where('id', $invoiceId)
             ->where('user_id', $userId)
-            ->with(['property', 'consumptions.consumptionType'])
+            ->with(['property', 'consumptions.consumptionType', 'consumptions.items'])
             ->first();
 
         if (!$invoice) {
@@ -43,7 +43,7 @@ class InvoiceService
     /**
      * Criar uma fatura e os respetivos consumos dentro de uma transação.
      */
-    public function createInvoiceWithConsumptions(string  $userId, array $invoiceData, array $consumptionsData): Invoice
+    public function createInvoiceWithConsumptions(string $userId, array $invoiceData, array $consumptionsData): Invoice
     {
         $fileId  = $invoiceData['file_id'] ?? null;
         $pending = "pending/{$userId}/{$fileId}.pdf";
@@ -61,21 +61,33 @@ class InvoiceService
                 $invoice = Invoice::create($invoiceData);
 
                 if (!empty($consumptionsData)) {
-                    $formattedConsumptions = array_map(function (array $item) use ($invoice) {
-                        return [
-                            'property_id' => $invoice->property_id,
-                            'consumption_type_id' => $item['consumption_type_id'],
-                            'period_start' => $invoice->period_start,
-                            'period_end' => $invoice->period_end,
-                            'amount' => $item['amount'],
-                            'cost' => $item['cost'],
-                        ];
-                    }, $consumptionsData);
+                    foreach ($consumptionsData as $item) {
+                        // 1. Cria o consumo principal
+                        $consumption = $invoice->consumptions()->create([
+                            'property_id'           => $invoice->property_id,
+                            'consumption_type_id'   => $item['consumption_type_id'],
+                            'period_start'          => $invoice->period_start,
+                            'period_end'            => $invoice->period_end,
+                            'amount'                => $item['amount'],
+                            'cost'                  => $item['cost'],
+                        ]);
 
-                    $invoice->consumptions()->createMany($formattedConsumptions);
+                        // 2. Cria os sub-itens detalhados associados a este consumo (se existirem)
+                        if (!empty($item['items'])) {
+                            foreach ($item['items'] as $subItem) {
+                                $consumption->items()->create([
+                                    'name'     => $subItem['name'],
+                                    'category' => $subItem['category'] ?? null,
+                                    'amount'   => $subItem['amount'] ?? null,
+                                    'unit'     => $subItem['unit'] ?? null,
+                                    'cost'     => $subItem['cost'],
+                                ]);
+                            }
+                        }
+                    }
                 }
 
-                return $invoice->load(['property', 'consumptions.consumptionType']);
+                return $invoice->load(['property', 'consumptions.consumptionType', 'consumptions.items']);
             });
         } catch (\Throwable $e) {
             // Se a transação da BD falhar, devolve o ficheiro para pending para não o perder

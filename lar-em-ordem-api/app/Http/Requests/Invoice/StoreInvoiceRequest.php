@@ -78,10 +78,19 @@ class StoreInvoiceRequest extends FormRequest
                 }
             }],
 
-            'consumptions'                          =>      ['required', 'array'],
+            // Consumos principais (no máximo 10 por fatura)
+            'consumptions'                          =>      ['required', 'array', 'max:10'],
             'consumptions.*.consumption_type_id'    =>      ['required', 'integer', 'exists:consumption_types,id'],
-            'consumptions.*.amount'                 =>      ['required', 'numeric', 'min:0'],
-            'consumptions.*.cost'                   =>      ['required', 'numeric', 'min:0'],
+            'consumptions.*.amount'                 =>      ['required', 'numeric', 'min:0', 'max:9999999.999'],
+            'consumptions.*.cost'                   =>      ['required', 'numeric', 'min:0', 'max:99999999.99'],
+
+            // Sub-itens detalhados opcionais para o gráfico de anel (no máximo 30 por consumo)
+            'consumptions.*.items'                  =>      ['nullable', 'array', 'max:30'],
+            'consumptions.*.items.*.name'           =>      ['required', 'string', 'max:255'],
+            'consumptions.*.items.*.category'       =>      ['nullable', Rule::in(['consumption', 'fixed_fee', 'tax', 'discount'])],
+            'consumptions.*.items.*.amount'         =>      ['nullable', 'numeric', 'between:-99999999.99,99999999.99'],
+            'consumptions.*.items.*.unit'           =>      ['nullable', 'string', 'max:50'],
+            'consumptions.*.items.*.cost'           =>      ['required', 'numeric', 'between:-99999999.99,99999999.99'], // negativos permitidos (ex: autoconsumo solar)
         ];
     }
 
@@ -100,6 +109,14 @@ class StoreInvoiceRequest extends FormRequest
             'supplier',
             'file_id',
         ]);
+    }
+
+    /**
+     * Extract consumptions with their items data.
+     */
+    public function consumptionsData(): array
+    {
+        return $this->validated('consumptions', []);
     }
 
     /**

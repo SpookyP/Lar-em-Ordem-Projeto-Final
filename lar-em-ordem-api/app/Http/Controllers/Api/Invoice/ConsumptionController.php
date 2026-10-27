@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Invoice;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Invoice\ConsumptionResource;
+use App\Http\Resources\Invoice\ConsumptionItemResource;
 use App\Services\Invoice\ConsumptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -47,5 +48,18 @@ class ConsumptionController extends Controller
         );
 
         return ConsumptionResource::make($consumption)->response();
+    }
+
+    /**
+     * Display the items of a specific consumption.
+     */
+    public function items(Request $request, string $consumptionId): JsonResponse
+    {
+        $consumption = $this->service->getConsumptionById(
+            consumptionId: $consumptionId,
+            userId: $request->user()->id
+        );
+
+        return ConsumptionItemResource::collection($consumption->items)->response();
     }
 }
