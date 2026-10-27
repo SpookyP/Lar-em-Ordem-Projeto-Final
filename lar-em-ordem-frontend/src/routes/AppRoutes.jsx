@@ -9,7 +9,7 @@ import Register from "../pages/Register/Register";
 import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
-//import NotFound from "../pages/NotFound/NotFound";
+import NotFound from "../pages/NotFound/NotFound";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -62,8 +62,8 @@ export function AppRoutes() {
           </Route>
         </Route>
 
-        {/* 404: nao corresponde a nenhuma
-        <Route path="*" element={<NotFound />} /> */}
+        {/* 404: nao corresponde a nenhuma */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
