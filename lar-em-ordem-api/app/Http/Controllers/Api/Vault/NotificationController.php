@@ -3,33 +3,40 @@
 namespace App\Http\Controllers\Api\Vault;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Vault\NotificationResource;
 use App\Models\Property\Property;
 use App\Models\Vault\Notification;
-use App\Http\Resources\Vault\NotificationResource;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    /**
-     * Lista as notificações de uma determinada habitação.
-     */
-    public function index(Property $property): AnonymousResourceCollection
+    use AuthorizesRequests;
+
+    public function index(Request $request, Property $property)
     {
         $this->authorize('view', $property);
 
-        $notifications = Notification::where('property_id', $property->id)
-            ->orderBy('alert_date', 'desc')
-            ->get();
+        $query = $property->notifications()->with('document')->latest('alert_date');
 
-        return NotificationResource::collection($notifications);
+        if ($request->boolean('unread')) {
+            $query->whereNull('read_at');
+        }
+
+        return NotificationResource::collection($query->paginate(15));
     }
 
-    /**
-     * Marca uma notificação como lida.
-     */
-    public function markAsRead(Notification $notification): JsonResponse
+    public function unreadCount(Property $property): JsonResponse
+    {
+        $this->authorize('view', $property);
+
+        $count = $property->notifications()->whereNull('read_at')->count();
+
+        return response()->json(['unread_count' => $count]);
+    }
+
+    public function markAsRead(Notification $notification): NotificationResource
     {
         $this->authorize('update', $notification->property);
 
@@ -37,9 +44,29 @@ class NotificationController extends Controller
             $notification->update(['read_at' => now()]);
         }
 
+        return new NotificationResource($notification);
+    }
+
+    public function markAllAsRead(Property $property): JsonResponse
+    {
+        $this->authorize('update', $property);
+
+        $updated = $property->notifications()
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         return response()->json([
-            'message' => 'Notification marked as read.',
-            'data' => new NotificationResource($notification)
+            'message' => 'Todas as notificações foram marcadas como lidas.',
+            'updated_count' => $updated,
         ]);
+    }
+
+    public function destroy(Notification $notification): JsonResponse
+    {
+        $this->authorize('update', $notification->property);
+
+        $notification->delete();
+
+        return response()->json(['message' => 'Notificação removida com sucesso.'], 200);
     }
 }
