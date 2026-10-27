@@ -10,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Arr;
+use App\Services\Auth\ProfileService;
 
 use App\Http\Requests\Resident\UpdateResidentRequest;
 use App\Http\Requests\PartnerOffer\UpdatePartnerRequest;
@@ -17,6 +19,8 @@ use App\Http\Requests\ServiceProvider\UpdateServiceProviderRequest;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
+    public function __construct(private ProfileService $profileService) {}
+
     /**
      * Validate and update the given user's profile information.
      *
@@ -36,7 +40,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
-            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])]
+            'role' => ['required', 'string', Rule::in(ProfileService::ROLES)]
         ];
 
         $role = $input['role'];
@@ -67,12 +71,13 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             default            => [],
         };
 
-        Validator::make($input, array_merge($rules, $roleRules))->validateWithBag('updateProfileInformation');
+        // só os campos validados seguem para a frente (nunca o $input bruto: protege user_id, etc.)
+        $validated = Validator::make($input, array_merge($rules, $roleRules))->validateWithBag('updateProfileInformation');
 
-        DB::transaction(function () use ($user, $input, $role) {
+        DB::transaction(function () use ($user, $input, $validated, $role) {
             $newName = $input['name'] ?? $user->name;
             $newEmail = $input['email'] ?? $user->email;
-        
+
             $emailChanged = $newEmail !== $user->email;
 
             if ($emailChanged && $user instanceof MustVerifyEmail) {
@@ -84,7 +89,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 ])->save();
             }
 
-            $this->updateAssociatedProfile($user, $input, $role);
+            $this->profileService->update($user, $role, Arr::except($validated, ['name', 'email', 'role']));
         });
     }
 
@@ -101,37 +106,5 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         $user->sendEmailVerificationNotification();
     }
-
-    /**
-     * Update the specific profile table linked to the user.
-     */
-    protected function updateAssociatedProfile(User $user, array $input, string $role): void
-    {
-        match ($role) {
-            'resident' => $user->resident()->update(
-                collect($input)->only([
-                    'nif',
-                ])->toArray()
-            ),
-            'partner' => $user->partner()->update(
-                collect($input)->only([
-                    'company_name',
-                    'nif',
-                    'phone',
-                    'website',
-                    'description'
-                ])->toArray()
-            ),
-            'service_provider' => $user->service_provider()->update(
-                collect($input)->only([
-                    'company_name',
-                    'nif',
-                    'phone',
-                    'provider_email',
-                    'description'
-                ])->toArray()
-            ),
-            default => null,
-        };
-    }
+    
 }

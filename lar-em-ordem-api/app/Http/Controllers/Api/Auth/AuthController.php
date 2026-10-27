@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use App\Services\Auth\ProfileService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth as AuthFacade;
@@ -16,6 +16,8 @@ use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 
 class AuthController extends Controller
 {
+    public function __construct(private ProfileService $profileService) {}
+    
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -66,7 +68,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         $rules = $request->validate([
-            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+            'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ]);
 
         $role = $rules['role'];
@@ -86,51 +88,7 @@ class AuthController extends Controller
 
         $validated = $request->validate($roleRules);
 
-        $alreadyHasProfile = match ($role) {
-            'resident'         => $user->resident()->exists(),
-            'service_provider' => $user->service_provider()->exists(),
-            'partner'          => $user->partner()->exists(),
-            default            => false,
-        };
-
-        if ($alreadyHasProfile) {
-            return response()->json([
-                'message' => "The given data was invalid.",
-                'errors' => [
-                    'role' => ["You already have a {$role} profile attached to this account."],
-                ],
-            ], 422);
-        }
-
-        DB::transaction(function () use ($user, $validated, $role) {
-            if (!$user->hasRole($role)) {
-                $user->assignRole($role);
-            }
-
-            match ($role) {
-                'resident' => $user->resident()->create([
-                    'nif'  => $validated['nif'],
-                ]),
-
-                'partner' => $user->partner()->create([
-                    'company_name'=> $validated['company_name'],
-                    'nif'         => $validated['nif'],
-                    'phone'       => $validated['phone'],
-                    'website'     => $validated['website'] ?? null,
-                    'description' => $validated['description'],
-                ]),
-
-                'service_provider' => $user->service_provider()->create([
-                    'company_name' => $validated['company_name'],
-                    'nif'          => $validated['nif'],
-                    'phone'        => $validated['phone'],
-                    'provider_email' => $validated['provider_email']  ?? null,
-                    'description'  => $validated['description'],
-                ]),
-
-                default => null,
-            };
-        });
+        $this->profileService->create($user, $role, $validated);
 
         return response()->json([
             'message' => "Profile '{$role}' added successfully.",
@@ -147,44 +105,12 @@ class AuthController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+            'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ]);
 
         $role = $validated['role'];
 
-        $hasProfile = match ($role) {
-            'resident'         => $user->resident()->exists(),
-            'service_provider' => $user->service_provider()->exists(),
-            'partner'          => $user->partner()->exists(),
-            default            => false,
-        };
-
-        if (!$hasProfile) {
-            return response()->json([
-                'message' => 'The given data was invalid.',
-                'errors'  => ['role' => ["You do not have a {$role} profile attached to this account."]],
-            ], 422);
-        }
-
-        if ($user->roles()->count() <= 1) {
-            return response()->json([
-                'message' => 'The given data was invalid.',
-                'errors'  => ['role' => ['You cannot remove your only profile. Delete the account instead.']],
-            ], 422);
-        }
-
-        DB::transaction(function () use ($user, $role) {
-            match ($role) {
-                'resident'         => $user->resident()->delete(),
-                'partner'          => $user->partner()->delete(),
-                'service_provider' => $user->service_provider()->delete(),
-                default            => null,
-            };
-
-            if ($user->hasRole($role)) {
-                $user->removeRole($role);
-            }
-        });
+       $this->profileService->delete($user, $role);
 
         return response()->json([
             'message' => "Profile '{$role}' removed successfully.",
