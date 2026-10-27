@@ -18,7 +18,7 @@ export default function Assistance() {
       problem_category_id: Number(category),
       title,
       description,
-      images: [photo],
+      images: photo ? [photo] : [],
     });
 
     list.setPage(1);
