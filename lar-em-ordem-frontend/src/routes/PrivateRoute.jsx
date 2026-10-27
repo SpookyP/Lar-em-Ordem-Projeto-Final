@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 export function PrivateRoute({ allowedRoles }) {
-  const { isAuthenticated, loading, hasRole } = useAuth();
+  const { isAuthenticated, loading, activeProfile } = useAuth();
 
   if (loading) {
     return null;
@@ -12,11 +12,14 @@ export function PrivateRoute({ allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
-  const hasPermission =
-    !allowedRoles || allowedRoles.length === 0 || allowedRoles.some(hasRole);
+  const isRestricted = allowedRoles && allowedRoles.length > 0;
 
-  if (!hasPermission) {
-    return <Navigate to="/unauthorized" replace />;
+  if (isRestricted) {
+    if (!activeProfile) return <Navigate to="/profiles" replace />;
+
+    if (!allowedRoles.includes(activeProfile.name)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <Outlet />;
