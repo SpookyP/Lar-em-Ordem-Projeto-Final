@@ -6,21 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('condominia', function (Blueprint $table) {
             $table->ulid('id')->primary();
+            $table->foreignUlid('condominium_admin_id')->constrained();
+            $table->foreignUlid('address_id')->constrained();
+            $table->string('name');
+            $table->decimal('reserve_fund', 12, 2)->default(0);
+            $table->string('invite_code', 8)->unique();
+            $table->string('transfer_code_hash', 64)->nullable()->unique();
+            $table->timestamp('transfer_expires_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('condominia');

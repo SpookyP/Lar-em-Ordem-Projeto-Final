@@ -1,14 +1,14 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Condominium;
 
-use App\Models\Condominium;
+use App\Models\Condominium\CondominiumNotice;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Condominium>
+ * @extends Factory<CondominiumNotice>
  */
-class CondominiumFactory extends Factory
+class CondominiumNoticeFactory extends Factory
 {
     /**
      * Define the model's default state.
