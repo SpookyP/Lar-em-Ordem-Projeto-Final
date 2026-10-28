@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             PropertyTypologySeeder::class,
             ResidentTypeSeeder::class,
             DocumentCategorySeeder::class,
+            CondominiumDocumentCategorySeeder::class,
         ]);
 
         $morador = User::factory()->create([
