@@ -4,9 +4,12 @@ namespace App\Models\Vault;
 
 use App\Models\Property\Property;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Notification extends Model
 {
+    use HasUlids;
+
     protected $table = 'vault_notifications';
 
     protected $fillable = [
