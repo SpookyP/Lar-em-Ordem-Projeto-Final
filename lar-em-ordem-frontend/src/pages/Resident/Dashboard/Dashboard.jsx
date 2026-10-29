@@ -1,7 +1,7 @@
 import { Droplet, Zap, Flame, FolderClosed } from "lucide-react";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { ShortcutCard } from "../../../components/ui/ShortcutCard";
-import { ConsumptionChart } from "../../../components/ui/ConsumptionChart";
+import  ConsumptionChart  from "../../../components/ui/ConsumptionChart";
 import { NotificationBell } from '../../../components/ui/NotificationBell';
 import { useState } from "react";
 
