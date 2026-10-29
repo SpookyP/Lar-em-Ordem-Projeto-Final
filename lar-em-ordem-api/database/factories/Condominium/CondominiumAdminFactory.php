@@ -3,6 +3,7 @@
 namespace Database\Factories\Condominium;
 
 use App\Models\Condominium\CondominiumAdmin;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,15 +11,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CondominiumAdminFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            //
+            'user_id'    => User::factory(),
+            'contact'    => fake()->phoneNumber(),
+            'admin_type' => fake()->randomElement(['professional', 'resident']),
         ];
     }
 }

@@ -13,7 +13,11 @@ class CondominiumAdmin extends Model
     /** @use HasFactory<\Database\Factories\Condominium\CondominiumAdminFactory> */
     use HasFactory, SoftDeletes, HasUlids;
 
-    protected $fillable = ['user_id', 'name', 'contact', 'admin_type'];
+    protected $fillable = [
+        'user_id',
+        'contact', 
+        'admin_type'
+     ];
 
     public function user()
     {

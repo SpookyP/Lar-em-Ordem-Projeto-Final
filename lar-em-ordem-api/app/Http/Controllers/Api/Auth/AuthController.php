@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth as AuthFacade;
 use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 
 
 class AuthController extends Controller
@@ -45,7 +46,7 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        $user = $request->user()->load(['resident', 'partner', 'service_provider']);
+        $user = $request->user()->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']);
 
         return response()->json([
             'id'    => $user->id,
@@ -55,6 +56,7 @@ class AuthController extends Controller
             'resident'         => $user->resident,
             'partner'          => $user->partner,
             'service_provider' => $user->service_provider,
+            'condominium_admin' => $user->condominium_admin,
         ]);
     }
 
@@ -84,6 +86,7 @@ class AuthController extends Controller
             'resident'         => $makeRequest(StoreResidentRequest::class),
             'partner'          => $makeRequest(StorePartnerRequest::class),
             'service_provider' => $makeRequest(StoreServiceProviderRequest::class),
+            'condominium_admin' => $makeRequest(StoreCondominiumAdminRequest::class),
         };
 
         $validated = $request->validate($roleRequest->rules(), $roleRequest->messages());
@@ -92,7 +95,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => "Profile '{$role}' added successfully.",
-            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner']),
+            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']),
         ], 201);
     }
 
@@ -114,7 +117,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => "Profile '{$role}' removed successfully.",
-            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner']),
+            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']),
         ]);
     }
 
