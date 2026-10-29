@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             PropertyTypeSeeder::class,
             PropertyTypologySeeder::class,
             ResidentTypeSeeder::class,
+            DocumentCategorySeeder::class,
+            CondominiumDocumentCategorySeeder::class,
         ]);
 
         $morador = User::factory()->create([
@@ -53,7 +55,7 @@ class DatabaseSeeder extends Seeder
             "description" => "Prestação de serviços de manutenção."
         ]);
         $resident->assignRole('service_provider');
-        
+
 
         $partner = User::factory()->create([
             'name' => 'parceiro',

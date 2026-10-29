@@ -21,7 +21,7 @@ export default function Onboarding() {
           </p>
 
           <PropertyForm
-            onCreated={() => navigate("/perfis")}
+            onCreated={() => navigate("/profiles")}
             secondaryAction={
               <button
                 type="button"

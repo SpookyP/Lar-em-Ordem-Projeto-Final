@@ -1,8 +1,18 @@
-import { useHouses } from "../../hooks/useHouses";
+import { useHousesPage } from "../../hooks/useHousesPage";
 import { useNavigate } from "react-router-dom";
+import { Pager } from "./Pager";
 
 export function HouseList({ onEnter }) {
-  const { houses, loading } = useHouses();
+  const {
+    items: houses,
+    page,
+    totalPages,
+    total,
+    loading,
+    error,
+    setPage,
+    reload,
+  } = useHousesPage({ perPage: 5 });
   const navigate = useNavigate();
 
   return (
@@ -11,7 +21,9 @@ export function HouseList({ onEnter }) {
 
       {loading ? (
         <p className="py-4 text-center text-sm text-muted">A carregar...</p>
-      ) : houses.length === 0 ? (
+      ) : error ? (
+        <p className="py-4 text-center text-sm text-red-600">{error}</p>
+      ) : total === 0 ? (
         <div className="flex flex-col items-center gap-3 py-4 text-center">
           <p className="text-center text-sm text-muted">
             Ainda não tem casas associadas.
@@ -24,25 +36,28 @@ export function HouseList({ onEnter }) {
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
-          {houses.map((house) => (
-            <button
-              key={house.id}
-              onClick={() => onEnter(house)}
-              className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-left transition hover:border-navy hover:bg-navy/5"
-            >
-              <span className="text-sm text-text">
-                {house.label}
-                <span className="block text-xs text-muted">
-                  {house.location}
+        <>
+          <div className="flex flex-col gap-2">
+            {houses.map((house) => (
+              <button
+                key={house.id}
+                onClick={() => onEnter(house)}
+                className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-left transition hover:border-navy hover:bg-navy/5"
+              >
+                <span className="text-sm text-text">
+                  {house.label}
+                  <span className="block text-xs text-muted">
+                    {house.location}
+                  </span>
                 </span>
-              </span>
-              <span className="text-xs font-medium text-navy">
-                {house.bondLabel}
-              </span>
-            </button>
-          ))}
-        </div>
+                <span className="text-xs font-medium text-navy">
+                  {house.bondLabel}
+                </span>
+              </button>
+            ))}
+          </div>
+          <Pager page={page} totalPages={totalPages} onChange={setPage} />
+        </>
       )}
     </div>
   );

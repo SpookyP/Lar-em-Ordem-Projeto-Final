@@ -12,16 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('vault_notifications', function (Blueprint $table) {
-            $table->id();
-
+            $table->ulid('id')->primary();
             $table->foreignUlid('property_id')->constrained('properties')->cascadeOnDelete();
-
-            $table->foreignId('document_id')->nullable()->constrained('vault_documents')->cascadeOnDelete();
-
+            $table->foreignUlid('document_id')->nullable()->constrained('vault_documents')->cascadeOnDelete();
             $table->string('type');
             $table->string('title');
             $table->text('message');
-
             $table->timestamp('alert_date');
             $table->timestamp('read_at')->nullable();
 

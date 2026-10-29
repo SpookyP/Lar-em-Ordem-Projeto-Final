@@ -5,10 +5,13 @@ namespace App\Models\Vault;
 use App\Models\Property\Property;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Document extends Model
 {
-    protected $table = 'vault_documents'; // ou 'documents' dependendo da tua migration
+    use HasUlids;
+
+    protected $table = 'vault_documents';
 
     protected $fillable = [
         'property_id',
@@ -25,7 +28,7 @@ class Document extends Model
     protected $casts = [
         'issue_date' => 'date:Y-m-d',
         'expiration_date' => 'date:Y-m-d',
-        'extracted_data' => 'array', // Essencial para guardar o JSON do Python
+        'extracted_data' => 'array',
     ];
 
     public function property(): BelongsTo

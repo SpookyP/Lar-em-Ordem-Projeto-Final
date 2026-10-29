@@ -27,7 +27,7 @@ export function ProviderProposalCard({ proposal, busy, onEdit, onWithdraw }) {
           <h3 className="truncate font-display text-sm text-navy">
             {request ? (
               <Link
-                to={`/prestador/pedidos/${request.id}`}
+                to={`/provider/requests/${request.id}`}
                 className="hover:underline"
               >
                 {request.title}

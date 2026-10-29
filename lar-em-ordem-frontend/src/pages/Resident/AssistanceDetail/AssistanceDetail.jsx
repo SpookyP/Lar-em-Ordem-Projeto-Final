@@ -46,7 +46,7 @@ export default function AssistanceDetail() {
     <div className="flex flex-col gap-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-4">
         <Link
-          to="/assistencia"
+          to="/assistance"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-sm text-muted transition hover:text-navy"
           aria-label="Voltar"
         >
@@ -101,7 +101,7 @@ export default function AssistanceDetail() {
 
             <div className="flex flex-col gap-2 border-t border-surface pt-4">
               <h3 className="text-sm font-semibold text-muted">Descrição</h3>
-              <p className="text-sm text-navy leading-relaxed whitespace-pre-line break-words">
+              <p className="text-sm text-navy leading-relaxed whitespace-pre-line wrap-break-word">
                 {request.description}
               </p>
             </div>

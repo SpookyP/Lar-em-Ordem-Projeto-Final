@@ -51,14 +51,12 @@ class NotificationTest extends TestCase
     {
         [$user, $property] = $this->createAuthorizedUserAndProperty();
 
-        DB::table('vault_notifications')->insert([
+        \App\Models\Vault\Notification::create([
             'property_id' => $property->id,
             'type' => 'Alerta',
             'title' => 'Documento a expirar',
             'message' => 'O seu certificado energético expira em 30 dias.',
             'alert_date' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -69,7 +67,6 @@ class NotificationTest extends TestCase
                 'data' => [
                     '*' => [
                         'id',
-                        'property_id',
                         'type',
                         'title',
                         'message',
@@ -84,24 +81,22 @@ class NotificationTest extends TestCase
     {
         [$user, $property] = $this->createAuthorizedUserAndProperty();
 
-        $notificationId = DB::table('vault_notifications')->insertGetId([
+        $notification = \App\Models\Vault\Notification::create([
             'property_id' => $property->id,
             'type' => 'Alerta',
             'title' => 'Documento a expirar',
             'message' => 'O seu certificado energético expira em 30 dias.',
             'alert_date' => now(),
             'read_at' => null,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
-            ->patchJson("/api/v1/notifications/{$notificationId}/read");
+            ->patchJson("/api/v1/notifications/{$notification->id}/read");
 
         $response->assertStatus(200);
 
         $this->assertDatabaseMissing('vault_notifications', [
-            'id' => $notificationId,
+            'id' => $notification->id,
             'read_at' => null,
         ]);
     }

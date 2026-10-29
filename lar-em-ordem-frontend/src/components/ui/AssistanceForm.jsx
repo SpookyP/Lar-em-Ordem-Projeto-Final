@@ -73,12 +73,6 @@ export default function AssistanceForm({ onSubmit }) {
     e.preventDefault();
     const form = e.currentTarget;
 
-    //o input de ficheiro esta escondido, o required do browser nao avisa
-    if (!photo) {
-      setPhotoError("Adicione uma fotografia da avaria.");
-      return;
-    }
-
     setSubmitting(true);
     setError("");
     try {
@@ -171,7 +165,7 @@ export default function AssistanceForm({ onSubmit }) {
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-navy">
-            Fotografia da avaria <span className="text-red">*</span>
+            Fotografia da avaria
           </label>
           <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-6 cursor-pointer hover:border-orange/50 transition-colors bg-background/50">
             <div className="w-12 h-12 rounded-full bg-orange-light flex items-center justify-center text-orange mb-3">
@@ -181,7 +175,7 @@ export default function AssistanceForm({ onSubmit }) {
               {photo ? photo.name : "Adicionar Fotografia"}
             </span>
             <span className="text-xs text-muted mt-1">
-              Obrigatória — tire uma foto ou escolha da galeria
+              Opcional — tire uma foto ou escolha da galeria
             </span>
             <span className="text-xs text-muted mt-0.5">
               PNG, JPG ou WebP (Máx. 5MiB)

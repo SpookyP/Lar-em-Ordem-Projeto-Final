@@ -8,7 +8,7 @@ import { HouseList } from "../../components/ui/HouseList";
 
 export default function Profiles() {
   const navigate = useNavigate();
-  const { user, selectProfile } = useAuth();
+  const { user, selectProfile, logout } = useAuth();
   const [openProfile, setOpenProfile] = useState(null);
   const [deciding, setDeciding] = useState(true);
 
@@ -20,7 +20,7 @@ export default function Profiles() {
   }));
 
   const [searchParams] = useSearchParams();
-  const preselectedName = searchParams.get("perfil");
+  const preselectedName = searchParams.get("profile");
   const preselectedProfile = profiles.find((p) => p.name === preselectedName);
 
   function handleProfileClick(profile) {
@@ -36,7 +36,12 @@ export default function Profiles() {
     navigate(ROLE_INFO[profile.name]?.home ?? "/dashboard");
   }
 
-  //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /perfis
+  async function handleLogout() {
+    await logout();
+    navigate("/login");
+  }
+
+  //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /profiles
   useEffect(() => {
     if (!user) return;
 
@@ -55,28 +60,23 @@ export default function Profiles() {
 
         const unique = profiles[0];
 
-        //Perfil que n tem casas (prestador/partner)
         if (!unique.hasHouses) {
           enter(unique, null);
           return;
         }
 
-        //meta.total
         const { houses, total } = await getProperties(1);
 
-        //1 casa
         if (total === 1) {
           enter(unique, houses[0]);
           return;
         }
 
-        //0 casas
         if (total === 0) {
           navigate("/welcome");
           return;
         }
 
-        //Varias casas
         setOpenProfile(unique.name);
         setDeciding(false);
       } catch (error) {
@@ -125,6 +125,23 @@ export default function Profiles() {
             ))}
           </div>
         )}
+
+        <div className="mt-6 flex flex-col items-center gap-2">
+          {preselectedProfile && (
+            <button
+              onClick={() => navigate(-1)}
+              className="text-sm text-navy hover:underline"
+            >
+              ← Voltar
+            </button>
+          )}
+          <button
+            onClick={handleLogout}
+            className="text-sm text-muted hover:text-navy transition"
+          >
+            Terminar sessão
+          </button>
+        </div>
       </div>
     </div>
   );

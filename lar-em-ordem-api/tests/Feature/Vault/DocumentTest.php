@@ -14,6 +14,7 @@ use App\Models\User\ResidentType;
 use App\Services\Vault\PdfExtractionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
 use Illuminate\Support\Str;
@@ -100,7 +101,7 @@ class DocumentTest extends TestCase
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = DocumentCategory::factory()->create();
 
-        $file = UploadedFile::fake()->image('photo.jpg');
+        $file = UploadedFile::fake()->create('documento.txt', 100, 'text/plain');
 
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/v1/properties/{$property->id}/documents", [
             'property_id' => $property->id,
@@ -117,12 +118,16 @@ class DocumentTest extends TestCase
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = DocumentCategory::factory()->create();
 
+        $file = \App\Models\File\File::factory()->create([
+            'user_id' => $user->id
+        ]);
+
         \App\Models\Vault\Document::create([
             'property_id' => $property->id,
             'document_category_id' => $category->id,
-            'name' => 'fatura_luz.pdf',
-            'description' => 'Fatura de teste',
-            'file_id' => (string) Str::uuid(),
+            'name' => 'caderneta_predial.pdf',
+            'description' => 'Caderneta Predial da Autoridade Tributária',
+            'file_id' => $file->id,
             'expiration_date' => now()->addMonths(6),
         ]);
 
@@ -138,17 +143,20 @@ class DocumentTest extends TestCase
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = DocumentCategory::factory()->create();
 
-        $fileId = (string) Str::uuid();
         $fileName = 'contrato_arrendamento.pdf';
 
-        Storage::disk('local')->put("vault_documents/{$fileId}", 'conteudo falso do pdf');
+        $file = \App\Models\File\File::factory()->create([
+            'user_id' => $user->id
+        ]);
+
+        Storage::disk('local')->put("vault_documents/{$file->id}", 'conteudo falso do pdf');
 
         $document = \App\Models\Vault\Document::create([
             'property_id' => $property->id,
             'document_category_id' => $category->id,
             'name' => $fileName,
             'description' => 'Contrato',
-            'file_id' => $fileId,
+            'file_id' => $file->id,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
@@ -165,6 +173,11 @@ class DocumentTest extends TestCase
         $category = DocumentCategory::factory()->create();
 
         $fileName = 'planta_casa.pdf';
+
+        $file = \App\Models\File\File::factory()->create([
+            'user_id' => $user->id
+        ]);
+
         Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
 
         $document = \App\Models\Vault\Document::create([
@@ -172,7 +185,7 @@ class DocumentTest extends TestCase
             'document_category_id' => $category->id,
             'name' => $fileName,
             'description' => 'Planta',
-            'file_id' => (string) Str::uuid(),
+            'file_id' => $file->id,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')

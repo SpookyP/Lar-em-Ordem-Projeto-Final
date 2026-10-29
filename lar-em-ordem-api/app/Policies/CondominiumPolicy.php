@@ -2,65 +2,60 @@
 
 namespace App\Policies;
 
-use App\Models\Condominium;
+use App\Models\Condominium\Condominium;
 use App\Models\User\User;
-use Illuminate\Auth\Access\Response;
 
 class CondominiumPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
+    public function before(User $user, string $ability): ?bool
+    {
+        return $user->hasRole('SU') ? true : null;
+    }
+
+    /** A listagem já filtra pelo que o utilizador pode ver (scopeVisibleTo). */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
+    /** Administrador ou residente com casa no condomínio. */
     public function view(User $user, Condominium $condominium): bool
     {
-        return false;
+        return $condominium->isManagedBy($user) || $condominium->hasMember($user);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
+    /** Só quem tem perfil de administrador de condomínio. */
     public function create(User $user): bool
     {
-        return false;
+        return $user->condominium_admin !== null;
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
+    /** Editar (inclui gerar novo código de convite). */
     public function update(User $user, Condominium $condominium): bool
     {
-        return false;
+        return $condominium->isManagedBy($user);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Condominium $condominium): bool
     {
-        return false;
+        return $condominium->isManagedBy($user);
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Condominium $condominium): bool
+    /** Ligar uma casa a um condomínio (por código de convite). */
+    public function join(User $user): bool
     {
-        return false;
+        return $user->resident !== null;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Condominium $condominium): bool
+    /** Retirar uma casa: o administrador (qualquer casa) ou o residente (a sua). */
+    public function leave(User $user, Condominium $condominium): bool
     {
-        return false;
+        return $condominium->isManagedBy($user) || $condominium->hasMember($user);
+    }
+    
+    /** Aceitar uma transferência: quem tem perfil de administrador de condomínio. */
+    public function claim(User $user): bool
+    {
+        return $user->condominium_admin !== null;
     }
 }

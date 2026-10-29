@@ -42,7 +42,7 @@ export default function ProblemList({
                 postedAt={formatDate(r.createdAt)}
                 status={r.statusLabel}
                 proposals={r.proposalsCount}
-                to={`/assistencia/${r.id}`}
+                to={`/assistance/${r.id}`}
               />
             );
           })}

@@ -5,17 +5,20 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use App\Services\Auth\ProfileService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth as AuthFacade;
 use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 
 
 class AuthController extends Controller
 {
+    public function __construct(private ProfileService $profileService) {}
+    
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -43,7 +46,7 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        $user = $request->user()->load(['resident', 'partner', 'service_provider']);
+        $user = $request->user()->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']);
 
         return response()->json([
             'id'    => $user->id,
@@ -53,6 +56,7 @@ class AuthController extends Controller
             'resident'         => $user->resident,
             'partner'          => $user->partner,
             'service_provider' => $user->service_provider,
+            'condominium_admin' => $user->condominium_admin,
         ]);
     }
 
@@ -66,75 +70,32 @@ class AuthController extends Controller
         $user = $request->user();
 
         $rules = $request->validate([
-            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+            'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ]);
 
         $role = $rules['role'];
 
-        $makeRules = function (string $class) use ($user) {
+        // o FormRequest do perfil dá as regras E as mensagens
+        $makeRequest = function (string $class) use ($user) {
             $request = new $class();
             $request->setUserResolver(fn() => $user);
-            return $request->rules();
+            return $request;
         };
 
-        $roleRules = match ($role) {
-            'resident'         => $makeRules(StoreResidentRequest::class),
-            'partner'          => $makeRules(StorePartnerRequest::class),
-            'service_provider' => $makeRules(StoreServiceProviderRequest::class),
-            default            => [],
+        $roleRequest = match ($role) {
+            'resident'         => $makeRequest(StoreResidentRequest::class),
+            'partner'          => $makeRequest(StorePartnerRequest::class),
+            'service_provider' => $makeRequest(StoreServiceProviderRequest::class),
+            'condominium_admin' => $makeRequest(StoreCondominiumAdminRequest::class),
         };
 
-        $validated = $request->validate($roleRules);
+        $validated = $request->validate($roleRequest->rules(), $roleRequest->messages());
 
-        $alreadyHasProfile = match ($role) {
-            'resident'         => $user->resident()->exists(),
-            'service_provider' => $user->service_provider()->exists(),
-            'partner'          => $user->partner()->exists(),
-            default            => false,
-        };
-
-        if ($alreadyHasProfile) {
-            return response()->json([
-                'message' => "The given data was invalid.",
-                'errors' => [
-                    'role' => ["You already have a {$role} profile attached to this account."],
-                ],
-            ], 422);
-        }
-
-        DB::transaction(function () use ($user, $validated, $role) {
-            if (!$user->hasRole($role)) {
-                $user->assignRole($role);
-            }
-
-            match ($role) {
-                'resident' => $user->resident()->create([
-                    'nif'  => $validated['nif'],
-                ]),
-
-                'partner' => $user->partner()->create([
-                    'company_name'=> $validated['company_name'],
-                    'nif'         => $validated['nif'],
-                    'phone'       => $validated['phone'],
-                    'website'     => $validated['website'] ?? null,
-                    'description' => $validated['description'],
-                ]),
-
-                'service_provider' => $user->service_provider()->create([
-                    'company_name' => $validated['company_name'],
-                    'nif'          => $validated['nif'],
-                    'phone'        => $validated['phone'],
-                    'provider_email' => $validated['provider_email']  ?? null,
-                    'description'  => $validated['description'],
-                ]),
-
-                default => null,
-            };
-        });
+        $this->profileService->create($user, $role, $validated);
 
         return response()->json([
             'message' => "Profile '{$role}' added successfully.",
-            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner']),
+            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']),
         ], 201);
     }
 
@@ -147,48 +108,16 @@ class AuthController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+            'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ]);
 
         $role = $validated['role'];
 
-        $hasProfile = match ($role) {
-            'resident'         => $user->resident()->exists(),
-            'service_provider' => $user->service_provider()->exists(),
-            'partner'          => $user->partner()->exists(),
-            default            => false,
-        };
-
-        if (!$hasProfile) {
-            return response()->json([
-                'message' => 'The given data was invalid.',
-                'errors'  => ['role' => ["You do not have a {$role} profile attached to this account."]],
-            ], 422);
-        }
-
-        if ($user->roles()->count() <= 1) {
-            return response()->json([
-                'message' => 'The given data was invalid.',
-                'errors'  => ['role' => ['You cannot remove your only profile. Delete the account instead.']],
-            ], 422);
-        }
-
-        DB::transaction(function () use ($user, $role) {
-            match ($role) {
-                'resident'         => $user->resident()->delete(),
-                'partner'          => $user->partner()->delete(),
-                'service_provider' => $user->service_provider()->delete(),
-                default            => null,
-            };
-
-            if ($user->hasRole($role)) {
-                $user->removeRole($role);
-            }
-        });
+       $this->profileService->delete($user, $role);
 
         return response()->json([
             'message' => "Profile '{$role}' removed successfully.",
-            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner']),
+            'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']),
         ]);
     }
 

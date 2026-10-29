@@ -44,7 +44,7 @@ class RequestAttachmentService
         }
 
         foreach ($newImages as $image) {
-            $file = $this->fileStorage->uploadUserFile($assistanceRequest->user, $image, 'assistance_requests');
+            $file = $this->fileStorage->uploadUserFile($assistanceRequest->resident->user, $image, 'assistance_requests');
 
             $assistanceRequest->attachments()->create(['file_id' => $file->id]);
         }

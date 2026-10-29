@@ -42,10 +42,10 @@ export function ProfileForm() {
       setStatus("success");
       setRole("");
       setForm({});
-    } catch (erro) {
+    } catch (error) {
       setStatus("error");
       setErrorMsg(
-        erro.response?.data?.message ?? "Não foi possível adicionar o perfil.",
+        error.response?.data?.message ?? "Não foi possível adicionar o perfil.",
       );
     }
   }

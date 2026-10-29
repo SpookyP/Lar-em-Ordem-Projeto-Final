@@ -260,4 +260,21 @@ class OfferTest extends TestCase
             $this->assertTrue($oferta['active']);
         }
     }
+
+     public function test_ofertas_que_comecam_ou_acabam_hoje_estao_em_vigor(): void
+    {
+        $hoje = now()->toDateString();
+
+        $comecaHoje   = Offer::factory()->create(['start_date' => $hoje, 'end_date' => null]);
+        $acabaHoje    = Offer::factory()->create(['start_date' => now()->subWeek()->toDateString(), 'end_date' => $hoje]);
+        $acabouOntem  = Offer::factory()->create(['start_date' => now()->subWeek()->toDateString(), 'end_date' => now()->subDay()->toDateString()]);
+        $comecaAmanha = Offer::factory()->create(['start_date' => now()->addDay()->toDateString(), 'end_date' => null]);
+
+        $emVigor = Offer::current()->pluck('id');
+
+        $this->assertTrue($emVigor->contains($comecaHoje->id));
+        $this->assertTrue($emVigor->contains($acabaHoje->id));
+        $this->assertFalse($emVigor->contains($acabouOntem->id));
+        $this->assertFalse($emVigor->contains($comecaAmanha->id));
+    }
 }

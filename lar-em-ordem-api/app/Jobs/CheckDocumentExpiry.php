@@ -22,10 +22,6 @@ class CheckDocumentExpiry implements ShouldQueue
      */
     public function handle(DocumentExpiryService $expiryService): void
     {
-        // Executa o serviço de validação
-        $alertsGenerated = $expiryService->generateExpiryAlerts();
-
-        // Regista nos logs para efeitos de debug
-        \Illuminate\Support\Facades\Log::info("CheckDocumentExpiry Job finalizado. Alertas gerados: {$alertsGenerated}");
+        $expiryService->checkAllDocuments();
     }
 }

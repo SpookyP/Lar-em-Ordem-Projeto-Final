@@ -48,7 +48,7 @@ class AssistanceRequestSeeder extends Seeder
         $eletricidade = ProblemCategory::where('name', 'Eletricidade')->value('id');
         $pintura      = ProblemCategory::where('name', 'Pintura')->value('id');
 
-        $base = ['property_id' => $property->id, 'user_id' => $morador->id];
+        $base = ['property_id' => $property->id, 'resident_id' => $morador->resident->id];
 
         // 1. Aberto, sem propostas: aparece em "available" para os prestadores de canalização
         AssistanceRequest::factory()->create($base + [
