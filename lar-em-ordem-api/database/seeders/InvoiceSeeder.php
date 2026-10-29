@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Invoice\Invoice;
+use App\Models\User\Resident;
 use App\Models\User\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -16,6 +17,11 @@ class InvoiceSeeder extends Seeder
         $user = User::firstOrCreate(
             ['email' => 'temp@teste.com'],
             ['name' => 'Utilizador Temporario', 'password' => 'password']
+        );
+
+        $resident = Resident::firstOrCreate(
+            ['user_id' => $user->id],
+            ['nif'     => '123456789']
         );
 
         $propertyIds = DB::table('properties')
@@ -34,7 +40,7 @@ class InvoiceSeeder extends Seeder
             $start = $thisMonth->copy()->subMonths($month);
 
             foreach ($propertyIds as $propertyId) {
-                $this->createInvoice($user->id, $propertyId, $start);
+                $this->createInvoice($resident->id, $propertyId, $start);
             }
         }
 
@@ -50,18 +56,18 @@ class InvoiceSeeder extends Seeder
                     continue;
                 }
 
-                $this->createInvoice($user->id, $propertyId, $start);
+                $this->createInvoice($resident->id, $propertyId, $start);
             }
         }
     }
 
     private function createInvoice(
-        string $userId,
+        string $residentId,
         string $propertyId,
         Carbon $start
     ): void {
         Invoice::factory()->create([
-            'user_id'      => $userId,
+            'resident_id'      => $residentId,
             'property_id'  => $propertyId,
             'period_start' => $start->toDateString(),
             'period_end'   => $start->copy()->endOfMonth()->toDateString(),

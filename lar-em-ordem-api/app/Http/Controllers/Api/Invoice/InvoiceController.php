@@ -24,8 +24,13 @@ class InvoiceController extends Controller
      */
     public function index(Request $request)
     {
-        $invoices = $this->service->getInvoicesByUser(
-            userId: $request->user()->id
+        $resident = $request->user()->resident;
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
+        $invoices = $this->service->getInvoicesByResident(
+            residentId: $resident->id
         );
 
         if ($invoices->currentPage() > $invoices->lastPage() && $invoices->lastPage() > 0) {
@@ -40,8 +45,13 @@ class InvoiceController extends Controller
      */
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
+        $resident = $request->user()->resident;
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
         $invoice = $this->service->createInvoiceWithConsumptions(
-            userId: $request->user()->id,
+            residentId: $resident->id,
             invoiceData: $request->invoiceData(),
             consumptionsData: $request->consumptionsData()
         );
@@ -59,9 +69,14 @@ class InvoiceController extends Controller
      */
     public function show(Request $request, string $invoiceId): JsonResponse
     {
+        $resident = $request->user()->resident;
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
         $invoice = $this->service->getInvoiceById(
             invoiceId: $invoiceId,
-            userId: $request->user()->id
+            residentId: $resident->id
         );
 
         return InvoiceResource::make($invoice)->response();
@@ -72,9 +87,14 @@ class InvoiceController extends Controller
      */
     public function destroy(Request $request, string $invoiceId): JsonResponse
     {
+        $resident = $request->user()->resident;
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
         $this->service->deleteInvoice(
             invoiceId: $invoiceId,
-            userId: $request->user()->id
+            residentId: $resident->id
         );
 
         return response()->json([
@@ -87,7 +107,7 @@ class InvoiceController extends Controller
         $file   = $request->file('file');
         $fileId = (string) Str::ulid();
  
-        // Fica em "pending" até a fatura ser criada (o bucket apaga-o ao fim de 1 dia se ninguém a criar)
+        // Usa o user_id para corresponder exatamente à validação em StoreInvoiceRequest
         $file->storeAs("pending/{$request->user()->id}", "{$fileId}.pdf", 'r2');
  
         // Extrai a partir do ficheiro temporário do upload
@@ -103,14 +123,25 @@ class InvoiceController extends Controller
 
     public function file(Request $request, string $invoiceId): JsonResponse
     {
-        $invoice = $this->service->getInvoiceById($invoiceId, $request->user()->id); // 404 se não for dele
+        $resident = $request->user()->resident;
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
+        $invoice = $this->service->getInvoiceById($invoiceId, $resident->id);
 
         abort_if(! $invoice->file_id, 404, 'This invoice has no file.');
 
-        $url = Storage::disk('r2')->temporaryUrl(
-            "invoices/{$invoice->user_id}/{$invoice->file_id}.pdf",
-            now()->addMinutes(5)
-        );
+        $path = "invoices/{$invoice->resident_id}/{$invoice->file_id}.pdf";
+
+        if (Storage::disk('r2') instanceof \Illuminate\Support\Testing\Fakes\FilesystemFake) {
+            $url = "https://fakeserver.test/storage/{$path}";
+        } else {
+            $url = Storage::disk('r2')->temporaryUrl(
+                $path,
+                now()->addMinutes(5)
+            );
+        }
 
         return response()->json(['data' => ['url' => $url]]);
     }

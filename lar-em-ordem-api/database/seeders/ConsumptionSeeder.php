@@ -24,7 +24,7 @@ class ConsumptionSeeder extends Seeder
         $recentLimit = now()->startOfMonth()->subMonths(3);
         $units = DB::table('consumption_types')->pluck('unit_of_measure', 'id'); // unidade de cada tipo
 
-        Invoice::query()->lazy()->each(function (Invoice $invoice) use ($consumptionTypeIds, $commonTypeId, $recentLimit, $units) {
+        Invoice::query()->lazy()->each(function ($invoice) use ($consumptionTypeIds, $commonTypeId, $recentLimit, $units) {
             $isRecent = Carbon::parse($invoice->period_start)->gte($recentLimit);
 
             $typeIds = $isRecent ? $consumptionTypeIds : collect([$commonTypeId]);

@@ -27,7 +27,7 @@ class InvoiceTest extends TestCase
 
     protected $seed = true;
 
-    private User $user;
+    private Resident $resident;
     private Property $property;
     private ConsumptionType $type;
 
@@ -37,9 +37,12 @@ class InvoiceTest extends TestCase
 
         Storage::fake('r2');
 
-        $this->user = $this->signIn();
+        $user = $this->signIn(); 
+        $this->resident = Resident::where('user_id', $user->id)->first() 
+            ?? Resident::factory()->create(['user_id' => $user->id]);  
+
         $this->property = $this->createProperty('Porto');
-        $this->giveContract($this->user, $this->property);
+        $this->giveContract($this->resident, $this->property);
         $this->type = $this->consumptionType('Eletricidade', 'kWh');
     }
 
@@ -47,9 +50,14 @@ class InvoiceTest extends TestCase
     // HELPERS DE APOIO
     // -------------------------------------------------------------------------
 
-    protected function signIn(?User $user = null): User
+    protected function signIn(?User $user = null, bool $withResident = true): User
     {
         $user ??= User::factory()->create();
+        
+        if ($withResident) {
+            Resident::factory()->create(['user_id' => $user->id]);
+        }
+
         Sanctum::actingAs($user);
 
         return $user;
@@ -84,13 +92,8 @@ class InvoiceTest extends TestCase
         ]));
     }
 
-    protected function giveContract(User $user, Property $property, bool $active = true): void
+    protected function giveContract(Resident $resident, Property $property, bool $active = true): void
     {
-        $resident = Resident::unguarded(fn () => Resident::firstOrCreate(
-            ['user_id' => $user->id],
-            ['nif' => fake()->numerify('2########'), 'is_active' => true]
-        ));
-
         $residentTypeId = DB::table('resident_types')->value('id')
             ?? DB::table('resident_types')->insertGetId(['type' => 'Proprietário']);
 
@@ -109,7 +112,7 @@ class InvoiceTest extends TestCase
     }
 
     protected function createInvoiceWithConsumption(
-        User $user,
+        Resident $resident,
         Property $property,
         ConsumptionType $type,
         string $start = '2025-03-01',
@@ -118,7 +121,7 @@ class InvoiceTest extends TestCase
         array $invoiceOverrides = [],
     ): Invoice {
         $invoice = Invoice::factory()->create(array_merge([
-            'user_id'      => $user->id,
+            'resident_id'      => $resident->id,
             'property_id'  => $property->id,
             'period_start' => $start,
             'period_end'   => $end,
@@ -178,18 +181,22 @@ class InvoiceTest extends TestCase
 
     public function test_monthly_and_annual_benchmarks(): void
     {
-        $this->createInvoiceWithConsumption($this->user, $this->property, $this->type, '2025-03-01', '2025-03-31', 240);
+        $this->createInvoiceWithConsumption($this->resident, $this->property, $this->type, '2025-03-01', '2025-03-31', 240);
         
-        DB::table('consumption_benchmarks')->insert([
-            'consumption_type_id' => $this->type->id,
-            'property_type_id'    => $this->property->property_type_id,
-            'typology_id'         => $this->property->property_typology_id,
-            'region'              => $this->property->address->district,
-            'reference_period'    => 'monthly',
-            'period_start'        => '2025-03-01',
-            'average_value'       => 200,
-            'sample_size'         => 8,
-        ]);
+        DB::table('consumption_benchmarks')->updateOrInsert(
+            [
+                'consumption_type_id' => $this->type->id,
+                'property_type_id'    => $this->property->property_type_id,
+                'typology_id'         => $this->property->property_typology_id,
+                'region'              => $this->property->address->district,
+                'reference_period'    => 'monthly',
+                'period_start'        => '2025-03-01',
+            ],
+            [
+                'average_value'       => 200,
+                'sample_size'         => 8,
+            ]
+        );
 
         $this->getJson("/api/v1/benchmarks/monthly?month=2025-03&consumption_type_id={$this->type->id}&property_id={$this->property->id}")
             ->assertOk()
@@ -199,10 +206,12 @@ class InvoiceTest extends TestCase
             ->assertOk();
     }
 
-    public function test_user_without_resident_gets_404_on_benchmarks(): void
+    public function test_resident_without_resident_gets_404_on_benchmarks(): void
     {
-        $this->signIn(User::factory()->create());
-        $this->getJson("/api/v1/benchmarks/monthly?month=2025-03&consumption_type_id={$this->type->id}")->assertNotFound();
+        $this->signIn(null, false); 
+        
+        $this->getJson("/api/v1/benchmarks/monthly?month=2025-03&consumption_type_id={$this->type->id}")
+            ->assertNotFound();
     }
 
     // -------------------------------------------------------------------------
@@ -222,7 +231,7 @@ class InvoiceTest extends TestCase
 
     public function test_consumptions_index_filter_and_show(): void
     {
-        $invoice = $this->createInvoiceWithConsumption($this->user, $this->property, $this->type);
+        $invoice = $this->createInvoiceWithConsumption($this->resident, $this->property, $this->type);
         $consumption = $invoice->consumptions()->first();
 
         // Listar todos
@@ -271,8 +280,8 @@ class InvoiceTest extends TestCase
 
     public function test_invoice_upload_and_file_url_flow(): void
     {
-        $user = $this->signIn();
-        
+        $user = auth()->user();
+
         $this->mock(InvoiceExtractionService::class, function (MockInterface $mock) {
             $mock->shouldReceive('extract')->once()->andReturn([
                 'supplier'       => 'EDP',
@@ -290,7 +299,9 @@ class InvoiceTest extends TestCase
             ->assertCreated();
 
         $fileId = $response->json('data.file_id');
-        Storage::disk('r2')->assertExists("pending/{$user->id}/{$fileId}.pdf");
+        
+        // Validar que o ficheiro existe na pasta pending usando o id do user autenticado
+        $this->assertTrue(Storage::disk('r2')->exists("pending/{$user->id}/{$fileId}.pdf"));
 
         // Criar fatura associando o file_id do upload
         $invoiceResponse = $this->postJson('/api/v1/invoices', $this->payload($this->property, ['file_id' => $fileId]))

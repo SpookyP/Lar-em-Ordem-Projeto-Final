@@ -24,8 +24,14 @@ class ConsumptionController extends Controller
             'property_id' => ['nullable', 'string', 'exists:properties,id'],
         ]);
         
+        $resident = $request->user()->resident;
+        
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
         $consumptions = $this->service->getConsumptions( 
-            userId: $request->user()->id, 
+            residentId: $resident->id, 
             propertyId: $validated['property_id'] ?? null 
         );
 
@@ -42,9 +48,15 @@ class ConsumptionController extends Controller
      */
     public function show(Request $request, string $consumptionId): JsonResponse
     {
+        $resident = $request->user()->resident;
+        
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
         $consumption = $this->service->getConsumptionById(
             consumptionId: $consumptionId,
-            userId: $request->user()->id
+            residentId: $resident->id
         );
 
         return ConsumptionResource::make($consumption)->response();
@@ -55,9 +67,15 @@ class ConsumptionController extends Controller
      */
     public function items(Request $request, string $consumptionId): JsonResponse
     {
+        $resident = $request->user()->resident;
+        
+        if (! $resident) {
+            abort(404, 'Resident profile not found.');
+        }
+
         $consumption = $this->service->getConsumptionById(
             consumptionId: $consumptionId,
-            userId: $request->user()->id
+            residentId: $resident->id
         );
 
         return ConsumptionItemResource::collection($consumption->items)->response();

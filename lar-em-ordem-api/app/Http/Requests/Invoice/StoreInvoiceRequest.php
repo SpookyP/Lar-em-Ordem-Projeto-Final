@@ -29,30 +29,23 @@ class StoreInvoiceRequest extends FormRequest
                  'required',
                  'string',
                  function (string $attribute, mixed $value, \Closure $fail) {
-                      $allowed = \App\Models\Property\Property::query()
-                         ->whereKey($value)
-                         ->whereHas('residents', fn ($q) => $q
-                             ->where('residents.user_id', $this->user()->id)
-                             ->where('property_contracts.is_active', true))
-                         ->exists();
+                     $allowed = \App\Models\Property\Property::query()
+                        ->whereKey($value)
+                        ->whereHas('residents', fn ($q) => $q
+                            ->where('residents.user_id', $this->user()->id)
+                            ->where('property_contracts.is_active', true))
+                        ->exists();
             
                      if (! $allowed) {
                          $fail('The selected property does not exist.');
                      }
                  },
              ],
-
-
-            //'property_id' => ['required', 'ulid', 
-            //    Rule::exists('properties', 'id')
-            //    ->whereNull('deleted_at')
-            //],
-
             
-            'invoice_number' => ['required', 'string', 'max:100', 
+             'invoice_number' => ['required', 'string', 'max:100', 
                 Rule::unique('invoices')
                 ->where(fn ($query) => $query 
-                    ->where('user_id', $this->user()->id) 
+                    ->where('resident_id', $this->user()->resident?->id) 
                     ->where('supplier', $this->input('supplier')) 
                 )
             ],
