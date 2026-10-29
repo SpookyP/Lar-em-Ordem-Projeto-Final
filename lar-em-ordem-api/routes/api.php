@@ -11,7 +11,7 @@ Route::get('/auth/social/pending', [SocialRegisterController::class, 'show'])->m
 Route::post('/auth/social/register', [SocialRegisterController::class, 'store'])->middleware('throttle:10,1');
 
 Route::prefix('v1')->group(function () {
-    Route::middleware(['auth:sanctum','throttle:20,1'])->group(function () {
+    Route::middleware(['auth:sanctum','throttle:2000,10'])->group(function () {
         require __DIR__ . '/modules/vault.php';
         require __DIR__ . '/modules/property.php';
         require __DIR__ . '/modules/resident.php';
