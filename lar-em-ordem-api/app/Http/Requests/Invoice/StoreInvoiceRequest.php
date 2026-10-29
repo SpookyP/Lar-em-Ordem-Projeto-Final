@@ -24,44 +24,28 @@ class StoreInvoiceRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            // A validação abaixo verifica corretamente se a propriedade pertence
-            // ao utilizador autenticado através de um residente com contrato ativo.
-            // Esta regra foi testada e funciona corretamente.
-            //
-            // Por enquanto, enquanto não existe frontend e para facilitar os testes
-            // da criação de faturas, mantém-se a regra de existência simples abaixo.
-            // Quando houver frontend, deve ser reativada a validação de autorização
-            // para impedir que um utilizador registe faturas numa propriedade que não lhe pertence.
-            //
-            // 'property_id' => [
-            //     'required',
-            //     'string',
-            //     function (string $attribute, mixed $value, \Closure $fail) {
-            //         $allowed = \App\Models\Property\Property::query()
-            //             ->whereKey($value)
-            //             ->whereHas('residents', fn ($q) => $q
-            //                 ->where('residents.user_id', $this->user()->id)
-            //                 ->where('property_contracts.is_active', true))
-            //             ->exists();
-            //
-            //         if (! $allowed) {
-            //             $fail('The selected property does not exist.');
-            //         }
-            //     },
-            // ],
-
-
-            'property_id' => ['required', 'ulid', 
-                Rule::exists('properties', 'id')
-                ->whereNull('deleted_at')
-            ],
-
+        return [          
+             'property_id' => [
+                 'required',
+                 'string',
+                 function (string $attribute, mixed $value, \Closure $fail) {
+                     $allowed = \App\Models\Property\Property::query()
+                        ->whereKey($value)
+                        ->whereHas('residents', fn ($q) => $q
+                            ->where('residents.user_id', $this->user()->id)
+                            ->where('property_contracts.is_active', true))
+                        ->exists();
             
-            'invoice_number' => ['required', 'string', 'max:100', 
+                     if (! $allowed) {
+                         $fail('The selected property does not exist.');
+                     }
+                 },
+             ],
+            
+             'invoice_number' => ['required', 'string', 'max:100', 
                 Rule::unique('invoices')
                 ->where(fn ($query) => $query 
-                    ->where('user_id', $this->user()->id) 
+                    ->where('resident_id', $this->user()->resident?->id) 
                     ->where('supplier', $this->input('supplier')) 
                 )
             ],
@@ -78,10 +62,19 @@ class StoreInvoiceRequest extends FormRequest
                 }
             }],
 
-            'consumptions'                          =>      ['required', 'array'],
+            // Consumos principais (no máximo 10 por fatura)
+            'consumptions'                          =>      ['required', 'array', 'max:10'],
             'consumptions.*.consumption_type_id'    =>      ['required', 'integer', 'exists:consumption_types,id'],
-            'consumptions.*.amount'                 =>      ['required', 'numeric', 'min:0'],
-            'consumptions.*.cost'                   =>      ['required', 'numeric', 'min:0'],
+            'consumptions.*.amount'                 =>      ['required', 'numeric', 'min:0', 'max:9999999.999'],
+            'consumptions.*.cost'                   =>      ['required', 'numeric', 'min:0', 'max:99999999.99'],
+
+            // Sub-itens detalhados opcionais para o gráfico de anel (no máximo 30 por consumo)
+            'consumptions.*.items'                  =>      ['nullable', 'array', 'max:30'],
+            'consumptions.*.items.*.name'           =>      ['required', 'string', 'max:255'],
+            'consumptions.*.items.*.category'       =>      ['nullable', Rule::in(['consumption', 'fixed_fee', 'tax', 'discount'])],
+            'consumptions.*.items.*.amount'         =>      ['nullable', 'numeric', 'between:-99999999.99,99999999.99'],
+            'consumptions.*.items.*.unit'           =>      ['nullable', 'string', 'max:50'],
+            'consumptions.*.items.*.cost'           =>      ['required', 'numeric', 'between:-99999999.99,99999999.99'], // negativos permitidos (ex: autoconsumo solar)
         ];
     }
 
@@ -100,6 +93,14 @@ class StoreInvoiceRequest extends FormRequest
             'supplier',
             'file_id',
         ]);
+    }
+
+    /**
+     * Extract consumptions with their items data.
+     */
+    public function consumptionsData(): array
+    {
+        return $this->validated('consumptions', []);
     }
 
     /**

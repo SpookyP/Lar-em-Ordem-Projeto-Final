@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->foreignUlid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlid('resident_id')->constrained()->cascadeOnDelete();
             $table->foreignUlid('property_id')->constrained()->cascadeOnDelete();
             $table->string('invoice_number');
             $table->date('issue_date');
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique([
-                'user_id',
+                'resident_id',
                 'supplier',
                 'invoice_number',
             ]);
