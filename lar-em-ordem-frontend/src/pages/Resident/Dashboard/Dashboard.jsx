@@ -2,6 +2,7 @@ import { Droplet, Zap, Flame, FolderClosed } from "lucide-react";
 import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { ShortcutCard } from "../../../components/ui/ShortcutCard";
 import { ConsumptionChart } from "../../../components/ui/ConsumptionChart";
+import { NotificationBell } from '../../../components/ui/NotificationBell';
 import { useState } from "react";
 
 const periods = ["1 mês", "2 meses", "6 meses"];
@@ -11,8 +12,9 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
+      <header className="flex items-center justify-between w-full">
         <h1 className="font-display text-3xl text-navy">Painel da Habitação</h1>
+        <NotificationBell />
       </header>
 
       <div className="flex flex-col lg:flex-row gap-6">
