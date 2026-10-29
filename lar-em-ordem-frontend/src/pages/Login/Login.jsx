@@ -10,11 +10,11 @@ export default function Login() {
   const navigate = useNavigate();
   
   const [searchParams] = useSearchParams();
-  const erroSocial = socialErrorMessage(searchParams.get("erro"));
+  const errorSocial = socialErrorMessage(searchParams.get("erro"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [erro, setErro] = useState("");
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event) {
@@ -80,9 +80,9 @@ export default function Login() {
           Inicie sessão para continuar
         </p>
 
-        {(erro || erroSocial) && (
+        {(error || errorSocial) && (
           <div className="mb-4 rounded-lg bg-red-light px-3 py-2 text-sm text-red">
-            {erro || erroSocial}
+            {error || errorSocial}
           </div>
         )}
 
