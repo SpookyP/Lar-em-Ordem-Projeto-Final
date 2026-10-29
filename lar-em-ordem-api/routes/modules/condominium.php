@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('condominium-admins/me', [CondominiumAdminController::class, 'showMyProfile']);
 
 Route::post('condominiums/join', [CondominiumController::class, 'join'])
-    ->middleware('throttle:5,1');
-    Route::post('condominiums/claim', [CondominiumController::class, 'claim'])
-    ->middleware('throttle:5,1');
+    ->middleware('throttle:5,1,condominium-join');
+Route::post('condominiums/claim', [CondominiumController::class, 'claim'])
+    ->middleware('throttle:5,1,condominium-claim');
 Route::post('condominiums/{condominium}/transfer', [CondominiumController::class, 'startTransfer'])
     ->whereUlid('condominium');
 Route::delete('condominiums/{condominium}/transfer', [CondominiumController::class, 'cancelTransfer'])

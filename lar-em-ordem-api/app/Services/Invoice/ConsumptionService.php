@@ -10,13 +10,13 @@ class ConsumptionService
     /**
      * Obter a lista paginada de consumos do utilizador.
      */
-    public function getConsumptions(string  $userId, ?string  $propertyId = null, int $perPage = 15): LengthAwarePaginator
+    public function getConsumptions(string  $residentId, ?string  $propertyId = null, int $perPage = 15): LengthAwarePaginator
     {
         $query = Consumption::query()
-            ->whereHas('invoice', function ($q) use ($userId) {
-                $q->where('user_id', $userId);
+            ->whereHas('invoice', function ($q) use ($residentId) {
+                $q->where('resident_id', $residentId);
             })
-            ->with(['invoice', 'property', 'consumptionType'])
+            ->with(['invoice', 'property', 'consumptionType', 'items'])
             ->latest()
             ->latest('id');
 
@@ -30,14 +30,14 @@ class ConsumptionService
     /**
      * Obter um consumo específico pelo ID, validando o acesso do utilizador.
      */
-    public function getConsumptionById(string  $consumptionId, string  $userId): Consumption
+    public function getConsumptionById(string  $consumptionId, string  $residentId): Consumption
     {
         $consumption = Consumption::query()
             ->where('id', $consumptionId)
-            ->whereHas('invoice', function ($q) use ($userId) {
-                $q->where('user_id', $userId);
+            ->whereHas('invoice', function ($q) use ($residentId) {
+                $q->where('resident_id', $residentId);
             })
-            ->with(['invoice', 'property', 'consumptionType'])
+            ->with(['invoice', 'property', 'consumptionType', 'items'])
             ->first();
 
         if (!$consumption) {
