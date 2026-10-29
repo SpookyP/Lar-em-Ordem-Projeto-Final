@@ -21,6 +21,7 @@ class CondominiumResource extends JsonResource
             'can_manage'       => $canManage,
             'invite_code'      => $this->when($canManage, $this->invite_code),
             'properties_count' => $this->when($canManage, $this->whenCounted('properties')),
+            'transfer_expires_at' => $this->when($canManage, $this->transfer_expires_at),
             'address'          => $this->whenLoaded('address', fn () => [
                 'street'      => $this->address->street,
                 'postal_code' => $this->address->postal_code,

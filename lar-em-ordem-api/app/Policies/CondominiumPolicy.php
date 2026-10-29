@@ -52,4 +52,10 @@ class CondominiumPolicy
     {
         return $condominium->isManagedBy($user) || $condominium->hasMember($user);
     }
+    
+    /** Aceitar uma transferência: quem tem perfil de administrador de condomínio. */
+    public function claim(User $user): bool
+    {
+        return $user->condominium_admin !== null;
+    }
 }

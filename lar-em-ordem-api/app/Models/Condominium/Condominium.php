@@ -18,9 +18,7 @@ class Condominium extends Model
 
     protected $table = 'condominia';
 
-    protected $fillable = [
-        'condominium_admin_id',
-        'address_id',
+        protected $fillable = [
         'name',
         'reserve_fund',
     ];

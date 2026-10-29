@@ -7,6 +7,7 @@ use App\Http\Requests\Condominium\JoinCondominiumRequest;
 use App\Http\Requests\Condominium\LeaveCondominiumRequest;
 use App\Http\Requests\Condominium\StoreCondominiumRequest;
 use App\Http\Requests\Condominium\UpdateCondominiumRequest;
+use App\Http\Requests\Condominium\ClaimCondominiumRequest;
 use App\Http\Requests\ServiceProvider\PerPageRequest;
 use App\Http\Resources\Condominium\CondominiumResource;
 use App\Models\Condominium\Condominium;
@@ -128,5 +129,56 @@ class CondominiumController extends Controller
         $this->service->leave($condominium, $request->user(), $request->validated('property_id'));
 
         return response()->json(['message' => 'A casa foi retirada do condomínio.']);
+    }
+
+    /**
+     * Gera o código de transferência (mostrado só nesta resposta). Só o administrador atual.
+     *
+     * @param Condominium $condominium Condomínio a transferir.
+     * @return \Illuminate\Http\JsonResponse 201 (Created).
+     */
+    public function startTransfer(Condominium $condominium)
+    {
+        Gate::authorize('update', $condominium);
+
+        $code = $this->service->startTransfer($condominium);
+
+        return response()->json([
+            'message' => 'Entregue este código ao novo administrador. Não volta a ser mostrado.',
+            'data'    => [
+                'transfer_code'       => $code,
+                'transfer_expires_at' => $condominium->transfer_expires_at,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Cancela a transferência pendente. Só o administrador atual.
+     *
+     * @param Condominium $condominium Condomínio.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancelTransfer(Condominium $condominium)
+    {
+        Gate::authorize('update', $condominium);
+
+        $this->service->cancelTransfer($condominium);
+
+        return response()->json(['message' => 'Transferência cancelada.']);
+    }
+
+    /**
+     * O novo administrador aceita a transferência com o código recebido.
+     *
+     * @param ClaimCondominiumRequest $request Dados validados (transfer_code).
+     * @return CondominiumResource O condomínio, já gerido por quem aceitou.
+     */
+    public function claim(ClaimCondominiumRequest $request)
+    {
+        Gate::authorize('claim', Condominium::class);
+
+        $admin = $this->adminService->getByUser($request->user());
+
+        return new CondominiumResource($this->service->claim($request->validated('transfer_code'), $admin));
     }
 }
