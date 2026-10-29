@@ -5,9 +5,11 @@ namespace App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User\User;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class SocialAccount extends Model
 {
-    use HasUlids;
+    use HasUlids, SoftDeletes;
 
     protected $fillable = [
         'user_id',

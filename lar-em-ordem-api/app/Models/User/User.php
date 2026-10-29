@@ -2,7 +2,7 @@
 
 namespace App\Models\User;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -12,7 +12,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, SoftDeletes, Notifiable, HasApiTokens, HasRoles, HasUlids;
@@ -44,6 +44,10 @@ class User extends Authenticatable
     public function service_provider()
     {
         return $this->hasOne(ServiceProvider::class);
+    }
+    public function social_account()
+    {
+        return $this->hasOne(SocialAccount::class);
     }
     public function condominium_admin()
     {
