@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('condominium_admins', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->foreignUlid('user_id')->constrained();
-            $table->string('name');
             $table->string('contact');
             $table->enum('admin_type', ['professional', 'resident']);
             $table->timestamps();

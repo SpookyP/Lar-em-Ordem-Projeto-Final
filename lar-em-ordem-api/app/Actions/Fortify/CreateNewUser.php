@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 use Illuminate\Support\Arr;
 use App\Services\Auth\ProfileService;
 
@@ -36,7 +37,7 @@ class CreateNewUser implements CreatesNewUsers
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255'],
             'password' => $this->passwordRules(),
-            'role'     => ['required', 'string', Rule::in(ProfileService::ROLES)], // No Futuro Adicionar 'condominium_admin'
+            'role'     => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ];
 
         // o FormRequest do perfil dá as regras E as mensagens (senão os erros vinham com o texto genérico do Laravel)
@@ -44,6 +45,7 @@ class CreateNewUser implements CreatesNewUsers
             'resident'         => new StoreResidentRequest(),
             'partner'          => new StorePartnerRequest(),
             'service_provider' => new StoreServiceProviderRequest(),
+            'condominium_admin' => new StoreCondominiumAdminRequest(),
             default            => null, // role inválido: falha na regra 'role'
         };
 

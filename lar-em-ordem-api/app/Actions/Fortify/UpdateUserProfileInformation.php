@@ -16,6 +16,7 @@ use App\Services\Auth\ProfileService;
 use App\Http\Requests\Resident\UpdateResidentRequest;
 use App\Http\Requests\PartnerOffer\UpdatePartnerRequest;
 use App\Http\Requests\ServiceProvider\UpdateServiceProviderRequest;
+use App\Http\Requests\Condominium\UpdateCondominiumAdminRequest;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
@@ -52,10 +53,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         }
 
         match ($role) {
-            'resident'         => Gate::authorize('update', $user->resident),
-            'partner'          => Gate::authorize('update', $user->partner),
-            'service_provider' => Gate::authorize('update', $user->service_provider),
-            default            => abort(403),
+            'resident'          => Gate::authorize('update', $user->resident),
+            'partner'           => Gate::authorize('update', $user->partner),
+            'service_provider'  => Gate::authorize('update', $user->service_provider),
+            'condominium_admin' => Gate::authorize('update', $user->condominium_admin),
+            default             => abort(403),
         };
 
         // o FormRequest do perfil dá as regras E as mensagens
@@ -69,6 +71,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'resident'         => $makeRequest(UpdateResidentRequest::class),
             'partner'          => $makeRequest(UpdatePartnerRequest::class),
             'service_provider' => $makeRequest(UpdateServiceProviderRequest::class),
+            'condominium_admin' => $makeRequest(UpdateCondominiumAdminRequest::class),
         };
 
         // só os campos validados seguem para a frente (nunca o $input bruto: protege user_id, etc.)

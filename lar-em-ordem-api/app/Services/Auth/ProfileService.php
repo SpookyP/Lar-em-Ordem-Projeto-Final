@@ -6,22 +6,24 @@ use App\Models\User\User;
 use App\Services\PartnerOffer\PartnerService;
 use App\Services\Resident\ResidentService;
 use App\Services\ServiceProvider\ServiceProviderService;
+use App\Services\Condominium\CondominiumAdminService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Ponto único para criar, atualizar e remover os perfis de um utilizador (residente, prestador, parceiro).
+ * Ponto único para criar, atualizar e remover os perfis de um utilizador (residente, prestador, parceiro, administrador de condomínio).
  * Este service decide QUE perfil; o service de cada módulo decide COMO (role, relações, transações).
  */
 class ProfileService
 {
     /** Roles com perfil próprio  */
-    public const ROLES = ['resident', 'service_provider', 'partner'];
+    public const ROLES =  ['resident', 'service_provider', 'partner', 'condominium_admin'];
 
     public function __construct(
         private ResidentService $residentService,
         private ServiceProviderService $serviceProviderService,
         private PartnerService $partnerService,
+        private CondominiumAdminService $condominiumAdminService,
     ) {}
 
     /**
@@ -37,6 +39,7 @@ class ProfileService
             'resident'         => $user->resident()->first(),
             'service_provider' => $user->service_provider()->first(),
             'partner'          => $user->partner()->first(),
+            'condominium_admin' => $user->condominium_admin()->first(),
         };
     }
 
@@ -60,6 +63,7 @@ class ProfileService
             'resident'         => $this->residentService->create($data,$user),
             'service_provider' => $this->serviceProviderService->create($data, $user),
             'partner'          => $this->partnerService->create($data, $user),
+            'condominium_admin' => $this->condominiumAdminService->create($data, $user),
         };
     }
 
@@ -79,6 +83,7 @@ class ProfileService
             'resident'         =>$this->residentService->updateResident($user->id, $data),
             'service_provider' => $this->serviceProviderService->update($profile, $data),
             'partner'          => $this->partnerService->update($profile, $data),
+            'condominium_admin' => $this->condominiumAdminService->update($profile, $data),
         };
     }
 
@@ -103,6 +108,7 @@ class ProfileService
             'resident'         => $this->residentService->delete($profile),
             'service_provider' => $this->serviceProviderService->delete($profile),
             'partner'          => $this->partnerService->delete($profile),
+            'condominium_admin' => $this->condominiumAdminService->delete($profile),
         };
     }
 

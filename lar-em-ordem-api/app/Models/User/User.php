@@ -45,6 +45,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(ServiceProvider::class);
     }
+    public function condominium_admin()
+    {
+        return $this->hasOne(\App\Models\Condominium\CondominiumAdmin::class);
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
