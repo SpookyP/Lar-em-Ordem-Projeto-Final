@@ -32,6 +32,7 @@ services:
     volumes:
       - ./lar-em-ordem-api:/var/www/html
       - /var/www/html/vendor
+      - ./docker/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini:ro
     healthcheck:
       test: ["CMD-SHELL", "test -f /tmp/ready"]
       interval: 5s
