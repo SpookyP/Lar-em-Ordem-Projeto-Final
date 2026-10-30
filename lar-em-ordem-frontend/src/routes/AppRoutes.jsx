@@ -11,6 +11,7 @@ import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
 import Consumption from "../pages/Consumption/Consumption";
+import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -37,6 +38,7 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Rotas protegidas: so quem tem login */}

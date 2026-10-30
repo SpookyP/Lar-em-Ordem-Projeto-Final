@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+use App\Models\User\User;
+use App\Services\Auth\PendingRegistrationService;
 use App\Services\Auth\SocialLoginException;
 use App\Services\Auth\SocialLoginService;
 use Illuminate\Http\JsonResponse;
@@ -13,30 +15,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use App\Services\Auth\PendingRegistrationService;
-use App\Models\User\User;
 
 /**
- * Fim do registo de quem entrou com Google/Microsoft e ainda nao tinha conta:
- * escolhe o tipo de conta e preenche os dados desse perfil.
- * Sao pedidos axios do frontend (por isso estao em api.php).
+ * Last step of the registration for someone who signed in with Google/Microsoft and has no account yet:
+ * picks the account type and fills in that profile. These are axios requests from the frontend,
+ * which is why the routes are in api.php.
  */
 class SocialRegisterController extends Controller
 {
-    public function __construct(private SocialLoginService $login,private PendingRegistrationService $registrations) {}
+    public function __construct(private SocialLoginService $login, private PendingRegistrationService $registrations,) {}
 
     /**
-     * Diz ao frontend quem esta a registar-se (para mostrar "A continuar como ...").
+     * Tells the frontend who is registering (to show "A continuar como ...").
      */
     public function show(Request $request): JsonResponse
     {
         $pending = $this->pending($request);
 
         if (!$pending) {
-            return response()->json(['message' => 'Nao ha nenhum registo pendente.'], 404);
+            return response()->json(['message' => 'Não há nenhum registo pendente.'], 404);
         }
 
-        // so o que o ecra precisa de mostrar
+        // only what the screen needs to show
         return response()->json([
             'provider' => $pending['provider'],
             'name' => $pending['name'],
@@ -45,7 +45,8 @@ class SocialRegisterController extends Controller
     }
 
     /**
-     * Cria a conta (com o perfil) e inicia sessao.
+     * Google (email proven): creates the account with its profile and signs in.
+     * Microsoft (email not proven): stores the request and emails a link; the account is created when it is opened.
      */
     public function store(Request $request): JsonResponse
     {
@@ -61,8 +62,8 @@ class SocialRegisterController extends Controller
             'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
         ])['role'];
 
-        // as mesmas regras do registo normal. Nome e email NAO vem do pedido:
-        // vem so da identidade guardada no servidor
+        // same rules as the normal registration; name and email do not come from the request,
+        // only from the identity stored on the server
         $rules = match ($role) {
             'resident' => (new StoreResidentRequest())->rules(),
             'partner' => (new StorePartnerRequest())->rules(),
@@ -70,6 +71,8 @@ class SocialRegisterController extends Controller
         };
         $data = $request->validate($rules);
 
+        // Microsoft does not prove the email belongs to the user, so the account is only created
+        // when they open the link sent to that email
         if (!($pending['email_verified'] ?? false)) {
             if (User::withTrashed()->where('email', $pending['email'])->exists()) {
                 throw ValidationException::withMessages([
@@ -107,11 +110,11 @@ class SocialRegisterController extends Controller
         $request->session()->forget('social_pending');
         $request->session()->regenerate();
 
-        return response()->json(['message' => 'Conta criada.'], 201);
+        return response()->json(['status' => 'created', 'message' => 'Conta criada.'], 201);
     }
 
     /**
-     * Identidade vinda da Google/Microsoft, guardada na sessao do servidor ate ao fim do registo.
+     * Identity that came from Google/Microsoft, kept in the server session until the registration ends.
      */
     private function pending(Request $request): ?array
     {

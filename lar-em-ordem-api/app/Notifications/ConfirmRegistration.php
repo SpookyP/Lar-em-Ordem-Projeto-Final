@@ -6,8 +6,8 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 /**
- * Email com o link que cria a conta. Enviado para um email que ainda nao tem utilizador
- * (por isso e usado com Notification::route('mail', ...)).
+ * Email with a button that links to the frontend to confirm an address. Used when registering
+ * (sent on demand to an address that has no user yet) and when the email is changed in the profile.
  */
 class ConfirmRegistration extends Notification
 {
@@ -26,7 +26,7 @@ class ConfirmRegistration extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         if (config('mail.default') === 'log') {
-            Log::info('Link de confirmacao de email: ' . $this->url);
+            Log::info('Email confirmation link: ' . $this->url);
         }
 
         return (new MailMessage)

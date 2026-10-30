@@ -74,7 +74,12 @@ class PendingRegistrationController extends Controller
             ['token.required' => 'Link inválido.', 'token.size' => 'Link inválido ou expirado.'],
         )['token'];
 
-        $this->pending->confirm($token);
+        $user = $this->pending->confirm($token);
+
+        if ($user) {
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
+        }
 
         return response()->json(['message' => 'Conta criada. Já pode iniciar sessão.']);
     }

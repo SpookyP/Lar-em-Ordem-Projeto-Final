@@ -5,9 +5,14 @@ import { Field } from "./Field";
 import { updateProfileInformation } from "../../services/api/accountService";
 import { DataRow } from "./DataRow";
 
+const PROVIDER_LABELS = { google: "o Google", microsoft: "a Microsoft" };
+
 export function AccountForm() {
   const { user, activeProfile, refreshUser } = useAuth();
   const role = activeProfile?.name;
+  const socialProvider = user?.social_provider ?? null;
+  const providerLabel =
+    PROVIDER_LABELS[socialProvider] ?? "um fornecedor externo";
 
   const [editing, setEditing] = useState(false);
   const [status, setStatus] = useState(null);
@@ -46,7 +51,8 @@ export function AccountForm() {
     setStatus("saving");
     setErrorMsg("");
 
-    const payload = { role, name: form.name, email: form.email };
+    const payload = { role, name: form.name };
+    if (!socialProvider) payload.email = form.email;
     fields.forEach((f) => {
       payload[f.name] = form[f.name];
     });
@@ -102,13 +108,25 @@ export function AccountForm() {
         value={form.name}
         onChange={handleChange}
       />
-      <Field
-        label="Email"
-        name="email"
-        type="email"
-        value={form.email}
-        onChange={handleChange}
-      />
+      {socialProvider ? (
+        <div className="flex flex-col gap-1">
+          <span className="text-sm text-text">Email</span>
+          <span className="rounded-lg border border-border bg-surface px-3 py-2 text-muted">
+            {user?.email}
+          </span>
+          <span className="text-xs text-muted">
+            Esta conta usa {providerLabel}: o email não pode ser alterado.
+          </span>
+        </div>
+      ) : (
+        <Field
+          label="Email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+        />
+      )}
 
       {fields.map((f) => (
         <Field

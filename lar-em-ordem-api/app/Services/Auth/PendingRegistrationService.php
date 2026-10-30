@@ -13,15 +13,15 @@ use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
- * Registo em dois tempos: primeiro guarda-se o pedido (na cache, com prazo) e envia-se um link por email;
- * a conta (utilizador + perfil) so e criada quando o link e aberto (em qualquer dispositivo).
- * O pedido vive na cache e expira sozinho: nao ha tabela nem limpeza a fazer.
+ * Two-step registration: the request is stored in the cache and a link is emailed. The account
+ * (user + profile) is only created when the link is opened, on any device. The cache entry expires
+ * on its own, so there is no table to clean up.
  */
 class PendingRegistrationService
 {
     private const TTL_MINUTES = 10;
 
-    // depois de confirmado, abrir o mesmo link outra vez continua a responder bem durante 1 hora
+    // opening an already confirmed link keeps answering fine for an hour
     private const DONE_SECONDS = 3600;
 
     public function __construct(
@@ -45,10 +45,11 @@ class PendingRegistrationService
     }
 
     /**
-     * Guarda o pedido e envia o link. Um pedido novo para o mesmo email substitui o anterior (o link antigo deixa de valer).
+     * Stores the request and emails the link. A new request for the same email replaces the old one,
+     * and every request, resends included, gets a fresh TTL_MINUTES window.
      *
-     * @param array{name: string, email: string, password: ?string, role: string, profile: array, provider: ?string, provider_user_id: ?string, expires_at?: int} $data
-     *        password: ja com hash (ou null no registo social)
+     * @param array{name: string, email: string, password: ?string, role: string, profile: array, provider: ?string, provider_user_id: ?string} $data
+     *        password is already hashed (null for social registrations)
      */
     public function start(array $data): void
     {
@@ -71,7 +72,7 @@ class PendingRegistrationService
     }
 
     /**
-     * Novo link para um registo ainda nao confirmado. Nao diz se o email existe.
+     * Sends a new link for a registration that is still unconfirmed, without saying whether the email exists.
      */
     public function resend(string $email): void
     {
@@ -86,9 +87,10 @@ class PendingRegistrationService
     }
 
     /**
-     * Cria a conta. Abrir o mesmo link outra vez nao faz mal: a conta ja existe e responde bem.
+     * Creates the account and returns the user so the caller can sign them in. Opening the same link
+     * again is harmless: the account already exists, so it returns null and only the first opener gets a session.
      *
-     * @throws ValidationException link invalido/expirado, ou o email ja tem conta
+     * @throws ValidationException if the link is invalid or expired, or the email already has an account
      */
     public function confirm(string $token): void
     {
@@ -99,7 +101,6 @@ class PendingRegistrationService
         }
 
         try {
-            // o lock evita que dois pedidos ao mesmo tempo com o mesmo link criem a conta duas vezes
             Cache::lock('pending_registration:confirm:' . $hash, 10)
                 ->block(5, fn () => $this->createAccount($hash));
         } catch (LockTimeoutException) {
@@ -109,7 +110,6 @@ class PendingRegistrationService
 
     private function createAccount(string $hash): void
     {
-        // outro pedido acabou de criar a conta enquanto este esperava pelo lock
         if (Cache::has(self::doneKey($hash))) {
             return;
         }
@@ -124,25 +124,22 @@ class PendingRegistrationService
             throw $this->invalid('Já existe uma conta com este email. Inicie sessão.');
         }
 
-        DB::transaction(function () use ($row) {
+        $user = DB::transaction(function () use ($row) {
             if ($row['provider'] !== null) {
-                // registo com Microsoft: a conta fica ligada a essa identidade
                 try {
                     $this->social->registerFromPending([
                         'provider' => $row['provider'],
                         'id' => $row['provider_user_id'],
                         'email' => $row['email'],
-                        'email_verified' => true, // acabou de ser provado pelo link
+                        'email_verified' => true,
                         'name' => $row['name'],
                     ], $row['role'], $row['profile'] ?? []);
                 } catch (SocialLoginException) {
                     throw $this->invalid('Já existe uma conta com este email. Inicie sessão.');
                 }
-
-                return;
             }
 
-            // a password ja vem com hash: o cast "hashed" do User nao a volta a encriptar
+            // the password is already hashed; the "hashed" cast on User does not hash it again
             $user = new User([
                 'name' => $row['name'],
                 'email' => $row['email'],
@@ -151,14 +148,17 @@ class PendingRegistrationService
             $user->forceFill(['email_verified_at' => now()])->save();
 
             $this->profiles->create($user, $row['role'], $row['profile'] ?? []);
+
+            return $user;
         });
 
-        // os dados do pedido saem da cache logo; fica so a marca de "confirmado" durante 1 hora
         $this->forget($row['email']);
         Cache::put(self::doneKey($hash), true, self::DONE_SECONDS);
+
+        return $user;
     }
 
-    // apaga o pedido pendente deste email (e, com ele, o link que estava em vigor)
+    // removes the pending request for this email, and with it the link that was valid
     private function forget(string $email): void
     {
         $old = Cache::get(self::emailKey($email));
@@ -172,13 +172,12 @@ class PendingRegistrationService
 
     private function send(string $email, string $name, string $token): void
     {
-        $url = config('oauth.frontend_url') . '/verificar-email?' . http_build_query(['token' => $token]);
+        $url = config('oauth.frontend_url') . '/verify-email?' . http_build_query(['token' => $token]);
 
         try {
             Notification::route('mail', [$email => $name])
                 ->notify(new ConfirmRegistration($name, $url, self::TTL_MINUTES));
         } catch (Throwable $e) {
-            // o pedido fica guardado: a pessoa pode pedir outro email no ecra de confirmacao
             report($e);
         }
     }
