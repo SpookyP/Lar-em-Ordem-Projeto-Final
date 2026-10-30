@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Services\Auth\PendingRegistrationService;
+use App\Models\User\User;
 
 /**
  * Fim do registo de quem entrou com Google/Microsoft e ainda nao tinha conta:
@@ -21,7 +23,7 @@ use Illuminate\Validation\ValidationException;
  */
 class SocialRegisterController extends Controller
 {
-    public function __construct(private SocialLoginService $login) {}
+    public function __construct(private SocialLoginService $login,private PendingRegistrationService $registrations) {}
 
     /**
      * Diz ao frontend quem esta a registar-se (para mostrar "A continuar como ...").
@@ -67,6 +69,31 @@ class SocialRegisterController extends Controller
             'service_provider' => (new StoreServiceProviderRequest())->rules(),
         };
         $data = $request->validate($rules);
+
+        if (!($pending['email_verified'] ?? false)) {
+            if (User::withTrashed()->where('email', $pending['email'])->exists()) {
+                throw ValidationException::withMessages([
+                    'social' => ['Já existe uma conta com este email. Entre com a sua password.'],
+                ]);
+            }
+
+            $this->registrations->start([
+                'name' => $pending['name'],
+                'email' => $pending['email'],
+                'password' => null,
+                'role' => $role,
+                'profile' => $data,
+                'provider' => $pending['provider'],
+                'provider_user_id' => $pending['id'],
+            ]);
+
+            $request->session()->forget('social_pending');
+
+            return response()->json([
+                'status' => 'pending',
+                'message' => 'Enviámos um email para confirmar o registo.',
+            ], 202);
+        }
 
         try {
             $user = $this->login->registerFromPending($pending, $role, $data);

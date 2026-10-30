@@ -24,7 +24,11 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
     echo "A aguardar pela base de dados..." >&2
     sleep 2
   done
-  php artisan migrate:fresh --seed
+  if php artisan migrate:status >/dev/null 2>&1; then
+    echo "Base de dados ja migrada: a saltar migrate:fresh" >&2
+  else
+    php artisan migrate:fresh --seed
+  fi
 fi
 
 touch /tmp/ready

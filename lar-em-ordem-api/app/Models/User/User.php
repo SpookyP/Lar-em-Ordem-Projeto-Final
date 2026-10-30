@@ -2,11 +2,13 @@
 
 namespace App\Models\User;
 
+use App\Notifications\ConfirmRegistration;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -53,6 +55,30 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(\App\Models\Condominium\CondominiumAdmin::class);
     }
+
+    public function sendEmailVerificationNotification()
+    {
+        $minutes = 10;
+        $id = $this->getKey();
+        $hash = sha1($this->getEmailForVerification());
+
+        // URL assinado da API: so serve para tirar daqui "expires" e "signature"
+        $signed = URL::temporarySignedRoute('verification.verify', now()->addMinutes($minutes), [
+            'id' => $id,
+            'hash' => $hash,
+        ]);
+        parse_str((string) parse_url($signed, PHP_URL_QUERY), $query);
+
+        $url = config('oauth.frontend_url') . '/verificar-email?' . http_build_query([
+            'id' => $id,
+            'hash' => $hash,
+            'expires' => $query['expires'] ?? '',
+            'signature' => $query['signature'] ?? '',
+        ]);
+
+        $this->notify(new ConfirmRegistration($this->name, $url, $minutes));
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
