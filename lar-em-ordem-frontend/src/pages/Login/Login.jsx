@@ -19,7 +19,7 @@ export default function Login() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setErro("");
+    setError("");
     setSubmitting(true);
     try {
       await login(email, password);
@@ -33,7 +33,7 @@ export default function Login() {
       } else if (status === 429) {
         message = "Demasiadas tentativas. Aguarde um pouco e tente novamente.";
       }
-      setErro(message);
+      setError(message);
     } finally {
       setSubmitting(false);
     }

@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from "recharts";
 
+// Configuração dos tipos de consumo e das respetivas cores.
 const UTILITIES = {
   1: {
     name: "Eletricidade",
@@ -47,6 +48,7 @@ const UTILITIES = {
 
 const CREDIT_COLOR = "#059669";
 
+// Filtros disponíveis para o gráfico.
 const FILTERS = [
   { id: "all", label: "Geral" },
   { id: "1", label: "Eletricidade" },
@@ -54,6 +56,7 @@ const FILTERS = [
   { id: "3", label: "Gás" },
 ];
 
+// Tradução das categorias dos itens das faturas.
 const CATEGORY_LABELS = {
   consumption: "Consumo",
   fixed_fee: "Tarifa fixa",
@@ -61,6 +64,7 @@ const CATEGORY_LABELS = {
   other: "Outro",
 };
 
+// Formatação dos valores monetários e das quantidades.
 const money = new Intl.NumberFormat("pt-PT", {
   style: "currency",
   currency: "EUR",
@@ -70,6 +74,7 @@ const number = new Intl.NumberFormat("pt-PT", {
   maximumFractionDigits: 3,
 });
 
+// Converte valores recebidos da API para números válidos.
 function asNumber(value) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -90,6 +95,7 @@ function asNumber(value) {
   return Number.isFinite(result) ? result : 0;
 }
 
+// Obtém a lista de faturas de diferentes formatos de resposta da API.
 function responseArray(response) {
   const body = response?.data ?? response;
 
@@ -102,6 +108,7 @@ function responseArray(response) {
   return [];
 }
 
+// Identifica o tipo de consumo através do ID ou do nome.
 function getTypeId(consumption) {
   const raw =
     consumption?.consumption_type_id ??
@@ -138,6 +145,7 @@ function getTypeId(consumption) {
   return null;
 }
 
+// Procura os itens detalhados associados a cada consumo.
 function getItems(consumption) {
   const possible = [
     consumption?.items,
@@ -150,6 +158,7 @@ function getItems(consumption) {
   return possible.find(Array.isArray) ?? [];
 }
 
+// Obtém o custo de uma linha individual da fatura.
 function itemCost(item) {
   return asNumber(
     item?.cost ??
@@ -161,6 +170,7 @@ function itemCost(item) {
   );
 }
 
+// Obtém a quantidade de um item.
 function itemAmount(item) {
   return asNumber(
     item?.amount ??
@@ -170,6 +180,7 @@ function itemAmount(item) {
   );
 }
 
+// Obtém a unidade de medida de um item.
 function itemUnit(item) {
   return String(
     item?.unit ??
@@ -179,6 +190,7 @@ function itemUnit(item) {
   ).trim();
 }
 
+// Obtém o nome ou descrição de um item.
 function itemName(item, index) {
   return String(
     item?.name ??
@@ -190,6 +202,7 @@ function itemName(item, index) {
   ).trim();
 }
 
+// Constrói a descrição apresentada nos detalhes do gráfico.
 function itemDescription(item) {
   const description = String(
     item?.description ??
@@ -222,6 +235,7 @@ function itemDescription(item) {
     .join(" · ");
 }
 
+// Organiza os itens das faturas para serem apresentados no gráfico.
 function normalizeInvoices(invoices) {
   const result = [];
   const itemIndexes = { 1: 0, 2: 0, 3: 0 };
@@ -248,10 +262,10 @@ function normalizeInvoices(invoices) {
           `Fatura ${invoiceIndex + 1}`
       );
 
+      // Se existem itens detalhados, cria uma fatia para cada item.
       if (items.length > 0) {
         items.forEach((item, itemIndex) => {
           const cost = itemCost(item);
-          const unit = itemUnit(item);
           const colorIndex = itemIndexes[typeId]++;
 
           result.push({
@@ -276,7 +290,7 @@ function normalizeInvoices(invoices) {
               item?.category ??
               "",
             amount: itemAmount(item),
-            unit,
+            unit: itemUnit(item),
             cost,
             sliceValue: Math.abs(cost),
             isCredit: cost < 0,
@@ -284,10 +298,10 @@ function normalizeInvoices(invoices) {
           });
         });
 
-        // Evita duplicar o total quando existem itens detalhados.
         return;
       }
 
+      // Se não existem itens, utiliza o custo total do consumo.
       const cost = asNumber(
         consumption?.cost ??
           consumption?.total_cost ??
@@ -328,6 +342,7 @@ function normalizeInvoices(invoices) {
   return result;
 }
 
+// Apresenta os detalhes do item selecionado no gráfico.
 function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
 
@@ -375,12 +390,16 @@ export default function DetailedConsumptionChart({
   propertyId,
   refreshKey = 0,
 }) {
+  // Guarda as faturas, o estado de carregamento e os erros.
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Guarda o filtro e o item atualmente selecionado.
   const [filter, setFilter] = useState("all");
   const [activeItemId, setActiveItemId] = useState(null);
 
+  // Carrega as faturas ou utiliza os dados recebidos pela página.
   useEffect(() => {
     let cancelled = false;
 
@@ -423,11 +442,13 @@ export default function DetailedConsumptionChart({
 
     load();
 
+    // Evita atualizações depois de desmontar o componente.
     return () => {
       cancelled = true;
     };
   }, [invoicesProp, propertyId, refreshKey]);
 
+  // Prepara os itens e filtra os resultados selecionados.
   const allItems = useMemo(
     () => normalizeInvoices(invoices),
     [invoices]
@@ -443,17 +464,18 @@ export default function DetailedConsumptionChart({
     [allItems, filter]
   );
 
-  // O total financeiro mantém os sinais originais.
+  // Calcula o total do filtro selecionado.
   const total = visibleItems.reduce(
     (sum, item) => sum + item.cost,
     0
   );
 
-  // O gráfico usa valores absolutos para representar também os créditos.
+  // Prepara os valores que serão desenhados no gráfico.
   const chartItems = visibleItems.filter(
     (item) => item.sliceValue > 0
   );
 
+  // Agrupa os itens por tipo de consumo.
   const groups = [1, 2, 3]
     .filter(
       (id) => filter === "all" || filter === String(id)
@@ -467,10 +489,12 @@ export default function DetailedConsumptionChart({
     }))
     .filter((group) => group.items.length > 0);
 
+  // Obtém o item selecionado para apresentar no centro do gráfico.
   const selectedItem = visibleItems.find(
     (item) => item.id === activeItemId
   );
 
+  // Limpa a seleção caso o item deixe de existir nos dados visíveis.
   useEffect(() => {
     if (
       activeItemId &&
@@ -482,11 +506,13 @@ export default function DetailedConsumptionChart({
     }
   }, [activeItemId, visibleItems]);
 
+  // Altera o filtro e limpa o item selecionado.
   function selectFilter(id) {
     setFilter(id);
     setActiveItemId(null);
   }
 
+  // Apresenta o estado de carregamento.
   if (loading) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
@@ -499,11 +525,13 @@ export default function DetailedConsumptionChart({
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      {/* Cabeçalho e filtros do gráfico. */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
             Detalhe dos consumos
           </h2>
+
           <p className="mt-1 text-sm text-slate-500">
             Custos detalhados por serviço e por item de fatura.
           </p>
@@ -527,6 +555,7 @@ export default function DetailedConsumptionChart({
         </div>
       </div>
 
+      {/* Mensagem de erro da API. */}
       {error && (
         <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
           {error}
@@ -534,10 +563,12 @@ export default function DetailedConsumptionChart({
       )}
 
       {!visibleItems.length ? (
+        // Mensagem apresentada quando não existem itens.
         <div className="py-12 text-center">
           <p className="font-medium text-slate-700">
             Ainda não existem consumos para apresentar.
           </p>
+
           <p className="mt-1 text-sm text-slate-500">
             Guarda uma fatura para consultar os seus detalhes.
           </p>
@@ -545,7 +576,7 @@ export default function DetailedConsumptionChart({
       ) : (
         <>
           <div className="mt-6 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
-            {/* Gráfico em anel */}
+            {/* Gráfico em anel e resumo dos totais. */}
             <div className="min-w-0">
               <div className="relative h-[320px]">
                 {chartItems.length > 0 ? (
@@ -566,42 +597,36 @@ export default function DetailedConsumptionChart({
                           paddingAngle={2}
                           stroke="#fff"
                           strokeWidth={2}
-                          onMouseEnter={(item) =>
-                            setActiveItemId(item?.id ?? null)
-                          }
-                          onMouseLeave={() =>
-                            setActiveItemId(null)
-                          }
+                          isAnimationActive={false}
                         >
                           {chartItems.map((item) => (
                             <Cell
                               key={item.id}
                               fill={item.color}
-                              opacity={
-                                activeItemId &&
-                                activeItemId !== item.id
-                                  ? 0.3
-                                  : 1
-                              }
-                              stroke={
-                                activeItemId === item.id
-                                  ? "#0f172a"
-                                  : "#ffffff"
-                              }
-                              strokeWidth={
-                                activeItemId === item.id
-                                  ? 3
-                                  : 2
-                              }
+                              stroke="#ffffff"
+                              strokeWidth={2}
                             />
                           ))}
                         </Pie>
 
-                        <Tooltip content={<ChartTooltip />} />
+                        {/* Tooltip apresentado por cima do texto central. */}
+                        <Tooltip
+                          content={<ChartTooltip />}
+                          wrapperStyle={{
+                            zIndex: 9999,
+                            pointerEvents: "none",
+                          }}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
 
-                    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
+                    {/* Texto central do gráfico. */}
+                    <div
+                      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-8 text-center"
+                      style={{
+                        zIndex: 1,
+                      }}
+                    >
                       {selectedItem ? (
                         <>
                           <span className="max-w-full text-xs text-slate-500">
@@ -649,7 +674,7 @@ export default function DetailedConsumptionChart({
                 )}
               </div>
 
-              {/* Resumo dos totais por serviço */}
+              {/* Resumo dos totais por serviço. */}
               <div className="mt-3 space-y-2">
                 {groups.map((group) => {
                   const groupTotal = group.items.reduce(
@@ -669,6 +694,7 @@ export default function DetailedConsumptionChart({
                             backgroundColor: group.color,
                           }}
                         />
+
                         {group.name}
                       </span>
 
@@ -693,7 +719,7 @@ export default function DetailedConsumptionChart({
               </p>
             </div>
 
-            {/* Lista compacta com scroll e texto ligeiramente maior */}
+            {/* Lista detalhada dos itens com scroll. */}
             <div className="min-w-0">
               <div className="max-h-[420px] space-y-3 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable]">
                 {groups.map((group) => {
@@ -704,6 +730,7 @@ export default function DetailedConsumptionChart({
 
                   return (
                     <div key={group.id}>
+                      {/* Cabeçalho do grupo de consumo. */}
                       <div className="sticky top-0 z-10 mb-1 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/95 pb-1.5 pt-1 backdrop-blur-sm">
                         <div className="flex min-w-0 items-center gap-1.5">
                           <span
@@ -729,6 +756,7 @@ export default function DetailedConsumptionChart({
                         </strong>
                       </div>
 
+                      {/* Linhas individuais da fatura. */}
                       <div className="space-y-0.5">
                         {group.items.map((item) => {
                           const active = activeItemId === item.id;
@@ -819,6 +847,7 @@ export default function DetailedConsumptionChart({
             </div>
           </div>
 
+          {/* Total final do filtro selecionado. */}
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
             <span className="text-sm text-slate-500">
               Total líquido do filtro selecionado

@@ -1,7 +1,7 @@
 import { Droplet, Zap, Flame, FolderClosed } from "lucide-react";
-import { SummaryCard } from "../../../components/ui/SummaryCard";
 import { ShortcutCard } from "../../../components/ui/ShortcutCard";
-import  ConsumptionChart  from "../../../components/ui/ConsumptionChart";
+import ConsumptionChart from "../../../components/ui/ConsumptionChart";
+import ConsumptionSummary from "../../../components/ui/ConsumptionSummary";
 import { NotificationBell } from '../../../components/ui/NotificationBell';
 import { useState } from "react";
 
@@ -53,24 +53,8 @@ export default function Dashboard() {
         </div>
 
         <div className="w-full lg:w-80 flex flex-col gap-3">
-          <SummaryCard
-            icon={Droplet}
-            iconColor="bg-teal-light text-teal"
-            value="15 m³"
-            label="Água · este mês"
-          />
-          <SummaryCard
-            icon={Zap}
-            iconColor="bg-amber-light text-amber"
-            value="61 kWh"
-            label="Eletricidade · este mês"
-          />
-          <SummaryCard
-            icon={Flame}
-            iconColor="bg-orange-light text-orange"
-            value="8 m³"
-            label="Gás · este mês"
-          />
+          <ConsumptionSummary />
+
           <ShortcutCard
             icon={FolderClosed}
             iconColor="bg-navy/10 text-navy"
