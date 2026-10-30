@@ -92,7 +92,7 @@ class PendingRegistrationService
      *
      * @throws ValidationException if the link is invalid or expired, or the email already has an account
      */
-    public function confirm(string $token): void
+    public function confirm(string $token)
     {
         $hash = hash('sha256', $token);
 
@@ -101,14 +101,14 @@ class PendingRegistrationService
         }
 
         try {
-            Cache::lock('pending_registration:confirm:' . $hash, 10)
+            return Cache::lock('pending_registration:confirm:' . $hash, 10)
                 ->block(5, fn () => $this->createAccount($hash));
         } catch (LockTimeoutException) {
             throw $this->invalid('Tente outra vez dentro de instantes.');
         }
     }
 
-    private function createAccount(string $hash): void
+    private function createAccount(string $hash)
     {
         if (Cache::has(self::doneKey($hash))) {
             return;
@@ -127,7 +127,7 @@ class PendingRegistrationService
         $user = DB::transaction(function () use ($row) {
             if ($row['provider'] !== null) {
                 try {
-                    $this->social->registerFromPending([
+                    return $this->social->registerFromPending([
                         'provider' => $row['provider'],
                         'id' => $row['provider_user_id'],
                         'email' => $row['email'],
