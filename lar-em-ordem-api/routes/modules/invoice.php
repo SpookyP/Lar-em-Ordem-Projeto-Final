@@ -23,5 +23,5 @@ Route::get('benchmarks/monthly', MonthlyBenchmarkController::class);
 Route::get('benchmarks/annual', AnnualBenchmarkController::class);
 
 // Upload das Faturas
-Route::post('invoices/upload', [InvoiceController::class, 'upload'])->middleware('throttle:30,1');
+Route::post('invoices/upload', [InvoiceController::class, 'upload']);
 Route::get('invoices/{invoiceId}/file', [InvoiceController::class, 'file']);
