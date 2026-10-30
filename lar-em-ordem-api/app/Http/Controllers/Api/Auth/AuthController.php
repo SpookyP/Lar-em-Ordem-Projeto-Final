@@ -46,12 +46,13 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        $user = $request->user()->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']);
+        $user = $request->user()->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin','social_account']);
 
         return response()->json([
             'id'    => $user->id,
             'name'  => $user->name,
             'email' => $user->email,
+            'social_provider' => $user->social_account?->provider,
             'roles' => $user->roles->pluck('name'),
             'resident'         => $user->resident,
             'partner'          => $user->partner,

@@ -11,6 +11,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\TestCase;
+use Tests\Concerns\RegistersWithConfirmation;
 
 /**
  * Perfis (residente, prestador, parceiro) criados, atualizados e removidos pelo ProfileService:
@@ -19,6 +20,7 @@ use Tests\TestCase;
 class ProfileTest extends TestCase
 {
     use RefreshDatabase;
+    use RegistersWithConfirmation;
 
     protected $seed = true;
 
@@ -72,7 +74,7 @@ class ProfileTest extends TestCase
     {
         $password = $this->password();
 
-        $this->postJson('/register', [
+        $this->registerAndConfirm([
             'name'                  => 'Novo Prestador',
             'email'                 => 'novo@example.com',
             'password'              => $password,
@@ -83,7 +85,7 @@ class ProfileTest extends TestCase
             'phone'                 => '912345678',
             'description'           => 'Serviços.',
             'zone_ids'              => $this->zonas(1),
-        ])->assertSuccessful();
+        ]);
 
         $user = User::where('email', 'novo@example.com')->firstOrFail();
         $this->assertTrue($user->hasRole('service_provider'));
@@ -94,14 +96,14 @@ class ProfileTest extends TestCase
     {
         $password = $this->password();
 
-        $this->postJson('/register', [
+        $this->registerAndConfirm([
             'name'                  => 'Novo Residente',
             'email'                 => 'res@example.com',
             'password'              => $password,
             'password_confirmation' => $password,
             'role'                  => 'resident',
             'nif'                   => '212345678',
-        ])->assertSuccessful();
+        ]);
 
         $user = User::where('email', 'res@example.com')->firstOrFail();
         $this->assertTrue($user->hasRole('resident'));
@@ -115,7 +117,7 @@ class ProfileTest extends TestCase
         $user->assignRole('resident');
         $user->resident()->create(['nif' => '212345678']);
 
-        $this->postJson('/register', [
+        $this->postJson('/api/auth/register', [
             'name'                  => 'Repetido',
             'email'                 => 'dup@example.com',
             'password'              => $password,

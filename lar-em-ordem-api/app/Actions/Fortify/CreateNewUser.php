@@ -24,7 +24,42 @@ class CreateNewUser implements CreatesNewUsers
     public function __construct(private ProfileService $profileService) {}
 
     /**
-     * Validate and create a newly registered user.
+     * Validate a newly registered user.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     *
+     * @throws ValidationException
+     */
+    public function validate(array $input): array
+    {
+        $role = $input['role'] ?? null;
+        $rules = [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'password' => $this->passwordRules(),
+            'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
+        ];
+
+        // o FormRequest do perfil dá as regras E as mensagens (senão os erros vinham com o texto genérico do Laravel)
+        $roleRequest = match ($role) {
+            'resident' => new StoreResidentRequest(),
+            'partner' => new StorePartnerRequest(),
+            'service_provider' => new StoreServiceProviderRequest(),
+            'condominium_admin' => new StoreCondominiumAdminRequest(),
+            default => null, // role inválido: falha na regra 'role'
+        };
+
+        // só os campos validados seguem para o perfil (nunca o $input bruto)
+        return Validator::make(
+            $input,
+            array_merge($rules, $roleRequest?->rules() ?? []),
+            $roleRequest?->messages() ?? []
+        )->validate();
+    }
+
+    /**
+     * Create a newly registered user.
      *
      * @param  array<string, string>  $input
      *
@@ -33,28 +68,7 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         $role = $input['role'] ?? null;
-        $rules = [
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255'],
-            'password' => $this->passwordRules(),
-            'role'     => ['required', 'string', Rule::in(ProfileService::ROLES)],
-        ];
-
-        // o FormRequest do perfil dá as regras E as mensagens (senão os erros vinham com o texto genérico do Laravel)
-        $roleRequest = match ($role) {
-            'resident'         => new StoreResidentRequest(),
-            'partner'          => new StorePartnerRequest(),
-            'service_provider' => new StoreServiceProviderRequest(),
-            'condominium_admin' => new StoreCondominiumAdminRequest(),
-            default            => null, // role inválido: falha na regra 'role'
-        };
-
-        // só os campos validados seguem para o perfil (nunca o $input bruto)
-        $validated = Validator::make(
-            $input,
-            array_merge($rules, $roleRequest?->rules() ?? []),
-            $roleRequest?->messages() ?? []
-        )->validate();
+        $validated = $this->validate($input);
 
         $user = User::where('email', $input['email'])->first();
 
@@ -66,11 +80,11 @@ class CreateNewUser implements CreatesNewUsers
             }
         }
 
-            return DB::transaction(function () use ($input, $validated, $user, $role) {
+        return DB::transaction(function () use ($input, $validated, $user, $role) {
             if (!$user) {
                 $user = User::create([
-                    'name'     => $input['name'],
-                    'email'    => $input['email'],
+                    'name' => $input['name'],
+                    'email' => $input['email'],
                     'password' => Hash::make($input['password']),
                 ]);
             }

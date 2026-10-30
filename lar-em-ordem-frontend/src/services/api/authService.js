@@ -21,7 +21,17 @@ export async function getCurrentUser() {
 
 export async function register(data) {
   await getCookieCsrf();
-  return axiosClient.post("/register", data);
+  return axiosClient.post("/api/auth/register", data);
+}
+
+export async function confirmRegistration(token) {
+  await getCookieCsrf();
+  return axiosClient.post("/api/auth/register/confirm", { token });
+}
+
+export async function resendRegistration(email) {
+  await getCookieCsrf();
+  return axiosClient.post("/api/auth/register/resend", { email });
 }
 
 export async function getSocialPending() {
@@ -42,4 +52,14 @@ export async function forgotPassword(email) {
 export async function resetPassword(data) {
   await getCookieCsrf();
   return axiosClient.post("/reset-password", data);
+}
+
+export async function verifyEmail(id, hash, params) {
+  await getCookieCsrf();
+  return axiosClient.post(`/api/email/verify/${id}/${hash}`, null, { params });
+}
+
+export async function resendVerification() {
+  await getCookieCsrf();
+  return axiosClient.post("/api/email/verification-notification");
 }
