@@ -92,9 +92,9 @@ class AssistanceRequest extends Model
     }
     /**
      * Pedidos que um prestador pode ver e responder:
-     * abertos, numa das suas categoria, num concelho
-     * onde atua, não  abertos por ele próprio,
-     * e ainda não enviou proposta para o pedido
+     * abertos, não abertos por ele próprio, sem proposta dele,
+     * nas categorias das suas especialidades e nos concelhos das suas zonas.
+     * Sem especialidades = todas as categorias; sem zonas = todos os concelhos.
      * Uso: AssistanceRequest::availableFor($provider)->get()
      *
      * @param Builder $query Query a que se aplicam os filtros.
@@ -109,23 +109,20 @@ class AssistanceRequest extends Model
             ->get(['district', 'county'])
             ->unique(fn ($zone) => $zone->district . '|' . $zone->county);
 
-        
-        if ($categoryIds->isEmpty() || $counties->isEmpty()) {
-            return $query->whereRaw('1 = 0'); // condição impossível, garantindo que a consulta não devolve resultados
-        }
-
         return $query->where('status', 'open')
             ->whereHas('resident', fn (Builder $r) => $r->where('user_id', '!=', $provider->user_id))
-            ->whereIn('problem_category_id', $categoryIds)
             ->whereDoesntHave('proposals', fn (Builder $q) => $q->where('service_provider_id', $provider->id))
-            ->whereHas('property.address', function (Builder $address) use ($counties) {
+            // sem especialidades: todas as categorias
+            ->when($categoryIds->isNotEmpty(), fn (Builder $q) => $q->whereIn('problem_category_id', $categoryIds))
+            // sem zonas: todos os concelhos
+            ->when($counties->isNotEmpty(), fn (Builder $q) => $q->whereHas('property.address', function (Builder $address) use ($counties) {
                 $address->where(function (Builder $any) use ($counties) {
                     foreach ($counties as $zone) {
-                        $any->orWhere(fn (Builder $q) => $q
+                        $any->orWhere(fn (Builder $z) => $z
                             ->where('district', $zone->district)
                             ->where('county', $zone->county));
                     }
                 });
-            });
+            }));
     }
 }
