@@ -12,9 +12,11 @@ export function ProfileForm() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const currentRoles = user?.roles ?? [];
-  const availableTypes = accountTypes.filter(
-    (type) => !currentRoles.includes(type.role),
-  );
+  const availableTypes = accountTypes.filter((type) => {
+    if (currentRoles.includes(type.role)) return false;
+    if (type.role === "partner" && currentRoles.length > 0) return false;
+    return true;
+  });
 
   function handleChange(e) {
     const { name, value } = e.target;
