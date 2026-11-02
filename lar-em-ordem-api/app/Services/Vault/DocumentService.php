@@ -14,19 +14,27 @@ class DocumentService
         protected DocumentExpiryService $documentExpiryService
     ) {}
 
-    public function processAndSaveDocument(array $validatedData, UploadedFile $file): Document
+    public function processAndSaveDocument(array $validatedData, ?\Illuminate\Http\UploadedFile $file = null): Document
     {
-        // Extração inteligente via script Python
-        $extractedData = $this->pdfExtractionService->extractInfo($file->getRealPath());
+        $extractedData = [];
+        $fileRecordId = null;
+        $originalFileName = null;
+        $fileHash = null;
 
-        // Upload para o Cloudflare
-        $user = auth()->user();
-        $fileRecord = $this->fileStorageService->uploadUserFile(
-            $user,
-            $file,
-            'vault_documents',
-            $validatedData['name'] ?? null
-        );
+        if ($file) {
+            $extractedData = $this->pdfExtractionService->extractInfo($file->getRealPath());
+
+            // Calcula o hash para guardar na BD
+            $fileHash = hash_file('sha256', $file->getRealPath());
+
+            $user = auth()->user();
+            $fileRecord = $this->fileStorageService->uploadUserFile(
+                $user, $file, 'vault_documents', $validatedData['name'] ?? null
+            );
+
+            $fileRecordId = $fileRecord->id;
+            $originalFileName = $file->getClientOriginalName();
+        }
 
         // Hierarquia de datas: Input manual > Detetado pelo Python > Fallback
         $issueDate = $validatedData['issue_date']
@@ -36,28 +44,27 @@ class DocumentService
         $expirationDate = $validatedData['expiration_date']
             ?? ($extractedData['expiration_date'] ?? $extractedData['dados']['data_validade'] ?? null);
 
-        // Nome inteligente sugerido pelo Python ou nome original do ficheiro
+        // Nome inteligente: Input manual > Python > Nome original do ficheiro > Fallback de segurança
         $documentName = $validatedData['name']
             ?? ($extractedData['suggested_title'] ?? $extractedData['dados']['tipo_documento'] ?? null)
-            ?? $file->getClientOriginalName();
+            ?? $originalFileName
+            ?? 'Documento ' . now()->format('Y-m-d');
 
-        // Guardar na variável em vez de fazer return imediato
+        // Criação do documento na base de dados
         $document = Document::create([
             'property_id' => $validatedData['property_id'],
             'document_category_id' => $validatedData['document_category_id'],
             'name' => $documentName,
             'description' => $validatedData['description'] ?? null,
-            'file_id' => $fileRecord->id,
+            'file_id' => $fileRecordId,
+            'file_hash' => $fileHash,
             'issue_date' => $issueDate,
             'expiration_date' => $expirationDate,
-            'extracted_data' => $extractedData,
+            'extracted_data' => !empty($extractedData) ? $extractedData : null,
         ]);
 
-        // Disparar a verificação de validade
-        // Se a data de validade extraída estiver a expirar, a notificação é criada na hora.
         $this->documentExpiryService->checkSingleDocument($document);
 
-        // Devolver o documento
         return $document;
     }
 }

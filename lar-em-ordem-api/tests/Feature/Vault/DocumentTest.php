@@ -75,6 +75,7 @@ class DocumentTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/v1/properties/{$property->id}/documents", [
             'property_id' => $property->id,
             'document_category_id' => $category->id,
+            'name' => 'Certificado de Teste',
             'description' => 'Test document payload',
             'file' => $file,
         ]);
@@ -106,6 +107,7 @@ class DocumentTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/v1/properties/{$property->id}/documents", [
             'property_id' => $property->id,
             'document_category_id' => $category->id,
+            'name' => 'Documento Falso',
             'file' => $file,
         ]);
 

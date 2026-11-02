@@ -61,13 +61,17 @@ class DocumentController extends Controller
     {
         $this->authorize('update', $property);
 
+        $validatedData = $request->validated();
+
+        $validatedData['property_id'] = $property->id;
+
         $document = $this->documentService->processAndSaveDocument(
-            $request->validated(),
+            $validatedData,
             $request->file('file')
         );
 
         return response()->json([
-            'message' => 'Document archived and parsed successfully.',
+            'message' => 'Documento guardado com sucesso.',
             'data' => $document
         ], 201);
     }
