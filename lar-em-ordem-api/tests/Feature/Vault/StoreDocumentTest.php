@@ -11,17 +11,45 @@ use App\Models\Property\PropertyContract;
 use App\Models\Property\PropertyType;
 use App\Models\Property\PropertyTypology;
 use App\Models\User\ResidentType;
-use App\Services\Vault\PdfExtractionService; // <-- Adicionar
+use App\Services\Vault\PdfExtractionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery\MockInterface; // <-- Adicionar
+use Mockery\MockInterface;
 
 class StoreDocumentTest extends TestCase
 {
     use RefreshDatabase;
 
-    // ... (Mantém a função createAuthorizedUserAndProperty igual) ...
+    private function createAuthorizedUserAndProperty(): array
+    {
+        $this->seed([
+            \Database\Seeders\PropertyTypeSeeder::class,
+            \Database\Seeders\PropertyTypologySeeder::class,
+            \Database\Seeders\ResidentTypeSeeder::class,
+        ]);
+
+        $propertyTypeId = PropertyType::first()->id;
+        $propertyTypologyId = PropertyTypology::first()->id;
+        $residentTypeId = ResidentType::first()->id;
+
+        $user = User::factory()->create();
+        $resident = Resident::factory()->create(['user_id' => $user->id]);
+
+        $property = Property::factory()->create([
+            'property_type_id' => $propertyTypeId,
+            'property_typology_id' => $propertyTypologyId,
+        ]);
+
+        PropertyContract::factory()->create([
+            'resident_id' => $resident->id,
+            'property_id' => $property->id,
+            'resident_type_id' => $residentTypeId,
+            'is_active' => true,
+        ]);
+
+        return [$user, $property];
+    }
 
     public function test_can_upload_document_with_manual_dates(): void
     {
