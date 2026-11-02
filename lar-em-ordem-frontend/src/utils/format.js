@@ -14,3 +14,19 @@ export function formatAddress(address) {
     .filter(Boolean)
     .join(", ");
 }
+
+// keeps an optional leading "+" and up to 14 digits (the API allows 15 characters)
+export function cleanPhone(text) {
+  const raw = String(text ?? "").trim();
+  const digits = raw.replace(/\D/g, "").slice(0, 14);
+  return raw.startsWith("+") ? `+${digits}` : digits;
+}
+
+// "912345678" -> "912 345 678", "+351912345678" -> "+351 912 345 678"
+export function formatPhone(value) {
+  const clean = cleanPhone(value);
+  const match = clean.match(/^(\+351)?(\d{3})(\d{3})(\d{3})$/);
+  if (!match) return clean;
+  const [, prefix, a, b, c] = match;
+  return [prefix, a, b, c].filter(Boolean).join(" ");
+}
