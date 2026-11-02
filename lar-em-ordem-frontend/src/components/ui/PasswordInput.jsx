@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { Input } from "@headlessui/react";
 
 export function PasswordInput({ className = "", ...props }) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative">
-      <input
+      <Input
         type={show ? "text" : "password"}
         className={`w-full pr-10 ${className}`}
         {...props}

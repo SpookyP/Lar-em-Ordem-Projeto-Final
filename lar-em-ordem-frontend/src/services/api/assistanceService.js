@@ -29,7 +29,11 @@ function toAssistanceDetail(a) {
 
 export async function getCategories() {
   const response = await axiosClient.get("/api/v1/problem-categories");
-  return response.data.data.map((c) => ({ id: c.id, label: c.name }));
+  return response.data.data.map((c) => ({
+    id: c.id,
+    label: c.name,
+    specialties: (c.specialties ?? []).map((s) => ({ id: s.id, name: s.name })),
+  }));
 }
 
 export async function getAssistanceRequests({

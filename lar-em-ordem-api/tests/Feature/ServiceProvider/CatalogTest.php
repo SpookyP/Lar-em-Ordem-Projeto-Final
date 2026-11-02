@@ -33,9 +33,17 @@ class CatalogTest extends TestCase
 
     // ---------------------------------------------------- problem categories
 
-    public function test_categorias_exigem_autenticacao(): void
+    public function test_guests_can_read_the_categories(): void
     {
-        $this->getJson('/api/v1/problem-categories')->assertUnauthorized();
+        // public on purpose: the sign-up form needs them before there is a session
+        $this->getJson('/api/v1/problem-categories')
+            ->assertOk()
+            ->assertJsonCount(ProblemCategory::count(), 'data');
+    }
+
+    public function test_guests_cannot_write_to_the_categories(): void
+    {
+        $this->postJson('/api/v1/problem-categories', ['name' => 'X'])->assertMethodNotAllowed();
     }
 
     public function test_lista_todas_as_categorias_com_as_especialidades_por_ordem_alfabetica(): void
@@ -56,7 +64,7 @@ class CatalogTest extends TestCase
             $especialidades = collect($categoria['specialties']);
 
             // todas pertencem a esta categoria e vêm por ordem alfabética
-            $this->assertTrue($especialidades->every(fn ($e) => $e['problem_category_id'] === $categoria['id']));
+            $this->assertTrue($especialidades->every(fn($e) => $e['problem_category_id'] === $categoria['id']));
             $this->assertSame(
                 ServiceSpecialty::where('problem_category_id', $categoria['id'])->orderBy('name')->pluck('name')->all(),
                 $especialidades->pluck('name')->all()
@@ -89,9 +97,16 @@ class CatalogTest extends TestCase
 
     // ---------------------------------------------------------- service zones
 
-    public function test_zonas_exigem_autenticacao(): void
+    public function test_guests_can_read_the_zones(): void
     {
-        $this->getJson('/api/v1/service-zones')->assertUnauthorized();
+        $this->getJson('/api/v1/service-zones')
+            ->assertOk()
+            ->assertJsonCount(ServiceZone::count(), 'data');
+    }
+
+    public function test_guests_cannot_write_to_the_zones(): void
+    {
+        $this->postJson('/api/v1/service-zones', ['district' => 'X'])->assertMethodNotAllowed();
     }
 
     public function test_sem_filtros_devolve_o_catalogo_inteiro_ordenado(): void
@@ -115,7 +130,7 @@ class CatalogTest extends TestCase
             ->assertOk()
             ->assertJsonCount(ServiceZone::where('district', 'Porto')->count(), 'data');
 
-        $this->assertTrue(collect($resposta->json('data'))->every(fn ($z) => $z['district'] === 'Porto'));
+        $this->assertTrue(collect($resposta->json('data'))->every(fn($z) => $z['district'] === 'Porto'));
     }
 
     public function test_filtra_por_distrito_e_concelho(): void
@@ -127,7 +142,7 @@ class CatalogTest extends TestCase
 
         $localidades = collect($resposta->json('data'))->pluck('location');
         $this->assertTrue($localidades->contains('Senhora da Hora'));
-        $this->assertTrue(collect($resposta->json('data'))->every(fn ($z) => $z['county'] === 'Matosinhos'));
+        $this->assertTrue(collect($resposta->json('data'))->every(fn($z) => $z['county'] === 'Matosinhos'));
     }
 
     public function test_um_filtro_sem_resultados_devolve_uma_lista_vazia(): void
