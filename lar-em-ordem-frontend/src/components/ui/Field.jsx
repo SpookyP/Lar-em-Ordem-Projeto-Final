@@ -1,8 +1,15 @@
 import { PasswordInput } from "./PasswordInput";
 
-export function Field({ label, name, value, onChange, type = "text" }) {
+export function Field({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  disabled = false,
+}) {
   const shared =
-    "rounded-lg border border-border px-3 py-2 text-text outline-none focus:border-navy";
+    "rounded-lg border border-border px-3 py-2 text-text outline-none focus:border-navy disabled:bg-surface disabled:text-muted disabled:cursor-default";
 
   return (
     <label className="flex flex-col gap-1">
@@ -13,6 +20,7 @@ export function Field({ label, name, value, onChange, type = "text" }) {
           value={value}
           onChange={onChange}
           rows={3}
+          disabled={disabled}
           className={shared}
         />
       ) : type === "password" ? (
@@ -28,6 +36,7 @@ export function Field({ label, name, value, onChange, type = "text" }) {
           type={type}
           value={value}
           onChange={onChange}
+          disabled={disabled}
           className={shared}
         />
       )}

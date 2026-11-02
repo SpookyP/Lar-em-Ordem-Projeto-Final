@@ -3,7 +3,7 @@ import { Field } from "./Field";
 import { createOffer, updateOffer } from "../../services/api/offerService";
 import { getErrorMessage } from "../../utils/apiError";
 
-export function OfferForm({ offer = null, onSaved }) {
+export function OfferForm({ offer = null, onSaved, readOnly = false }) {
   const isEdit = Boolean(offer);
 
   const [form, setForm] = useState({
@@ -60,7 +60,7 @@ export function OfferForm({ offer = null, onSaved }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {error && (
+      {error && !readOnly && (
         <p className="rounded-lg bg-red-light px-3 py-2 text-sm text-red">
           {error}
         </p>
@@ -71,12 +71,14 @@ export function OfferForm({ offer = null, onSaved }) {
         name="title"
         value={form.title}
         onChange={handleChange}
+        disabled={readOnly}
       />
       <Field
         label="Tipo (ex.: desconto)"
         name="type"
         value={form.type}
         onChange={handleChange}
+        disabled={readOnly}
       />
       <Field
         label="Descrição"
@@ -84,6 +86,7 @@ export function OfferForm({ offer = null, onSaved }) {
         type="textarea"
         value={form.description}
         onChange={handleChange}
+        disabled={readOnly}
       />
       <Field
         label="Website (opcional)"
@@ -91,6 +94,7 @@ export function OfferForm({ offer = null, onSaved }) {
         type="url"
         value={form.url}
         onChange={handleChange}
+        disabled={readOnly}
       />
 
       <div className="flex gap-4">
@@ -101,6 +105,7 @@ export function OfferForm({ offer = null, onSaved }) {
             type="date"
             value={form.start_date}
             onChange={handleChange}
+            disabled={readOnly}
           />
         </div>
         <div className="flex-1">
@@ -110,17 +115,20 @@ export function OfferForm({ offer = null, onSaved }) {
             type="date"
             value={form.end_date}
             onChange={handleChange}
+            disabled={readOnly}
           />
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="rounded-lg bg-navy px-4 py-2 font-bold text-white transition hover:bg-navy-light disabled:opacity-50"
-      >
-        {saving ? "A guardar..." : isEdit ? "Guardar" : "Criar oferta"}
-      </button>
+      {!readOnly && (
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-lg bg-navy px-4 py-2 font-bold text-white transition hover:bg-navy-light disabled:opacity-50"
+        >
+          {saving ? "A guardar..." : isEdit ? "Guardar" : "Criar oferta"}
+        </button>
+      )}
     </form>
   );
 }

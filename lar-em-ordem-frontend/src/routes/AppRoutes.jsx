@@ -72,8 +72,18 @@ export function AppRoutes() {
 
             <Route element={<PrivateRoute allowedRoles={[ROLES.PARTNER]} />}>
               <Route path="/partner/offers" element={<MyOffers />} />
-              <Route path="/partner/offers/new" element={<OfferFormPage />} />
-              <Route path="/partner/offers/:id" element={<OfferFormPage />} />
+              <Route
+                path="/partner/offers/new"
+                element={<OfferFormPage mode="create" />}
+              />
+              <Route
+                path="/partner/offers/:id"
+                element={<OfferFormPage mode="view" />}
+              />
+              <Route
+                path="/partner/offers/:id/edit"
+                element={<OfferFormPage mode="edit" />}
+              />
             </Route>
           </Route>
         </Route>
