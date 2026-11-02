@@ -7,6 +7,6 @@ export const ROLE_INFO = {
     hasHouses: false,
     home: "/provider/requests",
   },
-  partner: { label: "Parceiro", hasHouses: false },
+  partner: { label: "Parceiro", hasHouses: false, home: "/partner/offers" },
   condominium_admin: { label: "Administrador de Condomínio", hasHouses: false },
 };
