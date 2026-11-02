@@ -142,9 +142,14 @@ export default function MyOffers() {
                 className="rounded-2xl bg-card p-5 shadow-sm flex flex-col gap-3"
               >
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display text-lg text-navy">
-                    {offer.title}
-                  </h2>
+                  <Link
+                    to={`/partner/offers/${offer.id}`}
+                    className="hover:underline"
+                  >
+                    <h2 className="font-display text-lg text-navy">
+                      {offer.title}
+                    </h2>
+                  </Link>
                   <span
                     className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${status.className}`}
                   >
@@ -182,7 +187,7 @@ export default function MyOffers() {
                   ) : (
                     <>
                       <Link
-                        to={`/partner/offers/${offer.id}`}
+                        to={`/partner/offers/${offer.id}/edit`}
                         className="flex items-center gap-1.5 text-muted hover:text-navy"
                       >
                         <Pencil size={15} /> Editar
