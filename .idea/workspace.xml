@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="troca para ulids e reforço de FK">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/DocumentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/DocumentController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Requests/Vault/StoreDocumentRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Requests/Vault/StoreDocumentRequest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Document.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Document.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" afterDir="false" />
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="implementa criacao manual de documentos, validação anti-duplicados e atualização testes">
       <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/StoreDocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/StoreDocumentTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -78,60 +72,60 @@
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0000000290275892" />
-      <entry key="S2" value="1.0130527717032056" />
-      <entry key="S5" value="1.1763116853559583" />
-      <entry key="S10" value="1.4198948503581788" />
-      <entry key="S30" value="1.749013394234301" />
-      <entry key="S60" value="1.886334191834191" />
-      <entry key="M2" value="2.183150069871189" />
-      <entry key="M5" value="4.207798643046465" />
-      <entry key="M10" value="8.720806424533498" />
-      <entry key="M15" value="12.124308961172545" />
-      <entry key="M30" value="17.488584701839525" />
-      <entry key="H1" value="21.252506438601376" />
-      <entry key="H2" value="23.488278409310748" />
-      <entry key="H4" value="24.707564114593207" />
-      <entry key="D1" value="25.77932714311442" />
-      <entry key="W1" value="25.968343810036142" />
+      <entry key="MS500" value="1.0002911404670238" />
+      <entry key="S2" value="1.1385639685888773" />
+      <entry key="S5" value="1.661081630848766" />
+      <entry key="S10" value="2.3255128430123206" />
+      <entry key="S30" value="3.254912607526047" />
+      <entry key="S60" value="3.596778679572662" />
+      <entry key="M2" value="3.7900259015113393" />
+      <entry key="M5" value="3.9170347551335225" />
+      <entry key="M10" value="4.194365758153841" />
+      <entry key="M15" value="5.069294065482191" />
+      <entry key="M30" value="9.249124302091962" />
+      <entry key="H1" value="15.652144561449582" />
+      <entry key="H2" value="21.39377132486022" />
+      <entry key="H4" value="25.262262661584334" />
+      <entry key="D1" value="29.142152623864824" />
+      <entry key="W1" value="29.875666333333758" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
       <entry key="MS500" value="0.0" />
-      <entry key="S2" value="7.314899425991725E-190" />
-      <entry key="S5" value="2.216579660100968E-76" />
-      <entry key="S10" value="1.4888182092186287E-38" />
-      <entry key="S30" value="2.4600686351499573E-13" />
-      <entry key="S60" value="4.95990789748152E-7" />
-      <entry key="M2" value="7.04266135596588E-4" />
-      <entry key="M5" value="0.054839656066425685" />
-      <entry key="M10" value="0.23417868405648207" />
-      <entry key="M15" value="0.3799253225054758" />
-      <entry key="M30" value="0.6163808258742928" />
-      <entry key="H1" value="0.7850992458755093" />
-      <entry key="H2" value="0.8860582632510741" />
-      <entry key="H4" value="0.9413066786393657" />
-      <entry key="D1" value="0.9899695958822277" />
-      <entry key="W1" value="0.9985608868671304" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="4.1497287888876275E-264" />
+      <entry key="S10" value="2.037088311509253E-132" />
+      <entry key="S30" value="1.2676614562216727E-44" />
+      <entry key="S60" value="1.125904727861852E-22" />
+      <entry key="M2" value="1.0610865788717956E-11" />
+      <entry key="M5" value="4.0766209176160336E-5" />
+      <entry key="M10" value="0.006384842141835638" />
+      <entry key="M15" value="0.03441650584087355" />
+      <entry key="M30" value="0.18551686133846026" />
+      <entry key="H1" value="0.43071668337604535" />
+      <entry key="H2" value="0.6562900908714419" />
+      <entry key="H4" value="0.8101173315461421" />
+      <entry key="D1" value="0.9655126923269552" />
+      <entry key="W1" value="0.994998828945949" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.8585654364377537" />
-      <entry key="MS500" value="0.9699619384973908" />
-      <entry key="S2" value="1.005358002425855" />
-      <entry key="S5" value="1.1727295792075465" />
-      <entry key="S10" value="1.4177312689788768" />
-      <entry key="S30" value="1.7481221480119085" />
-      <entry key="S60" value="1.8856796110061451" />
-      <entry key="M2" value="2.182264033121808" />
-      <entry key="M5" value="4.259372870105908" />
-      <entry key="M10" value="8.951823650876543" />
-      <entry key="M15" value="12.501548751761787" />
-      <entry key="M30" value="18.103230016914296" />
-      <entry key="H1" value="22.03661321704726" />
-      <entry key="H2" value="24.373805121149786" />
-      <entry key="H4" value="25.648595607824696" />
-      <entry key="D1" value="26.769249515359267" />
-      <entry key="W1" value="26.966897916670217" />
+      <entry key="MS100" value="0.9526379980439373" />
+      <entry key="MS500" value="0.9906320013457975" />
+      <entry key="S2" value="1.135899877399852" />
+      <entry key="S5" value="1.6596396870906671" />
+      <entry key="S10" value="2.324546469219723" />
+      <entry key="S30" value="3.254474647794145" />
+      <entry key="S60" value="3.596538284318993" />
+      <entry key="M2" value="3.789899641766426" />
+      <entry key="M5" value="3.9170210343288576" />
+      <entry key="M10" value="4.200638105750403" />
+      <entry key="M15" value="5.103449703336272" />
+      <entry key="M30" value="9.434109987034162" />
+      <entry key="H1" value="16.08231234217683" />
+      <entry key="H2" value="22.04966549124667" />
+      <entry key="H4" value="26.072142053515012" />
+      <entry key="D1" value="30.107619074695194" />
+      <entry key="W1" value="30.870658379873543" />
     </decayedShown>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/usr/local/bin/php">
@@ -452,7 +446,15 @@
       <option name="project" value="LOCAL" />
       <updated>1793126757879</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="implementa criacao manual de documentos, validação anti-duplicados e atualização testes">
+      <option name="closed" value="true" />
+      <created>1793646004941</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1793646004941</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -479,7 +481,8 @@
     <MESSAGE value="Hotfix Tests" />
     <MESSAGE value="Hotfix Tests - namespace" />
     <MESSAGE value="EndPoints Notificações&#10;Seeder Categoria de Documento" />
-    <option name="LAST_COMMIT_MESSAGE" value="EndPoints Notificações&#10;Seeder Categoria de Documento" />
+    <MESSAGE value="implementa criacao manual de documentos, validação anti-duplicados e atualização testes" />
+    <option name="LAST_COMMIT_MESSAGE" value="implementa criacao manual de documentos, validação anti-duplicados e atualização testes" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
