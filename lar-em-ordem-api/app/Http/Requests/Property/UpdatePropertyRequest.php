@@ -56,7 +56,6 @@ class UpdatePropertyRequest extends FormRequest
             'property_type_id',
             'property_typology_id',
             'address_id',
-            'condominium_id',
             'area',
             'fraction',
         ]), fn($value) => $value !== null);
