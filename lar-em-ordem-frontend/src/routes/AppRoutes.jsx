@@ -26,6 +26,10 @@ import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
 import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
 
+//Partner
+import MyOffers from "../pages/Partner/MyOffers/MyOffers";
+import OfferFormPage from "../pages/Partner/OfferFormPage/OfferFormPage";
+
 export function AppRoutes() {
   return (
     <BrowserRouter>
@@ -58,6 +62,12 @@ export function AppRoutes() {
               <Route path="/provider/requests" element={<JobListing />} />
               <Route path="/provider/requests/:id" element={<Offer />} />
               <Route path="/provider/proposals" element={<Proposals />} />
+            </Route>
+
+            <Route element={<PrivateRoute allowedRoles={[ROLES.PARTNER]} />}>
+              <Route path="/partner/offers" element={<MyOffers />} />
+              <Route path="/partner/offers/new" element={<OfferFormPage />} />
+              <Route path="/partner/offers/:id" element={<OfferFormPage />} />
             </Route>
           </Route>
         </Route>
