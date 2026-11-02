@@ -42,6 +42,7 @@ class CondominiumResource extends JsonResource
                 'door'     => $property->address?->door,
                 'fraction' => $property->address?->fraction,
             ]))),
+            'notices'          => CondominiumNoticeResource::collection($this->whenLoaded('notices')),
             'created_at'       => $this->created_at,
         ];
     }

@@ -11,19 +11,22 @@ use App\Http\Requests\Condominium\ClaimCondominiumRequest;
 use App\Http\Requests\ServiceProvider\PerPageRequest;
 use App\Http\Resources\Condominium\CondominiumResource;
 use App\Models\Condominium\Condominium;
+use App\Models\Property\Property;
 use App\Services\Condominium\CondominiumAdminService;
 use App\Services\Condominium\CondominiumService;
+use App\Services\Condominium\CondominiumNoticeService;
 use Illuminate\Support\Facades\Gate;
 
 class CondominiumController extends Controller
 {
-    public function __construct(
+     public function __construct(
         private CondominiumService $service,
         private CondominiumAdminService $adminService,
+        private CondominiumNoticeService $noticeService,
     ) {}
 
     /**
-     * Lista os condomínios que o utilizador administra ou onde tem uma casa.
+     * Lista os condomínios que o utilizador administra.
      *
      * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
@@ -55,7 +58,8 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Devolve um condomínio. O administrador recebe também as frações ligadas.
+     * Devolve um condomínio ao administrador: frações ligadas, código e avisos em vigor
+     * (com quantos residentes já viram cada um). O residente usa GET /properties/{id}/condominium.
      *
      * @param Condominium $condominium Condomínio.
      * @return CondominiumResource
@@ -64,9 +68,34 @@ class CondominiumController extends Controller
     {
         Gate::authorize('view', $condominium);
 
-        return new CondominiumResource(
-            $this->service->loadFull($condominium, withProperties: Gate::allows('update', $condominium))
-        );
+        $this->service->loadFull($condominium, withProperties: true);
+        $this->noticeService->loadCurrent($condominium, canManage: true);
+
+        return new CondominiumResource($condominium);
+    }
+
+    /**
+     * Página do condomínio do residente (só leitura): o condomínio da casa ativa e os avisos em vigor.
+     * Casa sem condomínio: data null.
+     *
+     * @param Property $property Casa ativa do residente.
+     * @return CondominiumResource|\Illuminate\Http\JsonResponse
+     */
+    public function showForProperty(Property $property)
+    {
+        // reutiliza PropertyPolicy::view → contrato ativo nesta casa
+        Gate::authorize('view', $property);
+
+        $condominium = $property->condominium;
+
+        if (! $condominium) {
+            return response()->json(['data' => null]);
+        }
+
+        $this->service->loadFull($condominium);
+        $this->noticeService->loadCurrent($condominium, canManage: false);
+
+        return new CondominiumResource($condominium);
     }
 
     /**

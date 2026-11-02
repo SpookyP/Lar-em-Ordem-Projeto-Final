@@ -18,7 +18,7 @@ class Condominium extends Model
 
     protected $table = 'condominia';
 
-        protected $fillable = [
+    protected $fillable = [
         'name',
         'reserve_fund',
     ];
@@ -78,21 +78,14 @@ class Condominium extends Model
             ->exists();
     }
 
-    /** Condomínios que o utilizador administra ou onde tem uma casa. */
-    public function scopeVisibleTo(Builder $query, User $user): Builder
+    /** Condomínios que o utilizador administra. */
+    public function scopeManagedBy(Builder $query, User $user): Builder
     {
         $adminId = $user->condominium_admin?->id;
-        $residentId = $user->resident?->id;
 
-        // sem perfil de admin nem de residente: lista vazia (um where vazio devolvia tudo)
-        if (! $adminId && ! $residentId) {
-            return $query->whereRaw('0 = 1');
-        }
-
-        return $query->where(fn (Builder $q) => $q
-            ->when($adminId, fn (Builder $q) => $q->orWhere('condominium_admin_id', $adminId))
-            ->when($residentId, fn (Builder $q) => $q->orWhereHas('properties.contracts', fn (Builder $c) => $c
-                ->where('resident_id', $residentId)
-                ->where('is_active', true))));
+        // sem perfil de administrador: nenhum (um where com null virava "is null")
+        return $adminId
+            ? $query->where('condominium_admin_id', $adminId)
+            : $query->whereRaw('0 = 1');
     }
 }
