@@ -46,12 +46,23 @@ const GROUPS = [
 
 export default function Settings() {
   const [section, setSection] = useState(null);
-  const { activeProfile } = useAuth();
+  const { activeProfile, user } = useAuth();
   const canHaveHouses = activeProfile?.hasHouses ?? false;
 
-  const visibleGroups = GROUPS.filter(
-    (g) => !g.requiresHouses || canHaveHouses,
-  );
+  const roles = user?.roles ?? [];
+  const isPartner = roles.includes("partner");
+  const hasSingleProfile = roles.length <= 1;
+
+  const hiddenItems = new Set();
+  if (isPartner) hiddenItems.add("profile");
+  if (hasSingleProfile) hiddenItems.add("delete-profile");
+
+  const visibleGroups = GROUPS.filter((g) => !g.requiresHouses || canHaveHouses)
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((item) => !hiddenItems.has(item.id)),
+    }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <div className="p-6">

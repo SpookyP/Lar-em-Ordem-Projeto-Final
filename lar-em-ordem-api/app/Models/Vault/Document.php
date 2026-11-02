@@ -19,6 +19,7 @@ class Document extends Model
         'name',
         'description',
         'file_id',
+        'file_hash',
         'issue_date',
         'expiration_date',
         'extracted_data',

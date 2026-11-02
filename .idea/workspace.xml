@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="implementa remocao de notificacoes na BD e dropdown de avisar mais tarde" />
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="implementa criacao manual de documentos, validação anti-duplicados e atualização testes">
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/StoreDocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/StoreDocumentTest.php" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,16 +20,11 @@
       <executable path="composer" />
     </execution>
   </component>
-  <component name="DatabaseLocalColorSettings">
-    <colors>
-      <entry key="4de36a27-b1ed-4733-9b16-7621f1b8eff9" value="" />
-      <entry key="5612b663-932a-42cf-a925-157d96f01320" value="" />
-    </colors>
-  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="PHP File" />
+        <option value="JavaScript File" />
       </list>
     </option>
   </component>
@@ -44,6 +41,17 @@
     &quot;state&quot;: &quot;OPEN&quot;,
     &quot;assignee&quot;: &quot;Joao-Ribeiro7&quot;
   }
+}</component>
+  <component name="GitHubPullRequestState">{
+  &quot;prStates&quot;: [
+    {
+      &quot;id&quot;: {
+        &quot;id&quot;: &quot;PR_kwDOTZfrb88AAAABLplrfg&quot;,
+        &quot;number&quot;: 156
+      },
+      &quot;lastSeen&quot;: 1793315323009
+    }
+  ]
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
@@ -63,61 +71,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.193428359741197" />
-      <entry key="MS500" value="2.250754253235427" />
-      <entry key="S2" value="2.778363084365396" />
-      <entry key="S5" value="2.9081964939138834" />
-      <entry key="S10" value="2.956175848235999" />
-      <entry key="S30" value="3.2707612067018794" />
-      <entry key="S60" value="3.9188874823976545" />
-      <entry key="M2" value="4.665400088749395" />
-      <entry key="M5" value="5.918835104229467" />
-      <entry key="M10" value="9.218902979248735" />
-      <entry key="M15" value="12.394258674583819" />
-      <entry key="M30" value="18.224620455012573" />
-      <entry key="H1" value="22.788720460321187" />
-      <entry key="H2" value="25.655256325679655" />
-      <entry key="H4" value="27.263114357409872" />
-      <entry key="D1" value="28.70112594425988" />
-      <entry key="W1" value="28.95706780665256" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0002911404670238" />
+      <entry key="S2" value="1.1385639685888773" />
+      <entry key="S5" value="1.661081630848766" />
+      <entry key="S10" value="2.3255128430123206" />
+      <entry key="S30" value="3.254912607526047" />
+      <entry key="S60" value="3.596778679572662" />
+      <entry key="M2" value="3.7900259015113393" />
+      <entry key="M5" value="3.9170347551335225" />
+      <entry key="M10" value="4.194365758153841" />
+      <entry key="M15" value="5.069294065482191" />
+      <entry key="M30" value="9.249124302091962" />
+      <entry key="H1" value="15.652144561449582" />
+      <entry key="H2" value="21.39377132486022" />
+      <entry key="H4" value="25.262262661584334" />
+      <entry key="D1" value="29.142152623864824" />
+      <entry key="W1" value="29.875666333333758" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
       <entry key="MS500" value="0.0" />
       <entry key="S2" value="0.0" />
-      <entry key="S5" value="0.0" />
-      <entry key="S10" value="0.0" />
-      <entry key="S30" value="0.0" />
-      <entry key="S60" value="0.0" />
-      <entry key="M2" value="0.0" />
-      <entry key="M5" value="0.0" />
-      <entry key="M10" value="0.0" />
-      <entry key="M15" value="0.0" />
-      <entry key="M30" value="0.0" />
-      <entry key="H1" value="0.0" />
-      <entry key="H2" value="0.0" />
-      <entry key="H4" value="0.0" />
-      <entry key="D1" value="0.0" />
-      <entry key="W1" value="0.0" />
+      <entry key="S5" value="4.1497287888876275E-264" />
+      <entry key="S10" value="2.037088311509253E-132" />
+      <entry key="S30" value="1.2676614562216727E-44" />
+      <entry key="S60" value="1.125904727861852E-22" />
+      <entry key="M2" value="1.0610865788717956E-11" />
+      <entry key="M5" value="4.0766209176160336E-5" />
+      <entry key="M10" value="0.006384842141835638" />
+      <entry key="M15" value="0.03441650584087355" />
+      <entry key="M30" value="0.18551686133846026" />
+      <entry key="H1" value="0.43071668337604535" />
+      <entry key="H2" value="0.6562900908714419" />
+      <entry key="H4" value="0.8101173315461421" />
+      <entry key="D1" value="0.9655126923269552" />
+      <entry key="W1" value="0.994998828945949" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.0314352321962774" />
-      <entry key="MS500" value="1.6372995430973918" />
-      <entry key="S2" value="2.3200719558119793" />
-      <entry key="S5" value="2.670038873614521" />
-      <entry key="S10" value="2.825453847313158" />
-      <entry key="S30" value="3.211438959900827" />
-      <entry key="S60" value="3.8739556719627455" />
-      <entry key="M2" value="4.634149771030473" />
-      <entry key="M5" value="5.90287178003055" />
-      <entry key="M10" value="9.209890448170409" />
-      <entry key="M15" value="12.387857158151368" />
-      <entry key="M30" value="18.22112241215818" />
-      <entry key="H1" value="22.786866176690303" />
-      <entry key="H2" value="25.654297409715298" />
-      <entry key="H4" value="27.262626142019943" />
-      <entry key="D1" value="28.70104328254142" />
-      <entry key="W1" value="28.957055965137958" />
+      <entry key="MS100" value="0.9526379980439373" />
+      <entry key="MS500" value="0.9906320013457975" />
+      <entry key="S2" value="1.135899877399852" />
+      <entry key="S5" value="1.6596396870906671" />
+      <entry key="S10" value="2.324546469219723" />
+      <entry key="S30" value="3.254474647794145" />
+      <entry key="S60" value="3.596538284318993" />
+      <entry key="M2" value="3.789899641766426" />
+      <entry key="M5" value="3.9170210343288576" />
+      <entry key="M10" value="4.200638105750403" />
+      <entry key="M15" value="5.103449703336272" />
+      <entry key="M30" value="9.434109987034162" />
+      <entry key="H1" value="16.08231234217683" />
+      <entry key="H2" value="22.04966549124667" />
+      <entry key="H4" value="26.072142053515012" />
+      <entry key="D1" value="30.107619074695194" />
+      <entry key="W1" value="30.870658379873543" />
     </decayedShown>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/usr/local/bin/php">
@@ -291,19 +299,13 @@
     "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "feature/melhorias__notificacoes",
-    "last_opened_file_path": "/home/hyper/Área de Trabalho/FT01_Flexbox",
+    "git-widget-placeholder": "feature/validacoes__documentos",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.jshint": "",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "preferences.pluginManager"
-  },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
-    ]
   }
 }]]></component>
   <component name="RecentsManager">
@@ -320,8 +322,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-PS-262.11879.104" />
-        <option value="bundled-php-predefined-a98d8de5180a-9522f28f0b20-com.jetbrains.php.sharedIndexes-PS-262.11879.104" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-PS-262.10968.76" />
+        <option value="bundled-php-predefined-a98d8de5180a-9522f28f0b20-com.jetbrains.php.sharedIndexes-PS-262.10968.76" />
       </set>
     </attachedChunks>
   </component>
@@ -345,14 +347,8 @@
       <workItem from="1791397326481" duration="8000" />
       <workItem from="1791401542350" duration="2932000" />
       <workItem from="1791571050933" duration="2788000" />
-      <workItem from="1792139934834" duration="1299000" />
-      <workItem from="1792181366832" duration="111000" />
-      <workItem from="1792428653948" duration="3455000" />
-      <workItem from="1792446934464" duration="1201000" />
-      <workItem from="1792528192484" duration="19000" />
-      <workItem from="1792694056335" duration="10255000" />
-      <workItem from="1793119847434" duration="2299000" />
-      <workItem from="1793223883361" duration="1331000" />
+      <workItem from="1792101295562" duration="1001000" />
+      <workItem from="1793301640784" duration="9789000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -428,29 +424,37 @@
     </task>
     <task id="LOCAL-00010" summary="Hotfix Tests">
       <option name="closed" value="true" />
-      <created>1792098415504</created>
+      <created>1792099782527</created>
       <option name="number" value="00010" />
       <option name="presentableId" value="LOCAL-00010" />
       <option name="project" value="LOCAL" />
-      <updated>1792098415504</updated>
+      <updated>1792099782527</updated>
     </task>
-    <task id="LOCAL-00011" summary="Hotfix Tests">
+    <task id="LOCAL-00011" summary="Hotfix Tests - namespace">
       <option name="closed" value="true" />
-      <created>1792098431411</created>
+      <created>1792099801938</created>
       <option name="number" value="00011" />
       <option name="presentableId" value="LOCAL-00011" />
       <option name="project" value="LOCAL" />
-      <updated>1792098431411</updated>
+      <updated>1792099801938</updated>
     </task>
-    <task id="LOCAL-00012" summary="implementa remocao de notificacoes na BD e dropdown de avisar mais tarde">
+    <task id="LOCAL-00012" summary="EndPoints Notificações&#10;Seeder Categoria de Documento">
       <option name="closed" value="true" />
-      <created>1793641266081</created>
+      <created>1793126757879</created>
       <option name="number" value="00012" />
       <option name="presentableId" value="LOCAL-00012" />
       <option name="project" value="LOCAL" />
-      <updated>1793641266081</updated>
+      <updated>1793126757879</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="implementa criacao manual de documentos, validação anti-duplicados e atualização testes">
+      <option name="closed" value="true" />
+      <created>1793646004941</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1793646004941</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -475,8 +479,10 @@
     <MESSAGE value="Readme e Python" />
     <MESSAGE value="Hotfix Geral" />
     <MESSAGE value="Hotfix Tests" />
-    <MESSAGE value="implementa remocao de notificacoes na BD e dropdown de avisar mais tarde" />
-    <option name="LAST_COMMIT_MESSAGE" value="implementa remocao de notificacoes na BD e dropdown de avisar mais tarde" />
+    <MESSAGE value="Hotfix Tests - namespace" />
+    <MESSAGE value="EndPoints Notificações&#10;Seeder Categoria de Documento" />
+    <MESSAGE value="implementa criacao manual de documentos, validação anti-duplicados e atualização testes" />
+    <option name="LAST_COMMIT_MESSAGE" value="implementa criacao manual de documentos, validação anti-duplicados e atualização testes" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
