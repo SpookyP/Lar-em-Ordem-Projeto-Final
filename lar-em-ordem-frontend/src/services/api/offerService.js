@@ -1,5 +1,16 @@
 import axiosClient from "./axiosClient";
 
+function toPartner(p) {
+  if (!p) return null;
+  return {
+    id: p.id,
+    companyName: p.company_name,
+    phone: p.phone,
+    website: p.website,
+    description: p.description,
+  };
+}
+
 function toOffer(o) {
   return {
     id: o.id,
@@ -10,6 +21,7 @@ function toOffer(o) {
     startDate: o.start_date,
     endDate: o.end_date,
     active: o.active,
+    partner: toPartner(o.partner),
   };
 }
 
@@ -43,4 +55,9 @@ export async function deleteOffer(id) {
 
 export async function setOfferActive(id, active) {
   return updateOffer(id, { active });
+}
+
+export async function getRecommendations() {
+  const response = await axiosClient.get("/api/v1/offers/recommendations");
+  return response.data.data.map(toOffer);
 }
