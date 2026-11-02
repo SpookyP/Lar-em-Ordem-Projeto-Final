@@ -260,7 +260,7 @@ class PartnerTest extends TestCase
     public function test_o_dono_apaga_o_perfil_as_ofertas_e_perde_a_role(): void
     {
         $id = $this->idParceiro();
-        $this->parceiro->assignRole('resident'); // para não ser o único perfil da conta
+       $this->parceiro->assignRole('resident'); // conta anterior à regra do perfil exclusivo (hoje impossível de criar)
 
         $this->actingAs($this->parceiro)
             ->deleteJson('/api/user/profile', ['role' => 'partner'])

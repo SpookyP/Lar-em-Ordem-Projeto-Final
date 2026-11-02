@@ -129,6 +129,50 @@ class ProfileTest extends TestCase
             ->assertJsonValidationErrors(['role']);
     }
 
+    public function test_parceiro_nao_pode_adicionar_outros_perfis(): void
+    {
+        $parceiro = User::where('email', 'parceiro@example.com')->firstOrFail();
+
+        $this->actingAs($parceiro)
+            ->postJson('/api/user/profile', ['role' => 'resident', 'nif' => '212345678'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['role' => 'Uma conta de parceiro não pode ter outros perfis. Use uma conta separada.']);
+
+        $this->assertNull($parceiro->fresh()->resident);
+        $this->assertFalse($parceiro->fresh()->hasRole('resident'));
+    }
+
+    public function test_conta_com_outro_perfil_nao_pode_ser_parceiro(): void
+    {
+        foreach (['morador@example.com', 'service@example.com'] as $email) {
+            $user = User::where('email', $email)->firstOrFail();
+
+            $this->actingAs($user)
+                ->postJson('/api/user/profile', [
+                    'role'         => 'partner',
+                    'company_name' => 'Loja Lda',
+                    'nif'          => '987654321',
+                    'phone'        => '912345678',
+                    'description'  => 'Loja.',
+                ])
+                ->assertStatus(422)
+                ->assertJsonValidationErrors(['role' => 'O perfil de parceiro é exclusivo e esta conta já tem outros perfis. Crie uma conta separada para o parceiro.']);
+
+            $this->assertNull($user->fresh()->partner);
+        }
+    }
+
+    public function test_perfis_nao_exclusivos_continuam_a_poder_juntar_se(): void
+    {
+        $morador = User::where('email', 'morador@example.com')->firstOrFail();
+
+        $this->actingAs($morador)
+            ->postJson('/api/user/profile', ['role' => 'condominium_admin', 'contact' => '912345678', 'admin_type' => 'resident'])
+            ->assertCreated();
+
+        $this->assertTrue($morador->fresh()->hasRole('condominium_admin'));
+    }
+
     // ---------------------------------------------------------- atualização
 
     public function test_atualizar_prestador_grava_zonas_e_ignora_user_id(): void
@@ -165,20 +209,6 @@ class ProfileTest extends TestCase
     }
 
     // ------------------------------------------------------------- remoção
-
-    public function test_apagar_perfil_de_parceiro_apaga_as_ofertas(): void
-    {
-        $parceiro = User::where('email', 'parceiro@example.com')->firstOrFail();
-        $id = $parceiro->partner->id;
-        $parceiro->assignRole('resident'); // para não ser o único perfil
-
-        $this->actingAs($parceiro)
-            ->deleteJson('/api/user/profile', ['role' => 'partner'])
-            ->assertOk();
-
-        $this->assertSame(0, Offer::where('partner_id', $id)->count());
-        $this->assertFalse($parceiro->fresh()->hasRole('partner'));
-    }
 
     public function test_nao_se_apaga_o_unico_perfil_nem_um_perfil_que_nao_existe(): void
     {
@@ -229,4 +259,22 @@ class ProfileTest extends TestCase
 
         $this->actingAs($servicos)->deleteJson('/api/v1/resident/profile')->assertNotFound();
     }
+
+      // --------------------------------------------------- apagar a conta
+
+    public function test_apagar_a_conta_de_parceiro_apaga_o_perfil_e_as_ofertas(): void
+    {
+        $parceiro = User::where('email', 'parceiro@example.com')->firstOrFail();
+        $id = $parceiro->partner->id;
+
+        $this->actingAs($parceiro)
+            ->withHeaders(['Referer' => 'http://' . config('sanctum.stateful')[0]]) // o logout precisa da sessão do SPA
+            ->deleteJson('/api/user')
+            ->assertOk();
+
+        $this->assertSoftDeleted('users', ['id' => $parceiro->id]);
+        $this->assertSoftDeleted('partners', ['id' => $id]);
+        $this->assertSame(0, Offer::where('partner_id', $id)->count());
+    }
+
 }
