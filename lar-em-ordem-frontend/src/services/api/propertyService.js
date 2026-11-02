@@ -4,7 +4,7 @@ import { cleanParams, toPage } from "./pagination";
 //Traduzir o vinculo que vem do back
 const BOND_LABELS = {
   Owner: "Proprietário",
-  Tenant: "Morador",
+  Tenant: "Arrendatário",
 };
 
 const PROPERTY_TYPE_LABELS = {
