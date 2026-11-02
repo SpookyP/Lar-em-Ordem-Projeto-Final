@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\ServiceProvider\ServiceZone;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
 
 class ServiceZoneSeeder extends Seeder
@@ -446,16 +446,27 @@ class ServiceZoneSeeder extends Seeder
 
         ];
 
+        // one bulk insert instead of ~1000 firstOrCreate calls (a SELECT + INSERT each);
+        // insertOrIgnore keeps it repeatable because of the unique (district, county, location) index
+        $now = now();
+        $rows = [];
+
         foreach ($zones as $district => $counties) {
             foreach ($counties as $county => $locations) {
                 foreach ($locations as $location) {
-                    ServiceZone::firstOrCreate([
-                        'district' => $district,
-                        'county'   => $county,
-                        'location' => $location,
-                    ]);
+                    $rows[] = [
+                        'district'   => $district,
+                        'county'     => $county,
+                        'location'   => $location,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
             }
+        }
+
+        foreach (array_chunk($rows, 500) as $chunk) {
+            DB::table('service_zones')->insertOrIgnore($chunk);
         }
     }
 }

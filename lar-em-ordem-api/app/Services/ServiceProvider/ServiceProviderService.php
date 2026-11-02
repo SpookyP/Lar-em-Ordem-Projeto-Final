@@ -79,8 +79,8 @@ class ServiceProviderService {
     }
 
     /**
-     * Remove um prestador  e retira a role 'service_provider' ao utilizador.
-     * Tudo numa transação.
+     * Remove um prestador, retira as suas propostas pendentes (passam a 'withdrawn')
+     * e retira a role 'service_provider' ao utilizador. Tudo numa transação.
      *
      * @param ServiceProviderModel $serviceProvider Instância do prestador a ser removido.
      * @return void
@@ -88,6 +88,10 @@ class ServiceProviderService {
      public function delete(ServiceProviderModel $serviceProvider): void
     {
         DB::transaction(function () use ($serviceProvider) {
+            $serviceProvider->proposals()
+                ->where('status', 'pending')
+                ->update(['status' => 'withdrawn']);
+
             $serviceProvider->delete();
             $serviceProvider->user->removeRole('service_provider');
         });

@@ -13,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use App\Models\ServiceProvider\ServiceZone;
 
 /**
  * Pedidos de assistência (módulo 5): listagem por casa, criação e edição com imagens,
@@ -455,12 +456,39 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_ignora_pedidos_fora_das_zonas_do_prestador(): void
     {
-        $this->servicos->service_provider->zones()->sync([]);
+        // só atua em Lisboa: a "Fuga" (Matosinhos) fica de fora
+        $lisboa = ServiceZone::where('county', 'Lisboa')->value('id');
+        $this->servicos->service_provider->zones()->sync([$lisboa]);
 
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available')
             ->assertOk()
             ->assertJsonCount(0, 'data');
+    }
+    
+    public function test_available_sem_zonas_ve_todos_os_concelhos(): void
+    {
+        $this->servicos->service_provider->zones()->sync([]);
+
+        $titulos = collect($this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available')
+            ->assertOk()
+            ->json('data'))->pluck('title');
+
+        $this->assertContains('Fuga de água debaixo do lava-loiça', $titulos);
+    }
+
+    public function test_available_sem_especialidades_ve_todas_as_categorias(): void
+    {
+        // "Serviçinhos Lda" só tem eletricidade; sem especialidades passa a ver também a "Fuga" (canalização)
+        $this->servicinhos->service_provider->specialties()->delete();
+
+        $titulos = collect($this->actingAs($this->servicinhos)
+            ->getJson('/api/v1/assistance-requests/available')
+            ->assertOk()
+            ->json('data'))->pluck('title');
+
+        $this->assertContains('Fuga de água debaixo do lava-loiça', $titulos);
     }
 
     public function test_available_e_paginado(): void

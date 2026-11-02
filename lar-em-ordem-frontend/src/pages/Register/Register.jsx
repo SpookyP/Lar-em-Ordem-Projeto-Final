@@ -6,7 +6,10 @@ import { Field } from "../../components/ui/Field";
 import { isPasswordValid } from "../../utils/passwordValidation";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
 import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
-import { getSocialPending } from "../../services/api/authService";
+import {
+  getSocialPending,
+  resendRegistration,
+} from "../../services/api/authService";
 import { getErrorMessage } from "../../utils/apiError";
 
 const INITIAL_FORM = {
@@ -30,6 +33,9 @@ export default function Register() {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sentTo, setSentTo] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   const { register, registerSocial } = useAuth();
 
@@ -120,11 +126,14 @@ export default function Register() {
 
     try {
       setLoading(true);
-      if (socialMode) {
-        await registerSocial(payload);
-      } else {
-        await register(payload);
+      const result = socialMode
+        ? await registerSocial(payload)
+        : await register(payload);
+      if (result.pending) {
+        setSentTo(socialMode ? social.email : form.email);
+        return;
       }
+
       navigate("/profiles");
     } catch (error) {
       const errors = error.response?.data?.errors;
@@ -147,6 +156,67 @@ export default function Register() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleResend() {
+    setResending(true);
+    try {
+      await resendRegistration(sentTo);
+      setResent(true);
+    } catch {
+      setError("Não foi possível enviar o email. Tente novamente.");
+    } finally {
+      setResending(false);
+    }
+  }
+
+  if (sentTo) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-2xl bg-card border border-border p-8 text-center">
+          <h1 className="font-display text-3xl text-navy">
+            Confirme o seu email
+          </h1>
+          <p className="mt-3 text-sm text-muted">
+            Enviámos um link para{" "}
+            <span className="font-medium text-text">{sentTo}</span>. A conta só
+            é criada depois de o abrir, nos próximos 10 minutos (pode ser noutro
+            dispositivo).
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            {socialMode
+              ? "Depois, volte aqui e entre com a Microsoft."
+              : "Depois, volte aqui e inicie sessão."}
+          </p>
+
+          {shownError && (
+            <p className="mt-4 rounded-lg bg-red-light px-3 py-2 text-sm text-red">
+              {shownError}
+            </p>
+          )}
+
+          <div className="mt-6 flex flex-col gap-3">
+            <button
+              onClick={handleResend}
+              disabled={resending || resent}
+              className="rounded-xl border border-border px-5 py-3 font-medium text-text transition hover:bg-surface disabled:opacity-50"
+            >
+              {resent
+                ? "Email enviado"
+                : resending
+                  ? "A enviar..."
+                  : "Reenviar email"}
+            </button>
+            <Link
+              to="/login"
+              className="rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
+            >
+              Ir para o login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (checkingSocial) {

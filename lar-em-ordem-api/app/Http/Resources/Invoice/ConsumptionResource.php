@@ -24,6 +24,7 @@ class ConsumptionResource extends JsonResource
             'amount'                =>      $this->amount,
             'cost'                  =>      $this->cost,
 
+            'items'                 =>      ConsumptionItemResource::collection($this->whenLoaded('items')),
             'invoice'               =>      $this->whenLoaded( 'invoice', fn () => InvoiceResource::make($this->invoice) ),
             'property'              =>      $this->whenLoaded( 'property', fn () => PropertyResource::make($this->property) ),
             'consumption_type'      =>      $this->whenLoaded( 'consumptionType', fn () => ConsumptionTypeResource::make($this->consumptionType) ),

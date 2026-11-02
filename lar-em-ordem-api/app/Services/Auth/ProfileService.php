@@ -9,6 +9,7 @@ use App\Services\ServiceProvider\ServiceProviderService;
 use App\Services\Condominium\CondominiumAdminService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Ponto único para criar, atualizar e remover os perfis de um utilizador (residente, prestador, parceiro, administrador de condomínio).
@@ -18,6 +19,9 @@ class ProfileService
 {
     /** Roles com perfil próprio  */
     public const ROLES =  ['resident', 'service_provider', 'partner', 'condominium_admin'];
+
+    /** Perfil estritamente profissional: não pode existir com nenhum outro perfil na mesma conta. */
+    public const EXCLUSIVE_ROLE = 'partner';
 
     public function __construct(
         private ResidentService $residentService,
@@ -58,6 +62,8 @@ class ProfileService
                 'role' => ["Esta conta já tem um perfil de {$role} associado."],
             ]);
         }
+
+        $this->assertExclusiveRole($user, $role);
 
         return match ($role) {
             'resident'         => $this->residentService->create($data,$user),
@@ -104,10 +110,34 @@ class ProfileService
             ]);
         }
 
+        $this->matchDeleteProfile($role, $profile);
+    }
+    
+    /**
+     * Remove todos os perfis da conta (usado ao apagar a conta): cada módulo faz a sua limpeza.
+     * Não tem a regra do "único perfil". Se um módulo recusar (ex.: administrador com condomínios), nada é apagado.
+     *
+     * @param User $user Conta a limpar.
+     * @return void
+     */
+    public function deleteAll(User $user): void
+    {
+        DB::transaction(function () use ($user) {
+            foreach (self::ROLES as $role) {
+                if ($profile = $this->find($user, $role)) {
+                    $this->matchDeleteProfile($role, $profile);
+                }
+            }
+        });
+    }
+
+    /** O service de cada módulo decide COMO o perfil é removido. */
+    private function matchDeleteProfile(string $role, Model $profile): void
+    {
         match ($role) {
-            'resident'         => $this->residentService->delete($profile),
-            'service_provider' => $this->serviceProviderService->delete($profile),
-            'partner'          => $this->partnerService->delete($profile),
+            'resident'          => $this->residentService->delete($profile),
+            'service_provider'  => $this->serviceProviderService->delete($profile),
+            'partner'           => $this->partnerService->delete($profile),
             'condominium_admin' => $this->condominiumAdminService->delete($profile),
         };
     }
@@ -117,5 +147,27 @@ class ProfileService
         return $this->find($user, $role) ?? throw ValidationException::withMessages([
             'role' => ["Não tem um perfil de {$role} associado a esta conta."],
         ]);
+    }
+
+     /**
+     * O perfil de parceiro é exclusivo: uma conta de parceiro não pode ter outros perfis,
+     * e uma conta com outros perfis não pode passar a ter o de parceiro (422).
+     */
+    private function assertExclusiveRole(User $user, string $role): void
+    {
+        // só conta perfis (ignora roles sem perfil, como o SU)
+        $profiles = $user->getRoleNames()->intersect(self::ROLES);
+
+        if ($role === self::EXCLUSIVE_ROLE && $profiles->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'role' => ['O perfil de parceiro é exclusivo e esta conta já tem outros perfis. Crie uma conta separada para o parceiro.'],
+            ]);
+        }
+
+        if ($role !== self::EXCLUSIVE_ROLE && $profiles->contains(self::EXCLUSIVE_ROLE)) {
+            throw ValidationException::withMessages([
+                'role' => ['Uma conta de parceiro não pode ter outros perfis. Use uma conta separada.'],
+            ]);
+        }
     }
 }

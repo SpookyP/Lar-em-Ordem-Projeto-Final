@@ -10,6 +10,8 @@ import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
+import Consumption from "../pages/Consumption/Consumption";
+import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -40,6 +42,7 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Rotas protegidas: so quem tem login */}
@@ -54,6 +57,9 @@ export function AppRoutes() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/assistance" element={<Assistance />} />
               <Route path="/assistance/:id" element={<AssistanceDetail />} />
+              <Route path="/consumos" element={<Consumption />} />
+              <Route path="/assistencia" element={<Assistance />} />
+              <Route path="/assistencia/:id" element={<AssistanceDetail />} />
             </Route>
 
             <Route

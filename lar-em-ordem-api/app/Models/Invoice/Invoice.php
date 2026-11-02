@@ -2,7 +2,7 @@
 
 namespace App\Models\Invoice;
 
-use App\Models\User\User;
+use App\Models\User\Resident;
 use App\Models\Property\Property;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +21,7 @@ class Invoice extends Model
     }
 
     protected $fillable = [
-        'user_id',
+        'resident_id',
         'property_id',
         'invoice_number',
         'issue_date',
@@ -42,9 +42,9 @@ class Invoice extends Model
         ];
     }
 
-    public function user(): BelongsTo
+    public function resident(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Resident::class);
     }
 
     public function property(): BelongsTo

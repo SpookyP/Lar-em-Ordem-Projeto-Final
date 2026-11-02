@@ -5,6 +5,7 @@ namespace App\Models\Invoice;
 use App\Models\Property\Property;
 use Illuminate\Database\Eloquent\Model;
 use Database\Factories\ConsumptionFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -13,7 +14,7 @@ class Consumption extends Model
 {
     use HasFactory, HasUlids;
 
-        protected static function newFactory()
+    protected static function newFactory()
     {
         return ConsumptionFactory::new();
     }
@@ -51,5 +52,10 @@ class Consumption extends Model
     public function consumptionType(): BelongsTo
     {
         return $this->belongsTo(ConsumptionType::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(ConsumptionItem::class);
     }
 }

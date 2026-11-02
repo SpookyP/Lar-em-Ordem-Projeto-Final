@@ -31,6 +31,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     public function update(User $user, array $input): void
     {
+        if (isset($input['email']) && $input['email'] !== $user->email && $user->social_account()->exists()) {
+            throw ValidationException::withMessages([
+                'email' => ['Esta conta usa o Google ou a Microsoft e o email não pode ser alterado.'],
+            ]);
+        }
+
         $rules = [
             'name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'email' => [
