@@ -36,6 +36,12 @@ class RouteProtectionTest extends TestCase
         return $route;
     }
 
+       /** Read-only catalogs that sign-up needs before there is a session. Nothing else in v1 may be public. */
+    private const PUBLIC_V1 = [
+        'api/v1/service-zones',
+        'api/v1/problem-categories',
+    ];
+
     public function test_every_v1_route_requires_authentication(): void
     {
         $v1 = $this->routes()->filter(fn (LaravelRoute $r) => str_starts_with($r->uri(), 'api/v1'));
@@ -43,9 +49,26 @@ class RouteProtectionTest extends TestCase
         $this->assertGreaterThan(20, $v1->count(), 'The v1 route group looks empty.');
 
         foreach ($v1 as $route) {
-            $middleware = $this->middlewareOf($route);
+            if (in_array($route->uri(), self::PUBLIC_V1, true)) {
+                continue;
+            }
 
-            $this->assertContains('auth:sanctum', $middleware, "{$route->uri()} is not behind auth:sanctum");
+            $this->assertContains('auth:sanctum', $this->middlewareOf($route), "{$route->uri()} is not behind auth:sanctum");
+        }
+    }
+
+    public function test_public_v1_catalogs_are_read_only(): void
+    {
+        foreach (self::PUBLIC_V1 as $uri) {
+            $methods = $this->routes()
+                ->filter(fn (LaravelRoute $r) => $r->uri() === $uri)
+                ->flatMap(fn (LaravelRoute $r) => $r->methods())
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
+
+            $this->assertSame(['GET', 'HEAD'], $methods, "{$uri} must only allow GET");
         }
     }
 
