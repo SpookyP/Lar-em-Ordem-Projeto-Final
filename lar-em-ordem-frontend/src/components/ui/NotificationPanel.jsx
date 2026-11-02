@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 export function NotificationPanel({
                                       notifs,
                                       onClose,
@@ -8,6 +10,7 @@ export function NotificationPanel({
                                       onDelete,
                                   }) {
     const visible = notifs.filter((n) => !n.snoozed);
+    const [openSnoozeId, setOpenSnoozeId] = useState(null);
 
     return (
         <>
@@ -47,12 +50,10 @@ export function NotificationPanel({
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
 
-                                {/* ZONA DE TOPO DA NOTIFICAÇÃO (Título, Tempo e X) */}
                                 <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                                     <p style={{ fontSize: 12.5, fontWeight: n.read ? 500 : 600, color: n.read ? "#64748B" : "#0F172A", margin: 0, flex: 1 }}>{n.title}</p>
                                     <span style={{ fontSize: 10, color: "#CBD5E1", flexShrink: 0, marginTop: 2 }}>{n.time}</span>
 
-                                    {/* BOTÃO ELIMINAR (X) */}
                                     <button onClick={() => onDelete(n.id)} className="notif-delete-btn" title="Eliminar notificação">
                                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -73,11 +74,27 @@ export function NotificationPanel({
                                             Marcar como lido
                                         </button>
                                     )}
-                                    {/* SÓ APARECE NAS NÃO LIDAS */}
                                     {!n.read && (
-                                        <button onClick={() => onSnooze(n.id)} style={{ padding: 0, background: "none", border: "none", color: "#94A3B8", fontWeight: 500, fontSize: 11, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                                            Avisar mais tarde
-                                        </button>
+                                        <div style={{ position: 'relative' }}>
+                                            <button
+                                                onClick={() => setOpenSnoozeId(openSnoozeId === n.id ? null : n.id)}
+                                                style={{ padding: 0, background: "none", border: "none", color: "#94A3B8", fontWeight: 500, fontSize: 11, cursor: "pointer", fontFamily: "Inter, sans-serif" }}
+                                            >
+                                                Avisar mais tarde
+                                            </button>
+
+                                            {openSnoozeId === n.id && (
+                                                <div style={{
+                                                    position: 'absolute', top: '100%', left: 0, marginTop: 4, background: '#fff',
+                                                    border: '1px solid #E2E8F0', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                    display: 'flex', flexDirection: 'column', zIndex: 210, overflow: 'hidden', minWidth: 100
+                                                }}>
+                                                    <button onClick={() => { onSnooze(n.id, 15); setOpenSnoozeId(null); }} style={{ padding: '6px 12px', fontSize: 11, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F1F5F9', color: '#1C3557' }}>15 minutos</button>
+                                                    <button onClick={() => { onSnooze(n.id, 1440); setOpenSnoozeId(null); }} style={{ padding: '6px 12px', fontSize: 11, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F1F5F9', color: '#1C3557' }}>1 dia</button>
+                                                    <button onClick={() => { onSnooze(n.id, 10080); setOpenSnoozeId(null); }} style={{ padding: '6px 12px', fontSize: 11, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', color: '#1C3557' }}>7 dias</button>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 
@@ -87,7 +104,6 @@ export function NotificationPanel({
                 </div>
             </div>
 
-            {/* CLASSES CSS INJETADAS NO FINAL */}
             <style>{`
         @keyframes slideDown { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }
         .notif-delete-btn { display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #CBD5E1; cursor: pointer; padding: 2px; border-radius: 4px; transition: all 0.2s ease; margin-top: 1px; }
