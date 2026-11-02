@@ -89,7 +89,7 @@ export function NotificationPanel({
                                                     border: '1px solid #E2E8F0', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                                     display: 'flex', flexDirection: 'column', zIndex: 210, overflow: 'hidden', minWidth: 100
                                                 }}>
-                                                    <button onClick={() => { onSnooze(n.id, 1); setOpenSnoozeId(null); }} style={{ padding: '6px 12px', fontSize: 11, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F1F5F9', color: '#1C3557' }}>15 minutos</button>
+                                                    <button onClick={() => { onSnooze(n.id, 15); setOpenSnoozeId(null); }} style={{ padding: '6px 12px', fontSize: 11, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F1F5F9', color: '#1C3557' }}>15 minutos</button>
                                                     <button onClick={() => { onSnooze(n.id, 1440); setOpenSnoozeId(null); }} style={{ padding: '6px 12px', fontSize: 11, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', borderBottom: '1px solid #F1F5F9', color: '#1C3557' }}>1 dia</button>
                                                     <button onClick={() => { onSnooze(n.id, 10080); setOpenSnoozeId(null); }} style={{ padding: '6px 12px', fontSize: 11, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', color: '#1C3557' }}>7 dias</button>
                                                 </div>
