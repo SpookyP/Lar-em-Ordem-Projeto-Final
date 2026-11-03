@@ -4,6 +4,7 @@ namespace App\Http\Requests\ServiceProvider;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Rules\ExistingServiceZones;
 
 class StoreServiceProviderRequest extends FormRequest
 {
@@ -23,12 +24,8 @@ class StoreServiceProviderRequest extends FormRequest
             'phone'        => 'required|string|max:15',
             'provider_email'        => 'nullable|email|max:255',
             'description'  => 'required|string',
-
-            'zone_ids'   => 'sometimes|array',
-            'zone_ids.*' => [
-                'integer', 'distinct',
-                Rule::exists('service_zones', 'id')->whereNull('deleted_at'),
-            ],
+            'zone_ids'   => ['sometimes', 'array', new ExistingServiceZones],
+            'zone_ids.*' => ['integer', 'distinct'],
             'service_specialty_ids'   => 'sometimes|array',
             'service_specialty_ids.*' => [
                 'integer', 'distinct',
@@ -46,7 +43,6 @@ class StoreServiceProviderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'zone_ids.*.exists'                               => 'Uma das zonas indicadas não existe.',
             'zone_ids.*.distinct'                             => 'A lista de zonas tem valores repetidos.',
             'service_specialty_ids.*.exists'                  => 'Uma das especialidades indicadas não existe.',
             'service_specialty_ids.*.distinct'                => 'A lista de especialidades tem valores repetidos.',
