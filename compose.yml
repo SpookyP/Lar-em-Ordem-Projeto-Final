@@ -57,6 +57,59 @@ services:
     networks:
       - dev-network
 
+  reverb:
+    build:
+      context: ./lar-em-ordem-api
+      dockerfile: Dockerfile
+    container_name: reverb_dev
+    restart: unless-stopped
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    environment:
+      RUN_MIGRATIONS: "false"
+    volumes:
+      - ./lar-em-ordem-api:/var/www/html
+      - /var/www/html/vendor
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+    networks:
+      - dev-network
+
+  queue:
+    build:
+      context: ./lar-em-ordem-api
+      dockerfile: Dockerfile
+    container_name: queue_dev
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:listen", "--tries=3"]
+    environment:
+      RUN_MIGRATIONS: "false"
+    volumes:
+      - ./lar-em-ordem-api:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      - api
+    networks:
+      - dev-network
+
+  scheduler:
+    build:
+      context: ./lar-em-ordem-api
+      dockerfile: Dockerfile
+    container_name: scheduler_dev
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    environment:
+      RUN_MIGRATIONS: "false"
+    volumes:
+      - ./lar-em-ordem-api:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      - api
+    networks:
+      - dev-network
+
   frontend:
     build:
       context: ./lar-em-ordem-frontend
