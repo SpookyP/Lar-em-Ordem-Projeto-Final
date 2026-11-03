@@ -101,4 +101,69 @@ class DocumentService
         // Apagar o próprio documento
         $document->delete();
     }
+
+    public function updateDocument(\App\Models\Vault\Document $document, array $validatedData, ?\Illuminate\Http\UploadedFile $file = null): \App\Models\Vault\Document
+    {
+        $extractedData = $document->extracted_data ?? [];
+        $fileRecordId = $document->file_id;
+        $fileHash = $document->file_hash;
+
+        $documentName = $validatedData['name'] ?? $document->name;
+
+        // Se o utilizador enviou um ficheiro novo para substituir o antigo
+        if ($file) {
+            // Extrai a info do novo PDF (se existir)
+            $newExtractedData = $this->pdfExtractionService->extractInfo($file->getRealPath());
+            $extractedData = !empty($newExtractedData) ? $newExtractedData : $extractedData;
+
+            // O novo Hash já foi validado no FormRequest (não é duplicado noutro doc)
+            $fileHash = hash_file('sha256', $file->getRealPath());
+
+            // Guarda o novo ficheiro
+            $user = auth()->user();
+            $newFileRecord = $this->fileStorageService->uploadUserFile(
+                $user, $file, 'vault_documents', $documentName
+            );
+
+            // Apaga o ficheiro físico ANTIGO do Cloudflare/Local e o registo BD
+            if ($document->file_id) {
+                $oldFileRecord = \App\Models\File\File::find($document->file_id);
+                if ($oldFileRecord) {
+                    $disk = config('filesystems.cloud', 'r2');
+                    if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($oldFileRecord->path)) {
+                        \Illuminate\Support\Facades\Storage::disk($disk)->delete($oldFileRecord->path);
+                    }
+                    $oldFileRecord->delete();
+                }
+            }
+
+            $fileRecordId = $newFileRecord->id;
+        }
+
+        // Lógica de Datas (Se enviou manuais, usa essas. Senão, tenta as do PDF extraído. Senão, mantém as antigas)
+        $issueDate = $validatedData['issue_date'] ?? $extractedData['issue_date'] ?? $document->issue_date;
+        $expirationDate = $validatedData['expiration_date'] ?? $extractedData['expiration_date'] ?? $document->expiration_date;
+
+        // Limpa todas as notificações associadas ao documento antigo
+        \App\Models\Vault\Notification::where('property_id', $document->property_id)
+            ->where('message', 'like', '%' . $document->name . '%')
+            ->delete();
+
+        // Atualiza o documento na Base de Dados
+        $document->update([
+            'document_category_id' => $validatedData['document_category_id'] ?? $document->document_category_id,
+            'name' => $documentName,
+            'description' => $validatedData['description'] ?? $document->description,
+            'file_id' => $fileRecordId,
+            'file_hash' => $fileHash,
+            'issue_date' => $issueDate,
+            'expiration_date' => $expirationDate,
+            'extracted_data' => $extractedData,
+        ]);
+
+        // Se a nova data de validade estiver próxima, regenera a notificação
+        $this->documentExpiryService->checkSingleDocument($document);
+
+        return $document;
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Vault;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Vault\UpdateDocumentRequest;
 use App\Models\Property\Property;
 use App\Models\Vault\Document;
 use App\Services\Vault\DocumentService;
@@ -27,6 +28,34 @@ class DocumentController extends Controller
             ->get();
 
         return \App\Http\Resources\Vault\DocumentResource::collection($documents);
+    }
+
+    public function show(Document $document): JsonResponse
+    {
+        // Garante que só quem tem relação com a casa vê o documento
+        $this->authorize('view', $document->property);
+
+        // Carrega a relação da categoria para o frontend ter o nome
+        $document->load('category');
+
+        return response()->json([
+            'data' => $document
+        ]);
+    }
+
+    public function update(UpdateDocumentRequest $request, Document $document): JsonResponse
+    {
+        $this->authorize('update', $document->property);
+
+        $validatedData = $request->validated();
+        $file = $request->file('file');
+
+        $updatedDocument = $this->documentService->updateDocument($document, $validatedData, $file);
+
+        return response()->json([
+            'message' => 'Documento atualizado com sucesso.',
+            'data' => $updatedDocument
+        ], 200);
     }
 
     public function download(Document $document)

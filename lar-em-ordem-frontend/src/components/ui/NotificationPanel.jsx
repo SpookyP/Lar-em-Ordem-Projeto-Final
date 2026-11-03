@@ -4,6 +4,7 @@ export function NotificationPanel({
                                       notifs,
                                       onClose,
                                       onRead,
+                                      onUnread,
                                       onSnooze,
                                       onReadAll,
                                       onAction,
@@ -69,11 +70,19 @@ export function NotificationPanel({
                                             {n.action.label}
                                         </button>
                                     )}
-                                    {!n.read && (
+
+                                    {/* LÓGICA READ / UNREAD */}
+                                    {n.read ? (
+                                        <button onClick={() => onUnread(n.id)} style={{ padding: 0, background: "none", border: "none", color: "#94A3B8", fontWeight: 500, fontSize: 11, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                                            Marcar como não lido
+                                        </button>
+                                    ) : (
                                         <button onClick={() => onRead(n.id)} style={{ padding: 0, background: "none", border: "none", color: "#0F766E", fontWeight: 600, fontSize: 11, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
                                             Marcar como lido
                                         </button>
                                     )}
+
+                                    {/* SNOOZE APENAS SE ESTIVER NÃO LIDA */}
                                     {!n.read && (
                                         <div style={{ position: 'relative' }}>
                                             <button
