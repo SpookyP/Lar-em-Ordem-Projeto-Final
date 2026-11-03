@@ -4,7 +4,7 @@ namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ServiceProvider\IndexAssistanceRequestRequest;
-use App\Http\Requests\ServiceProvider\PerPageRequest;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Requests\ServiceProvider\StoreAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;

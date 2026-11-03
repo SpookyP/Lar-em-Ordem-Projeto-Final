@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Condominium;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Condominium\StoreCondominiumNoticeRequest;
 use App\Http\Requests\Condominium\UpdateCondominiumNoticeRequest;
-use App\Http\Requests\ServiceProvider\PerPageRequest;
 use App\Http\Resources\Condominium\CondominiumNoticeResource;
 use App\Models\Condominium\Condominium;
 use App\Models\Condominium\CondominiumNotice;
@@ -13,6 +12,7 @@ use App\Models\Property\Property;
 use App\Services\Condominium\CondominiumNoticeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\PerPageRequest;
 
 class CondominiumNoticeController extends Controller
 {

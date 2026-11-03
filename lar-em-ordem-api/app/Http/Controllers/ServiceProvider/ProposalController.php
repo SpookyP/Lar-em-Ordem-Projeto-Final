@@ -10,7 +10,7 @@ use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\Proposal;
 use App\Services\ServiceProvider\ProposalService;
 use App\Services\ServiceProvider\ServiceProviderService;
-use App\Http\Requests\ServiceProvider\PerPageRequest;
+use App\Http\Requests\PerPageRequest;
 use Illuminate\Support\Facades\Gate;
 
 class ProposalController extends Controller

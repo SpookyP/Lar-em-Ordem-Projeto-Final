@@ -27,6 +27,7 @@ class PartnerResource extends JsonResource
             'website'     => $this->website,
             'description' => $this->description,
             'offers'      => OfferResource::collection($this->whenLoaded('offers')),
+            'current_offers_count' => $this->whenCounted('current_offers'),
         ];
     }
 }

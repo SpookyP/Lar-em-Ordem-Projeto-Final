@@ -3,7 +3,7 @@
 namespace Tests\Unit\ServiceProvider;
 
 use App\Http\Requests\PartnerOffer\StoreOfferRequest;
-use App\Http\Requests\ServiceProvider\PerPageRequest;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Requests\ServiceProvider\StoreProposalRequest;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
