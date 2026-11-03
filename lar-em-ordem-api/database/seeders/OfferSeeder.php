@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Offer\Offer;
 use App\Models\User\Partner;
 use App\Models\User\User;
+use Database\Factories\User\PartnerFactory;
 use Illuminate\Database\Seeder;
 
 class OfferSeeder extends Seeder
@@ -53,9 +54,11 @@ class OfferSeeder extends Seeder
             'type'       => 'Serviço',
         ]);
 
-        // Restantes parceiros: 1 a 3 ofertas em vigor cada
+        // Restantes parceiros: 1 a 3 ofertas em vigor cada, da área da empresa
         Partner::whereKeyNot($parceiro->id)->get()->each(
-            fn (Partner $partner) => Offer::factory(fake()->numberBetween(1, 3))->create(['partner_id' => $partner->id])
+            fn (Partner $partner) => Offer::factory(fake()->numberBetween(1, 3))
+                ->ofType(PartnerFactory::areaOf($partner->company_name))
+                ->create(['partner_id' => $partner->id])
         );
     }
 }
