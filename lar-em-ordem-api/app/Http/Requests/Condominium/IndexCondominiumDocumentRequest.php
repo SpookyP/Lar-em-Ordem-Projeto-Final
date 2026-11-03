@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Condominium;
 
-use App\Http\Requests\ServiceProvider\PerPageRequest;
+use App\Http\Requests\PerPageRequest;
 
 /**
  * Listagem dos documentos: ?per_page= (1–15) e ?category_id= opcional.

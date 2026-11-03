@@ -63,24 +63,34 @@ class PartnerTest extends TestCase
 
     // ------------------------------------------------------------ index / me
 
-    public function test_index_lista_os_parceiros_sem_nif_nem_ofertas(): void
+    public function test_index_lista_os_parceiros_paginados_sem_nif_nem_ofertas(): void
     {
         $resposta = $this->actingAs($this->morador)
-            ->getJson('/api/v1/partners')
+            ->getJson('/api/v1/partners?per_page=15')
             ->assertOk()
-            ->assertJsonCount(Partner::count(), 'data');
+            ->assertJsonPath('meta.total', Partner::count());
 
         foreach ($resposta->json('data') as $parceiro) {
             $this->assertArrayNotHasKey('nif', $parceiro);
             $this->assertArrayNotHasKey('offers', $parceiro);
             $this->assertArrayNotHasKey('active', $parceiro);
         }
+
+        // por ordem alfabética
+        $nomes = collect($resposta->json('data'))->pluck('company_name')->all();
+        $this->assertSame(collect($nomes)->sort(SORT_NATURAL | SORT_FLAG_CASE)->values()->all(), $nomes);
+
+        // cada parceiro traz quantas ofertas em vigor tem
+        $this->assertSame(3, collect($resposta->json('data'))->firstWhere('id', $this->idParceiro())['current_offers_count']);
+
+        // por defeito, 5 por página
+        $this->actingAs($this->morador)->getJson('/api/v1/partners')->assertJsonPath('meta.per_page', 5);
     }
 
     public function test_no_index_o_parceiro_so_ve_o_seu_proprio_nif(): void
     {
         $lista = collect(
-            $this->actingAs($this->parceiro)->getJson('/api/v1/partners')->assertOk()->json('data')
+            $this->actingAs($this->parceiro)->getJson('/api/v1/partners?per_page=15')->assertOk()->json('data')
         );
 
         $this->assertSame('123456789', $lista->firstWhere('id', $this->idParceiro())['nif']);
@@ -106,14 +116,16 @@ class PartnerTest extends TestCase
 
     // ------------------------------------------------------------------- show
 
-    public function test_show_traz_so_as_ofertas_em_vigor_sem_nif_a_terceiros(): void
+    public function test_show_traz_so_as_ofertas_em_vigor_paginadas_sem_nif_a_terceiros(): void
     {
         $resposta = $this->actingAs($this->morador)
             ->getJson('/api/v1/partners/' . $this->idParceiro())
             ->assertOk()
             ->assertJsonPath('data.company_name', 'Parceiro Lda')
             ->assertJsonMissingPath('data.nif')
-            ->assertJsonCount(3, 'data.offers');
+            ->assertJsonCount(3, 'data.offers')
+            ->assertJsonPath('offers_meta.total', 3)
+            ->assertJsonPath('offers_meta.last_page', 1);
 
         $titulos = collect($resposta->json('data.offers'))->pluck('title');
         $this->assertFalse($titulos->contains('Campanha de verão (terminada)'));
@@ -123,6 +135,14 @@ class PartnerTest extends TestCase
         // da data de início mais recente para a mais antiga
         $datas = collect($resposta->json('data.offers'))->pluck('start_date')->all();
         $this->assertSame(collect($datas)->sortDesc()->values()->all(), $datas);
+
+        // 2 ofertas por página: a página 2 tem a última
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners/' . $this->idParceiro() . '?per_page=2&page=2')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.offers')
+            ->assertJsonPath('offers_meta.current_page', 2)
+            ->assertJsonPath('offers_meta.last_page', 2);
     }
 
     public function test_o_proprio_parceiro_ve_o_nif_no_show(): void
@@ -242,7 +262,7 @@ class PartnerTest extends TestCase
         $this->assertSame($this->parceiro->id, $this->parceiro->partner->fresh()->user_id);
 
         // continua a aparecer na lista
-        $lista = collect($this->actingAs($this->morador)->getJson('/api/v1/partners')->json('data'));
+        $lista = collect($this->actingAs($this->morador)->getJson('/api/v1/partners?per_page=15')->json('data'));
         $this->assertTrue($lista->contains('id', $this->idParceiro()));
     }
 

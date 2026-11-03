@@ -8,7 +8,6 @@ use App\Http\Requests\Condominium\LeaveCondominiumRequest;
 use App\Http\Requests\Condominium\StoreCondominiumRequest;
 use App\Http\Requests\Condominium\UpdateCondominiumRequest;
 use App\Http\Requests\Condominium\ClaimCondominiumRequest;
-use App\Http\Requests\ServiceProvider\PerPageRequest;
 use App\Http\Resources\Condominium\CondominiumResource;
 use App\Models\Condominium\Condominium;
 use App\Models\Property\Property;
@@ -16,6 +15,7 @@ use App\Services\Condominium\CondominiumAdminService;
 use App\Services\Condominium\CondominiumService;
 use App\Services\Condominium\CondominiumNoticeService;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\PerPageRequest;
 
 class CondominiumController extends Controller
 {
