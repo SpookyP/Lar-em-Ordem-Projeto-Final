@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\Vault\DocumentController;
 Route::get('/properties/{property}/documents', [DocumentController::class, 'index']);
 Route::post('/properties/{property}/documents', [DocumentController::class, 'store']);
 
+Route::get('/documents/{document}', [DocumentController::class, 'show']);
+Route::put('/documents/{document}', [DocumentController::class, 'update']);
 Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
 Route::delete('/documents/{document}', [DocumentController::class, 'destroy']);
 
@@ -19,3 +21,4 @@ Route::patch('/properties/{property}/notifications/read-all', [NotificationContr
 
 Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
 Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
+Route::patch('/notifications/{notification}/unread', [NotificationController::class, 'markAsUnread']);

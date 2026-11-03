@@ -12,6 +12,7 @@ export function NotificationBell() {
         notifications,
         unreadCount,
         markAsRead,
+        markAsUnread,
         markAllAsRead,
         snoozeNotification,
         deleteNotification
@@ -36,6 +37,7 @@ export function NotificationBell() {
                     notifs={notifications}
                     onClose={() => setIsOpen(false)}
                     onRead={markAsRead}
+                    onUnread={markAsUnread}
                     onReadAll={markAllAsRead}
                     onSnooze={snoozeNotification}
                     onDelete={deleteNotification}
