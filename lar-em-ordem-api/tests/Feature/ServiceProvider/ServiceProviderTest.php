@@ -10,7 +10,7 @@ use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;      
 
 /**
  * Prestadores de serviços (módulo 6): listagem, perfil próprio e detalhe.
