@@ -108,5 +108,7 @@ class DatabaseSeeder extends Seeder
             AssistanceRequestSeeder::class,
             OfferSeeder::class,
         ]);
+
+        $this->call(ResidenteConsumptionSeeder::class);
     }
 }
