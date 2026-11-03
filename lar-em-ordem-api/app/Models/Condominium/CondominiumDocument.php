@@ -12,8 +12,13 @@ class CondominiumDocument extends Model
     /** @use HasFactory<\Database\Factories\Condominium\CondominiumDocumentFactory> */
     use HasFactory, HasUlids;
 
-    protected $fillable = ['condominium_id', 'condominium_document_category_id', 'file_id', 'title', 'description', 'document_date'];
-
+    protected $fillable = [
+        'condominium_document_category_id',
+        'title',
+        'description',
+        'document_date'
+        ];
+        
     protected function casts(): array
     {
         return ['document_date' => 'date'];
