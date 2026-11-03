@@ -28,7 +28,7 @@ MONTHS = {
 
 
 # Padrões para reconhecer números, valores e datas.
-NUMBER_RE = r"[-+]?\d+(?:[.,]\d+)*"
+NUMBER_RE = r"[-+]?\d+(?:[.,]\d+)?"
 CURRENCY_RE = re.compile(rf"({NUMBER_RE})\s*€", re.IGNORECASE)
 DATE_RE = r"\d{1,2}[-/.]\d{1,2}[-/.]\d{4}"
 TEXT_DATE_RE = r"\d{1,2}\s+[a-zç]{3}\s+\d{4}"
@@ -263,18 +263,54 @@ def build_endesa_items(rows, definitions):
     return items
 
 
+# Extrai o IVA discriminado nas faturas Endesa.
+def parse_endesa_vat(page_text):
+    items = []
+    seen = set()
+
+    for line in page_text.splitlines():
+        match = re.search(
+            rf"\([a-z]\)\s*IVA\s*(\d+)\s*%\s*({NUMBER_RE})\s*€\s*({NUMBER_RE})\s*€",
+            line,
+            re.IGNORECASE,
+        )
+
+        if not match:
+            continue
+
+        vat_rate = int(match.group(1))
+        base_amount = parse_number(match.group(2))
+        vat_cost = parse_number(match.group(3))
+        key = (vat_rate, base_amount, vat_cost)
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+
+        items.append({
+            "name": f"IVA {vat_rate}%",
+            "category": "tax",
+            "amount": base_amount,
+            "unit": "EUR de base",
+            "cost": vat_cost,
+        })
+
+    return items
+
+
 # Extrai os consumos de eletricidade e gás das faturas Endesa.
 def parse_endesa(pages, text, types_map):
     electricity_page = next((
         p for p in pages
         if re.search(r"\bLUZ\b", p, re.IGNORECASE)
-        and "Período de Faturação" in p
+        and re.search(r"Per[ií]odo de Fatura[cç][aã]o", p, re.IGNORECASE)
     ), "")
 
     gas_page = next((
         p for p in pages
-        if re.search(r"\bGÁS\b", p, re.IGNORECASE)
-        and "Período de Faturação" in p
+        if re.search(r"\bGÁS\b|\bGAS\b", p, re.IGNORECASE)
+        and re.search(r"Per[ií]odo de Fatura[cç][aã]o", p, re.IGNORECASE)
     ), "")
 
     consumptions = []
@@ -284,6 +320,8 @@ def parse_endesa(pages, text, types_map):
     if electricity_page:
         rows = parse_endesa_rows(electricity_page)
         luz_items = build_endesa_items(rows, ELECTRICITY_DEFINITIONS)
+        luz_items.extend(parse_endesa_vat(electricity_page))
+
         luz_cost = extract_currency_value(
             r"TOTAL DA FATURA DE LUZ\s*([\d.,]+)", text
         )
@@ -313,6 +351,8 @@ def parse_endesa(pages, text, types_map):
     if gas_page:
         rows = parse_endesa_rows(gas_page)
         gas_items = build_endesa_items(rows, GAS_DEFINITIONS)
+        gas_items.extend(parse_endesa_vat(gas_page))
+
         gas_cost = extract_currency_value(
             r"TOTAL DA FATURA DE GÁS\s*([\d.,]+)", text
         )
@@ -359,13 +399,9 @@ def parse_endesa(pages, text, types_map):
 def parse_epal_detail_items(text):
     lines = text.splitlines()
 
-    # Padrões para identificar os serviços da fatura.
     heading_patterns = [
         (
-            re.compile(
-                r"EPAL\s*-\s*Abastecimento de [ÁA]gua",
-                re.IGNORECASE,
-            ),
+            re.compile(r"EPAL\s*-\s*Abastecimento de [ÁA]gua", re.IGNORECASE),
             "EPAL - Abastecimento de Água (Quota Serviço)",
         ),
         (
@@ -373,10 +409,7 @@ def parse_epal_detail_items(text):
             "CMLisboa - Saneamento (Tarifa de Disponibilidade)",
         ),
         (
-            re.compile(
-                r"CMLisboa\s*-\s*Res[ií]duos Urbanos",
-                re.IGNORECASE,
-            ),
+            re.compile(r"CMLisboa\s*-\s*Res[ií]duos Urbanos", re.IGNORECASE),
             "CMLisboa - Resíduos Urbanos (Tarifa de Disponibilidade)",
         ),
     ]
@@ -384,41 +417,39 @@ def parse_epal_detail_items(text):
     items = []
     seen = set()
 
+    # --------------------------------------------------------
+    # EXTRAÇÃO DOS SERVIÇOS
+    # --------------------------------------------------------
+
     for idx, line in enumerate(lines):
         selected = None
 
         for pattern, item_name in heading_patterns:
             if pattern.search(line):
-                selected = (pattern, item_name)
+                selected = item_name
                 break
 
-        if not selected:
+        if not selected or selected in seen:
             continue
 
-        _, item_name = selected
-
-        # Evita registar o mesmo serviço várias vezes.
-        if item_name in seen:
-            continue
-
-        # Procura os valores nas linhas seguintes ao título.
         row_data = None
 
         for candidate in lines[idx + 1:idx + 8]:
             date_match = PERIOD_RE.search(candidate)
-
             if not date_match:
                 continue
 
             remainder = candidate[date_match.end():]
-            remainder = re.sub(r"\s+\d+\s*%.*$", "", remainder)
             values = re.findall(NUMBER_RE, remainder)
 
+            # A tabela contém:
+            # Quantidade | Preço unitário | Valor faturado | Valor a pagar | Taxa IVA
+            # O custo correto é o penúltimo valor.
+            # O último valor corresponde à taxa de IVA.
             if len(values) >= 3:
-                qty = parse_number(values[0])
-                rate = parse_number(values[1])
-                cost = parse_number(values[-1])
-                row_data = (qty, cost)
+                quantity = parse_number(values[0])
+                cost = parse_number(values[-2])
+                row_data = (quantity, cost)
                 break
 
         if row_data is None:
@@ -427,26 +458,41 @@ def parse_epal_detail_items(text):
         quantity, cost = row_data
 
         items.append({
-            "name": item_name,
+            "name": selected,
             "category": "fixed_fee",
             "amount": quantity,
             "unit": "dias",
             "cost": cost,
         })
 
-        seen.add(item_name)
+        seen.add(selected)
 
-    # Extrai o IVA discriminado na fatura.
-    vat_match = re.search(
-        rf"IVA\s+(\d+)\s*%\s*\(\s*({NUMBER_RE})\s*x\s*\d+\s*%\s*\)\s*({NUMBER_RE})",
-        text,
-        re.IGNORECASE,
+    # --------------------------------------------------------
+    # EXTRAÇÃO DO IVA EPAL
+    # --------------------------------------------------------
+
+    normalized_text = re.sub(r"\s+", " ", text)
+
+    vat_pattern = re.compile(
+        rf"IVA\s*(\d+)\s*%\s*"
+        rf"\(\s*({NUMBER_RE})\s*"
+        rf"x\s*\d+\s*%\s*\)\s*"
+        rf"({NUMBER_RE})",
+        re.IGNORECASE
     )
 
-    if vat_match:
-        vat_rate = int(vat_match.group(1))
-        base_amount = parse_number(vat_match.group(2))
-        vat_cost = parse_number(vat_match.group(3))
+    vat_seen = set()
+
+    for match in vat_pattern.finditer(normalized_text):
+        vat_rate = int(match.group(1))
+        base_amount = parse_number(match.group(2))
+        vat_cost = parse_number(match.group(3))
+        key = (vat_rate, base_amount, vat_cost)
+
+        if key in vat_seen:
+            continue
+
+        vat_seen.add(key)
 
         items.append({
             "name": f"IVA {vat_rate}%",
