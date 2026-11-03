@@ -10,7 +10,6 @@ import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
-import Consumption from "../pages/Consumption/Consumption";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -21,6 +20,8 @@ import Onboarding from "../pages/Onboarding/Onboarding";
 import Dashboard from "../pages/Resident/Dashboard/Dashboard"; //TODO: data
 import Assistance from "../pages/Resident/Assistance/Assistance";
 import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetail";
+import Consumption from "../pages/Consumption/Consumption";
+import Invoice from "../pages/Consumption/Invoice";
 
 //Prestador
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
@@ -52,6 +53,7 @@ export function AppRoutes() {
               <Route path="/assistance" element={<Assistance />} />
               <Route path="/assistance/:id" element={<AssistanceDetail />} />
               <Route path="/consumos" element={<Consumption />} />
+              <Route path="/faturas" element={<Invoice />} />
               <Route path="/assistencia" element={<Assistance />} />
               <Route path="/assistencia/:id" element={<AssistanceDetail />} />
             </Route>
