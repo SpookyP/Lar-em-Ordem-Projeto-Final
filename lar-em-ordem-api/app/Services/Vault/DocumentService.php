@@ -67,4 +67,38 @@ class DocumentService
 
         return $document;
     }
+
+    public function deleteDocument(\App\Models\Vault\Document $document): void
+    {
+        // Apagar o ficheiro físico e o seu registo
+        if ($document->file_id) {
+            $fileRecord = \App\Models\File\File::find($document->file_id);
+
+            if ($fileRecord) {
+                // Usa o disco correto configurado no teu projeto
+                $disk = config('filesystems.cloud', 'r2');
+
+                // Apaga o ficheiro físico
+                if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($fileRecord->path)) {
+                    \Illuminate\Support\Facades\Storage::disk($disk)->delete($fileRecord->path);
+                }
+
+                // Apaga o registo do ficheiro na base de dados
+                $fileRecord->delete();
+            }
+        } elseif ($document->ficheiro_path) {
+            // Fallback: limpar ficheiros antigos guardados localmente antes da transição para R2
+            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($document->ficheiro_path)) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($document->ficheiro_path);
+            }
+        }
+
+        // Apagar notificações do sino associadas a este documento
+        \App\Models\Vault\Notification::where('property_id', $document->property_id)
+            ->where('message', 'like', '%' . $document->name . '%')
+            ->delete();
+
+        // Apagar o próprio documento
+        $document->delete();
+    }
 }

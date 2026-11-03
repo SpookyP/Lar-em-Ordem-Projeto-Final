@@ -42,19 +42,13 @@ class DocumentController extends Controller
         return Storage::disk('local')->download($path, $document->name);
     }
 
-    public function destroy(Document $document)
+    public function destroy(Document $document): JsonResponse
     {
         $this->authorize('update', $document->property);
 
-        $path = $document->ficheiro_path ?? ('vault_documents/' . $document->file_id);
+        $this->documentService->deleteDocument($document);
 
-        if (Storage::disk('local')->exists($path)) {
-            Storage::disk('local')->delete($path);
-        }
-
-        $document->delete();
-
-        return response()->json(['message' => 'Documento eliminado com sucesso.']);
+        return response()->json(['message' => 'Documento e respetivos alertas eliminados com sucesso.']);
     }
 
     public function store(StoreDocumentRequest $request, Property $property): JsonResponse
