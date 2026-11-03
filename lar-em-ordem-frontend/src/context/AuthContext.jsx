@@ -59,17 +59,19 @@ export function AuthProvider({ children }) {
   }
 
   async function register(data) {
-    await registerService(data);
+    const response = await registerService(data);
+    if (response.status === 202) return { pending: true };
     const user = await getCurrentUser();
     setUser(user);
-    return user;
+    return { pending: false, user };
   }
 
   async function registerSocial(data) {
-    await registerSocialService(data);
+    const response = await registerSocialService(data);
+    if (response.status === 202) return { pending: true };
     const user = await getCurrentUser();
     setUser(user);
-    return user;
+    return { pending: false, user };
   }
 
   async function refreshUser() {

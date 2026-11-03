@@ -6,6 +6,7 @@ import {
   LifeBuoy,
   ClipboardList,
   FileText,
+  Tag,
 } from "lucide-react";
 
 //Lista com o items do menu de navegacao. A sidebar (desktop) e lowerbar (telemovel) leem desta lista
@@ -22,8 +23,13 @@ export const providerNavItems = [
   { path: "/provider/proposals", label: "Propostas", icon: FileText },
 ];
 
+export const partnerNavItems = [
+  { path: "/partner/offers", label: "Ofertas", icon: Tag },
+];
+
 const navItemsByProfile = {
   service_provider: providerNavItems,
+  partner: partnerNavItems,
 };
 
 export function getNavItems(profileName) {

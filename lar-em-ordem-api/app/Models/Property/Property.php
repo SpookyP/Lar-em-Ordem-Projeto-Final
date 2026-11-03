@@ -15,12 +15,13 @@ class Property extends Model
     use HasFactory, SoftDeletes, HasUlids;
 
 	protected $fillable = [
-		'area',
-		'property_type_id',
-		'property_typology_id',
-		'address_id',
-		'condominium_id',
-	];
+        'area',
+        'property_type_id',
+        'property_typology_id',
+        'address_id',
+        'condominium_id',
+        'read_at',
+    ];
 
     public function propertyType(){
         	return $this->belongsTo(PropertyType::class);

@@ -10,6 +10,7 @@ import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
+import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -28,6 +29,10 @@ import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
 import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
 
+//Partner
+import MyOffers from "../pages/Partner/MyOffers/MyOffers";
+import OfferFormPage from "../pages/Partner/OfferFormPage/OfferFormPage";
+
 export function AppRoutes() {
   return (
     <BrowserRouter>
@@ -38,6 +43,7 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Rotas protegidas: so quem tem login */}
@@ -64,6 +70,22 @@ export function AppRoutes() {
               <Route path="/provider/requests" element={<JobListing />} />
               <Route path="/provider/requests/:id" element={<Offer />} />
               <Route path="/provider/proposals" element={<Proposals />} />
+            </Route>
+
+            <Route element={<PrivateRoute allowedRoles={[ROLES.PARTNER]} />}>
+              <Route path="/partner/offers" element={<MyOffers />} />
+              <Route
+                path="/partner/offers/new"
+                element={<OfferFormPage mode="create" />}
+              />
+              <Route
+                path="/partner/offers/:id"
+                element={<OfferFormPage mode="view" />}
+              />
+              <Route
+                path="/partner/offers/:id/edit"
+                element={<OfferFormPage mode="edit" />}
+              />
             </Route>
           </Route>
         </Route>

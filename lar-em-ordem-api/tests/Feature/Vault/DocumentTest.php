@@ -75,6 +75,7 @@ class DocumentTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/v1/properties/{$property->id}/documents", [
             'property_id' => $property->id,
             'document_category_id' => $category->id,
+            'name' => 'Certificado de Teste',
             'description' => 'Test document payload',
             'file' => $file,
         ]);
@@ -106,6 +107,7 @@ class DocumentTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/v1/properties/{$property->id}/documents", [
             'property_id' => $property->id,
             'document_category_id' => $category->id,
+            'name' => 'Documento Falso',
             'file' => $file,
         ]);
 
@@ -168,22 +170,24 @@ class DocumentTest extends TestCase
 
     public function test_authorized_user_can_delete_document(): void
     {
-        Storage::fake('local');
+        // Usa a Cloud (R2) em vez do disco local para o Fake
+        Storage::fake('r2');
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = DocumentCategory::factory()->create();
 
-        $fileName = 'planta_casa.pdf';
-
+        // O ficheiro precisa de ter um ID e path realistas
         $file = \App\Models\File\File::factory()->create([
-            'user_id' => $user->id
+            'user_id' => $user->id,
+            'path' => 'vault_documents/teste_planta.pdf'
         ]);
 
-        Storage::disk('local')->put("vault_documents/{$fileName}", 'conteudo falso do pdf');
+        // Cria o ficheiro virtual na Cloud
+        Storage::disk('r2')->put($file->path, 'conteudo falso do pdf');
 
         $document = \App\Models\Vault\Document::create([
             'property_id' => $property->id,
             'document_category_id' => $category->id,
-            'name' => $fileName,
+            'name' => 'planta_casa.pdf',
             'description' => 'Planta',
             'file_id' => $file->id,
         ]);
@@ -193,6 +197,8 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('vault_documents', ['id' => $document->id]);
+
+        Storage::disk('r2')->assertMissing($file->path);
     }
 
     public function test_unauthorized_user_cannot_access_documents_of_another_property(): void

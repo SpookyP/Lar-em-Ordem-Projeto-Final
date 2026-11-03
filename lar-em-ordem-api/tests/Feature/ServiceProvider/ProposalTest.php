@@ -254,7 +254,26 @@ class ProposalTest extends TestCase
             ->patchJson("/api/v1/proposals/{$proposta->id}/withdraw")
             ->assertForbidden();
     }
+    
+    public function test_apagar_o_perfil_retira_as_propostas_pendentes(): void
+    {
+        $prestador = $this->servicos->service_provider;
+        $pendente = $prestador->proposals()->where('status', 'pending')->firstOrFail();
+        $aceite = $prestador->proposals()->where('status', 'accepted')->firstOrFail();
+        $outraPendente = Proposal::where('status', 'pending')
+            ->where('service_provider_id', '!=', $prestador->id)
+            ->firstOrFail();
 
+        $this->servicos->assignRole('resident'); // para não ser o único perfil da conta
+
+        $this->actingAs($this->servicos)
+            ->deleteJson('/api/user/profile', ['role' => 'service_provider'])
+            ->assertOk();
+
+        $this->assertSame('withdrawn', $pendente->fresh()->status);
+        $this->assertSame('accepted', $aceite->fresh()->status);       // o trabalho combinado fica no histórico
+        $this->assertSame('pending', $outraPendente->fresh()->status); // as propostas de outros prestadores não mudam
+    }
     // ----------------------------------------------------------------- accept
 
     public function test_o_residente_aceita_uma_proposta_e_o_pedido_fecha(): void

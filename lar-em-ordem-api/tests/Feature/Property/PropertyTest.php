@@ -265,6 +265,27 @@ class PropertyTest extends TestCase
         ]);
     }
 
+    public function test_fails_when_address_county_is_null(): void
+    {
+        $user = $this->createResidentUser();
+        $property = $this->createPropertyForUser($user);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->putJson("/api/v1/properties/{$property->id}", [
+                'address' => [
+                    'street'      => 'Rua A',
+                    'postal_code' => '4450-001',
+                    'county'      => null,
+                ],
+            ]);
+
+        // county/location/district são NOT NULL: tem de dar 422 (antes dava 500 ao gravar)
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['address.county']);
+
+        $this->assertNotNull($property->address->fresh()->county);
+    }
+    
     public function test_user_cannot_update_another_users_property(): void
     {
         $userA = $this->createResidentUser();

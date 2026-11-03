@@ -23,7 +23,7 @@ class CondominiumService
     private const TRANSFER_DAYS = 7;
 
     /**
-     * Devolve os condomínios que o utilizador administra ou onde tem uma casa, paginados.
+     * Devolve os condomínios que o utilizador administra, paginados.
      *
      * @param User $user Utilizador autenticado.
      * @param int $perPage Número de condomínios por página.
@@ -31,7 +31,7 @@ class CondominiumService
      */
     public function listFor(User $user, int $perPage = 5): LengthAwarePaginator
     {
-        return Condominium::visibleTo($user)
+        return Condominium::managedBy($user)
             ->with(['address', 'admin.user'])
             ->withCount('properties')
             ->orderByDesc('created_at')

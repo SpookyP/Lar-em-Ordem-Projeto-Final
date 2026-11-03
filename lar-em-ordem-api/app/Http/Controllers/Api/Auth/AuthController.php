@@ -13,6 +13,7 @@ use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
+use Illuminate\Support\Facades\DB;
 
 
 class AuthController extends Controller
@@ -46,12 +47,13 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        $user = $request->user()->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']);
+        $user = $request->user()->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin','social_account']);
 
         return response()->json([
             'id'    => $user->id,
             'name'  => $user->name,
             'email' => $user->email,
+            'social_provider' => $user->social_account?->provider,
             'roles' => $user->roles->pluck('name'),
             'resident'         => $user->resident,
             'partner'          => $user->partner,
@@ -128,11 +130,16 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
+        // primeiro apaga os perfis e a conta, numa transação;
+        // se um módulo recusar (422), a conta fica intacta e a sessão continua
+        DB::transaction(function () use ($user) {
+            $this->profileService->deleteAll($user);
+            $user->delete();
+        });
+
         AuthFacade::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        $user->delete();
 
         return response()->json(['message' => 'Account deleted successfully.']);
     }

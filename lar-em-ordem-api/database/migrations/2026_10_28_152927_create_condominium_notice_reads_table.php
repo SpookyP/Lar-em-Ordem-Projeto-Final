@@ -12,6 +12,7 @@ return new class extends Migration
             $table->foreignUlid('condominium_notice_id')->constrained()->cascadeOnDelete();
             $table->foreignUlid('resident_id')->constrained()->cascadeOnDelete();
             $table->timestamp('read_at');
+            $table->timestamp('dismissed_at')->nullable(); 
             $table->primary(['condominium_notice_id', 'resident_id']);
         });
     }

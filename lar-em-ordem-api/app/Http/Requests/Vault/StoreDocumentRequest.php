@@ -2,60 +2,67 @@
 
 namespace App\Http\Requests\Vault;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Closure;
 
 class StoreDocumentRequest extends FormRequest
 {
-    /**
-     * Determina se o utilizador está autorizado a realizar este pedido.
-     * Atualmente, permite todos os pedidos que já passaram pela autenticação.
-     *
-     * @return bool
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Obtém as regras de validação que se aplicam ao pedido de upload de documento.
-     * Garante que os relacionamentos existem, os limites de texto são respeitados
-     * e o ficheiro é um PDF válido dentro do limite de tamanho.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $property = $this->route('property');
+        $propertyId = is_object($property) ? $property->id : ($this->input('property_id') ?? $property);
+
         return [
-            // Valida se os IDs enviados existem efetivamente nas tabelas relacionadas
             'property_id' => ['required', 'string', 'exists:properties,id'],
             'document_category_id' => ['required', 'integer', 'exists:document_categories,id'],
-
-            // Dados opcionais preenchidos pelo utilizador
+            'name' => [
+                'required', 'string', 'min:3', 'max:150',
+                Rule::unique('vault_documents', 'name')->where('property_id', $propertyId)
+            ],
             'description' => ['nullable', 'string', 'max:1000'],
-
-            // Validação do ficheiro
-            'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
-
-            // Validações de data
             'issue_date' => ['nullable', 'date', 'before_or_equal:today'],
             'expiration_date' => ['nullable', 'date', 'after:issue_date'],
+
+            'file' => [
+                'nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:15360',
+                function (string $attribute, mixed $value, Closure $fail) use ($propertyId) {
+                    if ($value) {
+                        // Calcula a impressão digital do ficheiro
+                        $hash = hash_file('sha256', $value->getRealPath());
+
+                        // Verifica se este exato ficheiro já existe na casa
+                        $exists = DB::table('vault_documents')
+                            ->where('property_id', $propertyId)
+                            ->where('file_hash', $hash)
+                            ->exists();
+
+                        if ($exists) {
+                            $fail('Este ficheiro exato já se encontra no seu cofre digital.');
+                        }
+                    }
+                },
+            ],
         ];
     }
 
-    /**
-     * Define as mensagens de erro personalizadas para regras de validação específicas.
-     *
-     * @return array<string, string>
-     */
     public function messages(): array
     {
         return [
-            'property_id.exists' => 'The selected property is invalid.',
-            'document_category_id.exists' => 'The selected document category is invalid.',
-            'file.mimes' => 'Only PDF files are allowed for data extraction.',
-            'file.max' => 'The PDF size must not exceed 10MB.',
+            'property_id.exists' => 'A propriedade selecionada é inválida.',
+            'document_category_id.exists' => 'A categoria de documento é inválida.',
+            'title.required' => 'O nome do documento é obrigatório.',
+            'title.unique' => 'Já existe um documento com este nome nesta habitação.',
+            'file.mimes' => 'Apenas são aceites ficheiros em formato PDF, JPG, JPEG ou PNG.',
+            'file.max' => 'O ficheiro não pode ultrapassar os 15MB.',
+            'expiration_date.after' => 'A data de validade tem de ser posterior à data de emissão.',
+            'issue_date.before_or_equal' => 'A data de emissão não pode ser no futuro.',
         ];
     }
 }

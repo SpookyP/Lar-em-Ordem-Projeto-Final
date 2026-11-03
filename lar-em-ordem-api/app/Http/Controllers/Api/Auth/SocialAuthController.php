@@ -104,7 +104,7 @@ class SocialAuthController extends Controller
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
-        return redirect()->away(config('oauth.frontend_url') . '/perfis');
+        return redirect()->away(config('oauth.frontend_url') . '/profiles');
     }
 
     /**
