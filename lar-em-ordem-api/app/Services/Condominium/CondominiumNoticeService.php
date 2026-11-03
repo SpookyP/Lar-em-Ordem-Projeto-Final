@@ -6,6 +6,7 @@ use App\Models\Condominium\Condominium;
 use App\Models\Condominium\CondominiumNotice;
 use App\Models\User\User;
 use App\Notifications\Condominium\CondominiumNoticePublished;
+use App\Events\Condominium\CondominiumNoticeBroadcast;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Notification;
@@ -207,13 +208,15 @@ class CondominiumNoticeService
     }
 
     /**
-     * Envia o aviso por email aos residentes do condomínio.
-     */
+    * Avisa os residentes do condomínio: email + tempo real (canal de cada casa).
+    */
     private function notifyResidents(CondominiumNotice $notice, bool $updated = false): void
     {
         Notification::send(
             $this->recipients($notice->condominium),
             new CondominiumNoticePublished($notice, $updated)
         );
+
+        broadcast(new CondominiumNoticeBroadcast($notice, $updated));
     }
 }
