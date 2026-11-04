@@ -4,6 +4,7 @@ namespace App\Services\ServiceProvider;
 
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Models\User\User;
+use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ class ServiceProviderService {
     /** Campos do pedido que não são colunas do prestador (são relações). */
     private const RELATION_KEYS = ['zone_ids', 'service_specialty_ids', 'custom_specialties'];
 
-    public function __construct(private ProviderSpecialtyService $specialtyService) {}
+    public function __construct(private ProviderSpecialtyService $specialtyService,  private PersonalDataEraser $eraser) {}
 
      /**
      * Devolve todos os prestadores de serviços, com as zonas e as especialidades
@@ -92,6 +93,7 @@ class ServiceProviderService {
                 ->where('status', 'pending')
                 ->update(['status' => 'withdrawn']);
 
+            $this->eraser->eraseServiceProvider($serviceProvider);
             $serviceProvider->delete();
             $serviceProvider->user->removeRole('service_provider');
         });

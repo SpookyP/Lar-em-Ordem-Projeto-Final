@@ -5,12 +5,15 @@ namespace App\Services\PartnerOffer;
 
 use App\Models\User\Partner;
 use App\Models\User\User;
+use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class PartnerService
 {
+    public function __construct(private PersonalDataEraser $eraser) {}
+
     /**
      * Procura o perfil de parceiro de um utilizador.
      *
@@ -98,6 +101,7 @@ class PartnerService
     {
         DB::transaction(function () use ($partner) {
             $partner->offers()->delete();
+            $this->eraser->erasePartner($partner);
             $partner->delete();
             $partner->user->removeRole('partner');
         });
