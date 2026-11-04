@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Condominium;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCondominiumRequest extends FormRequest
 {
@@ -20,9 +21,18 @@ class StoreCondominiumRequest extends FormRequest
             'address.street'      => ['required', 'string', 'max:255'],
             'address.postal_code' => ['required', 'string', 'max:20'],
             'address.door'        => ['nullable', 'string', 'max:10'],
-            'address.county'      => ['required', 'string', 'max:100'],
+           // o par distrito + concelho tem de existir no catálogo de zonas (nomes iguais aos dos prestadores)
+            'address.county'      => [
+                'required', 'string', 'max:100',
+                Rule::exists('service_zones', 'county')
+                    ->where('district', $this->input('address.district'))
+                    ->whereNull('deleted_at'),
+            ],
             'address.location'    => ['required', 'string', 'max:100'],
-            'address.district'    => ['required', 'string', 'max:100'],
+            'address.district'    => [
+                'required', 'string', 'max:100',
+                Rule::exists('service_zones', 'district')->whereNull('deleted_at'),
+            ],
         ];
     }
 
@@ -32,6 +42,8 @@ class StoreCondominiumRequest extends FormRequest
             'name.required'    => 'Indique o nome do condomínio.',
             'reserve_fund.min' => 'O fundo comum de reserva não pode ser negativo.',
             'address.required' => 'Indique a morada do prédio.',
+            'address.county.exists' => 'O concelho indicado não existe nesse distrito.',
+            'address.district.exists' => 'O distrito indicado não existe.',
         ];
     }
 }

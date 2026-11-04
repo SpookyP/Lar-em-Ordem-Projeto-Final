@@ -5,7 +5,7 @@ namespace App\Services\PartnerOffer;
 
 use App\Models\User\Partner;
 use App\Models\User\User;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -34,14 +34,20 @@ class PartnerService
             ?? abort(403, 'Este utilizador não tem um perfil de parceiro.');
     }
     
-    /**
-     * Devolve todos os parceiros (os apagados ficam de fora pelo soft delete).
+   /**
+     * Parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor de cada um
+     * (os apagados ficam de fora pelo soft delete).
      *
-     * @return Collection
+     * @param int $perPage Número de parceiros por página.
+     * @return LengthAwarePaginator
      */
-    public function list(): Collection
+    public function list(int $perPage = 5): LengthAwarePaginator
     {
-        return Partner::all();
+        return Partner::withCount(['offers as current_offers_count' => fn ($q) => $q->current()])
+            ->orderBy('company_name')
+            ->orderBy('id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     /**
@@ -97,16 +103,26 @@ class PartnerService
         });
     }
 
-     /**
-     * Carrega as ofertas em vigor de um parceiro (vista pública).
+   /**
+     * Carrega no parceiro uma página das suas ofertas em vigor (vista pública),
+     * da mais recente para a mais antiga.
      *
      * @param Partner $partner Instância do parceiro.
-     * @return Partner A mesma instância, com a relação 'offers' carregada.
+     * @param int $perPage Número de ofertas por página.
+     * @return LengthAwarePaginator A página de ofertas (já colocada em $partner->offers).
      */
-    public function loadWithOffers(Partner $partner): Partner
+    public function loadWithOffers(Partner $partner, int $perPage = 5): LengthAwarePaginator
     {
-        return $partner->load([
-            'offers' => fn ($query) => $query->current()->orderByDesc('start_date'),
-        ]);
+        $offers = $partner->offers()
+            ->current()
+            ->orderByDesc('start_date')
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        // a página de ofertas fica na relação 'offers': o resource mostra-a em data.offers
+        $partner->setRelation('offers', $offers->getCollection());
+
+        return $offers;
     }
 }

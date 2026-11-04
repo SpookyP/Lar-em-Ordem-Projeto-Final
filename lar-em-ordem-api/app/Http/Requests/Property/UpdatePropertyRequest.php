@@ -27,7 +27,6 @@ class UpdatePropertyRequest extends FormRequest
             'property_type_id'     => ['sometimes', 'nullable', 'integer', 'exists:property_types,id'],
             'property_typology_id' => ['sometimes', 'nullable', 'integer', 'exists:property_typologies,id'],
             'address_id'           => ['sometimes', 'nullable', 'string', 'exists:addresses,id'],
-            'condominium_id'       => ['sometimes', 'nullable', 'string', 'exists:condominia,id'],
             'area'                 => ['sometimes', 'nullable', 'integer', 'min:1'],
             
 
@@ -42,9 +41,9 @@ class UpdatePropertyRequest extends FormRequest
             'address.postal_code'  => ['required_with:address', 'string', 'max:20'],
             'address.door'         => ['nullable', 'string', 'max:10'],
             'address.fraction'     => ['nullable', 'string', 'max:50'],
-            'address.county'       => ['nullable', 'string', 'max:100'],
-            'address.location'     => ['nullable', 'string', 'max:100'],
-            'address.district'     => ['nullable', 'string', 'max:100'],
+            'address.county'       => ['sometimes', 'required', 'string', 'max:100'],
+            'address.location'     => ['sometimes', 'required', 'string', 'max:100'],
+            'address.district'     => ['sometimes', 'required', 'string', 'max:100'],
         ];
     }
 
@@ -57,7 +56,6 @@ class UpdatePropertyRequest extends FormRequest
             'property_type_id',
             'property_typology_id',
             'address_id',
-            'condominium_id',
             'area',
             'fraction',
         ]), fn($value) => $value !== null);

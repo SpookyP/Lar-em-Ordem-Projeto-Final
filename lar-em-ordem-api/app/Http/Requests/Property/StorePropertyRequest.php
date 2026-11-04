@@ -27,7 +27,6 @@ class StorePropertyRequest extends FormRequest
             'property_type_id'     => ['required', 'integer', 'exists:property_types,id'],
             'property_typology_id' => ['required', 'integer', 'exists:property_typologies,id'],
             'address_id'           => ['nullable', 'string', 'exists:addresses,id'],
-            'condominium_id'       => ['nullable', 'string', 'exists:condominia,id'],
             'area'                 => ['required', 'integer', 'min:1'],
 
             // Contract
@@ -56,7 +55,6 @@ class StorePropertyRequest extends FormRequest
             'property_type_id',
             'property_typology_id',
             'address_id',
-            'condominium_id',
             'area',
             'fraction',
         ]);

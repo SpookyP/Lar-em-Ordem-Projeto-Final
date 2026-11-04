@@ -5,6 +5,7 @@ import {
   updateProperty,
 } from "../../services/api/propertyService";
 import { useHouses } from "../../hooks/useHouses";
+import { ZoneSelect } from "./ZoneSelect";
 
 const EMPTY_FORM = {
   property_type_id: "",
@@ -374,53 +375,12 @@ export function PropertyForm({
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="location" className="text-sm text-muted">
-          Localidade
-        </label>
-        <input
-          id="location"
-          name="location"
-          type="text"
-          value={form.location}
-          onChange={handleChange}
-          required
-          placeholder="ex: Senhora da Hora"
-          className={inputClass}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="county" className="text-sm text-muted">
-          Concelho
-        </label>
-        <input
-          id="county"
-          name="county"
-          type="text"
-          value={form.county}
-          onChange={handleChange}
-          required
-          placeholder="ex: Matosinhos"
-          className={inputClass}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="district" className="text-sm text-muted">
-          Distrito
-        </label>
-        <input
-          id="district"
-          name="district"
-          type="text"
-          value={form.district}
-          onChange={handleChange}
-          required
-          placeholder="ex: Porto"
-          className={inputClass}
-        />
-      </div>
+      <ZoneSelect
+        district={form.district}
+        county={form.county}
+        location={form.location}
+        onChange={(zone) => setForm((prev) => ({ ...prev, ...zone }))}
+      />
 
       {status === "error" && <p className="text-sm text-red-600">{errorMsg}</p>}
 

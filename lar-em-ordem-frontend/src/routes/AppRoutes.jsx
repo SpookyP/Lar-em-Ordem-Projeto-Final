@@ -10,7 +10,6 @@ import ForgotPassword from "../pages/Password/ForgotPassword";
 import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
-import Consumption from "../pages/Consumption/Consumption";
 import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
 
 //Partilhadas
@@ -25,6 +24,8 @@ import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetai
 import Partners from "../pages/Resident/Partners/Partners";
 import Offers from "../pages/Resident/Offers/Offers";
 import OfferDetail from "../pages/Resident/OfferDetail/OfferDetail";
+import Consumption from "../pages/Consumption/Consumption";
+import Invoice from "../pages/Consumption/Invoice";
 
 //Prestador
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
@@ -68,6 +69,9 @@ function AppRoutesInner() {
               <Route path="/partners" element={<Partners />} />
               <Route path="/offers" element={<Offers />} />
               <Route path="/offers/:id" element={<OfferDetail />} />
+              <Route path="/faturas" element={<Invoice />} />
+              <Route path="/assistencia" element={<Assistance />} />
+              <Route path="/assistencia/:id" element={<AssistanceDetail />} />
             </Route>
 
             <Route

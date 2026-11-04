@@ -98,6 +98,11 @@ export function useNotifications() {
         try { await axiosClient.patch(`/api/v1/notifications/${id}/read`); } catch (e) { console.error(e); }
     };
 
+    const markAsUnread = async (id) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: false } : n));
+        try { await axiosClient.patch(`/api/v1/notifications/${id}/unread`); } catch (e) { console.error(e); }
+    };
+
     const markAllAsRead = async () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         try { await axiosClient.patch(`/api/v1/properties/${propertyId}/notifications/read-all`); } catch (e) { console.error(e); }
@@ -116,5 +121,5 @@ export function useNotifications() {
         try { await axiosClient.delete(`/api/v1/notifications/${id}`); } catch (e) { console.error(e); }
     };
 
-    return { notifications, unreadCount, markAsRead, markAllAsRead, snoozeNotification, deleteNotification };
+    return { notifications, unreadCount, markAsRead, markAsUnread, markAllAsRead, snoozeNotification, deleteNotification };
 }

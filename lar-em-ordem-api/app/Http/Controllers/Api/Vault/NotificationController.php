@@ -47,6 +47,20 @@ class NotificationController extends Controller
         return new NotificationResource($notification);
     }
 
+    public function markAsUnread(\App\Models\Vault\Notification $notification): \Illuminate\Http\JsonResponse
+    {
+        // Verifica autorização se tiveres
+        $this->authorize('update', $notification->property);
+
+        $notification->update([
+            'read_at' => null
+        ]);
+
+        return response()->json([
+            'message' => 'Notificação marcada como não lida.'
+        ]);
+    }
+
     public function markAllAsRead(Property $property): JsonResponse
     {
         $this->authorize('update', $property);

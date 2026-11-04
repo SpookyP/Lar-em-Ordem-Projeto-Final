@@ -13,10 +13,13 @@ Route::prefix('v1')->group(function () {
         require __DIR__ . '/modules/partner.php';
         require __DIR__ . '/modules/offer.php';
         require __DIR__ . '/modules/service_provider.php';
-        require __DIR__ . '/modules/service_zone.php';
-        require __DIR__ . '/modules/problem_category.php';
         require __DIR__ . '/modules/assistance_request.php';
         require __DIR__ . '/modules/proposal.php';
         require __DIR__ . '/modules/condominium.php';
+    });
+
+    Route::middleware('throttle:60,1')->group(function () {
+        require __DIR__ . '/modules/service_zone.php';
+        require __DIR__ . '/modules/problem_category.php';
     });
 });

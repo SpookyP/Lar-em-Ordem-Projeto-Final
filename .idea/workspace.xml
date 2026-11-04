@@ -2,7 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="implementa criacao manual de documentos, validação anti-duplicados e atualização testes">
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/StoreDocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/StoreDocumentTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/DocumentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/DocumentController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-frontend/src/components/ui/NotificationBell.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-frontend/src/components/ui/NotificationBell.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-frontend/src/components/ui/NotificationPanel.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-frontend/src/components/ui/NotificationPanel.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-frontend/src/hooks/useNotifications.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-frontend/src/hooks/useNotifications.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,60 +81,60 @@
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0002911404670238" />
-      <entry key="S2" value="1.1385639685888773" />
-      <entry key="S5" value="1.661081630848766" />
-      <entry key="S10" value="2.3255128430123206" />
-      <entry key="S30" value="3.254912607526047" />
-      <entry key="S60" value="3.596778679572662" />
-      <entry key="M2" value="3.7900259015113393" />
-      <entry key="M5" value="3.9170347551335225" />
-      <entry key="M10" value="4.194365758153841" />
-      <entry key="M15" value="5.069294065482191" />
-      <entry key="M30" value="9.249124302091962" />
-      <entry key="H1" value="15.652144561449582" />
-      <entry key="H2" value="21.39377132486022" />
-      <entry key="H4" value="25.262262661584334" />
-      <entry key="D1" value="29.142152623864824" />
-      <entry key="W1" value="29.875666333333758" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0000000000000002" />
+      <entry key="M2" value="1.000000051458495" />
+      <entry key="M5" value="1.0066276457176075" />
+      <entry key="M10" value="1.3398584235942737" />
+      <entry key="M15" value="2.318399551074659" />
+      <entry key="M30" value="6.989291333812669" />
+      <entry key="H1" value="15.841261367101158" />
+      <entry key="H2" value="25.741648886640494" />
+      <entry key="H4" value="33.44835114483495" />
+      <entry key="D1" value="41.99962621552754" />
+      <entry key="W1" value="43.707627932952455" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
       <entry key="MS500" value="0.0" />
       <entry key="S2" value="0.0" />
-      <entry key="S5" value="4.1497287888876275E-264" />
-      <entry key="S10" value="2.037088311509253E-132" />
-      <entry key="S30" value="1.2676614562216727E-44" />
-      <entry key="S60" value="1.125904727861852E-22" />
-      <entry key="M2" value="1.0610865788717956E-11" />
-      <entry key="M5" value="4.0766209176160336E-5" />
-      <entry key="M10" value="0.006384842141835638" />
-      <entry key="M15" value="0.03441650584087355" />
-      <entry key="M30" value="0.18551686133846026" />
-      <entry key="H1" value="0.43071668337604535" />
-      <entry key="H2" value="0.6562900908714419" />
-      <entry key="H4" value="0.8101173315461421" />
-      <entry key="D1" value="0.9655126923269552" />
-      <entry key="W1" value="0.994998828945949" />
+      <entry key="S5" value="1.567137054839164E-204" />
+      <entry key="S10" value="1.2518534478281251E-102" />
+      <entry key="S30" value="1.0777494997232232E-34" />
+      <entry key="S60" value="1.0381471474329756E-17" />
+      <entry key="M2" value="3.22202909274337E-9" />
+      <entry key="M5" value="4.0111339115423143E-4" />
+      <entry key="M10" value="0.02014663701615848" />
+      <entry key="M15" value="0.0761697920219263" />
+      <entry key="M30" value="0.32077704545774016" />
+      <entry key="H1" value="0.7429556544690573" />
+      <entry key="H2" value="1.192880783975515" />
+      <entry key="H4" value="1.5359292963696154" />
+      <entry key="D1" value="1.9123935082252075" />
+      <entry key="W1" value="1.9872047495614087" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9526379980439373" />
-      <entry key="MS500" value="0.9906320013457975" />
-      <entry key="S2" value="1.135899877399852" />
-      <entry key="S5" value="1.6596396870906671" />
-      <entry key="S10" value="2.324546469219723" />
-      <entry key="S30" value="3.254474647794145" />
-      <entry key="S60" value="3.596538284318993" />
-      <entry key="M2" value="3.789899641766426" />
-      <entry key="M5" value="3.9170210343288576" />
-      <entry key="M10" value="4.200638105750403" />
-      <entry key="M15" value="5.103449703336272" />
-      <entry key="M30" value="9.434109987034162" />
-      <entry key="H1" value="16.08231234217683" />
-      <entry key="H2" value="22.04966549124667" />
-      <entry key="H4" value="26.072142053515012" />
-      <entry key="D1" value="30.107619074695194" />
-      <entry key="W1" value="30.870658379873543" />
+      <entry key="MS100" value="4.256419880219739E-5" />
+      <entry key="MS500" value="0.133600748901376" />
+      <entry key="S2" value="0.6045778379166807" />
+      <entry key="S5" value="0.8176753193896112" />
+      <entry key="S10" value="0.9042540126477799" />
+      <entry key="S30" value="0.9670081808446848" />
+      <entry key="S60" value="0.9833657411384054" />
+      <entry key="M2" value="0.9916480472212928" />
+      <entry key="M5" value="1.0036788337067124" />
+      <entry key="M10" value="1.358309596108709" />
+      <entry key="M15" value="2.3933907325132453" />
+      <entry key="M30" value="7.309290059839315" />
+      <entry key="H1" value="16.58357953095796" />
+      <entry key="H2" value="26.934053632982067" />
+      <entry key="H4" value="34.98397830759561" />
+      <entry key="D1" value="43.9119572387971" />
+      <entry key="W1" value="45.694823406510565" />
     </decayedShown>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/usr/local/bin/php">
@@ -299,7 +308,7 @@
     "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "feature/validacoes__documentos",
+    "git-widget-placeholder": "feature/edicao__unread",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
     "node.js.selected.package.eslint": "(autodetect)",

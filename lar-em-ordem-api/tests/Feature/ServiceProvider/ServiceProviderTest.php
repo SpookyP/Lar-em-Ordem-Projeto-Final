@@ -10,6 +10,7 @@ use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
+use Illuminate\Support\Facades\DB;      
 
 /**
  * Prestadores de serviços (módulo 6): listagem, perfil próprio e detalhe.
@@ -235,10 +236,36 @@ class ServiceProviderTest extends TestCase
             ->assertJsonValidationErrors([
                 'company_name',
                 'nif',
-                'zone_ids.0'                               => 'Uma das zonas indicadas não existe.',
+                'zone_ids'                               => 'Uma das zonas indicadas não existe.',
                 'service_specialty_ids.0'                  => 'A lista de especialidades tem valores repetidos.',
                 'custom_specialties.0.problem_category_id' => 'Indique a categoria da especialidade própria.',
             ]);
+    }
+
+    public function test_um_distrito_inteiro_de_zonas_e_validado_com_uma_so_query(): void
+    {
+        $user = User::factory()->create();
+        $porto = ServiceZone::where('district', 'Porto')->pluck('id')->all(); // centenas de freguesias
+
+        DB::enableQueryLog();
+
+        $this->actingAs($user)
+            ->postJson('/api/user/profile', [
+                'role'         => 'service_provider',
+                'company_name' => 'Distrito Lda',
+                'nif'          => '123456789',
+                'phone'        => '912345678',
+                'description'  => 'Todo o distrito do Porto.',
+                'zone_ids'     => $porto,
+            ])
+            ->assertCreated();
+
+        // validação: uma só query às zonas (antes era uma por zona)
+        $zoneQueries = collect(DB::getQueryLog())
+            ->filter(fn ($q) => str_starts_with($q['query'], 'select count(*) as aggregate from "service_zones"'));
+        $this->assertCount(1, $zoneQueries);
+
+        $this->assertCount(count($porto), $user->fresh()->service_provider->zones);
     }
 
     // ---------------------------------- edição (PUT /user/profile-information)

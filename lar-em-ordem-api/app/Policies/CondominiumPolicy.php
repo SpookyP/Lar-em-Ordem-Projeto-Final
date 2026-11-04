@@ -18,10 +18,10 @@ class CondominiumPolicy
         return true;
     }
 
-    /** Administrador ou residente com casa no condomínio. */
+    /** Ver o condomínio pelo id: só o administrador. O residente vê-o pela casa (GET /properties/{id}/condominium). */
     public function view(User $user, Condominium $condominium): bool
     {
-        return $condominium->isManagedBy($user) || $condominium->hasMember($user);
+        return $condominium->isManagedBy($user);
     }
 
     /** Só quem tem perfil de administrador de condomínio. */

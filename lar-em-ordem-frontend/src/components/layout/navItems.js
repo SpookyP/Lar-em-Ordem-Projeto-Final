@@ -1,6 +1,7 @@
 import {
   Home,
   FolderClosed,
+  Receipt,
   Zap,
   LifeBuoy,
   ClipboardList,
@@ -13,6 +14,7 @@ import {
 export const navItems = [
   { path: "/dashboard", label: "Inicio", icon: Home },
   { path: "/cofre", label: "Cofre", icon: FolderClosed },
+  { path: "/faturas", label: "Faturas", icon: Receipt },
   { path: "/consumos", label: "Consumos", icon: Zap },
   { path: "/assistance", label: "Assistência", icon: LifeBuoy },
   { path: "/partners", label: "Parceiros", icon: Building2 },
