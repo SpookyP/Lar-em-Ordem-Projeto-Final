@@ -11,6 +11,7 @@ import {
   Pencil,
   UserMinus,
   Trash2,
+  ArrowLeft,
 } from "lucide-react";
 import { AccountForm } from "../../components/ui/AccountForm";
 import { HouseDetails } from "../../components/ui/HouseDetails";
@@ -72,7 +73,9 @@ export default function Settings() {
 
       <div className="flex flex-col md:flex-row gap-6">
         {/*Menu esq. */}
-        <nav className="w-full md:w-64 shrink-0 flex flex-col gap-6">
+        <nav
+          className={`w-full md:w-64 shrink-0 flex-col gap-6 ${section ? "hidden md:flex" : "flex"}`}
+        >
           {visibleGroups.map((group) => (
             <div key={group.title} className="flex flex-col gap-2">
               <p className="px-1 text-sm font-semibold uppercase tracking-wide text-muted">
@@ -103,8 +106,18 @@ export default function Settings() {
         </nav>
 
         {/*Menu dta. */}
-        <div className="flex-1 max-w-3xl rounded-3xl bg-card border border-border overflow-hidden max-h-[80vh]">
-          <div className="h-full overflow-y-auto p-6">
+        <div
+          className={`flex-1 max-w-3xl rounded-3xl bg-card border border-border md:overflow-hidden md:max-h-[80vh] ${section ? "" : "hidden md:block"}`}
+        >
+          <div className="h-full p-6 md:overflow-y-auto">
+            {section && (
+              <button
+                onClick={() => setSection(null)}
+                className="mb-4 inline-flex items-center gap-1 text-sm text-muted transition hover:text-navy md:hidden"
+              >
+                <ArrowLeft size={16} /> Voltar
+              </button>
+            )}
             {section === null && (
               <p className="text-sm text-muted">Seleciona uma opção.</p>
             )}
