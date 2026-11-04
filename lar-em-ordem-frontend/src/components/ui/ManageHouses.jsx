@@ -111,9 +111,9 @@ export function ManageHouses() {
         {houses.map((h) => (
           <li
             key={h.id}
-            className="flex items-center justify-between rounded-lg border border-border p-3"
+            className="flex flex-col gap-3 rounded-lg border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
           >
-            <div className="text-sm">
+            <div className="min-w-0 text-sm">
               <p className="text-text">{h.label}</p>
               <p className="text-muted">
                 {h.location} · {h.bondLabel}
@@ -121,7 +121,7 @@ export function ManageHouses() {
             </div>
 
             {confirmingId === h.id ? (
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
                 <span className="text-sm text-muted">Tens a certeza?</span>
                 <button
                   onClick={() => handleDelete(h.id)}
@@ -138,7 +138,7 @@ export function ManageHouses() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   onClick={() => handleEdit(h.id)}
                   disabled={loadingEdit}

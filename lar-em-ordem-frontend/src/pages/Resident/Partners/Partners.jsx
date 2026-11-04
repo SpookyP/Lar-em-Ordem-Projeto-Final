@@ -5,6 +5,7 @@ import {
   Building2,
   ChevronRight,
   ArrowRight,
+  ArrowLeft,
   Phone,
   Globe,
 } from "lucide-react";
@@ -94,7 +95,7 @@ export default function Partners() {
         </p>
       </div>
 
-      <div className="relative lg:w-1/2">
+      <div className="relative mt-8 lg:w-1/2">
         <Search
           size={18}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
@@ -116,7 +117,7 @@ export default function Partners() {
         <div
           className={`grid gap-6 ${selectedId ? "lg:grid-cols-2" : "grid-cols-1"}`}
         >
-          <div className="min-w-0">
+          <div className={`min-w-0 ${selectedId ? "hidden lg:block" : ""}`}>
             {filtered.length === 0 ? (
               <p className="text-sm text-muted">Nenhum parceiro encontrado.</p>
             ) : (
@@ -169,6 +170,12 @@ export default function Partners() {
                 </p>
               ) : (
                 <div className="flex flex-col gap-4 rounded-2xl bg-card p-6 shadow-sm">
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    className="inline-flex items-center gap-1 text-sm text-muted transition hover:text-navy lg:hidden"
+                  >
+                    <ArrowLeft size={16} /> Voltar aos parceiros
+                  </button>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h2 className="font-display text-xl text-navy line-clamp-2">
@@ -180,7 +187,7 @@ export default function Partners() {
                     </div>
                     <button
                       onClick={() => setSelectedId(null)}
-                      className="shrink-0 text-sm text-muted hover:text-navy"
+                      className="hidden shrink-0 text-sm text-muted hover:text-navy lg:block"
                       aria-label="Fechar"
                     >
                       ✕
