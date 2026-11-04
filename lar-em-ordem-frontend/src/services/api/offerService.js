@@ -11,7 +11,7 @@ function toPartner(p) {
   };
 }
 
-function toOffer(o) {
+export function toOffer(o) {
   return {
     id: o.id,
     title: o.title,
