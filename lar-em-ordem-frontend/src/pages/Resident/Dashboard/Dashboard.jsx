@@ -2,8 +2,9 @@ import { Droplet, Zap, Flame, FolderClosed } from "lucide-react";
 import { ShortcutCard } from "../../../components/ui/ShortcutCard";
 import ConsumptionChart from "../../../components/ui/ConsumptionChart";
 import ConsumptionSummary from "../../../components/ui/ConsumptionSummary";
-import { NotificationBell } from '../../../components/ui/NotificationBell';
+import { NotificationBell } from "../../../components/ui/NotificationBell";
 import { useState } from "react";
+import { OfferRecommendations } from "../../../components/ui/OfferRecommendations";
 
 const periods = ["1 mês", "2 meses", "6 meses"];
 
@@ -70,6 +71,10 @@ export default function Dashboard() {
             to="/consumos"
           />
         </div>
+      </div>
+
+      <div>
+        <OfferRecommendations />
       </div>
     </div>
   );
