@@ -1,45 +1,48 @@
 /*importar fontes usadas no figma*/
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import 'tailwindcss';
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import "tailwindcss";
 
 /*design tokens = as cores e fontes que o cliente aprovou no projeto Figma*/
 
 @theme {
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: "DM Serif Display", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
-  --color-navy: #1C3557;
-  --color-navy-light: #2A4A72;
-  --color-navy-dark: #111F35;
-  --color-teal: #0F766E;
-  --color-teal-light: #CCFBF1;
-  --color-orange: #EA580C;
-  --color-orange-light: #FFF7ED;
-  --color-surface: #F1F5F9;
-  --color-card: #FFFFFF;
-  --color-text: #0F172A;
-  --color-muted: #64748B;
-  --color-border: #E2E8F0;
-  --color-green: #16A34A;
-  --color-green-light: #DCFCE7;
-  --color-red: #DC2626;
-  --color-red-light: #FEE2E2;
-  --color-amber: #D97706;
-  --color-amber-light: #FEF3C7;
+  --color-navy: #1c3557;
+  --color-navy-light: #2a4a72;
+  --color-navy-dark: #111f35;
+  --color-teal: #0f766e;
+  --color-teal-light: #ccfbf1;
+  --color-orange: #ea580c;
+  --color-orange-light: #fff7ed;
+  --color-surface: #f1f5f9;
+  --color-card: #ffffff;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-green: #16a34a;
+  --color-green-light: #dcfce7;
+  --color-red: #dc2626;
+  --color-red-light: #fee2e2;
+  --color-amber: #d97706;
+  --color-amber-light: #fef3c7;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: var(--color-surface);
   font-family: var(--font-sans);
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: var(--font-sans);
 }
