@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { formatDate } from "../../utils/date";
 import { ArrowRight } from "lucide-react";
 
@@ -6,10 +6,12 @@ const THEMES = ["bg-orange", "bg-navy", "bg-teal", "bg-navy-dark"];
 
 export function PartnerOfferCard({ offer, index = 0 }) {
   const theme = THEMES[index % THEMES.length];
+  const location = useLocation();
 
   return (
     <Link
       to={`/offers/${offer.id}`}
+      state={{ background: location }}
       className={`relative block h-full overflow-hidden rounded-2xl p-5 text-white shadow-sm transition hover:opacity-95 ${theme}`}
     >
       <span
