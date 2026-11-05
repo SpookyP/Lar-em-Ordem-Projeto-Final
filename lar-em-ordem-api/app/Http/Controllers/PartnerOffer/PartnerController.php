@@ -8,7 +8,6 @@ use App\Http\Requests\PerPageRequest;
 use App\Http\Requests\PartnerOffer\IndexPartnerRequest;
 use App\Models\User\Partner;
 use App\Services\PartnerOffer\PartnerService;
-use Illuminate\Http\Request;
 
 class PartnerController extends Controller
 {
@@ -47,16 +46,5 @@ class PartnerController extends Controller
             'per_page'     => $offers->perPage(),
             'total'        => $offers->total(),
         ]]);
-    }
-
-    /**
-     * Devolve o perfil de parceiro do utilizador autenticado.
-     *
-     * @param Request $request Pedido com o utilizador autenticado.
-     * @return PartnerResource
-     */
-    public function showMyProfile(Request $request): PartnerResource
-    {
-        return new PartnerResource($this->service->getByUser($request->user()));
     }
 }

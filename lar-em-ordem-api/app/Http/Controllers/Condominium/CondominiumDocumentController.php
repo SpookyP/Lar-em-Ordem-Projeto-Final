@@ -33,20 +33,16 @@ class CondominiumDocumentController extends Controller
 
     /**
      * Documentos do condomínio da casa ativa (residente), com as categorias para os filtros.
-     * Casa sem condomínio: lista vazia.
+     * Casa sem condomínio: página vazia (mesmo formato).
      *
      * @param IndexCondominiumDocumentRequest $request Pedido validado (per_page, category_id).
      * @param Property $property Casa ativa do residente.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function indexForProperty(IndexCondominiumDocumentRequest $request, Property $property)
     {
         // reutiliza PropertyPolicy::view → contrato ativo nesta casa
         Gate::authorize('view', $property);
-
-        if (! $property->condominium) {
-            return response()->json(['data' => [], 'categories' => $this->service->categories()]);
-        }
 
         return $this->listing($property->condominium, $request);
     }
@@ -112,7 +108,7 @@ class CondominiumDocumentController extends Controller
     /**
      * Lista paginada + catálogo de categorias, no mesmo pedido.
      */
-    private function listing(Condominium $condominium, IndexCondominiumDocumentRequest $request)
+    private function listing(?Condominium $condominium, IndexCondominiumDocumentRequest $request)
     {
         return CondominiumDocumentResource::collection($this->service->list(
             $condominium,
@@ -120,4 +116,4 @@ class CondominiumDocumentController extends Controller
             $request->integer('per_page', 5),
         ))->additional(['categories' => $this->service->categories()]);
     }
-}
+}   

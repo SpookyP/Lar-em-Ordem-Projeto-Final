@@ -138,21 +138,14 @@ class PartnerTest extends TestCase
             ->assertJsonValidationErrors(['search']);
     }
 
-    public function test_me_devolve_o_perfil_do_parceiro_autenticado_com_nif(): void
+    public function test_o_perfil_do_parceiro_vem_no_api_user_com_nif(): void
     {
         $this->actingAs($this->parceiro)
-            ->getJson('/api/v1/partners/me')
+            ->getJson('/api/user')
             ->assertOk()
-            ->assertJsonPath('data.id', $this->idParceiro())
-            ->assertJsonPath('data.company_name', 'Parceiro Lda')
-            ->assertJsonPath('data.nif', '123456789');
-    }
-
-    public function test_me_sem_perfil_de_parceiro_da_403(): void
-    {
-        $this->actingAs($this->morador)
-            ->getJson('/api/v1/partners/me')
-            ->assertForbidden();
+            ->assertJsonPath('partner.id', $this->idParceiro())
+            ->assertJsonPath('partner.company_name', 'Parceiro Lda')
+            ->assertJsonPath('partner.nif', '123456789');
     }
 
     // ------------------------------------------------------------------- show
@@ -262,10 +255,10 @@ class PartnerTest extends TestCase
         $this->editar(['phone' => '911111111'])->assertOk();
 
         $this->actingAs($this->parceiro)
-            ->getJson('/api/v1/partners/me')
-            ->assertJsonPath('data.phone', '911111111')
-            ->assertJsonPath('data.company_name', 'Parceiro Lda')
-            ->assertJsonPath('data.nif', '123456789');
+            ->getJson('/api/user')
+            ->assertJsonPath('partner.phone', '911111111')
+            ->assertJsonPath('partner.company_name', 'Parceiro Lda')
+            ->assertJsonPath('partner.nif', '123456789');
     }
 
     public function test_muda_todos_os_campos_do_perfil(): void
@@ -278,13 +271,13 @@ class PartnerTest extends TestCase
             'description'  => 'Nova descrição.',
         ])->assertOk();
 
-        $this->actingAs($this->parceiro)
-            ->getJson('/api/v1/partners/me')
-            ->assertJsonPath('data.company_name', 'Parceiro Renovado Lda')
-            ->assertJsonPath('data.nif', '987654321')
-            ->assertJsonPath('data.phone', '933333333')
-            ->assertJsonPath('data.website', 'https://renovado.pt')
-            ->assertJsonPath('data.description', 'Nova descrição.');
+       $this->actingAs($this->parceiro)
+            ->getJson('/api/user')
+            ->assertJsonPath('partner.company_name', 'Parceiro Renovado Lda')
+            ->assertJsonPath('partner.nif', '987654321')
+            ->assertJsonPath('partner.phone', '933333333')
+            ->assertJsonPath('partner.website', 'https://renovado.pt')
+            ->assertJsonPath('partner.description', 'Nova descrição.');
     }
 
     public function test_a_edicao_valida_os_campos(): void
