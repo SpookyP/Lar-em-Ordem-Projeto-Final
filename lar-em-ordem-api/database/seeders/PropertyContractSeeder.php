@@ -14,17 +14,13 @@ class PropertyContractSeeder extends Seeder
      */
     public function run(): void
     {
-        $residents = Resident::all();
-        $properties = Property::all();
+        $residents = Resident::whereDoesntHave('contracts', fn ($q) => $q->where('is_active', true))->get();
+        $properties = Property::doesntHave('contracts')->get();
 
-        // Se não existirem registos prévios, cancela para evitar erros
-        if ($residents->isEmpty() || $properties->isEmpty()) {
-            return;
-        }
-
-        // Associa cada residente a uma propriedade através de um contrato
-        foreach ($residents as $index => $resident) {
-            $property = $properties->get($index) ?? $properties->random();
+        foreach ($residents->zip($properties) as [$resident, $property]) {
+            if (! $resident || ! $property) {
+                break;
+            }
 
             PropertyContract::factory()->create([
                 'resident_id' => $resident->id,

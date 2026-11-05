@@ -87,8 +87,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             PropertySeeder::class,
-            PropertyContractSeeder::class,
             ResidentSeeder::class,
+            PropertyContractSeeder::class,
             PartnerSeeder::class,
             ConsumptionTypeSeeder::class,
             InvoiceSeeder::class,
