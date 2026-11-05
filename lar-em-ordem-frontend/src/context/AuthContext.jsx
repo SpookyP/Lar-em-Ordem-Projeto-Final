@@ -50,12 +50,15 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    await logoutService();
-    setUser(null);
-    setActiveHouse(null);
-    setActiveProfile(null);
-    localStorage.removeItem("activeProfile");
-    localStorage.removeItem("activeHouse");
+    try {
+      await logoutService();
+    }finally {
+      setUser(null);
+      setActiveHouse(null);
+      setActiveProfile(null);
+      localStorage.removeItem("activeProfile");
+      localStorage.removeItem("activeHouse");
+    }
   }
 
   async function register(data) {

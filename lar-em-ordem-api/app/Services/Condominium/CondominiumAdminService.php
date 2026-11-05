@@ -4,11 +4,14 @@ namespace App\Services\Condominium;
 
 use App\Models\Condominium\CondominiumAdmin;
 use App\Models\User\User;
+use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CondominiumAdminService
 {
+    public function __construct(private PersonalDataEraser $eraser) {}
+
     /**
      * Procura o perfil de administrador de condomínio de um utilizador.
      *
@@ -80,6 +83,7 @@ class CondominiumAdminService
         }
 
         DB::transaction(function () use ($admin) {
+            $this->eraser->eraseCondominiumAdmin($admin);
             $admin->delete();
             $admin->user->removeRole('condominium_admin');
         });

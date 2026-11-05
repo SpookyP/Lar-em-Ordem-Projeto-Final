@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use Illuminate\Support\Arr;
+use App\Models\User\Resident;
+use App\Services\Privacy\PersonalDataEraser;
 
 class AssistanceRequestService
 {
@@ -207,5 +209,32 @@ class AssistanceRequestService
                 'status' => $message,
             ]);
         }
+    }
+
+    /**
+     * RGPD erasure of a resident's requests. The photos always go. A request with an accepted proposal
+     * is part of the provider's job history, so it stays without the resident's words; any other request
+     * is deleted together with its proposals (cascade).
+     */
+    public function eraseForResident(Resident $resident): void
+    {
+        AssistanceRequest::withTrashed()
+            ->where('resident_id', $resident->id)
+            ->with(['attachments', 'acceptedProposal'])
+            ->get()
+            ->each(function (AssistanceRequest $request) {
+                $this->attachmentService->sync($request, [], $request->attachments->modelKeys());
+
+                if ($request->acceptedProposal) {
+                    $request->forceFill([
+                        'title' => PersonalDataEraser::REMOVED_REQUEST,
+                        'description' => '',
+                    ])->save();
+
+                    return;
+                }
+
+                $request->forceDelete();
+            });
     }
 }

@@ -138,11 +138,11 @@ class ValidationRulesTest extends TestCase
         $erros = $this->erros(StoreOfferRequest::class, [
             'title'       => 'Avaliação gratuita',
             'description' => 'Sem compromisso.',
-            'type'        => 'Serviço',
             'start_date'  => '2026-10-01',
         ]);
 
-        $this->assertSame([], $erros);
+        // o tipo (offer_category_id) consulta a base de dados: é testado no OfferTest
+        $this->assertSame([], array_diff_key($erros, ['offer_category_id' => true]));
     }
 
     public function test_a_data_de_fim_da_oferta_nao_pode_ser_anterior_a_de_inicio(): void
@@ -150,7 +150,6 @@ class ValidationRulesTest extends TestCase
         $erros = $this->erros(StoreOfferRequest::class, [
             'title'       => 'Desconto',
             'description' => 'x',
-            'type'        => 'Desconto',
             'start_date'  => '2026-10-10',
             'end_date'    => '2026-10-01',
         ]);
@@ -163,7 +162,6 @@ class ValidationRulesTest extends TestCase
         $erros = $this->erros(StoreOfferRequest::class, [
             'title'       => 'Desconto',
             'description' => 'x',
-            'type'        => 'Desconto',
             'start_date'  => '2026-10-01',
             'url'         => 'não é um url',
         ]);

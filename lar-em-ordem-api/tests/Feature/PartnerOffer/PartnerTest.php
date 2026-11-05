@@ -81,7 +81,10 @@ class PartnerTest extends TestCase
         $this->assertSame(collect($nomes)->sort(SORT_NATURAL | SORT_FLAG_CASE)->values()->all(), $nomes);
 
         // cada parceiro traz quantas ofertas em vigor tem
-        $this->assertSame(3, collect($resposta->json('data'))->firstWhere('id', $this->idParceiro())['current_offers_count']);
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=Parceiro Lda')
+            ->assertJsonPath('data.0.id', $this->idParceiro())
+            ->assertJsonPath('data.0.current_offers_count', 3);
 
         // por defeito, 5 por página
         $this->actingAs($this->morador)->getJson('/api/v1/partners')->assertJsonPath('meta.per_page', 5);
@@ -89,11 +92,15 @@ class PartnerTest extends TestCase
 
     public function test_no_index_o_parceiro_so_ve_o_seu_proprio_nif(): void
     {
+        $this->actingAs($this->parceiro)
+            ->getJson('/api/v1/partners?search=Parceiro Lda')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $this->idParceiro())
+            ->assertJsonPath('data.0.nif', '123456789');
+
         $lista = collect(
             $this->actingAs($this->parceiro)->getJson('/api/v1/partners?per_page=15')->assertOk()->json('data')
         );
-
-        $this->assertSame('123456789', $lista->firstWhere('id', $this->idParceiro())['nif']);
         $this->assertArrayNotHasKey('nif', $lista->firstWhere('id', '!=', $this->idParceiro()));
     }
 
@@ -295,9 +302,10 @@ class PartnerTest extends TestCase
 
         $this->assertSame($this->parceiro->id, $this->parceiro->partner->fresh()->user_id);
 
-        // continua a aparecer na lista
-        $lista = collect($this->actingAs($this->morador)->getJson('/api/v1/partners?per_page=15')->json('data'));
-        $this->assertTrue($lista->contains('id', $this->idParceiro()));
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=Parceiro Lda')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $this->idParceiro());
     }
 
     public function test_so_se_edita_um_perfil_de_parceiro_que_se_tem(): void

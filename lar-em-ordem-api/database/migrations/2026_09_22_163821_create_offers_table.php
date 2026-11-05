@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignUlid('partner_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->text('description');
-            $table->string('type');
+            $table->foreignId('offer_category_id')->constrained();
             $table->string('url')->nullable();
             $table->date('start_date');
             $table->date('end_date')->nullable();

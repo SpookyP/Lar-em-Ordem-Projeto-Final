@@ -5,11 +5,12 @@ namespace App\Http\Controllers\PartnerOffer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PartnerOffer\StoreOfferRequest;
 use App\Http\Requests\PartnerOffer\UpdateOfferRequest;
+use App\Http\Requests\PartnerOffer\IndexOfferRequest;
+use App\Http\Requests\PartnerOffer\RecommendedOfferRequest;
 use App\Http\Resources\PartnerOffer\OfferResource;
 use App\Models\Offer\Offer;
 use App\Services\PartnerOffer\OfferService;
 use App\Services\PartnerOffer\PartnerService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 
@@ -22,22 +23,18 @@ class OfferController extends Controller
     ) {}
 
     /**
-     * Lista as ofertas do parceiro autenticado (ativas e inativas).
-     * Permite filtrar por estado através do parâmetro 'active' no URL (ex: ?active=true).
+     * Lista as ofertas do parceiro autenticado, paginadas, com filtro opcional por estado
+     * (?status=current|scheduled|expired|inactive; sem status devolve todas).
      *
-     * @param \Illuminate\Http\Request $request O pedido HTTP com o filtro opcional.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas.
+     * @param IndexOfferRequest $request O pedido HTTP com o estado e o tamanho da página validados.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas (paginada).
      */
-    public function index(Request $request)
+    public function index(IndexOfferRequest $request)
     {
         $partner = $this->partnerService->getByUser($request->user());
 
-        $active = $request->has('active')
-            ? $request->boolean('active')
-            : null;
-
         return OfferResource::collection(
-            $this->service->listByPartner($partner, $active)
+            $this->service->listByPartner($partner, $request->integer('per_page', 5), $request->validated('status'))
         );
     }
 
@@ -106,14 +103,20 @@ class OfferController extends Controller
     }
 
     /**
-     * Devolve todas as ofertas ativas e dentro da validade.
+     * Devolve as ofertas em vigor de todos os parceiros, paginadas, com pesquisa e filtro por tipo,
+     * e o catálogo de tipos (para os filtros) no mesmo pedido.
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas globais.
+     * @param RecommendedOfferRequest $request O pedido HTTP com a pesquisa, o tipo e o tamanho da página validados.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas (paginada).
      */
-    public function listActiveOffers()
+    public function listActiveOffers(RecommendedOfferRequest $request)
     {
         return OfferResource::collection(
-            $this->service->listActiveOffers()
-        );
+            $this->service->listActiveOffers(
+                $request->integer('per_page', 5),
+                $request->validated('search'),
+                $request->integer('category_id') ?: null,
+            )
+        )->additional(['categories' => $this->service->categories()]);
     }
 }

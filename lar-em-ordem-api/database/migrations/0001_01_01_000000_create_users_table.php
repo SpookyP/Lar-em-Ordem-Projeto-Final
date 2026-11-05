@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->softDeletes();
+            $table->timestamp('anonymized_at')->nullable();
             $table->timestamps();
         });
 
