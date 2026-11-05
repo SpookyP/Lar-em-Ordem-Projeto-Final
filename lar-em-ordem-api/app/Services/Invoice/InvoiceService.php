@@ -6,6 +6,8 @@ use App\Models\Invoice\Invoice;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use App\Services\FileStorage\FileStorageService;
+use App\Models\File\File;
+use App\Models\User\Resident;
 
 class InvoiceService
 {
@@ -108,5 +110,20 @@ class InvoiceService
         }
 
         return $deleted;
+    }
+
+    /**
+     * Deletes every invoice of a resident and every invoice PDF they uploaded, saved or not
+     * (account erasure). Consumptions and their items go by cascade.
+     */
+    public function deleteAllForResident(Resident $resident): void
+    {
+        Invoice::where('resident_id', $resident->id)->delete();
+
+        File::where('user_id', $resident->user_id)
+            ->where('category', self::FILE_CATEGORY)
+            ->whereDoesntHave('invoice')
+            ->get()
+            ->each(fn (File $file) => $this->files->deleteFile($file));
     }
 }
