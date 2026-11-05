@@ -3,6 +3,7 @@
 namespace Database\Factories\Offer;
 
 use App\Models\Offer\Offer;
+use App\Models\Offer\OfferCategory;
 use App\Models\User\Partner;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -12,6 +13,19 @@ use Illuminate\Support\Str;
  */
 class OfferFactory extends Factory
 {
+    /** Área do catálogo (e da PartnerFactory) => tipo de oferta (OfferCategorySeeder). */
+    private const CATEGORY_OF = [
+        'Seguro'           => 'Seguros',
+        'Energia'          => 'Energia',
+        'Telecomunicações' => 'Telecomunicações',
+        'Manutenção'       => 'Manutenção e reparações',
+        'Limpeza'          => 'Limpeza',
+        'Mudanças'         => 'Mudanças e armazenamento',
+        'Segurança'        => 'Segurança',
+        'Decoração'        => 'Mobiliário e decoração',
+        'Desconto'         => 'Eletrodomésticos e equipamentos',
+    ];
+
     /**
      * Ofertas realistas para a casa (título, descrição e tipo coerentes).
      * {pct}, {meses} e {preco} são trocados por números ao gerar, para as ofertas não ficarem todas iguais.
@@ -36,7 +50,7 @@ class OfferFactory extends Factory
         ['type' => 'Seguro',           'title' => 'Assistência ao lar 24h incluída',                      'description' => 'Canalizador, eletricista e serralheiro ao domicílio em emergência, sem custos de deslocação.'],
         ['type' => 'Limpeza',          'title' => 'Pacote de {meses} limpezas com {pct}% de desconto',    'description' => 'Limpezas regulares da casa com equipa fixa e produtos incluídos.'],
         ['type' => 'Mudanças',         'title' => 'Guarda-móveis com {meses} meses grátis',               'description' => 'Armazenamento seguro dos seus bens durante a mudança, com seguro incluído.'],
-        ['type' => 'Desconto',         'title' => '{pct}% de desconto em mobiliário',                     'description' => 'Sofás, camas e armários com entrega e montagem ao domicílio.'],
+        ['type' => 'Desconto',         'category' => 'Mobiliário e decoração', 'title' => '{pct}% de desconto em mobiliário', 'description' => 'Sofás, camas e armários com entrega e montagem ao domicílio.'],
         ['type' => 'Telecomunicações', 'title' => '{pct}% de desconto nos primeiros {meses} meses',       'description' => 'Pacote de fibra e TV com canais premium, sem fidelização no primeiro ano.'],
         ['type' => 'Telecomunicações', 'title' => 'Router Wi-Fi 6 grátis na adesão',                      'description' => 'Melhore a cobertura da casa com um router de última geração sem custo adicional.'],
         ['type' => 'Manutenção',       'title' => '{pct}% de desconto na primeira intervenção',           'description' => 'Pequenas reparações de canalização, eletricidade e carpintaria, com orçamento prévio.'],
@@ -75,7 +89,7 @@ class OfferFactory extends Factory
     /**
      * Escolhe uma oferta da lista e troca {pct}, {meses} e {preco} por números.
      *
-     * @return array{title: string, description: string, type: string, url: string|null}
+     * @return array{title: string, description: string, offer_category_id: int, url: string|null}
      */
     private function fromCatalog(array $catalog): array
     {
@@ -90,11 +104,13 @@ class OfferFactory extends Factory
 
         $title = strtr($offer['title'], $values);
 
+        $category = $offer['category'] ?? self::CATEGORY_OF[$offer['type']] ?? 'Outros';
+
         return [
-            'title'       => $title,
-            'description' => strtr($offer['description'], $values),
-            'type'        => $offer['type'],
-            'url'         => fake()->optional()->passthrough('https://www.exemplo.pt/ofertas/' . Str::slug($title)),
+            'title'             => $title,
+            'description'       => strtr($offer['description'], $values),
+            'offer_category_id' => OfferCategory::firstOrCreate(['name' => $category])->id,
+            'url'               => fake()->optional()->passthrough('https://www.exemplo.pt/ofertas/' . Str::slug($title)),
         ];
     }
 

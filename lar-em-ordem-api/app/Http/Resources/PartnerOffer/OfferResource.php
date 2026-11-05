@@ -13,7 +13,10 @@ class OfferResource extends JsonResource
             'id'                 => $this->id,
             'title'              => $this->title,
             'description'        => $this->description,
-            'type'               => $this->type,
+            'category'           => $this->whenLoaded('category', fn () => [
+                'id'   => $this->category->id,
+                'name' => $this->category->name,
+            ]),
             'url'                => $this->url,
             'start_date'         => $this->start_date->toDateString(),
             'end_date'           => $this->end_date?->toDateString(),
