@@ -499,6 +499,68 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonPath('meta.per_page', 1)
             ->assertJsonPath('meta.total', 1);
     }
+
+    public function test_available_pesquisa_no_titulo_e_na_descricao(): void
+    {
+        // "Serviços Lda" só tem a "Fuga" disponível
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?search=fuga')
+            ->assertOk()
+            ->assertJsonPath('data.0.title', 'Fuga de água debaixo do lava-loiça');
+
+        // "armário" só existe na descrição
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?search=armário')
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?search=caldeira')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_available_filtra_pela_localizacao_da_casa(): void
+    {
+        // casa em Matosinhos (distrito do Porto)
+        foreach (['Matosinhos', 'Porto'] as $local) {
+            $this->actingAs($this->servicos)
+                ->getJson("/api/v1/assistance-requests/available?location={$local}")
+                ->assertOk()
+                ->assertJsonCount(1, 'data');
+        }
+
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?location=Lisboa')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_available_a_pesquisa_so_reduz_o_que_o_prestador_pode_ver(): void
+    {
+        // sem zonas vê todos os concelhos, mas o filtro de localização continua a aplicar-se
+        $this->servicos->service_provider->zones()->sync([]);
+
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?location=Lisboa')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+
+        // a "Tomada" (já com proposta dele) não aparece mesmo que a pesquisa lhe corresponda
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?search=tomada')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_a_pesquisa_de_disponiveis_tem_no_maximo_100_caracteres(): void
+    {
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?search=' . str_repeat('a', 101))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('search');
+    }
+    
     public function test_o_prestador_nao_ve_os_pedidos_que_abriu_como_residente(): void
     {
         // o "Serviçinhos Lda" (residente@example.com) também é residente: abre um pedido de eletricidade em Matosinhos

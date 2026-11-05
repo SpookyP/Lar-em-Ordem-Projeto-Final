@@ -4,7 +4,7 @@ namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ServiceProvider\IndexAssistanceRequestRequest;
-use App\Http\Requests\PerPageRequest;
+use App\Http\Requests\ServiceProvider\AvailableAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\StoreAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
@@ -106,19 +106,24 @@ class AssistanceRequestController extends Controller
 
     /**
      * Lista os pedidos abertos disponíveis para o prestador autenticado
-     * (da sua categoria e da sua zona).
+     * (das suas categorias e zonas), com pesquisa opcional por texto e localização.
      *
-     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
+     * @param AvailableAssistanceRequestRequest $request O pedido HTTP com a pesquisa e o tamanho da página validados.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos (paginada).
      */
-    public function available(PerPageRequest $request)
+    public function available(AvailableAssistanceRequestRequest $request)
     {
         Gate::authorize('viewAvailable', AssistanceRequest::class);
 
         $provider = $this->serviceProviderService->getByUser($request->user());
 
         return AssistanceRequestResource::collection(
-            $this->service->listAvailableFor($provider, $request->integer('per_page', 5))
+            $this->service->listAvailableFor(
+                $provider,
+                $request->integer('per_page', 5),
+                $request->validated('search'),
+                $request->validated('location'),
+            )
         );
     }
 }
