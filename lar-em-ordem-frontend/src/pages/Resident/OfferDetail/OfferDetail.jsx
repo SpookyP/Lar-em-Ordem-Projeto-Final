@@ -114,8 +114,8 @@ export default function OfferDetail() {
               </button>
 
               <div className="flex flex-wrap items-center gap-2 pr-8">
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-xs font-medium capitalize">
-                  <Tag size={14} /> {offer.type}
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+                  <Tag size={14} /> {offer.category?.name}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-teal px-3 py-1 text-xs font-medium text-white">
                   <span className="h-1.5 w-1.5 rounded-full bg-teal-light" />
