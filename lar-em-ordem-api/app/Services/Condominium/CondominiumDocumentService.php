@@ -7,6 +7,7 @@ use App\Models\Condominium\CondominiumDocument;
 use App\Models\Condominium\CondominiumDocumentCategory;
 use App\Services\FileStorage\FileStorageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
@@ -18,16 +19,22 @@ class CondominiumDocumentService
 
     public function __construct(private FileStorageService $fileStorage) {}
 
-    /**
+     /**
      * Documentos do condomínio, mais recentes primeiro, com filtro opcional por categoria.
+     * Sem condomínio (casa que não pertence a nenhum): página vazia, com o mesmo formato (links/meta).
      *
-     * @param Condominium $condominium Condomínio.
+     * @param Condominium|null $condominium Condomínio (null = casa sem condomínio).
      * @param int|null $categoryId Categoria (opcional).
      * @param int $perPage Número de documentos por página.
      * @return LengthAwarePaginator
      */
-    public function list(Condominium $condominium, ?int $categoryId = null, int $perPage = 5): LengthAwarePaginator
+    public function list(?Condominium $condominium, ?int $categoryId = null, int $perPage = 5): LengthAwarePaginator
     {
+        if (! $condominium) {
+            return (new Paginator([], 0, $perPage, null, ['path' => Paginator::resolveCurrentPath()]))
+                ->withQueryString();
+        }
+
         return $condominium->documents()
             ->with(['category', 'file'])
             ->when($categoryId, fn ($q) => $q->where('condominium_document_category_id', $categoryId))
@@ -37,7 +44,7 @@ class CondominiumDocumentService
             ->paginate($perPage)
             ->withQueryString();
     }
-
+    
     /**
      * Catálogo de categorias (para os filtros e para o formulário do administrador).
      *
