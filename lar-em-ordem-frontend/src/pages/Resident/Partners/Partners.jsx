@@ -9,8 +9,11 @@ import {
   Phone,
   Globe,
 } from "lucide-react";
-import { getPartners, getPartner } from "../../../services/api/partnerService";
+import { getPartner } from "../../../services/api/partnerService";
 import { toHref } from "../../../utils/url";
+import { usePartnersPage } from "../../../hooks/usePartnersPage";
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
+import { Pager } from "../../../components/ui/Pager";
 
 const PALETTE = [
   { bg: "bg-navy", shadow: "shadow-navy/30" },
@@ -21,33 +24,30 @@ const PALETTE = [
 ];
 
 export default function Partners() {
-  const [partners, setPartners] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebouncedValue(searchInput.trim());
+
+  const {
+    items: partners,
+    page,
+    totalPages,
+    loading,
+    error,
+    setPage,
+  } = usePartnersPage({ perPage: 12, search });
 
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [offersPage, setOffersPage] = useState(1);
 
   const location = useLocation();
 
-  useEffect(() => {
-    let active = true;
-    getPartners()
-      .then((data) => {
-        if (active) setPartners(data);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar os parceiros.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  function selectPartner(id) {
+    setSelectedId(id);
+    setOffersPage(1);
+    setDetail(null);
+  }
 
   useEffect(() => {
     if (!selectedId) {
@@ -56,7 +56,7 @@ export default function Partners() {
     }
     let active = true;
     setDetailLoading(true);
-    getPartner(selectedId)
+    getPartner(selectedId, { page: offersPage, perPage: 4 })
       .then((data) => {
         if (active) setDetail(data);
       })
@@ -69,22 +69,13 @@ export default function Partners() {
     return () => {
       active = false;
     };
-  }, [selectedId]);
+  }, [selectedId, offersPage]);
 
   const colored = useMemo(
     () =>
       partners.map((p, i) => ({ ...p, theme: PALETTE[i % PALETTE.length] })),
     [partners],
   );
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return colored;
-    return colored.filter(
-      (p) =>
-        p.companyName?.toLowerCase().includes(q) ||
-        p.description?.toLowerCase().includes(q),
-    );
-  }, [colored, query]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -95,30 +86,39 @@ export default function Partners() {
         </p>
       </div>
 
-      <div className="relative mt-8 lg:w-1/2">
-        <Search
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-        />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Procurar parceiro..."
-          className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-4 text-sm outline-none focus:border-navy"
+      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:w-1/2">
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+          />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Procurar parceiro..."
+            className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-4 text-sm outline-none focus:border-navy"
+          />
+        </div>
+
+        <Pager
+          page={page}
+          totalPages={totalPages}
+          onChange={setPage}
+          bordered={false}
         />
       </div>
 
       {error && <p className="text-sm text-red">{error}</p>}
 
-      {loading ? (
+      {loading && colored.length === 0 ? (
         <p className="text-sm text-muted">A carregar...</p>
       ) : (
         <div
           className={`grid gap-6 ${selectedId ? "lg:grid-cols-2" : "grid-cols-1"}`}
         >
           <div className={`min-w-0 ${selectedId ? "hidden lg:block" : ""}`}>
-            {filtered.length === 0 ? (
+            {colored.length === 0 ? (
               <p className="text-sm text-muted">Nenhum parceiro encontrado.</p>
             ) : (
               <div
@@ -128,10 +128,10 @@ export default function Partners() {
                     : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 }`}
               >
-                {filtered.map((p) => (
+                {colored.map((p) => (
                   <button
                     key={p.id}
-                    onClick={() => setSelectedId(p.id)}
+                    onClick={() => selectPartner(p.id)}
                     className={`group flex h-full flex-col gap-3 rounded-2xl border bg-card p-5 text-left shadow-md ${p.theme.shadow} transition hover:-translate-y-0.5 ${
                       selectedId === p.id
                         ? "border-navy ring-1 ring-navy"
@@ -162,7 +162,7 @@ export default function Partners() {
 
           {selectedId && (
             <div className="min-w-0">
-              {detailLoading ? (
+              {detailLoading && !detail ? (
                 <p className="text-sm text-muted">A carregar ofertas...</p>
               ) : !detail ? (
                 <p className="text-sm text-red">
@@ -176,6 +176,7 @@ export default function Partners() {
                   >
                     <ArrowLeft size={16} /> Voltar aos parceiros
                   </button>
+
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h2 className="font-display text-xl text-navy line-clamp-2">
@@ -252,6 +253,12 @@ export default function Partners() {
                       ))}
                     </div>
                   )}
+
+                  <Pager
+                    page={detail.offersPage}
+                    totalPages={detail.offersTotalPages}
+                    onChange={setOffersPage}
+                  />
                 </div>
               )}
             </div>
