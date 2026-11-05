@@ -51,11 +51,11 @@ class PdfExtractionService
      */
     public function extractInfo(string $absolutePath): array
     {
-        // Força explicitamente o caminho absoluto do .venv do teu projeto
+        // Usa o Python base do sistema
         $pythonBinary = '/usr/bin/python';
 
         if (!file_exists($pythonBinary)) {
-            throw new \RuntimeException('O executável Python do .venv não foi encontrado no caminho absoluto!');
+            $pythonBinary = 'python';
         }
 
         if (!file_exists($absolutePath)) {
@@ -69,16 +69,9 @@ class PdfExtractionService
             $absolutePath,
         ]);
 
-        // Força o Python a procurar nos diretórios globais e locais do utilizador hyper
-        $process->setEnv([
-            'PYTHONPATH' => '/usr/lib/python3.14/site-packages:/home/hyper/.local/lib/python3.14/site-packages',
-            'PATH' => '/usr/bin:/bin',
-        ]);
-
         $process->setTimeout(30);
         $process->run();
 
-        // Se falhar, vamos ver exatamente qual foi o erro devolvido
         if (!$process->isSuccessful()) {
             throw new \RuntimeException('PYTHON PATH USADO: ' . $pythonBinary . ' | ERRO: ' . $process->getErrorOutput());
         }
