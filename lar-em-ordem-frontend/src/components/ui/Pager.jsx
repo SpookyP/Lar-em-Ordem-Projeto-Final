@@ -1,10 +1,14 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export function Pager({ page, totalPages, onChange }) {
+export function Pager({ page, totalPages, onChange, bordered = true }) {
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between pt-3 border-t border-border/60 text-xs text-muted">
+    <div
+      className={`flex items-center justify-between gap-3 text-xs text-muted ${
+        bordered ? "pt-3 border-t border-border/60" : ""
+      }`}
+    >
       <span>
         Página <strong className="text-navy">{page}</strong> de{" "}
         <strong className="text-navy">{totalPages}</strong>

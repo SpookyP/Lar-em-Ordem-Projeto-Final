@@ -56,7 +56,7 @@ class OfferSeeder extends Seeder
 
         // Restantes parceiros: 1 a 3 ofertas em vigor cada, da área da empresa
         Partner::whereKeyNot($parceiro->id)->get()->each(
-            fn (Partner $partner) => Offer::factory(fake()->numberBetween(1, 3))
+            fn (Partner $partner) => Offer::factory(fake()->numberBetween(1, 6))
                 ->ofType(PartnerFactory::areaOf($partner->company_name))
                 ->create(['partner_id' => $partner->id])
         );
