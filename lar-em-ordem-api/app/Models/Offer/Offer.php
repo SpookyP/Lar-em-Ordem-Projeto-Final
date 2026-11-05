@@ -21,6 +21,11 @@ class Offer extends Model
         return $this->belongsTo(Partner::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(OfferCategory::class, 'offer_category_id');
+    }
+
     protected $attributes = [
         'active' => true,
     ];
@@ -29,7 +34,7 @@ class Offer extends Model
         'partner_id',
         'title',
         'description',
-        'type',
+        'offer_category_id',
         'url',
         'start_date',
         'end_date',
@@ -57,5 +62,26 @@ class Offer extends Model
             ->whereDate('start_date', '<=', $today)
             ->where(fn ($q) => $q->whereNull('end_date')->orWhereDate('end_date', '>=', $today))
             ->whereHas('partner');
+    }
+
+    /**
+     * Ofertas num estado (separadores das ofertas do parceiro). Os estados não se sobrepõem:
+     * inactive = pausada pelo parceiro (seja qual for a data); os outros são de ofertas ativas:
+     * scheduled = ainda não começou, expired = já terminou, current = em vigor.
+     *
+     * @param Builder $query Query a que se aplica o filtro.
+     * @param string $status current|scheduled|expired|inactive
+     * @return Builder
+     */
+    public function scopeStatus(Builder $query, string $status): Builder
+    {
+        $today = now()->toDateString();
+
+        return match ($status) {
+            'inactive'  => $query->where('active', false),
+            'scheduled' => $query->where('active', true)->whereDate('start_date', '>', $today),
+            'expired'   => $query->where('active', true)->whereNotNull('end_date')->whereDate('end_date', '<', $today),
+            'current'   => $query->current(),
+        };
     }
 }

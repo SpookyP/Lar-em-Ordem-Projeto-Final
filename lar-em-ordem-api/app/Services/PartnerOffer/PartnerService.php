@@ -126,6 +126,7 @@ class PartnerService
     {
         $offers = $partner->offers()
             ->current()
+            ->with('category')
             ->orderByDesc('start_date')
             ->orderByDesc('id')
             ->paginate($perPage)
