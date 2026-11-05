@@ -123,7 +123,9 @@ class ProfileService
     public function deleteAll(User $user): void
     {
         DB::transaction(function () use ($user) {
-            foreach (self::ROLES as $role) {
+            // reversed so condominium_admin (the only profile that can refuse) is checked
+            // before any other profile's data is erased
+            foreach (array_reverse(self::ROLES) as $role) {
                 if ($profile = $this->find($user, $role)) {
                     $this->matchDeleteProfile($role, $profile);
                 }

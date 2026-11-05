@@ -187,7 +187,7 @@ class ResidentDataErasureTest extends TestCase
 
     // ------------------------------------------------------------------ property
 
-    public function test_the_home_is_removed_and_its_address_overwritten(): void
+    public function test_the_property_is_removed_and_its_address_overwritten(): void
     {
         $this->deleteAccount()->assertOk();
 
