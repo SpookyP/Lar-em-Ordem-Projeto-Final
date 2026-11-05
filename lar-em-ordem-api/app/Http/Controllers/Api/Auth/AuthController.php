@@ -124,7 +124,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Soft-delete the authenticated user's account and end the session.
+     * Erases the authenticated user's account and end the session.
      */
     public function destroyAccount(Request $request, AccountErasureService $erasure): JsonResponse
     {

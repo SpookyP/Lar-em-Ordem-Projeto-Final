@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 use Tests\TestCase;
+use App\Models\File\File;
+use App\Services\Invoice\InvoiceService;
+use Illuminate\Support\Str;
 
 class InvoiceTest extends TestCase
 {
@@ -36,6 +39,9 @@ class InvoiceTest extends TestCase
         parent::setUp();
 
         Storage::fake('r2');
+
+        // the fake disk can't sign URLs like R2 does, so it returns a predictable one
+        Storage::disk('r2')->buildTemporaryUrlsUsing(fn (string $path) => "https://r2.test/{$path}");
 
         $user = $this->signIn(); 
         $this->resident = Resident::where('user_id', $user->id)->first() 
@@ -158,6 +164,19 @@ class InvoiceTest extends TestCase
     private function pdf(): UploadedFile
     {
         return UploadedFile::fake()->create('fatura.pdf', 100, 'application/pdf');
+    }
+
+    // an invoice PDF as /invoices/upload leaves it: a row in `files` and the object in R2
+    private function invoiceFile(User $owner): File
+    {
+        $file = File::factory()->create([
+            'user_id'  => $owner->id,
+            'category' => InvoiceService::FILE_CATEGORY,
+            'path'     => "users/{$owner->id}/invoices/" . Str::ulid() . '.pdf',
+        ]);
+        Storage::disk('r2')->put($file->path, 'pdf');
+
+        return $file;
     }
 
     // -------------------------------------------------------------------------
@@ -300,8 +319,11 @@ class InvoiceTest extends TestCase
 
         $fileId = $response->json('data.file_id');
         
-        // Validar que o ficheiro existe na pasta pending usando o id do user autenticado
-        $this->assertTrue(Storage::disk('r2')->exists("pending/{$user->id}/{$fileId}.pdf"));
+        // stored like any other user file: a row in `files` and the object in R2
+        $file = File::findOrFail($fileId);
+        $this->assertSame($user->id, $file->user_id);
+        $this->assertSame(InvoiceService::FILE_CATEGORY, $file->category);
+        Storage::disk('r2')->assertExists($file->path);
 
         // Criar fatura associando o file_id do upload
         $invoiceResponse = $this->postJson('/api/v1/invoices', $this->payload($this->property, ['file_id' => $fileId]))
@@ -313,6 +335,53 @@ class InvoiceTest extends TestCase
         // Obter URL temporário do ficheiro PDF
         $this->getJson("/api/v1/invoices/{$invoiceId}/file")
             ->assertOk()
-            ->assertJsonStructure(['data' => ['url']]);
+            ->assertJsonPath('data.url', "https://r2.test/{$file->path}");
+    }
+
+        public function test_an_invoice_cannot_use_a_file_uploaded_by_someone_else(): void
+    {
+        $someoneElsesFile = $this->invoiceFile(User::factory()->create());
+
+        $this->postJson('/api/v1/invoices', $this->payload($this->property, ['file_id' => $someoneElsesFile->id]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['file_id' => 'The invoice file is invalid or expired.']);
+    }
+
+    public function test_a_file_can_only_be_attached_to_one_invoice(): void
+    {
+        $file = $this->invoiceFile(auth()->user());
+
+        $this->postJson('/api/v1/invoices', $this->payload($this->property, ['file_id' => $file->id]))
+            ->assertCreated();
+
+        $this->postJson('/api/v1/invoices', $this->payload($this->property, [
+            'file_id'        => $file->id,
+            'invoice_number' => 'FT-0002',
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['file_id' => 'This invoice file is already attached to another invoice.']);
+    }
+
+    public function test_deleting_an_invoice_deletes_its_pdf(): void
+    {
+        $file = $this->invoiceFile(auth()->user());
+
+        $invoiceId = $this->postJson('/api/v1/invoices', $this->payload($this->property, ['file_id' => $file->id]))
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->deleteJson("/api/v1/invoices/{$invoiceId}")->assertOk();
+
+        $this->assertDatabaseMissing('files', ['id' => $file->id]);
+        Storage::disk('r2')->assertMissing($file->path);
+    }
+
+    public function test_an_invoice_without_a_pdf_has_no_file_url(): void
+    {
+        $invoiceId = $this->postJson('/api/v1/invoices', $this->payload($this->property))
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->getJson("/api/v1/invoices/{$invoiceId}/file")->assertNotFound();
     }
 }
