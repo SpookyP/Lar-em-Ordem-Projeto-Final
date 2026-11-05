@@ -97,6 +97,47 @@ class PartnerTest extends TestCase
         $this->assertArrayNotHasKey('nif', $lista->firstWhere('id', '!=', $this->idParceiro()));
     }
 
+    public function test_a_pesquisa_procura_no_nome_e_na_descricao_de_todos_os_parceiros(): void
+    {
+        // pelo nome, sem distinguir maiúsculas
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=PARCEIRO lda')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $this->idParceiro());
+
+        // pela descrição ("Empresa parceira de gestão imobiliária.")
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=imobili')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $this->idParceiro());
+
+        // procura em todos, não só na primeira página: com 1 por página continua a encontrá-lo
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=parceiro lda&per_page=1')
+            ->assertJsonPath('meta.total', 1);
+
+        // sem resultados
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=nao-existe-nada')
+            ->assertOk()
+            ->assertJsonCount(0, 'data')
+            ->assertJsonPath('meta.total', 0);
+
+        // pesquisa vazia = todos
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=&per_page=15')
+            ->assertJsonPath('meta.total', Partner::count());
+    }
+
+    public function test_a_pesquisa_tem_no_maximo_100_caracteres(): void
+    {
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=' . str_repeat('a', 101))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['search']);
+    }
+
     public function test_me_devolve_o_perfil_do_parceiro_autenticado_com_nif(): void
     {
         $this->actingAs($this->parceiro)

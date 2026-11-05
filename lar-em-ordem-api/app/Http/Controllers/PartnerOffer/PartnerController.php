@@ -5,6 +5,7 @@ namespace App\Http\Controllers\PartnerOffer;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PartnerOffer\PartnerResource;
 use App\Http\Requests\PerPageRequest;
+use App\Http\Requests\PartnerOffer\IndexPartnerRequest;
 use App\Models\User\Partner;
 use App\Services\PartnerOffer\PartnerService;
 use Illuminate\Http\Request;
@@ -13,15 +14,19 @@ class PartnerController extends Controller
 {
     public function __construct(private PartnerService $service) {}
 
-   /**
-     * Lista os parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor.
+    /**
+     * Lista os parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor;
+     * ?search= filtra pelo nome ou pela descrição.
      *
-     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
+     * @param IndexPartnerRequest $request Pedido validado (per_page, search).
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function index(PerPageRequest $request)
+    public function index(IndexPartnerRequest $request)
     {
-        return PartnerResource::collection($this->service->list($request->integer('per_page', 5)));
+        return PartnerResource::collection($this->service->list(
+            $request->integer('per_page', 5),
+            $request->validated('search'),
+        ));
     }
 
     /**
