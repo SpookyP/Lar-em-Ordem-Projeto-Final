@@ -8,12 +8,9 @@ use App\Http\Requests\Invoice\UploadInvoiceRequest;
 use App\Http\Resources\Invoice\InvoiceResource;
 use App\Services\Invoice\InvoiceExtractionService;
 use App\Services\Invoice\InvoiceService;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use App\Services\FileStorage\FileStorageService;
 
 class InvoiceController extends Controller
 {
@@ -28,7 +25,7 @@ class InvoiceController extends Controller
     {
         $resident = $request->user()->resident;
 
-        if (! $resident) {
+        if (!$resident) {
             abort(404, 'Resident profile not found.');
         }
 
@@ -50,7 +47,7 @@ class InvoiceController extends Controller
     {
         $resident = $request->user()->resident;
 
-        if (! $resident) {
+        if (!$resident) {
             abort(404, 'Resident profile not found.');
         }
 
@@ -59,34 +56,6 @@ class InvoiceController extends Controller
             invoiceData: $request->invoiceData(),
             consumptionsData: $request->consumptionsData()
         );
-
-        /*
-         * Move the PDF from pending to its permanent location.
-         */
-        if ($invoice->file_id) {
-            $disk = Storage::disk('r2');
-
-            $pendingPath = "pending/{$request->user()->id}/{$invoice->file_id}.pdf";
-            $finalPath = "invoices/{$resident->id}/{$invoice->file_id}.pdf";
-
-            if ($disk->exists($pendingPath)) {
-                $moved = $disk->move($pendingPath, $finalPath);
-
-                if (! $moved) {
-                    Log::error('Could not move invoice PDF from pending.', [
-                        'file_id' => $invoice->file_id,
-                        'pending_path' => $pendingPath,
-                        'final_path' => $finalPath,
-                    ]);
-                }
-            } elseif (! $disk->exists($finalPath)) {
-                Log::warning('Invoice PDF was not found in pending or final storage.', [
-                    'file_id' => $invoice->file_id,
-                    'pending_path' => $pendingPath,
-                    'final_path' => $finalPath,
-                ]);
-            }
-        }
 
         return InvoiceResource::make($invoice)
             ->additional([
@@ -103,7 +72,7 @@ class InvoiceController extends Controller
     {
         $resident = $request->user()->resident;
 
-        if (! $resident) {
+        if (!$resident) {
             abort(404, 'Resident profile not found.');
         }
 
@@ -122,7 +91,7 @@ class InvoiceController extends Controller
     {
         $resident = $request->user()->resident;
 
-        if (! $resident) {
+        if (!$resident) {
             abort(404, 'Resident profile not found.');
         }
 
@@ -141,24 +110,20 @@ class InvoiceController extends Controller
      */
     public function upload(
         UploadInvoiceRequest $request,
-        InvoiceExtractionService $extraction
+        InvoiceExtractionService $extraction,
+        FileStorageService $files
     ): JsonResponse {
-        $file = $request->file('file');
-        $fileId = (string) Str::ulid();
+        $uploaded = $request->file('file');
 
-        // Store the uploaded PDF temporarily.
-        $file->storeAs(
-            "pending/{$request->user()->id}",
-            "{$fileId}.pdf",
-            'r2'
-        );
+        // stored like every other user file (a row in `files`), so it is served and deleted the same way
+        $file = $files->uploadUserFile($request->user(), $uploaded, InvoiceService::FILE_CATEGORY);
 
-        // Extract data from the temporary uploaded file.
-        $extracted = $extraction->extract($file->getRealPath());
+        // Extract data from the uploaded file.
+        $extracted = $extraction->extract($uploaded->getRealPath());
 
         return response()->json([
             'data' => [
-                'file_id' => $fileId,
+                'file_id' => $file->id,
                 'extracted' => $extracted,
             ],
         ], 201);
@@ -167,11 +132,11 @@ class InvoiceController extends Controller
     /**
      * Generate a temporary URL for the invoice PDF.
      */
-    public function file(Request $request, string $invoiceId): JsonResponse
+    public function file(Request $request, string $invoiceId, FileStorageService $files): JsonResponse
     {
         $resident = $request->user()->resident;
 
-        if (! $resident) {
+        if (!$resident) {
             abort(404, 'Resident profile not found.');
         }
 
@@ -180,26 +145,11 @@ class InvoiceController extends Controller
             $resident->id
         );
 
-        abort_if(! $invoice->file_id, 404, 'This invoice has no file.');
-
-        $path = "invoices/{$invoice->resident_id}/{$invoice->file_id}.pdf";
-
-        $disk = Storage::disk('r2');
-
-        if ($disk instanceof \Illuminate\Support\Testing\Fakes\FilesystemFake) {
-            $url = "https://fakeserver.test/storage/{$path}";
-        } elseif ($disk instanceof FilesystemAdapter) {
-            $url = $disk->temporaryUrl(
-                $path,
-                now()->addMinutes(5)
-            );
-        } else {
-            abort(500, 'The R2 disk does not support temporary URLs.');
-        }
+        abort_if(!$invoice->file, 404, 'This invoice has no file.');
 
         return response()->json([
             'data' => [
-                'url' => $url,
+                'url' => $files->getSecureUrl($invoice->file, 5),
             ],
         ]);
     }

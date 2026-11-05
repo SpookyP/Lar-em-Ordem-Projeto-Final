@@ -3,11 +3,14 @@ namespace App\Services\Resident;
 
 use App\Models\User\Resident;
 use App\Models\User\User;
+use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Uid\Ulid;
 
 class ResidentService
 {
+    public function __construct(private PersonalDataEraser $eraser) {}
+
     #region CRUD
     #region Get Resident
     public function getResidentByUserId(Ulid $userId){
@@ -52,6 +55,7 @@ class ResidentService
     public function delete(Resident $resident): void
     {
         DB::transaction(function () use ($resident) {
+            $this->eraser->eraseResident($resident);
             $resident->delete();
             $resident->user->removeRole('resident');
         });

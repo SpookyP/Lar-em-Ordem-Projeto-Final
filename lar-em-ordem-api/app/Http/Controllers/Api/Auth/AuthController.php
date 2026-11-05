@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\Auth\ProfileService;
+use App\Services\Privacy\AccountErasureService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth as AuthFacade;
@@ -13,7 +14,6 @@ use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
-use Illuminate\Support\Facades\DB;
 
 
 class AuthController extends Controller
@@ -124,18 +124,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Soft-delete the authenticated user's account and end the session.
+     * Erases the authenticated user's account and end the session.
      */
-    public function destroyAccount(Request $request): JsonResponse
+    public function destroyAccount(Request $request, AccountErasureService $erasure): JsonResponse
     {
-        $user = $request->user();
-
-        // primeiro apaga os perfis e a conta, numa transação;
-        // se um módulo recusar (422), a conta fica intacta e a sessão continua
-        DB::transaction(function () use ($user) {
-            $this->profileService->deleteAll($user);
-            $user->delete();
-        });
+        // profiles emptied and the user anonymised in one transaction;
+        // if a module refuses (422) nothing changes and the session stays
+        $erasure->erase($request->user());
 
         AuthFacade::guard('web')->logout();
         $request->session()->invalidate();

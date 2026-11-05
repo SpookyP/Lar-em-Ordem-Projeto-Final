@@ -5,10 +5,14 @@ namespace App\Services\Invoice;
 use App\Models\Invoice\Invoice;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use App\Services\FileStorage\FileStorageService;
 
 class InvoiceService
 {
+    public const FILE_CATEGORY = 'invoices';
+
+    public function __construct(private FileStorageService $files) {}
+
     /**
      * Obter as faturas de um utilizador.
      */
@@ -43,63 +47,41 @@ class InvoiceService
     /**
      * Criar uma fatura e os respetivos consumos dentro de uma transação.
      */
-    public function createInvoiceWithConsumptions(string $residentId, array $invoiceData, array $consumptionsData): Invoice
+        public function createInvoiceWithConsumptions(string $residentId, array $invoiceData, array $consumptionsData): Invoice
     {
-        $fileId  = $invoiceData['file_id'] ?? null;
-        $pending = "pending/{$residentId}/{$fileId}.pdf";
-        $final   = "invoices/{$residentId}/{$fileId}.pdf";
+        // the PDF (if any) is already stored and validated by StoreInvoiceRequest: only its id is saved here
+        return DB::transaction(function () use ($residentId, $invoiceData, $consumptionsData) {
+            $invoiceData['resident_id'] = $residentId;
 
-        // Move o ficheiro de pending para a pasta definitiva de forma segura
-        if ($fileId) {
-            Storage::disk('r2')->makeDirectory("invoices/{$residentId}");
-            
-            if (Storage::disk('r2')->exists($pending)) {
-                Storage::disk('r2')->put($final, Storage::disk('r2')->get($pending));
-                Storage::disk('r2')->delete($pending);
-            }
-        }
+            $invoice = Invoice::create($invoiceData);
 
-        try {
-            return DB::transaction(function () use ($residentId, $invoiceData, $consumptionsData) {
-                $invoiceData['resident_id'] = $residentId;
+            if (!empty($consumptionsData)) {
+                foreach ($consumptionsData as $item) {
+                    $consumption = $invoice->consumptions()->create([
+                        'property_id'           => $invoice->property_id,
+                        'consumption_type_id'   => $item['consumption_type_id'],
+                        'period_start'          => $invoice->period_start,
+                        'period_end'            => $invoice->period_end,
+                        'amount'                => $item['amount'],
+                        'cost'                  => $item['cost'],
+                    ]);
 
-                $invoice = Invoice::create($invoiceData);
-
-                if (!empty($consumptionsData)) {
-                    foreach ($consumptionsData as $item) {
-                        $consumption = $invoice->consumptions()->create([
-                            'property_id'           => $invoice->property_id,
-                            'consumption_type_id'   => $item['consumption_type_id'],
-                            'period_start'          => $invoice->period_start,
-                            'period_end'            => $invoice->period_end,
-                            'amount'                => $item['amount'],
-                            'cost'                  => $item['cost'],
-                        ]);
-
-                        if (!empty($item['items'])) {
-                            foreach ($item['items'] as $subItem) {
-                                $consumption->items()->create([
-                                    'name'     => $subItem['name'],
-                                    'category' => $subItem['category'] ?? null,
-                                    'amount'   => $subItem['amount'] ?? null,
-                                    'unit'     => $subItem['unit'] ?? null,
-                                    'cost'     => $subItem['cost'],
-                                ]);
-                            }
+                    if (!empty($item['items'])) {
+                        foreach ($item['items'] as $subItem) {
+                            $consumption->items()->create([
+                                'name'     => $subItem['name'],
+                                'category' => $subItem['category'] ?? null,
+                                'amount'   => $subItem['amount'] ?? null,
+                                'unit'     => $subItem['unit'] ?? null,
+                                'cost'     => $subItem['cost'],
+                            ]);
                         }
                     }
                 }
-
-                return $invoice->load(['property', 'consumptions.consumptionType', 'consumptions.items']);
-            });
-        } catch (\Throwable $e) {
-            // Se falhar na BD, devolve o ficheiro para pending
-            if ($fileId && Storage::disk('r2')->exists($final)) {
-                Storage::disk('r2')->put($pending, Storage::disk('r2')->get($final));
-                Storage::disk('r2')->delete($final);
             }
-            throw $e;
-        }
+
+            return $invoice->load(['property', 'consumptions.consumptionType', 'consumptions.items']);
+        });
     }
 
     /**
@@ -108,6 +90,7 @@ class InvoiceService
     public function deleteInvoice(string  $invoiceId, string  $residentId): bool
     {
         $invoice = $this->getInvoiceById($invoiceId, $residentId);
+        $file = $invoice->file;
 
         $deleted = DB::transaction(function () use ($invoice) {
             $invoice->consumptions()->delete();
@@ -115,10 +98,10 @@ class InvoiceService
             return $invoice->delete();
         });
 
-        // Só depois de a BD confirmar: apagar o PDF do bucket
-        if ($deleted && $invoice->file_id) {
+        // only after the database confirms: remove the PDF (object in R2 and row in `files`)
+        if ($deleted && $file) {
             try {
-                Storage::disk('r2')->delete("invoices/{$residentId}/{$invoice->file_id}.pdf");
+                $this->files->deleteFile($file);
             } catch (\Throwable $e) {
                 report($e); // a fatura já foi apagada, não faz sentido devolver erro ao utilizador
             }

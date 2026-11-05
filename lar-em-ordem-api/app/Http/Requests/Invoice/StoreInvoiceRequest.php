@@ -4,7 +4,7 @@ namespace App\Http\Requests\Invoice;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Storage;
+use App\Services\Invoice\InvoiceService;
 use Illuminate\Validation\Rule;
 
 class StoreInvoiceRequest extends FormRequest
@@ -56,11 +56,14 @@ class StoreInvoiceRequest extends FormRequest
             'total_amount'                          =>      ['required', 'numeric', 'min:0'],
             'supplier'                              =>      ['required', 'string', 'max:255'],
 
-            'file_id' => ['bail', 'nullable', 'ulid', function ($attribute, $value, $fail) {
-                if (! Storage::disk('r2')->exists("pending/{$this->user()->id}/{$value}.pdf")) {
-                    $fail('The invoice file is invalid or expired.');
-                }
-            }],
+            // a PDF this user uploaded through /invoices/upload that no other invoice uses yet
+            'file_id' => [
+                'bail', 'nullable', 'ulid',
+                Rule::exists('files', 'id')
+                    ->where('user_id', $this->user()->id)
+                    ->where('category', InvoiceService::FILE_CATEGORY),
+                Rule::unique('invoices', 'file_id'),
+            ],
 
             // Consumos principais (no máximo 10 por fatura)
             'consumptions'                          =>      ['required', 'array', 'max:10'],
@@ -112,6 +115,8 @@ class StoreInvoiceRequest extends FormRequest
             'property_id.exists'        =>  'The selected property does not exist.',
             'invoice_number.unique'     =>  'This invoice number has already been registered.',
             'period_end.after_or_equal' =>  'The period end date must be equal to or after the start date.',
+            'file_id.exists'            =>  'The invoice file is invalid or expired.',
+            'file_id.unique'            =>  'This invoice file is already attached to another invoice.',
         ];
     }
 }
