@@ -172,6 +172,35 @@ class ProposalTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_as_propostas_do_prestador_filtram_por_estado(): void
+    {
+        // "Serviços Lda": Tomada (pendente), Sanita e Esquentador (aceites)
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/proposals/mine?status=pending')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.status', 'pending')
+            ->assertJsonPath('data.0.assistance_request.title', 'Tomada da sala sem corrente');
+
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/proposals/mine?status=accepted')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 2);
+
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/proposals/mine?status=withdrawn')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_o_estado_das_propostas_tem_de_ser_valido(): void
+    {
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/proposals/mine?status=open')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('status');
+    }
+
     public function test_so_prestadores_veem_as_suas_propostas(): void
     {
         $this->actingAs($this->morador)
