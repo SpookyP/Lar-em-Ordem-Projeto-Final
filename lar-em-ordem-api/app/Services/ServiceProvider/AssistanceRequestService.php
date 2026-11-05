@@ -40,14 +40,32 @@ class AssistanceRequestService
     
      /**
      * Devolve os pedidos disponíveis para um prestador, do mais recente para o mais antigo, paginados.
+     * A pesquisa aplica-se por cima do que o prestador já pode ver (availableFor).
      *
      * @param ServiceProviderModel $provider Prestador para quem se procuram pedidos.
      * @param int $perPage Número de pedidos por página.
+     * @param string|null $search Texto a procurar no título ou na descrição.
+     * @param string|null $location Texto a procurar na localidade, concelho ou distrito da casa.
      * @return LengthAwarePaginator
      */
-    public function listAvailableFor(ServiceProviderModel $provider, int $perPage = 5): LengthAwarePaginator
-    {
+    public function listAvailableFor(
+        ServiceProviderModel $provider,
+        int $perPage = 5,
+        ?string $search = null,
+        ?string $location = null,
+    ): LengthAwarePaginator {
+        
+        $search   = trim((string) $search);
+        $location = trim((string) $location);
+
         return AssistanceRequest::availableFor($provider)
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")))
+            ->when($location !== '', fn ($q) => $q->whereHas('property.address', fn ($a) => $a
+                ->where('location', 'like', "%{$location}%")
+                ->orWhere('county', 'like', "%{$location}%")
+                ->orWhere('district', 'like', "%{$location}%")))
             ->with(['property.address', 'problemCategory'])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
