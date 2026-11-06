@@ -4,54 +4,71 @@ namespace App\Http\Controllers\Api\Invoice;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\AnnualBenchmarkRequest;
+use App\Models\Property\Property;
 use App\Services\Invoice\BenchmarkService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class AnnualBenchmarkController extends Controller
 {
-    public function __construct(protected BenchmarkService $service) {}
+    public function __construct(protected BenchmarkService $service)
+    {
+    }
 
-    // Processa a requisição do endpoint de benchmark anual
+    /**
+     * Processa o pedido de benchmark anual.
+     */
     public function __invoke(AnnualBenchmarkRequest $request): JsonResponse
     {
         $data = $request->validated();
         $user = $request->user();
 
-        // Valida se o utilizador autenticado possui perfil de residente
-        $resident = \App\Models\User\Resident::where('user_id', $user->id)->first();
-        if (!$resident) {
-            abort(404, 'Resident not found.');
+        $resident = $user->resident;
+
+        if (! $resident) {
+            abort(404, 'Perfil de residente não encontrado.');
         }
 
-        // Obtém as propriedades ativas associadas ao residente
-        $properties = \App\Models\Property\Property::query()
+        Gate::authorize('viewAny', Property::class);
+
+        // Obtém as propriedades ativas associadas ao residente.
+        $properties = Property::query()
             ->whereHas('contracts', function ($query) use ($resident) {
                 $query->where('property_contracts.resident_id', $resident->id)
-                      ->where('property_contracts.is_active', true);
+                    ->where('property_contracts.is_active', true);
             })
-            ->when($data['property_id'] ?? null, fn ($q, $id) => $q->whereKey($id))
+            ->when(
+                $data['property_id'] ?? null,
+                fn ($q, $id) => $q->whereKey($id)
+            )
             ->get();
 
         if ($properties->isEmpty()) {
-            abort(404, 'Property not found.');
+            abort(404, 'Não foi encontrada nenhuma propriedade associada ao residente.');
         }
 
-        // Garante que é especificada apenas uma propriedade caso existam várias
+        // Exige a identificação da propriedade quando existem várias.
         if ($properties->count() > 1) {
             throw ValidationException::withMessages([
-                'property_id' => ['Please specify which property to compare.'],
+                'property_id' => [
+                    'Indique a propriedade que pretende comparar.',
+                ],
             ]);
         }
 
-        // Define a data de início para o ano solicitado
+        $property = $properties->first();
+
+        Gate::authorize('view', $property);
+
+        // Define a data de início para o ano solicitado.
         $start = Carbon::createFromFormat('!Y', (string) $data['year'])->startOfYear();
 
-        // Atribui o cálculo do benchmark anual ao serviço de suporte
+        // Calcula o benchmark anual.
         $result = $this->service->comparePeriod(
-            property: $properties->first(),
-            period: 'annual', 
+            property: $property,
+            period: 'annual',
             consumptionTypeId: (int) $data['consumption_type_id'],
             periodStart: $start
         );

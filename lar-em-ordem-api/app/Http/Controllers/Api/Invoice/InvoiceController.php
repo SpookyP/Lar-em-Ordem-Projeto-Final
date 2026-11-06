@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
 use App\Http\Requests\Invoice\UploadInvoiceRequest;
 use App\Http\Resources\Invoice\InvoiceResource;
+use App\Models\Invoice\Invoice;
 use App\Services\Invoice\InvoiceExtractionService;
 use App\Services\Invoice\InvoiceService;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
@@ -26,19 +28,20 @@ class InvoiceController extends Controller
      */
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'property_id' => ['nullable', 'string'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        Gate::authorize('viewAny', Invoice::class);
+
         $resident = $request->user()->resident;
 
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
-
         $invoices = $this->service->getInvoicesByResident(
-            residentId: $resident->id
+            residentId: $resident->id,
+            perPage: $validated['per_page'] ?? 15,
+            propertyId: $validated['property_id'] ?? null
         );
-
-        if ($invoices->currentPage() > $invoices->lastPage() && $invoices->lastPage() > 0) {
-            abort(404, 'Page out of bounds.');
-        }
 
         return InvoiceResource::collection($invoices);
     }
@@ -48,11 +51,9 @@ class InvoiceController extends Controller
      */
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
-        $resident = $request->user()->resident;
+        Gate::authorize('create', Invoice::class);
 
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
+        $resident = $request->user()->resident;
 
         $invoice = $this->service->createInvoiceWithConsumptions(
             residentId: $resident->id,
@@ -103,14 +104,14 @@ class InvoiceController extends Controller
     {
         $resident = $request->user()->resident;
 
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
+        Gate::authorize('viewAny', Invoice::class);
 
         $invoice = $this->service->getInvoiceById(
             invoiceId: $invoiceId,
             residentId: $resident->id
         );
+
+        Gate::authorize('view', $invoice);
 
         return InvoiceResource::make($invoice)->response();
     }
@@ -122,9 +123,14 @@ class InvoiceController extends Controller
     {
         $resident = $request->user()->resident;
 
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
+        Gate::authorize('viewAny', Invoice::class);
+
+        $invoice = $this->service->getInvoiceById(
+            invoiceId: $invoiceId,
+            residentId: $resident->id
+        );
+
+        Gate::authorize('delete', $invoice);
 
         $this->service->deleteInvoice(
             invoiceId: $invoiceId,
@@ -132,7 +138,7 @@ class InvoiceController extends Controller
         );
 
         return response()->json([
-            'message' => 'Invoice was successfully deleted',
+            'message' => 'Fatura eliminada com sucesso.',
         ], 200);
     }
 
@@ -143,6 +149,8 @@ class InvoiceController extends Controller
         UploadInvoiceRequest $request,
         InvoiceExtractionService $extraction
     ): JsonResponse {
+        Gate::authorize('create', Invoice::class);
+
         $file = $request->file('file');
         $fileId = (string) Str::ulid();
 
@@ -169,18 +177,18 @@ class InvoiceController extends Controller
      */
     public function file(Request $request, string $invoiceId): JsonResponse
     {
-        $resident = $request->user()->resident;
+        Gate::authorize('viewAny', Invoice::class);
 
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
+        $resident = $request->user()->resident;
 
         $invoice = $this->service->getInvoiceById(
             $invoiceId,
             $resident->id
         );
 
-        abort_if(! $invoice->file_id, 404, 'This invoice has no file.');
+        Gate::authorize('view', $invoice);
+
+        abort_if(! $invoice->file_id, 404, 'Esta fatura não tem um ficheiro associado.');
 
         $path = "invoices/{$invoice->resident_id}/{$invoice->file_id}.pdf";
 
@@ -194,7 +202,7 @@ class InvoiceController extends Controller
                 now()->addMinutes(5)
             );
         } else {
-            abort(500, 'The R2 disk does not support temporary URLs.');
+            abort(500, 'O armazenamento de ficheiros não suporta a criação de ligações temporárias.');
         }
 
         return response()->json([
