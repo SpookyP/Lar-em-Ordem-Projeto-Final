@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Droplet, Zap, Flame } from "lucide-react";
+import { SummaryCard } from "./SummaryCard";
 
-import { SummaryCard } from "../ui/SummaryCard";
-import axiosClient from "../../services/api/axiosClient";
-
-// Configuração dos cartões e das unidades de consumo.
+// Configuração visual e unidades de cada tipo de consumo.
 const CONSUMPTION_CONFIG = {
   1: {
     name: "Eletricidade",
@@ -26,135 +24,156 @@ const CONSUMPTION_CONFIG = {
   },
 };
 
-// Valores iniciais dos totais.
-const EMPTY_TOTALS = {
-  1: 0,
-  2: 0,
-  3: 0,
-};
+const EMPTY_TOTALS = { 1: 0, 2: 0, 3: 0 };
 
-// Obtém o ID do imóvel ativo.
-const getActivePropertyId = () => {
-  const storedHouse = localStorage.getItem("activeHouse");
-
-  if (!storedHouse) return null;
-
-  try {
-    const activeHouse = JSON.parse(storedHouse);
-    return activeHouse?.id ?? activeHouse ?? null;
-  } catch {
-    return storedHouse;
+// Converte valores numéricos, incluindo formatos decimais portugueses.
+function parseAmount(value) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
   }
-};
 
-export default function ConsumptionSummary() {
-  // Guarda os totais e o estado de carregamento.
-  const [totals, setTotals] = useState(EMPTY_TOTALS);
-  const [loading, setLoading] = useState(true);
+  if (value == null || value === "") return 0;
 
-  // Carrega os consumos do imóvel ativo.
-  useEffect(() => {
-    let cancelled = false;
+  let text = String(value).trim().replace(/\s/g, "");
 
-    const fetchConsumptions = async () => {
-      const propertyId = getActivePropertyId();
+  if (text.includes(",")) {
+    text = text.replace(/\./g, "").replace(",", ".");
+  }
 
-      if (!propertyId) {
-        setTotals(EMPTY_TOTALS);
-        setLoading(false);
-        return;
-      }
+  const amount = Number(text);
 
-      try {
-        setLoading(true);
+  return Number.isFinite(amount) ? amount : 0;
+}
 
-        const response = await axiosClient.get(
-          "/api/v1/consumptions",
-          {
-            params: {
-              property_id: propertyId,
-            },
-          }
+// Converte datas para objetos Date e rejeita valores inválidos.
+function parseDate(value) {
+  if (!value) return null;
+
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if (match) {
+      const [, year, month, day] = match;
+
+      return new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day)
+      );
+    }
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// Obtém a melhor data disponível para cada consumo.
+function getConsumptionDate(consumption, invoice) {
+  return (
+    consumption?.period_start ??
+    consumption?.period_end ??
+    invoice?.period_start ??
+    invoice?.period_end ??
+    consumption?.issue_date ??
+    invoice?.issue_date ??
+    consumption?.created_at ??
+    invoice?.created_at ??
+    null
+  );
+}
+
+// Determina a data inicial com base no período selecionado.
+function getPeriodStart(period) {
+  const now = new Date();
+
+  return new Date(
+    now.getFullYear(),
+    now.getMonth() - Number(period),
+    1
+  );
+}
+
+// Identifica o tipo de consumo através do ID ou do nome.
+function getConsumptionTypeId(consumption) {
+  const raw =
+    consumption?.consumption_type_id ??
+    consumption?.consumptionTypeId ??
+    consumption?.consumption_type?.id ??
+    consumption?.consumptionType?.id ??
+    consumption?.type_id ??
+    consumption?.type?.id;
+
+  const id = Number(raw);
+
+  if (EMPTY_TOTALS[id] !== undefined) return id;
+
+  const name = String(
+    consumption?.consumption_type?.name ??
+    consumption?.consumptionType?.name ??
+    consumption?.type?.name ??
+    consumption?.name ??
+    ""
+  ).toLowerCase();
+
+  if (name.includes("eletric") || name.includes("electric")) return 1;
+  if (name.includes("água") || name.includes("agua") || name.includes("water")) return 2;
+  if (name.includes("gás") || name.includes("gas")) return 3;
+
+  return null;
+}
+
+// Obtém a quantidade consumida, considerando os diferentes formatos da API.
+function getConsumptionAmount(consumption) {
+  return parseAmount(
+    consumption?.amount ??
+    consumption?.quantity ??
+    consumption?.consumption ??
+    0
+  );
+}
+
+export default function ConsumptionSummary({
+  period = 1,
+  invoices = [],
+  loading = false,
+  error = "",
+}) {
+  // Calcula os totais físicos de cada tipo de consumo no período selecionado.
+  const totals = useMemo(() => {
+    const newTotals = { ...EMPTY_TOTALS };
+
+    const startDate = getPeriodStart(period);
+    const endDate = new Date();
+
+    invoices.forEach((invoice) => {
+      const consumptions = Array.isArray(invoice?.consumptions)
+        ? invoice.consumptions
+        : [];
+
+      consumptions.forEach((consumption) => {
+        const date = parseDate(
+          getConsumptionDate(consumption, invoice)
         );
 
-        // Obtém a lista de consumos da resposta da API.
-        const consumptions =
-          response.data?.data ?? response.data;
+        // Ignora consumos sem data válida ou fora do período.
+        if (!date || date < startDate || date > endDate) return;
 
-        if (!Array.isArray(consumptions)) {
-          throw new Error("Formato de resposta da API inválido.");
-        }
+        const typeId = getConsumptionTypeId(consumption);
 
-        // Identifica o mês e ano atuais.
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
+        if (!typeId) return;
 
-        const newTotals = {
-          ...EMPTY_TOTALS,
-        };
+        newTotals[typeId] += getConsumptionAmount(consumption);
+      });
+    });
 
-        // Soma apenas os consumos do mês atual.
-        consumptions.forEach((consumption) => {
-          const dateValue =
-            consumption.date ||
-            consumption.issue_date ||
-            consumption.created_at;
+    return newTotals;
+  }, [invoices, period]);
 
-          if (!dateValue) return;
-
-          const date = new Date(dateValue);
-
-          if (Number.isNaN(date.getTime())) return;
-
-          if (
-            date.getMonth() !== currentMonth ||
-            date.getFullYear() !== currentYear
-          ) {
-            return;
-          }
-
-          const typeId = Number(
-            consumption.consumption_type_id
-          );
-
-          if (newTotals[typeId] === undefined) return;
-
-          const amount = Number(consumption.amount || 0);
-
-          if (Number.isFinite(amount)) {
-            newTotals[typeId] += amount;
-          }
-        });
-
-        if (!cancelled) {
-          setTotals(newTotals);
-        }
-      } catch (error) {
-        console.error(
-          "Erro ao carregar resumo dos consumos:",
-          error
-        );
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchConsumptions();
-
-    // Evita atualizações depois de desmontar o componente.
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Apresenta os três cartões de consumo.
-  const cards = [1, 2, 3];
-
+  // Apresenta os totais calculados nos cartões de cada utilidade.
   return (
     <>
-      {cards.map((typeId) => {
+      {[1, 2, 3].map((typeId) => {
         const config = CONSUMPTION_CONFIG[typeId];
         const Icon = config.icon;
 
@@ -166,11 +185,15 @@ export default function ConsumptionSummary() {
             value={
               loading
                 ? "..."
-                : `${totals[typeId].toLocaleString("pt-PT", {
-                    maximumFractionDigits: 2,
-                  })} ${config.unit}`
+                : error
+                  ? "—"
+                  : `${totals[typeId].toLocaleString("pt-PT", {
+                      maximumFractionDigits: 2,
+                    })} ${config.unit}`
             }
-            label={`${config.name} · este mês`}
+            label={`${config.name} · ${
+              period === 1 ? "1 mês" : `${period} meses`
+            }`}
           />
         );
       })}

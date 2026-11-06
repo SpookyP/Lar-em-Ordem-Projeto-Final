@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axiosClient from "../../services/api/axiosClient";
 import {
   Search,
@@ -16,10 +16,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-// Número de faturas por página.
 const PAGE_SIZE = 10;
 
-// Aspeto de cada serviço (nome, ícone e cores), indexado pelo ID do tipo de consumo.
+// Configuração visual dos tipos de serviço.
 const SERVICE_TYPES = {
   1: {
     name: "Eletricidade",
@@ -47,70 +46,81 @@ const SERVICE_TYPES = {
   },
 };
 
-// Devolve o ID da casa ativa guardada no localStorage (ou "" se não existir).
-function getPropertyId() {
-  try {
-    return JSON.parse(localStorage.getItem("activeHouse"))?.id || "";
-  } catch {
-    return "";
-  }
-}
-
-// Extrai o array de faturas da resposta, aceitando vários formatos possíveis da API.
-function getInvoices(response) {
-  const body = response?.data ?? response;
-  if (Array.isArray(body)) return body;
-  if (Array.isArray(body?.data)) return body.data;
-  if (Array.isArray(body?.invoices)) return body.invoices;
-  if (Array.isArray(body?.results)) return body.results;
-  if (Array.isArray(body?.data?.data)) return body.data.data;
-  return [];
-}
-
-// Lista de consumos de uma fatura (array vazio se não existir).
+// Obtém os consumos associados a uma fatura.
 function getConsumptions(invoice) {
-  return Array.isArray(invoice?.consumptions) ? invoice.consumptions : [];
+  return Array.isArray(invoice?.consumptions)
+    ? invoice.consumptions
+    : [];
 }
 
-// Descobre o tipo (1/2/3) de um consumo: primeiro pelo ID, depois pelo nome como alternativa.
+// Obtém os itens associados a um consumo.
+function getConsumptionItems(consumption) {
+  const possibleItems = [
+    consumption?.items,
+    consumption?.consumption_items,
+    consumption?.consumptionItems,
+    consumption?.details,
+    consumption?.lines,
+  ];
+
+  return (
+    possibleItems.find(
+      (items) => Array.isArray(items) && items.length > 0
+    ) ??
+    possibleItems.find(Array.isArray) ??
+    []
+  );
+}
+
+// Identifica o tipo de serviço associado ao consumo.
 function getTypeId(consumption) {
-  const id = consumption?.consumption_type_id ?? consumption?.consumption_type?.id;
+  const id =
+    consumption?.consumption_type_id ??
+    consumption?.consumption_type?.id;
+
   if (id && SERVICE_TYPES[id]) return Number(id);
 
   const name = String(
-    consumption?.consumption_type?.name ?? consumption?.type ?? ""
+    consumption?.consumption_type?.name ??
+    consumption?.type ??
+    ""
   ).toLowerCase();
 
   if (name.includes("eletric") || name.includes("electric")) return 1;
   if (name.includes("água") || name.includes("agua")) return 2;
   if (name.includes("gás") || name.includes("gas")) return 3;
+
   return null;
 }
 
-// Tipos distintos de serviço presentes numa fatura (sem repetidos).
+// Obtém os tipos de serviço existentes numa fatura, sem repetições.
 function getInvoiceTypes(invoice) {
   return [
     ...new Set(
-      getConsumptions(invoice)
-        .map(getTypeId)
-        .filter(Boolean)
+      getConsumptions(invoice).map(getTypeId).filter(Boolean)
     ),
   ];
 }
 
-// Converte qualquer valor para número, incluindo formato PT ("1.234,56 €"); inválido -> 0.
+// Converte valores numéricos, incluindo valores no formato português.
 function toNumber(value) {
   if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
   let normalized = String(value).replace(/[€\s]/g, "");
+
   if (normalized.includes(",")) {
     normalized = normalized.replace(/\./g, "").replace(",", ".");
   }
+
   const number = Number(normalized);
   return Number.isFinite(number) ? number : 0;
 }
 
-// Formata como moeda em euros (pt-PT).
+// Formata valores monetários em euros.
 function formatCurrency(value) {
   return new Intl.NumberFormat("pt-PT", {
     style: "currency",
@@ -118,18 +128,146 @@ function formatCurrency(value) {
   }).format(toNumber(value));
 }
 
-// Formata datas (AAAA-MM-DD) para o formato pt-PT; "—" se vazio.
+// Formata datas para apresentação em português.
 function formatDate(value) {
   if (!value) return "—";
-  const date = new Date(`${value}`.slice(0, 10) + "T00:00:00");
+
+  const dateString = String(value).slice(0, 10);
+  let date;
+
+  const isoMatch = dateString.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+  );
+
+  const ptMatch = dateString.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+  );
+
+  if (isoMatch) {
+    date = new Date(
+      Number(isoMatch[1]),
+      Number(isoMatch[2]) - 1,
+      Number(isoMatch[3])
+    );
+  } else if (ptMatch) {
+    date = new Date(
+      Number(ptMatch[3]),
+      Number(ptMatch[2]) - 1,
+      Number(ptMatch[1])
+    );
+  } else {
+    date = new Date(dateString);
+  }
+
   if (Number.isNaN(date.getTime())) return value;
+
   return new Intl.DateTimeFormat("pt-PT").format(date);
 }
 
-// Extrai o URL do PDF da resposta da API (vários formatos aceites).
+// Converte uma data para um índice mensal (ano * 12 + mês).
+function getMonthIndex(value) {
+  if (!value) return null;
+
+  const dateString = String(value).slice(0, 10);
+
+  let year;
+  let month;
+
+  const isoMatch = dateString.match(
+    /^(\d{4})-(\d{1,2})-\d{1,2}$/
+  );
+
+  const ptMatch = dateString.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+  );
+
+  if (isoMatch) {
+    year = Number(isoMatch[1]);
+    month = Number(isoMatch[2]);
+  } else if (ptMatch) {
+    year = Number(ptMatch[3]);
+    month = Number(ptMatch[2]);
+  } else {
+    return null;
+  }
+
+  if (month < 1 || month > 12) return null;
+
+  return year * 12 + month - 1;
+}
+
+// Pesquisa por ano ou mês/ano dentro do período da fatura.
+// Não utiliza issue_date nem os períodos individuais dos consumos.
+function matchesDateSearch(invoice, query) {
+  const normalizedQuery = query.trim().replace(/\s+/g, "");
+
+  if (!normalizedQuery) return true;
+
+  const startIndex = getMonthIndex(invoice?.period_start);
+  const endIndex = getMonthIndex(invoice?.period_end);
+
+  if (startIndex === null && endIndex === null) return false;
+
+  const periodStart =
+    startIndex !== null && endIndex !== null
+      ? Math.min(startIndex, endIndex)
+      : startIndex ?? endIndex;
+
+  const periodEnd =
+    startIndex !== null && endIndex !== null
+      ? Math.max(startIndex, endIndex)
+      : startIndex ?? endIndex;
+
+  // Pesquisa por ano: 2026.
+  if (/^\d{4}$/.test(normalizedQuery)) {
+    const year = Number(normalizedQuery);
+    const yearStart = year * 12;
+    const yearEnd = yearStart + 11;
+
+    return periodStart <= yearEnd && periodEnd >= yearStart;
+  }
+
+  // Pesquisa por mês/ano: 09/2026 ou 09-2026.
+  const monthYearMatch = normalizedQuery.match(
+    /^(\d{1,2})[/-](\d{4})$/
+  );
+
+  if (monthYearMatch) {
+    const month = Number(monthYearMatch[1]);
+    const year = Number(monthYearMatch[2]);
+
+    if (month < 1 || month > 12) return false;
+
+    const searchedIndex = year * 12 + month - 1;
+
+    return searchedIndex >= periodStart && searchedIndex <= periodEnd;
+  }
+
+  // Pesquisa por ano/mês: 2026-09 ou 2026/09.
+  const yearMonthMatch = normalizedQuery.match(
+    /^(\d{4})[/-](\d{1,2})$/
+  );
+
+  if (yearMonthMatch) {
+    const year = Number(yearMonthMatch[1]);
+    const month = Number(yearMonthMatch[2]);
+
+    if (month < 1 || month > 12) return false;
+
+    const searchedIndex = year * 12 + month - 1;
+
+    return searchedIndex >= periodStart && searchedIndex <= periodEnd;
+  }
+
+  return false;
+}
+
+// Obtém o URL do PDF a partir dos diferentes formatos de resposta da API.
 function getFileUrl(response) {
   const body = response?.data ?? response;
+
   if (typeof body === "string") return body;
+
   return (
     body?.url ??
     body?.file_url ??
@@ -141,7 +279,7 @@ function getFileUrl(response) {
   );
 }
 
-// Etiquetas coloridas com os serviços de uma fatura.
+// Apresenta os tipos de serviço associados a uma fatura.
 function InvoiceTypeBadge({ invoice }) {
   const types = getInvoiceTypes(invoice);
 
@@ -158,6 +296,7 @@ function InvoiceTypeBadge({ invoice }) {
       {types.map((id) => {
         const service = SERVICE_TYPES[id];
         const Icon = service.icon;
+
         return (
           <span
             key={id}
@@ -172,10 +311,13 @@ function InvoiceTypeBadge({ invoice }) {
   );
 }
 
-export default function InvoiceTable() {
-  const [invoices, setInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+export default function InvoiceTable({
+  invoices = [],
+  loading = false,
+  error = "",
+  onRefresh,
+}) {
+  // Estado da pesquisa, filtros, paginação e janelas de detalhes.
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -184,78 +326,30 @@ export default function InvoiceTable() {
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
 
-  // Vai buscar à API as faturas da casa ativa. Sem casa selecionada, mostra um aviso.
-  const fetchInvoices = useCallback(async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const propertyId = getPropertyId();
-
-      if (!propertyId) {
-        setInvoices([]);
-        return;
-      }
-
-      const firstResponse = await axiosClient.get("/api/v1/invoices", {
-        params: {
-          property_id: propertyId,
-          page: 1,
-        },
-      });
-
-      const firstBody = firstResponse.data;
-      let allInvoices = firstBody.data ?? [];
-
-      const lastPage = Number(firstBody.meta?.last_page ?? 1);
-
-      console.log("Total de páginas:", lastPage);
-
-      for (let page = 2; page <= lastPage; page++) {
-        const response = await axiosClient.get("/api/v1/invoices", {
-          params: {
-            property_id: propertyId,
-            page,
-          },
-        });
-
-        allInvoices = allInvoices.concat(response.data.data ?? []);
-      }
-
-      console.log("Total de faturas carregadas:", allInvoices.length);
-
-      setInvoices(allInvoices);
-
-    } catch (error) {
-      console.error("Erro ao carregar faturas:", error);
-      setError("Não foi possível carregar as faturas.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
-
-  // Aplica pesquisa (fornecedor / n.º da fatura) e filtro por tipo de serviço.
+  // Filtra as faturas pelo texto, período e tipo de serviço.
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {
       const query = search.trim().toLowerCase();
-      const matchesSearch =
-        String(invoice?.invoice_number ?? "").toLowerCase().includes(query) ||
-        String(invoice?.supplier ?? "").toLowerCase().includes(query);
 
+      const matchesText =
+        String(invoice?.invoice_number ?? "")
+          .toLowerCase()
+          .includes(query) ||
+        String(invoice?.supplier ?? "")
+          .toLowerCase()
+          .includes(query);
+
+      const matchesDate = matchesDateSearch(invoice, query);
       const types = getInvoiceTypes(invoice);
-      const matchesFilter =
-        filter === "all" ||
-        types.includes(Number(filter));
 
-      return matchesSearch && matchesFilter;
+      const matchesFilter =
+        filter === "all" || types.includes(Number(filter));
+
+      return (matchesText || matchesDate) && matchesFilter;
     });
   }, [invoices, search, filter]);
 
-  // Paginação feita no cliente.
+  // Calcula o número de páginas e prepara as faturas da página atual.
   const totalPages = Math.max(
     1,
     Math.ceil(filteredInvoices.length / PAGE_SIZE)
@@ -266,19 +360,25 @@ export default function InvoiceTable() {
     currentPage * PAGE_SIZE
   );
 
-  // Volta à página 1 sempre que a pesquisa ou o filtro mudam.
+  // Recomeça na primeira página e fecha janelas quando a listagem muda.
+  useEffect(() => {
+    setCurrentPage(1);
+    setSelectedInvoice(null);
+    setDeleteInvoice(null);
+    setDeleteConfirmed(false);
+  }, [invoices]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search, filter]);
 
-  // Evita ficar numa página que deixou de existir (ex.: após eliminar).
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
 
-  // Botões de filtro com contagem de faturas por tipo.
+  // Opções de filtro e respetivas quantidades.
   const filterOptions = [
     {
       label: "Todas",
@@ -315,17 +415,21 @@ export default function InvoiceTable() {
     },
   ];
 
-  // Pede à API os detalhes completos da fatura e abre o modal.
+  // Carrega os detalhes completos de uma fatura.
   const handleDetails = async (invoice) => {
     setActionLoading(`details-${invoice.id}`);
+
     try {
       const response = await axiosClient.get(
         `/api/v1/invoices/${invoice.id}`
       );
+
       const body = response?.data?.data ?? response?.data ?? response;
+
       setSelectedInvoice(body);
     } catch (err) {
       console.error("Erro ao consultar fatura:", err);
+
       alert(
         err?.response?.data?.message ||
         "Não foi possível carregar os detalhes da fatura."
@@ -335,7 +439,7 @@ export default function InvoiceTable() {
     }
   };
 
-  // Pede o URL do PDF e abre-o num novo separador (só se a fatura tiver ficheiro).
+  // Obtém e abre o PDF associado à fatura.
   const handleDownload = async (invoice) => {
     if (!invoice?.has_file) {
       alert("Esta fatura não tem nenhum PDF associado.");
@@ -348,13 +452,17 @@ export default function InvoiceTable() {
       const response = await axiosClient.get(
         `/api/v1/invoices/${invoice.id}/file`
       );
+
       const url = getFileUrl(response);
+
       if (!url) {
         throw new Error("O servidor não devolveu o URL do ficheiro.");
       }
+
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.error("Erro ao obter PDF:", err);
+
       alert(
         err?.response?.data?.message ||
         err.message ||
@@ -365,7 +473,7 @@ export default function InvoiceTable() {
     }
   };
 
-  // Fluxo de eliminação: abrir confirmação -> marcar checkbox -> confirmar.
+  // Abre e fecha a confirmação de eliminação.
   const openDeleteConfirmation = (invoice) => {
     setDeleteInvoice(invoice);
     setDeleteConfirmed(false);
@@ -373,14 +481,15 @@ export default function InvoiceTable() {
 
   const closeDeleteConfirmation = () => {
     if (actionLoading === "delete") return;
+
     setDeleteInvoice(null);
     setDeleteConfirmed(false);
   };
 
-  // Elimina a fatura na API e remove-a da lista local; avisa outros componentes
-  // (ex.: resumo/gráficos) através do evento "invoicesUpdated".
+  // Elimina a fatura depois da confirmação explícita.
   const confirmDelete = async () => {
     if (!deleteInvoice || !deleteConfirmed) return;
+
     setActionLoading("delete");
 
     try {
@@ -388,23 +497,22 @@ export default function InvoiceTable() {
         `/api/v1/invoices/${deleteInvoice.id}`
       );
 
-      setInvoices((current) =>
-        current.filter(
-          (item) => String(item.id) !== String(deleteInvoice.id)
-        )
-      );
-
-      if (
-        String(selectedInvoice?.id) === String(deleteInvoice.id)
-      ) {
+      if (String(selectedInvoice?.id) === String(deleteInvoice.id)) {
         setSelectedInvoice(null);
       }
 
       setDeleteInvoice(null);
       setDeleteConfirmed(false);
-      window.dispatchEvent(new Event("invoicesUpdated"));
+
+      // Atualiza os dados partilhados pelo hook.
+      if (onRefresh) {
+        onRefresh();
+      } else {
+        window.dispatchEvent(new Event("invoicesUpdated"));
+      }
     } catch (err) {
       console.error("Erro ao eliminar fatura:", err);
+
       alert(
         err?.response?.data?.message ||
         "Não foi possível eliminar a fatura."
@@ -414,15 +522,28 @@ export default function InvoiceTable() {
     }
   };
 
+  // Atualiza a listagem através do hook.
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      window.dispatchEvent(new Event("invoicesUpdated"));
+    }
+  };
+
   return (
     <>
-      <div className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" style={{ contain: "inline-size" }}>
-        {/* Cabeçalho */}
+      <div
+        className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+        style={{ contain: "inline-size" }}
+      >
+        {/* Cabeçalho da tabela e botão de atualização. */}
         <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
               Histórico de faturas
             </h2>
+
             <p className="mt-1 text-sm text-slate-500">
               {filteredInvoices.length}{" "}
               {filteredInvoices.length === 1
@@ -430,9 +551,10 @@ export default function InvoiceTable() {
                 : "faturas encontradas"}
             </p>
           </div>
+
           <button
             type="button"
-            onClick={fetchInvoices}
+            onClick={handleRefresh}
             disabled={loading}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
           >
@@ -444,12 +566,13 @@ export default function InvoiceTable() {
           </button>
         </div>
 
-        {/* Filtros */}
         <div className="w-full min-w-0 space-y-5 p-5">
+          {/* Filtros por tipo de serviço. */}
           <div className="flex min-w-0 flex-wrap gap-2">
             {filterOptions.map((item) => {
               const Icon = item.icon;
               const active = filter === item.value;
+
               return (
                 <button
                   key={item.value}
@@ -464,12 +587,12 @@ export default function InvoiceTable() {
                   <Icon
                     size={16}
                     className={
-                      active
-                        ? "text-white"
-                        : item.color || "text-slate-500"
+                      active ? "text-white" : item.color || "text-slate-500"
                     }
                   />
+
                   {item.label}
+
                   <span
                     className={`rounded-md px-1.5 py-0.5 text-xs ${
                       active
@@ -484,30 +607,31 @@ export default function InvoiceTable() {
             })}
           </div>
 
-          {/* Pesquisa */}
+          {/* Campo de pesquisa por fornecedor, número ou data. */}
           <div className="relative w-full min-w-0">
             <Search
               size={18}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
             />
+
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Pesquisar por fornecedor ou número da fatura..."
+              placeholder="Pesquisar por fornecedor, n.º da fatura ou data (ex.: 2026 ou 10/2025)..."
               className="block w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-100"
             />
           </div>
         </div>
 
+        {/* Mensagem de erro da listagem. */}
         {error && (
           <div className="mx-5 mb-4 min-w-0 rounded-xl bg-red-50 p-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
-        {/* Tabela */}
-        {/* Scroll horizontal próprio para a tabela não alargar a página em ecrãs pequenos */}
+        {/* Tabela de faturas com scroll horizontal em ecrãs pequenos. */}
         <div className="block w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -520,8 +644,8 @@ export default function InvoiceTable() {
                 <th className="px-5 py-4 text-right font-semibold">Ações</th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-slate-100">
-              {/* Três estados: a carregar / sem resultados / lista de faturas */}
               {loading ? (
                 <tr>
                   <td
@@ -533,10 +657,7 @@ export default function InvoiceTable() {
                 </tr>
               ) : paginatedInvoices.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="px-5 py-14 text-center"
-                  >
+                  <td colSpan="6" className="px-5 py-14 text-center">
                     <div className="flex flex-col items-center">
                       <div className="mb-3 rounded-full bg-slate-100 p-4">
                         <FileText
@@ -544,9 +665,11 @@ export default function InvoiceTable() {
                           className="text-slate-400"
                         />
                       </div>
+
                       <p className="font-semibold text-slate-700">
                         Nenhuma fatura encontrada
                       </p>
+
                       <p className="mt-1 text-sm text-slate-400">
                         Experimenta alterar os filtros ou a pesquisa.
                       </p>
@@ -562,12 +685,15 @@ export default function InvoiceTable() {
                     <td className="px-5 py-4">
                       <InvoiceTypeBadge invoice={invoice} />
                     </td>
+
                     <td className="px-5 py-4 font-semibold text-slate-700">
                       {invoice.invoice_number || "—"}
                     </td>
+
                     <td className="px-5 py-4 text-slate-600">
                       {invoice.supplier || "—"}
                     </td>
+
                     <td className="px-5 py-4 text-slate-600">
                       <div className="whitespace-nowrap">
                         {formatDate(invoice.period_start)}
@@ -575,9 +701,11 @@ export default function InvoiceTable() {
                         {formatDate(invoice.period_end)}
                       </div>
                     </td>
+
                     <td className="px-5 py-4 font-bold text-slate-900">
                       {formatCurrency(invoice.total_amount)}
                     </td>
+
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
@@ -589,6 +717,7 @@ export default function InvoiceTable() {
                         >
                           <Eye size={17} />
                         </button>
+
                         <button
                           type="button"
                           title="Abrir PDF"
@@ -600,6 +729,7 @@ export default function InvoiceTable() {
                         >
                           <Download size={17} />
                         </button>
+
                         <button
                           type="button"
                           title="Eliminar fatura"
@@ -618,7 +748,7 @@ export default function InvoiceTable() {
           </table>
         </div>
 
-        {/* Paginação */}
+        {/* Controlos de paginação. */}
         {!loading && filteredInvoices.length > 0 && (
           <div className="flex min-w-0 flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500">
@@ -639,6 +769,7 @@ export default function InvoiceTable() {
               </span>
               {" faturas"}
             </p>
+
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -651,9 +782,11 @@ export default function InvoiceTable() {
                 <ChevronLeft size={16} />
                 Anterior
               </button>
+
               <span className="min-w-[90px] text-center text-sm font-semibold text-slate-700">
                 Página {currentPage} / {totalPages}
               </span>
+
               <button
                 type="button"
                 onClick={() =>
@@ -672,7 +805,7 @@ export default function InvoiceTable() {
         )}
       </div>
 
-      {/* Modal de confirmação de eliminação */}
+      {/* Janela de confirmação de eliminação da fatura. */}
       {deleteInvoice && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
@@ -681,15 +814,18 @@ export default function InvoiceTable() {
                 <div className="rounded-xl bg-red-50 p-3 text-red-600">
                   <AlertTriangle size={23} />
                 </div>
+
                 <div>
                   <h3 className="text-lg font-bold text-slate-900">
                     Eliminar fatura
                   </h3>
+
                   <p className="mt-1 text-sm text-slate-500">
                     Confirma que pretendes continuar.
                   </p>
                 </div>
               </div>
+
               <button
                 type="button"
                 onClick={closeDeleteConfirmation}
@@ -699,20 +835,25 @@ export default function InvoiceTable() {
                 <X size={19} />
               </button>
             </div>
+
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm text-slate-500">
                 Fatura selecionada
               </p>
+
               <p className="mt-1 font-semibold text-slate-900">
                 {deleteInvoice.invoice_number || "Sem número"}
               </p>
+
               <p className="mt-1 text-sm text-slate-600">
                 {deleteInvoice.supplier || "Fornecedor não identificado"}
               </p>
+
               <p className="mt-2 font-bold text-slate-900">
                 {formatCurrency(deleteInvoice.total_amount)}
               </p>
             </div>
+
             <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-red-200 hover:bg-red-50/40">
               <input
                 type="checkbox"
@@ -723,11 +864,13 @@ export default function InvoiceTable() {
                 disabled={actionLoading === "delete"}
                 className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-red-600"
               />
+
               <span className="text-sm leading-5 text-slate-700">
                 Confirmo que quero eliminar esta fatura e compreendo que
                 esta ação não pode ser desfeita.
               </span>
             </label>
+
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
@@ -737,6 +880,7 @@ export default function InvoiceTable() {
               >
                 Cancelar
               </button>
+
               <button
                 type="button"
                 onClick={confirmDelete}
@@ -754,7 +898,7 @@ export default function InvoiceTable() {
         </div>
       )}
 
-      {/* Modal de detalhes: dados da fatura, consumos e respetivos itens */}
+      {/* Janela com os detalhes completos da fatura. */}
       {selectedInvoice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
           <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl">
@@ -763,10 +907,12 @@ export default function InvoiceTable() {
                 <h3 className="text-lg font-bold text-slate-900">
                   Detalhes da fatura
                 </h3>
+
                 <p className="mt-1 text-sm text-slate-500">
                   {selectedInvoice.invoice_number || "Fatura"}
                 </p>
               </div>
+
               <button
                 type="button"
                 onClick={() => setSelectedInvoice(null)}
@@ -775,7 +921,9 @@ export default function InvoiceTable() {
                 <X size={20} />
               </button>
             </div>
+
             <div className="w-full min-w-0 space-y-5 p-5">
+              {/* Informação principal da fatura. */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-xs text-slate-500">Fornecedor</p>
@@ -783,18 +931,25 @@ export default function InvoiceTable() {
                     {selectedInvoice.supplier || "—"}
                   </p>
                 </div>
+
                 <div>
-                  <p className="text-xs text-slate-500">Número da fatura</p>
+                  <p className="text-xs text-slate-500">
+                    Número da fatura
+                  </p>
                   <p className="mt-1 font-semibold text-slate-900">
                     {selectedInvoice.invoice_number || "—"}
                   </p>
                 </div>
+
                 <div>
-                  <p className="text-xs text-slate-500">Data de emissão</p>
+                  <p className="text-xs text-slate-500">
+                    Data de emissão
+                  </p>
                   <p className="mt-1 font-semibold text-slate-900">
                     {formatDate(selectedInvoice.issue_date)}
                   </p>
                 </div>
+
                 <div>
                   <p className="text-xs text-slate-500">Valor total</p>
                   <p className="mt-1 font-semibold text-slate-900">
@@ -802,10 +957,13 @@ export default function InvoiceTable() {
                   </p>
                 </div>
               </div>
+
+              {/* Consumos e respetivos itens associados à fatura. */}
               <div>
                 <h4 className="mb-3 font-semibold text-slate-900">
                   Consumos associados
                 </h4>
+
                 {getConsumptions(selectedInvoice).length === 0 ? (
                   <p className="text-sm text-slate-500">
                     Não existem consumos associados a esta fatura.
@@ -816,6 +974,8 @@ export default function InvoiceTable() {
                       const typeId = getTypeId(consumption);
                       const service = SERVICE_TYPES[typeId];
                       const Icon = service?.icon || FileText;
+                      const items = getConsumptionItems(consumption);
+
                       return (
                         <div
                           key={consumption.id}
@@ -823,17 +983,21 @@ export default function InvoiceTable() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
-                              <div className={`rounded-lg p-2 ${
-                                service?.background || "bg-slate-100"
-                              } ${
-                                service?.iconColor || "text-slate-600"
-                              }`}>
+                              <div
+                                className={`rounded-lg p-2 ${
+                                  service?.background || "bg-slate-100"
+                                } ${
+                                  service?.iconColor || "text-slate-600"
+                                }`}
+                              >
                                 <Icon size={17} />
                               </div>
+
                               <div>
                                 <p className="font-semibold text-slate-800">
                                   {service?.name || "Consumo"}
                                 </p>
+
                                 <p className="mt-1 text-xs text-slate-500">
                                   {formatDate(consumption.period_start)}
                                   {" — "}
@@ -841,33 +1005,36 @@ export default function InvoiceTable() {
                                 </p>
                               </div>
                             </div>
+
                             <p className="font-semibold text-slate-900">
                               {formatCurrency(consumption.cost)}
                             </p>
                           </div>
-                          {Array.isArray(consumption.items) &&
-                            consumption.items.length > 0 && (
-                              <div className="mt-3 border-t border-slate-100 pt-3">
-                                {consumption.items.map((item, index) => (
-                                  <div
-                                    key={item.id || index}
-                                    className="flex justify-between gap-3 py-1 text-sm"
-                                  >
-                                    <span className="text-slate-600">
-                                      {item.name || "Item"}
-                                      {item.amount != null && (
-                                        <span className="ml-1 text-xs text-slate-400">
-                                          ({item.amount} {item.unit || ""})
-                                        </span>
-                                      )}
-                                    </span>
-                                    <span className="font-medium text-slate-800">
-                                      {formatCurrency(item.cost)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+
+                          {items.length > 0 && (
+                            <div className="mt-3 border-t border-slate-100 pt-3">
+                              {items.map((item, index) => (
+                                <div
+                                  key={item.id || index}
+                                  className="flex justify-between gap-3 py-1 text-sm"
+                                >
+                                  <span className="text-slate-600">
+                                    {item.name || "Item"}
+
+                                    {item.amount != null && (
+                                      <span className="ml-1 text-xs text-slate-400">
+                                        ({item.amount} {item.unit || ""})
+                                      </span>
+                                    )}
+                                  </span>
+
+                                  <span className="font-medium text-slate-800">
+                                    {formatCurrency(item.cost)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
