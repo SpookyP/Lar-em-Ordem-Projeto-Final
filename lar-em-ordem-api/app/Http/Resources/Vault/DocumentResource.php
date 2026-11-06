@@ -16,14 +16,21 @@ class DocumentResource extends JsonResource
             'id' => $this->id,
             'property_id' => $this->property_id,
             'document_category_id' => $this->document_category_id,
+            'category' => $this->whenLoaded('category', fn () => [
+                'id' => $this->category->id,
+                'name' => $this->category->name,
+            ]),
             'name' => $this->name,
             'description' => $this->description,
             'file_id' => $this->file_id,
+            'has_file' => !is_null($this->file_id),
 
             // Formatação segura de datas
-            'issue_date' => $this->data_emissao ? $this->data_emissao->toIso8601String() : null,
-            'expiration_date' => $this->expiration_date ? $this->expiration_date->toIso8601String() : null,
-            'created_at' => $this->created_at->toIso8601String(),
+            'issue_date' => $this->issue_date ? (is_string($this->issue_date) ? $this->issue_date : $this->issue_date->format('Y-m-d')) : null,
+            'expiration_date' => $this->expiration_date ? (is_string($this->expiration_date) ? $this->expiration_date : $this->expiration_date->format('Y-m-d')) : null,
+
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

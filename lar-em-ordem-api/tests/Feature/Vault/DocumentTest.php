@@ -141,31 +141,30 @@ class DocumentTest extends TestCase
 
     public function test_authorized_user_can_download_document(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2');
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = DocumentCategory::factory()->create();
 
-        $fileName = 'contrato_arrendamento.pdf';
-
         $file = \App\Models\File\File::factory()->create([
-            'user_id' => $user->id
+            'user_id' => $user->id,
+            'path' => 'vault_documents/contrato_arrendamento.pdf',
         ]);
 
-        Storage::disk('local')->put("vault_documents/{$file->id}", 'conteudo falso do pdf');
+        Storage::disk('r2')->put($file->path, 'conteudo falso do pdf');
 
         $document = \App\Models\Vault\Document::create([
             'property_id' => $property->id,
             'document_category_id' => $category->id,
-            'name' => $fileName,
+            'name' => 'contrato_arrendamento.pdf',
             'description' => 'Contrato',
             'file_id' => $file->id,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
-            ->get("/api/v1/documents/{$document->id}/download");
+            ->getJson("/api/v1/documents/{$document->id}/download");
 
         $response->assertStatus(200)
-            ->assertDownload($fileName);
+            ->assertJsonStructure(['url']);
     }
 
     public function test_authorized_user_can_delete_document(): void
