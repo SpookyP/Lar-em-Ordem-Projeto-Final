@@ -23,7 +23,7 @@ export function OfferRow({ offer, index = 0 }) {
       <div className="min-w-0 flex-1">
         <h3 className="truncate font-medium text-navy">{offer.title}</h3>
         <p className="truncate text-sm text-muted">
-          <span className="capitalize">{offer.type}</span>
+          {offer.category?.name}
           {offer.partner && ` · com ${offer.partner.companyName}`}
           {offer.description && ` — ${offer.description}`}
         </p>
