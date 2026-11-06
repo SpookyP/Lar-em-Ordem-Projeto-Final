@@ -234,8 +234,8 @@ export default function Partners() {
                         >
                           <div className="min-w-0">
                             <div className="flex min-w-0 items-center gap-2">
-                              <span className="shrink-0 rounded-full bg-teal/15 px-2 py-0.5 text-[10px] font-medium capitalize text-teal">
-                                {offer.type}
+                              <span className="shrink-0 rounded-full bg-teal/15 px-2 py-0.5 text-[10px] font-medium text-teal">
+                                {offer.category?.name}
                               </span>
                               <h4 className="font-medium text-navy wrap-break-word">
                                 {offer.title}

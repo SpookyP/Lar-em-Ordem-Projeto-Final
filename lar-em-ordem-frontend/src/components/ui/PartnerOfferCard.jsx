@@ -20,8 +20,8 @@ export function PartnerOfferCard({ offer, index = 0 }) {
       />
 
       <div className="relative flex h-full flex-col gap-2">
-        <span className="inline-flex w-fit items-center rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-medium capitalize">
-          {offer.type}
+        <span className="inline-flex w-fit items-center rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-medium">
+          {offer.category?.name}
         </span>
 
         <h3 className="font-display text-xl leading-tight line-clamp-2 min-h-[2lh] wrap-break-word">

@@ -11,9 +11,9 @@ export function OfferRecommendations() {
 
   useEffect(() => {
     let active = true;
-    getRecommendations()
+    getRecommendations({ perPage: 4 })
       .then((data) => {
-        if (active) setOffers(data);
+        if (active) setOffers(data.items);
       })
       .catch(() => {
         if (active) setError("Não foi possível carregar as ofertas.");

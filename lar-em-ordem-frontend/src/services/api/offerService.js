@@ -1,4 +1,5 @@
 import axiosClient from "./axiosClient";
+import { cleanParams, toPage } from "./pagination";
 
 function toPartner(p) {
   if (!p) return null;
@@ -16,22 +17,29 @@ export function toOffer(o) {
     id: o.id,
     title: o.title,
     description: o.description,
-    type: o.type,
+    category: o.category ? { id: o.category.id, name: o.category.name } : null,
     url: o.url,
     startDate: o.start_date,
     endDate: o.end_date,
     active: o.active,
-    partner: toPartner(o.partner),
+    partner: o.partner ? toPartner(o.partner) : null,
   };
 }
 
-export async function getMyOffers(filter = "all") {
-  const params = {};
-  if (filter === "active") params.active = true;
-  if (filter === "inactive") params.active = false;
+export async function getOfferCategories() {
+  const response = await axiosClient.get("/api/v1/offer-categories");
+  return response.data.data;
+}
 
-  const response = await axiosClient.get("/api/v1/offers", { params });
-  return response.data.data.map(toOffer);
+export async function getMyOffers({ page = 1, perPage = 12, status } = {}) {
+  const response = await axiosClient.get("/api/v1/offers", {
+    params: cleanParams({
+      page,
+      per_page: perPage,
+      status: status || undefined,
+    }),
+  });
+  return toPage(response, toOffer);
 }
 
 export async function getOffer(id) {
@@ -57,7 +65,22 @@ export async function setOfferActive(id, active) {
   return updateOffer(id, { active });
 }
 
-export async function getRecommendations() {
-  const response = await axiosClient.get("/api/v1/offers/recommendations");
-  return response.data.data.map(toOffer);
+export async function getRecommendations({
+  page = 1,
+  perPage = 12,
+  search,
+  categoryId,
+} = {}) {
+  const response = await axiosClient.get("/api/v1/offers/recommendations", {
+    params: cleanParams({
+      page,
+      per_page: perPage,
+      search: search || undefined,
+      category_id: categoryId || undefined,
+    }),
+  });
+  return {
+    ...toPage(response, toOffer),
+    categories: response.data.categories ?? [],
+  };
 }
