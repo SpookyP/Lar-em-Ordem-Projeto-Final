@@ -1,54 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axiosClient from "../../services/api/axiosClient";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { fetchAllInvoices } from "../../services/api/invoiceService";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-// Configuração dos tipos de consumo e das respetivas cores.
 const UTILITIES = {
-  1: {
-    name: "Eletricidade",
-    color: "#1C3557",
-    colors: [
-      "#1C3557",
-      "#344D6C",
-      "#506885",
-      "#6C839F",
-      "#95A5B8",
-      "#778A9F",
-    ],
-  },
-  2: {
-    name: "Água",
-    color: "#0F766E",
-    colors: [
-      "#0F766E",
-      "#278881",
-      "#439B94",
-      "#76B2AE",
-      "#A0CBC7",
-    ],
-  },
-  3: {
-    name: "Gás",
-    color: "#EA580C",
-    colors: [
-      "#EA580C",
-      "#F2722B",
-      "#F89659",
-      "#FBC4A0",
-      "#FCE4D6",
-    ],
-  },
+  1: { name: "Eletricidade", color: "#1C3557" },
+  2: { name: "Água", color: "#0F766E" },
+  3: { name: "Gás", color: "#EA580C" },
 };
 
-const CREDIT_COLOR = "#059669";
-
-// Filtros disponíveis para o gráfico.
 const FILTERS = [
   { id: "all", label: "Geral" },
   { id: "1", label: "Eletricidade" },
@@ -56,7 +15,6 @@ const FILTERS = [
   { id: "3", label: "Gás" },
 ];
 
-// Tradução das categorias dos itens das faturas.
 const CATEGORY_LABELS = {
   consumption: "Consumo",
   fixed_fee: "Tarifa fixa",
@@ -64,7 +22,6 @@ const CATEGORY_LABELS = {
   other: "Outro",
 };
 
-// Formatação dos valores monetários e das quantidades.
 const money = new Intl.NumberFormat("pt-PT", {
   style: "currency",
   currency: "EUR",
@@ -74,38 +31,20 @@ const number = new Intl.NumberFormat("pt-PT", {
   maximumFractionDigits: 3,
 });
 
-// Converte valores recebidos da API para números válidos.
+// Converte valores numéricos, incluindo formatos decimais portugueses.
 function asNumber(value) {
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0;
-  }
-
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   if (value == null || value === "") return 0;
 
-  let text = String(value)
-    .trim()
-    .replace(/\s/g, "")
-    .replace(/[€]/g, "");
+  let text = String(value).trim().replace(/\s/g, "").replace(/[€]/g, "");
 
   if (text.includes(",")) {
     text = text.replace(/\./g, "").replace(",", ".");
   }
 
   const result = Number(text);
+
   return Number.isFinite(result) ? result : 0;
-}
-
-// Obtém a lista de faturas de diferentes formatos de resposta da API.
-function responseArray(response) {
-  const body = response?.data ?? response;
-
-  if (Array.isArray(body)) return body;
-  if (Array.isArray(body?.data)) return body.data;
-  if (Array.isArray(body?.invoices)) return body.invoices;
-  if (Array.isArray(body?.results)) return body.results;
-  if (Array.isArray(body?.data?.data)) return body.data.data;
-
-  return [];
 }
 
 // Identifica o tipo de consumo através do ID ou do nome.
@@ -131,23 +70,15 @@ function getTypeId(consumption) {
   ).toLowerCase();
 
   if (name.includes("eletric") || name.includes("electric")) return 1;
-
-  if (
-    name.includes("água") ||
-    name.includes("agua") ||
-    name.includes("water")
-  ) {
-    return 2;
-  }
-
+  if (name.includes("água") || name.includes("agua") || name.includes("water")) return 2;
   if (name.includes("gás") || name.includes("gas")) return 3;
 
   return null;
 }
 
-// Procura os itens detalhados associados a cada consumo.
+// Obtém a lista de itens disponíveis no consumo.
 function getItems(consumption) {
-  const possible = [
+  const itemLists = [
     consumption?.items,
     consumption?.consumption_items,
     consumption?.consumptionItems,
@@ -155,10 +86,14 @@ function getItems(consumption) {
     consumption?.lines,
   ];
 
-  return possible.find(Array.isArray) ?? [];
+  return (
+    itemLists.find((items) => Array.isArray(items) && items.length > 0) ??
+    itemLists.find(Array.isArray) ??
+    []
+  );
 }
 
-// Obtém o custo de uma linha individual da fatura.
+// Obtém o custo de cada item.
 function itemCost(item) {
   return asNumber(
     item?.cost ??
@@ -170,17 +105,11 @@ function itemCost(item) {
   );
 }
 
-// Obtém a quantidade de um item.
+// Obtém a quantidade e a unidade de cada item.
 function itemAmount(item) {
-  return asNumber(
-    item?.amount ??
-      item?.quantity ??
-      item?.consumption ??
-      0
-  );
+  return asNumber(item?.amount ?? item?.quantity ?? item?.consumption ?? 0);
 }
 
-// Obtém a unidade de medida de um item.
 function itemUnit(item) {
   return String(
     item?.unit ??
@@ -190,7 +119,7 @@ function itemUnit(item) {
   ).trim();
 }
 
-// Obtém o nome ou descrição de um item.
+// Obtém o nome do item, utilizando uma designação alternativa se necessário.
 function itemName(item, index) {
   return String(
     item?.name ??
@@ -202,7 +131,7 @@ function itemName(item, index) {
   ).trim();
 }
 
-// Constrói a descrição apresentada nos detalhes do gráfico.
+// Constrói a descrição com categoria, detalhes e quantidade.
 function itemDescription(item) {
   const description = String(
     item?.description ??
@@ -235,111 +164,180 @@ function itemDescription(item) {
     .join(" · ");
 }
 
-// Organiza os itens das faturas para serem apresentados no gráfico.
+// Normaliza os nomes para permitir agrupar itens equivalentes.
+function normalizeItemName(name) {
+  return String(name ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+// Transforma os consumos das faturas em itens e agrega itens equivalentes.
 function normalizeInvoices(invoices) {
   const result = [];
-  const itemIndexes = { 1: 0, 2: 0, 3: 0 };
 
-  invoices.forEach((invoice, invoiceIndex) => {
-    const consumptions =
-      invoice?.consumptions ??
-      invoice?.utilities ??
-      [];
+  (invoices ?? []).forEach((invoice, invoiceIndex) => {
+    const consumptions = invoice?.consumptions ?? invoice?.utilities ?? [];
 
     if (!Array.isArray(consumptions)) return;
 
+    const invoiceKey = String(invoice?.id ?? `invoice-${invoiceIndex}`);
+
     consumptions.forEach((consumption, consumptionIndex) => {
       const typeId = getTypeId(consumption);
+
       if (!typeId) return;
 
       const utility = UTILITIES[typeId];
       const items = getItems(consumption);
 
-      const invoiceLabel = String(
-        invoice?.invoice_number ??
-          invoice?.number ??
-          invoice?.reference ??
-          `Fatura ${invoiceIndex + 1}`
-      );
+      // Adiciona um item normalizado à lista de resultados.
+      const pushItem = (item, itemIndex, cost, fallback = false) => {
+        const amount = fallback
+          ? asNumber(consumption?.amount ?? consumption?.quantity)
+          : itemAmount(item);
 
-      // Se existem itens detalhados, cria uma fatia para cada item.
-      if (items.length > 0) {
-        items.forEach((item, itemIndex) => {
-          const cost = itemCost(item);
-          const colorIndex = itemIndexes[typeId]++;
+        const unit = fallback
+          ? itemUnit(consumption)
+          : itemUnit(item);
 
-          result.push({
-            id: [
-              invoice?.id ?? invoiceIndex,
-              consumption?.id ?? consumptionIndex,
-              item?.id ?? itemIndex,
-            ].join("-"),
-            typeId,
-            utility: utility.name,
-            color:
-              cost < 0
-                ? CREDIT_COLOR
-                : utility.colors[
-                    colorIndex % utility.colors.length
-                  ],
-            name: itemName(item, itemIndex),
-            description: itemDescription(item),
-            category: item?.category ?? "",
-            categoryLabel:
-              CATEGORY_LABELS[item?.category] ??
-              item?.category ??
-              "",
-            amount: itemAmount(item),
-            unit: itemUnit(item),
-            cost,
-            sliceValue: Math.abs(cost),
-            isCredit: cost < 0,
-            invoiceLabel,
-          });
+        result.push({
+          id: [
+            invoice?.id ?? invoiceIndex,
+            consumption?.id ?? consumptionIndex,
+            item?.id ?? itemIndex,
+          ].join("-"),
+          invoiceKey,
+          typeId,
+          utility: utility.name,
+          color: utility.color,
+          name: fallback
+            ? `${utility.name} — total`
+            : itemName(item, itemIndex),
+          description: fallback
+            ? (
+                amount !== 0
+                  ? `${number.format(amount)}${unit ? ` ${unit}` : ""} · Total do consumo`
+                  : "Total do consumo"
+              )
+            : itemDescription(item),
+          category: fallback ? "" : item?.category ?? "",
+          categoryLabel: fallback
+            ? ""
+            : CATEGORY_LABELS[item?.category] ?? item?.category ?? "",
+          amount,
+          unit,
+          cost,
+          sliceValue: Math.abs(cost),
+          isCredit: cost < 0,
         });
+      };
 
-        return;
+      // Utiliza os itens individuais ou o total do consumo como alternativa.
+      if (items.length) {
+        items.forEach((item, itemIndex) => {
+          pushItem(item, itemIndex, itemCost(item));
+        });
+      } else {
+        pushItem(
+          consumption,
+          0,
+          asNumber(
+            consumption?.cost ??
+              consumption?.total_cost ??
+              consumption?.totalCost ??
+              0
+          ),
+          true
+        );
       }
-
-      // Se não existem itens, utiliza o custo total do consumo.
-      const cost = asNumber(
-        consumption?.cost ??
-          consumption?.total_cost ??
-          consumption?.totalCost ??
-          0
-      );
-
-      const amount = asNumber(
-        consumption?.amount ?? consumption?.quantity
-      );
-
-      const unit = itemUnit(consumption);
-
-      result.push({
-        id: `${invoice?.id ?? invoiceIndex}-${consumptionIndex}-total`,
-        typeId,
-        utility: utility.name,
-        color: cost < 0 ? CREDIT_COLOR : utility.color,
-        name: `${utility.name} — total`,
-        description:
-          amount !== 0
-            ? `${number.format(amount)}${
-                unit ? ` ${unit}` : ""
-              } · Total do consumo`
-            : "Total do consumo",
-        category: "",
-        categoryLabel: "",
-        amount,
-        unit,
-        cost,
-        sliceValue: Math.abs(cost),
-        isCredit: cost < 0,
-        invoiceLabel,
-      });
     });
   });
 
-  return result;
+  // Agrupa itens com o mesmo tipo de serviço e nome normalizado.
+  const grouped = new Map();
+
+  result.forEach((item) => {
+    const key = `${item.typeId}-${normalizeItemName(item.name)}`;
+
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        ...item,
+        invoiceKeys: item.invoiceKey ? [item.invoiceKey] : [],
+        descriptions: item.description ? [item.description] : [],
+        categories: item.categoryLabel ? [item.categoryLabel] : [],
+      });
+
+      return;
+    }
+
+    const existing = grouped.get(key);
+
+    existing.cost += item.cost;
+    existing.amount += item.amount;
+
+    if (item.invoiceKey && !existing.invoiceKeys.includes(item.invoiceKey)) {
+      existing.invoiceKeys.push(item.invoiceKey);
+    }
+
+    if (item.description && !existing.descriptions.includes(item.description)) {
+      existing.descriptions.push(item.description);
+    }
+
+    if (item.categoryLabel && !existing.categories.includes(item.categoryLabel)) {
+      existing.categories.push(item.categoryLabel);
+    }
+  });
+
+  // Prepara os dados finais e ordena os itens por serviço e nome.
+  return Array.from(grouped.values())
+    .map((item) => {
+      const quantityText =
+        item.amount !== 0
+          ? `${number.format(item.amount)}${item.unit ? ` ${item.unit}` : ""}`
+          : "";
+
+      const descriptionParts = [
+        ...item.descriptions
+          .flatMap((description) => description.split(" · "))
+          .filter((part) => {
+            const value = part.trim().toLowerCase();
+
+            const isQuantity =
+              /^[\d.,]+\s(kwh|mwh|m3|m³|l|litros?|kw|kva)$/i.test(value);
+
+            const isTaxBase =
+              /^[\d.,]+\s(eur|€)\s+de\s+base$/i.test(value);
+
+            return !isQuantity && !isTaxBase;
+          }),
+        quantityText,
+      ]
+        .map((part) => String(part ?? "").trim())
+        .filter(Boolean)
+        .filter(
+          (part, index, array) =>
+            array.findIndex(
+              (value) => value.toLowerCase() === part.toLowerCase()
+            ) === index
+        );
+
+      const { invoiceKeys, ...groupedItem } = item;
+
+      return {
+        ...groupedItem,
+        id: `${item.typeId}-${normalizeItemName(item.name)}`,
+        sliceValue: Math.abs(item.cost),
+        isCredit: item.cost < 0,
+        description: descriptionParts.join(" · "),
+        invoiceCount: invoiceKeys.length,
+      };
+    })
+    .sort((a, b) =>
+      a.typeId !== b.typeId
+        ? a.typeId - b.typeId
+        : a.name.localeCompare(b.name, "pt-PT")
+    );
 }
 
 // Apresenta os detalhes do item selecionado no gráfico.
@@ -347,17 +345,14 @@ function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
 
   const item = payload[0]?.payload;
+
   if (!item) return null;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
-      <p className="font-semibold text-slate-800">
-        {item.name}
-      </p>
+      <p className="font-semibold text-slate-800">{item.name}</p>
 
-      <p className="mt-1 text-sm text-slate-500">
-        {item.utility}
-      </p>
+      <p className="mt-1 text-sm text-slate-500">{item.utility}</p>
 
       {item.description && (
         <p className="mt-2 max-w-64 text-xs text-slate-500">
@@ -367,18 +362,17 @@ function ChartTooltip({ active, payload }) {
 
       <p
         className={`mt-2 font-semibold ${
-          item.isCredit
-            ? "text-emerald-700"
-            : "text-slate-900"
+          item.isCredit ? "text-emerald-700" : "text-slate-900"
         }`}
       >
         {money.format(item.cost)}
         {item.isCredit ? " · Crédito" : ""}
       </p>
 
-      {item.invoiceLabel && (
-        <p className="mt-1 text-xs text-slate-400">
-          {item.invoiceLabel}
+      {item.invoiceCount > 0 && (
+        <p className="mt-1 max-w-64 text-xs text-slate-400">
+          Incluído em {item.invoiceCount}{" "}
+          {item.invoiceCount === 1 ? "fatura" : "faturas"}
         </p>
       )}
     </div>
@@ -389,17 +383,20 @@ export default function DetailedConsumptionChart({
   invoices: invoicesProp,
   propertyId,
   refreshKey = 0,
+  filter: filterProp,
+  onFilterChange,
 }) {
-  // Guarda as faturas, o estado de carregamento e os erros.
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Guarda o filtro e o item atualmente selecionado.
-  const [filter, setFilter] = useState("all");
+  const [internalFilter, setInternalFilter] = useState("all");
   const [activeItemId, setActiveItemId] = useState(null);
 
-  // Carrega as faturas ou utiliza os dados recebidos pela página.
+  // Permite utilizar o filtro controlado pelo componente pai ou internamente.
+  const controlled = filterProp !== undefined;
+  const filter = controlled ? String(filterProp) : internalFilter;
+
+  // Usa as faturas recebidas por props; mantém o Service como alternativa.
   useEffect(() => {
     let cancelled = false;
 
@@ -415,17 +412,10 @@ export default function DetailedConsumptionChart({
       setError("");
 
       try {
-        const response = await axiosClient.get(
-          "/api/v1/invoices",
-          {
-            params: propertyId
-              ? { property_id: propertyId }
-              : {},
-          }
-        );
+        const allInvoices = await fetchAllInvoices(propertyId);
 
         if (!cancelled) {
-          setInvoices(responseArray(response));
+          setInvoices(allInvoices);
         }
       } catch (err) {
         if (!cancelled) {
@@ -436,83 +426,84 @@ export default function DetailedConsumptionChart({
           );
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     load();
 
-    // Evita atualizações depois de desmontar o componente.
     return () => {
       cancelled = true;
     };
   }, [invoicesProp, propertyId, refreshKey]);
 
-  // Prepara os itens e filtra os resultados selecionados.
+  // Normaliza as faturas e prepara os itens que serão apresentados.
   const allItems = useMemo(
     () => normalizeInvoices(invoices),
     [invoices]
   );
 
+  // Aplica o filtro de serviço selecionado.
   const visibleItems = useMemo(
     () =>
       filter === "all"
         ? allItems
-        : allItems.filter(
-            (item) => String(item.typeId) === filter
-          ),
+        : allItems.filter((item) => String(item.typeId) === filter),
     [allItems, filter]
   );
 
-  // Calcula o total do filtro selecionado.
-  const total = visibleItems.reduce(
-    (sum, item) => sum + item.cost,
-    0
+  const total = visibleItems.reduce((sum, item) => sum + item.cost, 0);
+
+  // Prepara apenas os itens com valor absoluto positivo para o gráfico.
+  const chartItems = useMemo(
+    () =>
+      visibleItems
+        .filter((item) => item.sliceValue > 0)
+        .sort((a, b) =>
+          a.typeId !== b.typeId
+            ? a.typeId - b.typeId
+            : a.name.localeCompare(b.name, "pt-PT")
+        ),
+    [visibleItems]
   );
 
-  // Prepara os valores que serão desenhados no gráfico.
-  const chartItems = visibleItems.filter(
-    (item) => item.sliceValue > 0
-  );
-
-  // Agrupa os itens por tipo de consumo.
+  // Agrupa os itens por serviço para apresentar subtotais e listas.
   const groups = [1, 2, 3]
-    .filter(
-      (id) => filter === "all" || filter === String(id)
-    )
+    .filter((id) => filter === "all" || filter === String(id))
     .map((id) => ({
       id,
       ...UTILITIES[id],
-      items: visibleItems.filter(
-        (item) => item.typeId === id
-      ),
+      items: visibleItems.filter((item) => item.typeId === id),
     }))
     .filter((group) => group.items.length > 0);
 
-  // Obtém o item selecionado para apresentar no centro do gráfico.
   const selectedItem = visibleItems.find(
     (item) => item.id === activeItemId
   );
 
-  // Limpa a seleção caso o item deixe de existir nos dados visíveis.
+  // Limpa a seleção quando o item deixa de estar visível.
   useEffect(() => {
     if (
       activeItemId &&
-      !visibleItems.some(
-        (item) => item.id === activeItemId
-      )
+      !visibleItems.some((item) => item.id === activeItemId)
     ) {
       setActiveItemId(null);
     }
   }, [activeItemId, visibleItems]);
 
-  // Altera o filtro e limpa o item selecionado.
+  // Atualiza o filtro e limpa a seleção anterior.
   function selectFilter(id) {
-    setFilter(id);
+    if (!controlled) {
+      setInternalFilter(id);
+    }
+
+    onFilterChange?.(id);
     setActiveItemId(null);
   }
 
-  // Apresenta o estado de carregamento.
+  // Apresenta o estado de carregamento enquanto os dados são obtidos.
   if (loading) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
@@ -523,9 +514,10 @@ export default function DetailedConsumptionChart({
     );
   }
 
+  // Renderiza os filtros, o gráfico circular e os detalhes dos itens.
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      {/* Cabeçalho e filtros do gráfico. */}
+    <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      {/* Cabeçalho e filtros por tipo de consumo. */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
@@ -555,7 +547,6 @@ export default function DetailedConsumptionChart({
         </div>
       </div>
 
-      {/* Mensagem de erro da API. */}
       {error && (
         <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
           {error}
@@ -563,7 +554,6 @@ export default function DetailedConsumptionChart({
       )}
 
       {!visibleItems.length ? (
-        // Mensagem apresentada quando não existem itens.
         <div className="py-12 text-center">
           <p className="font-medium text-slate-700">
             Ainda não existem consumos para apresentar.
@@ -575,16 +565,13 @@ export default function DetailedConsumptionChart({
         </div>
       ) : (
         <>
-          <div className="mt-6 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
-            {/* Gráfico em anel e resumo dos totais. */}
+          {/* Gráfico circular e lista de serviços. */}
+          <div className="mt-6 grid w-full min-w-0 grid-cols-1 items-start gap-6 sm:gap-8 lg:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.15fr)]">
             <div className="min-w-0">
               <div className="relative h-[320px]">
                 {chartItems.length > 0 ? (
                   <>
-                    <ResponsiveContainer
-                      width="100%"
-                      height="100%"
-                    >
+                    <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
                           data={chartItems}
@@ -599,17 +586,23 @@ export default function DetailedConsumptionChart({
                           strokeWidth={2}
                           isAnimationActive={false}
                         >
-                          {chartItems.map((item) => (
-                            <Cell
-                              key={item.id}
-                              fill={item.color}
-                              stroke="#ffffff"
-                              strokeWidth={2}
-                            />
-                          ))}
+                          {chartItems.map((item) => {
+                            const active = activeItemId === item.id;
+
+                            return (
+                              <Cell
+                                key={item.id}
+                                fill={item.color}
+                                stroke={active ? "#0f172a" : "#ffffff"}
+                                strokeWidth={active ? 4 : 2}
+                                opacity={
+                                  activeItemId && !active ? 0.28 : 1
+                                }
+                              />
+                            );
+                          })}
                         </Pie>
 
-                        {/* Tooltip apresentado por cima do texto central. */}
                         <Tooltip
                           content={<ChartTooltip />}
                           wrapperStyle={{
@@ -620,51 +613,43 @@ export default function DetailedConsumptionChart({
                       </PieChart>
                     </ResponsiveContainer>
 
-                    {/* Texto central do gráfico. */}
+                    {/* Mostra o total ou os dados do item selecionado. */}
                     <div
-                      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-8 text-center"
-                      style={{
-                        zIndex: 1,
-                      }}
+                      className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                      style={{ zIndex: 1 }}
                     >
-                      {selectedItem ? (
-                        <>
-                          <span className="max-w-full text-xs text-slate-500">
-                            {selectedItem.name}
-                          </span>
+                      <div className="flex w-[150px] max-w-[46%] flex-col items-center text-center">
+                        {selectedItem ? (
+                          <>
+                            <span className="line-clamp-3 break-words text-xs leading-4 text-slate-500">
+                              {selectedItem.name}
+                            </span>
 
-                          <strong
-                            className={`mt-1 text-xl ${
-                              selectedItem.isCredit
-                                ? "text-emerald-700"
-                                : "text-slate-900"
-                            }`}
-                          >
-                            {money.format(selectedItem.cost)}
-                          </strong>
+                            <strong className="mt-1 text-xl text-slate-900">
+                              {money.format(selectedItem.cost)}
+                            </strong>
 
-                          <span className="mt-1 text-xs text-slate-500">
-                            {selectedItem.utility}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-sm text-slate-500">
-                            Total líquido
-                          </span>
+                            <span className="mt-1 text-xs text-slate-500">
+                              {selectedItem.utility}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-sm text-slate-500">
+                              Total líquido
+                            </span>
 
-                          <strong className="mt-1 text-2xl text-slate-900">
-                            {money.format(total)}
-                          </strong>
+                            <strong className="mt-1 text-2xl text-slate-900">
+                              {money.format(total)}
+                            </strong>
 
-                          <span className="mt-1 text-xs text-slate-500">
-                            {visibleItems.length}{" "}
-                            {visibleItems.length === 1
-                              ? "item"
-                              : "itens"}
-                          </span>
-                        </>
-                      )}
+                            <span className="mt-1 text-xs text-slate-500">
+                              {visibleItems.length}{" "}
+                              {visibleItems.length === 1 ? "item" : "itens"}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -674,7 +659,7 @@ export default function DetailedConsumptionChart({
                 )}
               </div>
 
-              {/* Resumo dos totais por serviço. */}
+              {/* Subtotais de cada serviço. */}
               <div className="mt-3 space-y-2">
                 {groups.map((group) => {
                   const groupTotal = group.items.reduce(
@@ -685,16 +670,13 @@ export default function DetailedConsumptionChart({
                   return (
                     <div
                       key={group.id}
-                      className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"
+                      className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2"
                     >
-                      <span className="flex items-center gap-2 text-sm text-slate-600">
+                      <span className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
                         <span
                           className="h-2.5 w-2.5 rounded-full"
-                          style={{
-                            backgroundColor: group.color,
-                          }}
+                          style={{ backgroundColor: group.color }}
                         />
-
                         {group.name}
                       </span>
 
@@ -711,17 +693,11 @@ export default function DetailedConsumptionChart({
                   );
                 })}
               </div>
-
-              <p className="mt-3 text-xs leading-5 text-slate-400">
-                Cada fatia representa uma linha de custo. Os créditos
-                são apresentados a verde e dimensionados pelo valor
-                absoluto, para manter o anel proporcional.
-              </p>
             </div>
 
-            {/* Lista detalhada dos itens com scroll. */}
+            {/* Painel lateral scrollável com os itens agrupados. */}
             <div className="min-w-0">
-              <div className="max-h-[420px] space-y-3 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable]">
+              <div className="max-h-[420px] min-w-0 space-y-3 overflow-y-auto overscroll-contain pr-1 sm:pr-2 [scrollbar-gutter:stable]">
                 {groups.map((group) => {
                   const groupTotal = group.items.reduce(
                     (sum, item) => sum + item.cost,
@@ -730,14 +706,11 @@ export default function DetailedConsumptionChart({
 
                   return (
                     <div key={group.id}>
-                      {/* Cabeçalho do grupo de consumo. */}
                       <div className="sticky top-0 z-10 mb-1 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/95 pb-1.5 pt-1 backdrop-blur-sm">
                         <div className="flex min-w-0 items-center gap-1.5">
                           <span
                             className="h-2.5 w-2.5 shrink-0 rounded-full"
-                            style={{
-                              backgroundColor: group.color,
-                            }}
+                            style={{ backgroundColor: group.color }}
                           />
 
                           <h3 className="truncate text-sm font-bold text-slate-900">
@@ -756,51 +729,52 @@ export default function DetailedConsumptionChart({
                         </strong>
                       </div>
 
-                      {/* Linhas individuais da fatura. */}
+                      {/* Apresenta cada item e permite destacar o respetivo setor. */}
                       <div className="space-y-0.5">
                         {group.items.map((item) => {
                           const active = activeItemId === item.id;
                           const dimmed =
                             activeItemId !== null && !active;
 
-                          const metadata = [
+                          const invoiceText =
+                            item.invoiceCount > 0
+                              ? `Incluído em ${item.invoiceCount} ${
+                                  item.invoiceCount === 1
+                                    ? "fatura"
+                                    : "faturas"
+                                }`
+                              : "";
+
+                          const metadataParts = [
                             item.categoryLabel,
-                            item.description,
-                            item.invoiceLabel
-                              ? `N.º ${item.invoiceLabel}`
-                              : "",
+                            ...String(item.description ?? "").split(" · "),
+                            invoiceText,
                           ]
-                            .map((value) =>
-                              String(value ?? "").trim()
-                            )
+                            .map((value) => String(value ?? "").trim())
                             .filter(Boolean)
                             .filter(
                               (value, index, array) =>
-                                array.indexOf(value) === index
-                            )
-                            .join(" · ");
+                                array.findIndex(
+                                  (other) =>
+                                    other.toLowerCase() === value.toLowerCase()
+                                ) === index
+                            );
+
+                          const metadata = metadataParts.join(" · ");
 
                           return (
                             <div
                               key={item.id}
-                              onMouseEnter={() =>
-                                setActiveItemId(item.id)
-                              }
-                              onMouseLeave={() =>
-                                setActiveItemId(null)
-                              }
+                              onMouseEnter={() => setActiveItemId(item.id)}
+                              onMouseLeave={() => setActiveItemId(null)}
                               className={`flex items-start gap-2 rounded-md px-2 py-1 transition ${
                                 active ? "bg-slate-50" : ""
                               }`}
-                              style={{
-                                opacity: dimmed ? 0.35 : 1,
-                              }}
+                              style={{ opacity: dimmed ? 0.35 : 1 }}
                             >
                               <span
                                 className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
-                                style={{
-                                  backgroundColor: item.color,
-                                }}
+                                style={{ backgroundColor: item.color }}
                               />
 
                               <div className="min-w-0 flex-1">
@@ -847,17 +821,15 @@ export default function DetailedConsumptionChart({
             </div>
           </div>
 
-          {/* Total final do filtro selecionado. */}
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+          {/* Total líquido correspondente ao filtro selecionado. */}
+          <div className="mt-5 flex flex-col items-start justify-between gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:gap-3">
             <span className="text-sm text-slate-500">
               Total líquido do filtro selecionado
             </span>
 
             <strong
               className={`text-lg ${
-                total < 0
-                  ? "text-emerald-700"
-                  : "text-slate-900"
+                total < 0 ? "text-emerald-700" : "text-slate-900"
               }`}
             >
               {money.format(total)}
