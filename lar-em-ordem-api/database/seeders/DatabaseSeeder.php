@@ -107,6 +107,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ServiceProviderSeeder::class,
             AssistanceRequestSeeder::class,
+            CondominiumSeeder::class,
             OfferSeeder::class,
         ]);
 

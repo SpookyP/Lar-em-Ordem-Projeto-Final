@@ -19,7 +19,7 @@ class CondominiumDocumentService
 
     public function __construct(private FileStorageService $fileStorage) {}
 
-     /**
+    /**
      * Documentos do condomínio, mais recentes primeiro, com filtro opcional por categoria.
      * Sem condomínio (casa que não pertence a nenhum): página vazia, com o mesmo formato (links/meta).
      *
@@ -44,7 +44,7 @@ class CondominiumDocumentService
             ->paginate($perPage)
             ->withQueryString();
     }
-    
+
     /**
      * Catálogo de categorias (para os filtros e para o formulário do administrador).
      *

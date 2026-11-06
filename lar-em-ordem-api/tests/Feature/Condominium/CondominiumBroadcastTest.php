@@ -3,8 +3,7 @@
 namespace Tests\Feature\Condominium;
 
 use App\Events\Condominium\CondominiumNoticeBroadcast;
-use App\Models\Condominium\CondominiumAdmin;
-use App\Models\ServiceProvider\AssistanceRequest;
+use App\Models\Condominium\Condominium;
 use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -31,24 +30,12 @@ class CondominiumBroadcastTest extends TestCase
 
         $this->withoutMiddleware(ThrottleRequests::class);
 
-        $this->morador = User::where('email', 'morador@example.com')->firstOrFail();
-        $this->casa = AssistanceRequest::where('title', 'Sanita entupida')->value('property_id');
-
-        $this->admin = User::factory()->create();
-        CondominiumAdmin::factory()->create(['user_id' => $this->admin->id]);
-        $this->admin->assignRole('condominium_admin');
-
-        $criado = $this->actingAs($this->admin)->postJson('/api/v1/condominiums', [
-            'name'    => 'Edifício Atlântico',
-            'address' => ['street' => 'Rua A', 'postal_code' => '4450-001', 'county' => 'Matosinhos', 'location' => 'Matosinhos', 'district' => 'Porto'],
-        ])->assertCreated();
-
-        $this->condominio = $criado->json('data.id');
-
-        $this->actingAs($this->morador)->postJson('/api/v1/condominiums/join', [
-            'invite_code' => $criado->json('data.invite_code'),
-            'property_id' => $this->casa,
-        ])->assertOk();
+        // CondominiumSeeder: a casa de Matosinhos do morador pertence ao "Edifício Brito Capelo"
+        $this->morador    = User::where('email', 'morador@example.com')->firstOrFail();
+        $this->admin      = User::where('email', 'condominio@example.com')->firstOrFail();
+        $condominio       = Condominium::where('name', 'Edifício Brito Capelo')->firstOrFail();
+        $this->condominio = $condominio->id;
+        $this->casa       = $condominio->properties()->value('id');
     }
 
     /** Pede autorização para o canal privado de uma casa, como o Echo faz. */
