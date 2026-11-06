@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 export function NotificationPanel({
                                       notifs,
+                                      error,
+                                      onClearError,
                                       onClose,
                                       onRead,
                                       onUnread,
@@ -38,6 +40,18 @@ export function NotificationPanel({
                     </button>
                 </div>
 
+                {/* BANNER DE ERRO */}
+                {error && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#FEF2F2", color: "#DC2626", padding: "8px 14px", fontSize: 11.5, borderBottom: "1px solid #FECACA" }}>
+                        <span>{error}</span>
+                        {onClearError && (
+                            <button onClick={onClearError} style={{ background: "none", border: "none", color: "#DC2626", fontWeight: 700, cursor: "pointer", marginLeft: 8 }}>
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 <div style={{ maxHeight: 340, overflowY: "auto" }}>
                     {visible.length === 0 && (
                         <p style={{ fontSize: 12, color: "#94A3B8", textAlign: "center", padding: "32px 16px", margin: 0 }}>
@@ -71,7 +85,6 @@ export function NotificationPanel({
                                         </button>
                                     )}
 
-                                    {/* LÓGICA READ / UNREAD */}
                                     {n.read ? (
                                         <button onClick={() => onUnread(n.id)} style={{ padding: 0, background: "none", border: "none", color: "#94A3B8", fontWeight: 500, fontSize: 11, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
                                             Marcar como não lido
@@ -82,7 +95,6 @@ export function NotificationPanel({
                                         </button>
                                     )}
 
-                                    {/* SNOOZE APENAS SE ESTIVER NÃO LIDA */}
                                     {!n.read && (
                                         <div style={{ position: 'relative' }}>
                                             <button
@@ -106,7 +118,6 @@ export function NotificationPanel({
                                         </div>
                                     )}
                                 </div>
-
                             </div>
                         </div>
                     ))}
