@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Show e Update de Documento&#10;Unread de Notificações">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_27_10_26,_17_59_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_27_10_26,_18_54_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_27_10_26__17_59__Changes_.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_27_10_26__18_54__Changes_.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_27_10_26,_17_59_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_27_10_26,_18_54_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_27_10_26__17_59__Changes_.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_27_10_26__18_54__Changes_.xml" beforeDir="false" />
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Atualizar o código do PdfExtractionService para container">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/PdfExtractionService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/PdfExtractionService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/DocumentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/DocumentController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Resources/Vault/DocumentResource.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Resources/Vault/DocumentResource.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/DocumentTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,61 +80,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0" />
-      <entry key="S60" value="1.0000000000000002" />
-      <entry key="M2" value="1.000000051458495" />
-      <entry key="M5" value="1.0066276457176075" />
-      <entry key="M10" value="1.3398584235942737" />
-      <entry key="M15" value="2.318399551074659" />
-      <entry key="M30" value="6.989291333812669" />
-      <entry key="H1" value="15.841261367101158" />
-      <entry key="H2" value="25.741648886640494" />
-      <entry key="H4" value="33.44835114483495" />
-      <entry key="D1" value="41.99962621552754" />
-      <entry key="W1" value="43.707627932952455" />
+      <entry key="MS100" value="1.3860417456426812" />
+      <entry key="MS500" value="2.5680607179594657" />
+      <entry key="S2" value="6.161230792686276" />
+      <entry key="S5" value="10.614906980936713" />
+      <entry key="S10" value="13.538262614725326" />
+      <entry key="S30" value="16.283155787853588" />
+      <entry key="S60" value="17.130290374145723" />
+      <entry key="M2" value="18.674957237811682" />
+      <entry key="M5" value="29.789956402992413" />
+      <entry key="M10" value="44.39579905857433" />
+      <entry key="M15" value="52.958855396824156" />
+      <entry key="M30" value="67.08005535197134" />
+      <entry key="H1" value="81.74331624987306" />
+      <entry key="H2" value="95.37514627953216" />
+      <entry key="H4" value="105.45639325586475" />
+      <entry key="D1" value="116.44446517538594" />
+      <entry key="W1" value="118.62671235106454" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="1.567137054839164E-204" />
-      <entry key="S10" value="1.2518534478281251E-102" />
-      <entry key="S30" value="1.0777494997232232E-34" />
-      <entry key="S60" value="1.0381471474329756E-17" />
-      <entry key="M2" value="3.22202909274337E-9" />
-      <entry key="M5" value="4.0111339115423143E-4" />
-      <entry key="M10" value="0.02014663701615848" />
-      <entry key="M15" value="0.0761697920219263" />
-      <entry key="M30" value="0.32077704545774016" />
-      <entry key="H1" value="0.7429556544690573" />
-      <entry key="H2" value="1.192880783975515" />
-      <entry key="H4" value="1.5359292963696154" />
-      <entry key="D1" value="1.9123935082252075" />
-      <entry key="W1" value="1.9872047495614087" />
+      <entry key="MS100" value="2.606400095719564E-27" />
+      <entry key="MS500" value="4.8217891634094506E-6" />
+      <entry key="S2" value="0.04685997517076928" />
+      <entry key="S5" value="0.29398205518118264" />
+      <entry key="S10" value="0.5422011206011867" />
+      <entry key="S30" value="0.8154304638402318" />
+      <entry key="S60" value="0.9036808036508271" />
+      <entry key="M2" value="0.9864752939112981" />
+      <entry key="M5" value="1.3807802302638987" />
+      <entry key="M10" value="1.89364176460686" />
+      <entry key="M15" value="2.206898451571625" />
+      <entry key="M30" value="2.7690430216821555" />
+      <entry key="H1" value="3.3937148446267167" />
+      <entry key="H2" value="3.98209628686543" />
+      <entry key="H4" value="4.4170083959485105" />
+      <entry key="D1" value="4.890112588378781" />
+      <entry key="W1" value="4.983951996159595" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="4.256419880219739E-5" />
-      <entry key="MS500" value="0.133600748901376" />
-      <entry key="S2" value="0.6045778379166807" />
-      <entry key="S5" value="0.8176753193896112" />
-      <entry key="S10" value="0.9042540126477799" />
-      <entry key="S30" value="0.9670081808446848" />
-      <entry key="S60" value="0.9833657411384054" />
-      <entry key="M2" value="0.9916480472212928" />
-      <entry key="M5" value="1.0036788337067124" />
-      <entry key="M10" value="1.358309596108709" />
-      <entry key="M15" value="2.3933907325132453" />
-      <entry key="M30" value="7.309290059839315" />
-      <entry key="H1" value="16.58357953095796" />
-      <entry key="H2" value="26.934053632982067" />
-      <entry key="H4" value="34.98397830759561" />
-      <entry key="D1" value="43.9119572387971" />
-      <entry key="W1" value="45.694823406510565" />
+      <entry key="MS100" value="1.3267925161160343" />
+      <entry key="MS500" value="2.5444414971147236" />
+      <entry key="S2" value="6.152832082252605" />
+      <entry key="S5" value="10.72743398696845" />
+      <entry key="S10" value="13.880887964716788" />
+      <entry key="S30" value="16.984293026168274" />
+      <entry key="S60" value="17.968395756467498" />
+      <entry key="M2" value="19.625413826330586" />
+      <entry key="M5" value="31.152127327141393" />
+      <entry key="M10" value="46.277607194240304" />
+      <entry key="M15" value="55.15691923672456" />
+      <entry key="M30" value="69.84393832038992" />
+      <entry key="H1" value="85.13404233521086" />
+      <entry key="H2" value="99.35554054753933" />
+      <entry key="H4" value="109.87247011528873" />
+      <entry key="D1" value="121.33440748001877" />
+      <entry key="W1" value="123.61063958919452" />
     </decayedShown>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/usr/local/bin/php">
@@ -308,11 +308,9 @@
     "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "hotfix/PdfExtractService",
-    "last_opened_file_path": "/home/hyper/ginasio",
+    "git-widget-placeholder": "hotfix/vault__code__review",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
-    "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.jshint": "",
     "node.js.selected.package.tslint": "(autodetect)",
@@ -361,8 +359,7 @@
       <workItem from="1791571050933" duration="2788000" />
       <workItem from="1792101295562" duration="1001000" />
       <workItem from="1793301640784" duration="9789000" />
-      <workItem from="1793822006001" duration="35000" />
-      <workItem from="1793909184260" duration="638000" />
+      <workItem from="1793992555747" duration="2823000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -468,23 +465,7 @@
       <option name="project" value="LOCAL" />
       <updated>1793646004941</updated>
     </task>
-    <task id="LOCAL-00014" summary="Show e Update de Documento&#10;Unread de Notificações">
-      <option name="closed" value="true" />
-      <created>1793730241019</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1793730241019</updated>
-    </task>
-    <task id="LOCAL-00015" summary="Show e Update de Documento&#10;Unread de Notificações">
-      <option name="closed" value="true" />
-      <created>1793730414372</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1793730414372</updated>
-    </task>
-    <option name="localTasksCounter" value="16" />
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -512,8 +493,7 @@
     <MESSAGE value="Hotfix Tests - namespace" />
     <MESSAGE value="EndPoints Notificações&#10;Seeder Categoria de Documento" />
     <MESSAGE value="implementa criacao manual de documentos, validação anti-duplicados e atualização testes" />
-    <MESSAGE value="Show e Update de Documento&#10;Unread de Notificações" />
-    <option name="LAST_COMMIT_MESSAGE" value="Show e Update de Documento&#10;Unread de Notificações" />
+    <option name="LAST_COMMIT_MESSAGE" value="implementa criacao manual de documentos, validação anti-duplicados e atualização testes" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

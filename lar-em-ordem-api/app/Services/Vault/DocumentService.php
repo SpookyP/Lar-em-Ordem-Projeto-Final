@@ -85,10 +85,8 @@ class DocumentService
             }
         }
 
-        // Apagar notificações do sino associadas a este documento
-        \App\Models\Vault\Notification::where('property_id', $document->property_id)
-            ->where('message', 'like', '%' . $document->name . '%')
-            ->delete();
+        // Apagar notificações pelo document_id
+        \App\Models\Vault\Notification::where('document_id', $document->id)->delete();
 
         // Apagar o próprio documento
         $document->delete();
@@ -117,15 +115,11 @@ class DocumentService
                 $user, $file, 'vault_documents', $documentName
             );
 
-            // Apaga o ficheiro físico ANTIGO do Cloudflare/Local e o registo BD
+            // Apaga o ficheiro antigo
             if ($document->file_id) {
                 $oldFileRecord = \App\Models\File\File::find($document->file_id);
                 if ($oldFileRecord) {
-                    $disk = config('filesystems.cloud', 'r2');
-                    if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($oldFileRecord->path)) {
-                        \Illuminate\Support\Facades\Storage::disk($disk)->delete($oldFileRecord->path);
-                    }
-                    $oldFileRecord->delete();
+                    $this->fileStorageService->deleteFile($oldFileRecord);
                 }
             }
 
@@ -136,10 +130,8 @@ class DocumentService
         $issueDate = $validatedData['issue_date'] ?? $extractedData['issue_date'] ?? $document->issue_date;
         $expirationDate = $validatedData['expiration_date'] ?? $extractedData['expiration_date'] ?? $document->expiration_date;
 
-        // Limpa todas as notificações associadas ao documento antigo
-        \App\Models\Vault\Notification::where('property_id', $document->property_id)
-            ->where('message', 'like', '%' . $document->name . '%')
-            ->delete();
+        // Limpa todas as notificações associadas ao documento antigo pelo ID
+        \App\Models\Vault\Notification::where('document_id', $document->id)->delete();
 
         // Atualiza o documento na Base de Dados
         $document->update([
