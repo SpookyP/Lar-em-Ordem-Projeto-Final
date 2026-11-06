@@ -11,6 +11,8 @@ export function NotificationBell() {
     const {
         notifications,
         unreadCount,
+        error,
+        clearError,
         markAsRead,
         markAsUnread,
         markAllAsRead,
@@ -35,6 +37,8 @@ export function NotificationBell() {
             {isOpen && (
                 <NotificationPanel
                     notifs={notifications}
+                    error={error}
+                    onClearError={clearError}
                     onClose={() => setIsOpen(false)}
                     onRead={markAsRead}
                     onUnread={markAsUnread}
