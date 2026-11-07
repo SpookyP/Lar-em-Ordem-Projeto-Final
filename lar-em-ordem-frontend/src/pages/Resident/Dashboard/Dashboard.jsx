@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Zap, FolderClosed } from "lucide-react";
 
@@ -5,6 +6,7 @@ import { ShortcutCard } from "../../../components/ui/ShortcutCard";
 import ConsumptionChart from "../../../components/ui/ConsumptionChart";
 import ConsumptionSummary from "../../../components/ui/ConsumptionSummary";
 import { NotificationBell } from "../../../components/ui/NotificationBell";
+import { OfferRecommendations } from "../../../components/ui/OfferRecommendations";
 import useInvoices from "../../../hooks/useInvoices";
 
 // Períodos disponíveis para consultar os consumos.
@@ -18,7 +20,7 @@ const periods = [
 export default function Dashboard() {
   const [period, setPeriod] = useState(1);
 
-  // Obtém as faturas através do hook centralizado.
+  // Obter as faturas através do hook centralizado.
   const {
     invoices,
     loading,
@@ -58,7 +60,7 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              {/* Em telemóveis, os períodos mantêm-se numa única linha. */}
+              {/* Seleção dos períodos, com scroll horizontal em ecrãs pequenos. */}
               <div className="flex w-full max-w-full overflow-x-auto rounded-full bg-surface p-1 sm:w-auto">
                 {periods.map((p) => (
                   <button
@@ -122,6 +124,11 @@ export default function Dashboard() {
             to="/consumos"
           />
         </div>
+      </div>
+
+      {/* Recomendações de ofertas disponíveis. */}
+      <div>
+        <OfferRecommendations />
       </div>
     </div>
   );

@@ -16,6 +16,9 @@ export function useNotifications() {
     const propertyId = activeHouse?.id;
 
     const [notifications, setNotifications] = useState([]);
+    const [error, setError] = useState(null);
+
+    const clearError = () => setError(null);
 
     const unreadCount = notifications.filter(n => !n.read && !n.snoozed).length;
 
@@ -25,6 +28,7 @@ export function useNotifications() {
         const loadNotifications = async () => {
             if (!propertyId) return;
             try {
+                setError(null);
                 const listRes = await axiosClient.get(`/api/v1/properties/${propertyId}/notifications`);
                 const snoozedData = JSON.parse(localStorage.getItem('snoozed_notifs') || '{}');
                 const now = new Date().getTime();
@@ -61,12 +65,13 @@ export function useNotifications() {
 
                 if (updatedSnoozes) localStorage.setItem('snoozed_notifs', JSON.stringify(snoozedData));
                 if (isMounted) setNotifications(formattedNotifs);
-            } catch (error) {
-                console.error("Erro ao carregar notificações:", error);
+            } catch (err) {
+                console.error("Erro ao carregar notificações:", err);
+                if (isMounted) setError("Não foi possível carregar as notificações.");
             }
         };
 
-        loadNotifications();
+        loadNotifications().catch(console.error);
 
         const interval = setInterval(() => {
             const snoozedData = JSON.parse(localStorage.getItem('snoozed_notifs') || '{}');
@@ -94,18 +99,42 @@ export function useNotifications() {
     }, [propertyId]);
 
     const markAsRead = async (id) => {
+        setError(null);
+        const previousNotifs = [...notifications];
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-        try { await axiosClient.patch(`/api/v1/notifications/${id}/read`); } catch (e) { console.error(e); }
+        try {
+            await axiosClient.patch(`/api/v1/notifications/${id}/read`);
+        } catch (error) {
+            console.error("Erro na API:", error);
+            setNotifications(previousNotifs);
+            setError("Erro ao marcar notificação como lida.");
+        }
     };
 
     const markAsUnread = async (id) => {
+        setError(null);
+        const previousNotifs = [...notifications];
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: false } : n));
-        try { await axiosClient.patch(`/api/v1/notifications/${id}/unread`); } catch (e) { console.error(e); }
+        try {
+            await axiosClient.patch(`/api/v1/notifications/${id}/unread`);
+        } catch (error) {
+            console.error("Erro na API:", error);
+            setNotifications(previousNotifs);
+            setError("Erro ao reverter estado da notificação.");
+        }
     };
 
     const markAllAsRead = async () => {
+        setError(null);
+        const previousNotifs = [...notifications];
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        try { await axiosClient.patch(`/api/v1/properties/${propertyId}/notifications/read-all`); } catch (e) { console.error(e); }
+        try {
+            await axiosClient.patch(`/api/v1/properties/${propertyId}/notifications/read-all`);
+        } catch (error) {
+            console.error("Erro na API:", error);
+            setNotifications(previousNotifs);
+            setError("Erro ao marcar todas as notificações como lidas.");
+        }
     };
 
     const snoozeNotification = (id, minutes) => {
@@ -117,9 +146,21 @@ export function useNotifications() {
     };
 
     const deleteNotification = async (id) => {
+        setError(null);
+        const previousNotifs = [...notifications];
         setNotifications(prev => prev.filter(n => n.id !== id));
-        try { await axiosClient.delete(`/api/v1/notifications/${id}`); } catch (e) { console.error(e); }
+        try {
+            await axiosClient.delete(`/api/v1/notifications/${id}`);
+        } catch (error) {
+            console.error("Erro na API:", error);
+            setNotifications(previousNotifs);
+            setError("Erro ao eliminar a notificação.");
+        }
     };
 
-    return { notifications, unreadCount, markAsRead, markAsUnread, markAllAsRead, snoozeNotification, deleteNotification };
+    // Exporta o error e clearError para a UI poder consumi-los
+    return {
+        notifications, unreadCount, error, clearError,
+        markAsRead, markAsUnread, markAllAsRead, snoozeNotification, deleteNotification
+    };
 }

@@ -24,7 +24,7 @@ class UpdateOfferRequest extends FormRequest
         return [
             'title'       => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
-            'type'        => 'sometimes|required|string|max:100',
+            'offer_category_id' => 'sometimes|required|integer|exists:offer_categories,id',
             'url'         => 'nullable|url|max:255',
             'start_date'  => 'sometimes|required|date',
             'end_date'    => 'nullable|date|after_or_equal:' . $startDate,
@@ -35,7 +35,9 @@ class UpdateOfferRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'end_date.after_or_equal' => 'A data de fim não pode ser anterior à data de início.',
+            'end_date.after_or_equal'    => 'A data de fim não pode ser anterior à data de início.',
+            'offer_category_id.required' => 'Escolha o tipo de oferta.',
+            'offer_category_id.exists'   => 'O tipo de oferta indicado não existe.',
         ];
     }
 }

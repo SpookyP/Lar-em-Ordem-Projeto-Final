@@ -19,7 +19,7 @@ use App\Http\Requests\PerPageRequest;
 
 class CondominiumController extends Controller
 {
-     public function __construct(
+    public function __construct(
         private CondominiumService $service,
         private CondominiumAdminService $adminService,
         private CondominiumNoticeService $noticeService,

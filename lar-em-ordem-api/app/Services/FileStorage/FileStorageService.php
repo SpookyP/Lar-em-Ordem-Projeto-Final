@@ -8,6 +8,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class FileStorageService
 {
@@ -53,11 +54,17 @@ class FileStorageService
     }
 
     /**
-     * Elimina o ficheiro do R2 e o registo da BD.
+     * Delete file from R2 and the database.
+     * Inside a transaction the object is removed only after the commit, so a rollback
+     * never leaves a row pointing at a file that is already gone.
      */
     public function deleteFile(File $file): bool
     {
-        Storage::disk($this->disk)->delete($file->path);
-        return $file->delete();
+        $path = $file->path;
+        $deleted = $file->delete();
+
+        DB::afterCommit(fn () => Storage::disk($this->disk)->delete($path));
+
+        return $deleted;
     }
 }

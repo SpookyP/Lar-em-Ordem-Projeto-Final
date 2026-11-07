@@ -149,8 +149,9 @@ class CondominiumNoticeService
             ->orderByDesc('id')
             ->get();
     }
-/**
-     * "Marcar tudo como lido no "sino": todos os avisos em vigor que o residente ainda não viu.
+
+    /**
+     * Marcar tudo como lido no "sino": todos os avisos em vigor que o residente ainda não viu.
      *
      * @param Condominium $condominium Condomínio da casa ativa.
      * @param User $user Residente autenticado.
@@ -208,8 +209,8 @@ class CondominiumNoticeService
     }
 
     /**
-    * Avisa os residentes do condomínio: email + tempo real (canal de cada casa).
-    */
+     * Avisa os residentes do condomínio: email + tempo real (canal de cada casa).
+     */
     private function notifyResidents(CondominiumNotice $notice, bool $updated = false): void
     {
         Notification::send(

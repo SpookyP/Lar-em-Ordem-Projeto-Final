@@ -4,11 +4,14 @@ namespace App\Services\Condominium;
 
 use App\Models\Condominium\CondominiumAdmin;
 use App\Models\User\User;
+use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CondominiumAdminService
 {
+    public function __construct(private PersonalDataEraser $eraser) {}
+
     /**
      * Procura o perfil de administrador de condomínio de um utilizador.
      *
@@ -21,18 +24,18 @@ class CondominiumAdminService
     }
 
     /**
-     * Devolve o perfil de administrador do utilizador (com o nº de condomínios); 403 se não existir.
+     * Devolve o perfil de administrador do utilizador; 403 se não existir.
      *
      * @param User $user Utilizador a procurar.
      * @return CondominiumAdmin
      */
     public function getByUser(User $user): CondominiumAdmin
     {
-        $admin = $this->findByUser($user)
+        return $this->findByUser($user)
             ?? abort(403, 'Este utilizador não tem um perfil de administrador de condomínio.');
-
-        return $admin->loadCount('condominia');
+      
     }
+    
     /**
      * Cria o perfil de administrador e atribui a role 'condominium_admin'.
      * O "já tem este perfil" é verificado no ProfileService.
@@ -80,6 +83,7 @@ class CondominiumAdminService
         }
 
         DB::transaction(function () use ($admin) {
+            $this->eraser->eraseCondominiumAdmin($admin);
             $admin->delete();
             $admin->user->removeRole('condominium_admin');
         });

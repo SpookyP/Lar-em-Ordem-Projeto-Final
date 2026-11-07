@@ -5,12 +5,15 @@ namespace App\Services\PartnerOffer;
 
 use App\Models\User\Partner;
 use App\Models\User\User;
+use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class PartnerService
 {
+    public function __construct(private PersonalDataEraser $eraser) {}
+
     /**
      * Procura o perfil de parceiro de um utilizador.
      *
@@ -34,16 +37,23 @@ class PartnerService
             ?? abort(403, 'Este utilizador não tem um perfil de parceiro.');
     }
     
-   /**
-     * Parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor de cada um
-     * (os apagados ficam de fora pelo soft delete).
+    /**
+     * Parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor de cada um,
+     * filtrados (opcional) por um texto no nome ou na descrição.
+     * Os apagados ficam de fora pelo soft delete.
      *
      * @param int $perPage Número de parceiros por página.
+     * @param string|null $search (Opcional) Texto a procurar no nome ou na descrição.
      * @return LengthAwarePaginator
      */
-    public function list(int $perPage = 5): LengthAwarePaginator
+    public function list(int $perPage = 5, ?string $search = null): LengthAwarePaginator
     {
+        $search = trim((string) $search);
+
         return Partner::withCount(['offers as current_offers_count' => fn ($q) => $q->current()])
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->where('company_name', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")))
             ->orderBy('company_name')
             ->orderBy('id')
             ->paginate($perPage)
@@ -98,6 +108,7 @@ class PartnerService
     {
         DB::transaction(function () use ($partner) {
             $partner->offers()->delete();
+            $this->eraser->erasePartner($partner);
             $partner->delete();
             $partner->user->removeRole('partner');
         });
@@ -115,6 +126,7 @@ class PartnerService
     {
         $offers = $partner->offers()
             ->current()
+            ->with('category')
             ->orderByDesc('start_date')
             ->orderByDesc('id')
             ->paginate($perPage)

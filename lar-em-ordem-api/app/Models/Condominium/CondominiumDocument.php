@@ -16,7 +16,7 @@ class CondominiumDocument extends Model
         'condominium_document_category_id',
         'title',
         'description',
-        'document_date'
+        'document_date',
         ];
         
     protected function casts(): array

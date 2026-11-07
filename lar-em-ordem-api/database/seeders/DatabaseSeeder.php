@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             ResidentTypeSeeder::class,
             DocumentCategorySeeder::class,
             CondominiumDocumentCategorySeeder::class,
+            OfferCategorySeeder::class,
         ]);
 
         $morador = User::factory()->create([
@@ -86,8 +87,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             PropertySeeder::class,
-            PropertyContractSeeder::class,
             ResidentSeeder::class,
+            PropertyContractSeeder::class,
             PartnerSeeder::class,
             ConsumptionTypeSeeder::class,
             InvoiceSeeder::class,
@@ -106,6 +107,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ServiceProviderSeeder::class,
             AssistanceRequestSeeder::class,
+            CondominiumSeeder::class,
             OfferSeeder::class,
         ]);
 

@@ -12,17 +12,19 @@ use Illuminate\Validation\ValidationException;
 class ProposalService
 {
 
-    /**
+     /**
      * Devolve as propostas enviadas por um prestador, da mais recente para a mais antiga,
-     * com o pedido a que respondem, paginadas.
+     * com o pedido a que respondem, paginadas. Opcionalmente só as de um estado.
      *
      * @param ServiceProviderModel $provider Instância do prestador.
      * @param int $perPage Número de propostas por página.
+     * @param string|null $status Estado (pending/accepted/rejected/withdrawn) ou null para todas.
      * @return LengthAwarePaginator
      */
-    public function listByProvider(ServiceProviderModel $provider, int $perPage = 5): LengthAwarePaginator
+    public function listByProvider(ServiceProviderModel $provider, int $perPage = 5, ?string $status = null): LengthAwarePaginator
     {
         return $provider->proposals()
+            ->when($status, fn ($q) => $q->where('status', $status))
             ->with([
                 'assistanceRequest.property.address',
                 'assistanceRequest.problemCategory',

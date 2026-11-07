@@ -18,13 +18,21 @@ class NotificationController extends Controller
     {
         $this->authorize('view', $property);
 
+        // Validar o per_page enviado pelo frontend (limite 1 a 15)
+        $validated = $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
+        ]);
+
+        $perPage = $validated['per_page'] ?? 15;
+
         $query = $property->notifications()->with('document')->latest('alert_date');
 
         if ($request->boolean('unread')) {
             $query->whereNull('read_at');
         }
 
-        return NotificationResource::collection($query->paginate(15));
+        // Aplica o per_page dinâmico e preserva a query string na paginação
+        return NotificationResource::collection($query->paginate($perPage)->withQueryString());
     }
 
     public function unreadCount(Property $property): JsonResponse

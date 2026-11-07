@@ -1,12 +1,10 @@
 <?php
 
-use App\Http\Controllers\Condominium\CondominiumAdminController;
 use App\Http\Controllers\Condominium\CondominiumController;
 use App\Http\Controllers\Condominium\CondominiumNoticeController;
 use App\Http\Controllers\Condominium\CondominiumDocumentController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('condominium-admins/me', [CondominiumAdminController::class, 'showMyProfile']);
 
 Route::post('condominiums/join', [CondominiumController::class, 'join'])
     ->middleware('throttle:5,1,condominium-join');

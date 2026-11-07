@@ -1,19 +1,19 @@
 import { Outlet } from "react-router-dom";
 import { SideBar } from "./Sidebar";
-import { BottomNav } from "./BottomNav";
+import { MobileNav } from "./MobileNav";
 import { Footer } from "./Footer";
 
 export function AppLayout() {
   return (
-    <div className="min-h-screen flex bg-surface">
+    <div className="min-h-screen bg-surface">
       <SideBar />
-      <div className="flex-1 flex flex-col min-h-screen pb-16 md:pb-0">
+      <div className="flex min-h-screen flex-col md:ml-60">
+        <MobileNav />
         <main className="flex-1 p-6">
           <Outlet />
         </main>
         <Footer />
       </div>
-      <BottomNav />
     </div>
   );
 }

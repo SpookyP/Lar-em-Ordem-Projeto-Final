@@ -81,7 +81,10 @@ class PartnerTest extends TestCase
         $this->assertSame(collect($nomes)->sort(SORT_NATURAL | SORT_FLAG_CASE)->values()->all(), $nomes);
 
         // cada parceiro traz quantas ofertas em vigor tem
-        $this->assertSame(3, collect($resposta->json('data'))->firstWhere('id', $this->idParceiro())['current_offers_count']);
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=Parceiro Lda')
+            ->assertJsonPath('data.0.id', $this->idParceiro())
+            ->assertJsonPath('data.0.current_offers_count', 3);
 
         // por defeito, 5 por página
         $this->actingAs($this->morador)->getJson('/api/v1/partners')->assertJsonPath('meta.per_page', 5);
@@ -89,29 +92,67 @@ class PartnerTest extends TestCase
 
     public function test_no_index_o_parceiro_so_ve_o_seu_proprio_nif(): void
     {
+        $this->actingAs($this->parceiro)
+            ->getJson('/api/v1/partners?search=Parceiro Lda')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $this->idParceiro())
+            ->assertJsonPath('data.0.nif', '123456789');
+
         $lista = collect(
             $this->actingAs($this->parceiro)->getJson('/api/v1/partners?per_page=15')->assertOk()->json('data')
         );
-
-        $this->assertSame('123456789', $lista->firstWhere('id', $this->idParceiro())['nif']);
         $this->assertArrayNotHasKey('nif', $lista->firstWhere('id', '!=', $this->idParceiro()));
     }
 
-    public function test_me_devolve_o_perfil_do_parceiro_autenticado_com_nif(): void
+    public function test_a_pesquisa_procura_no_nome_e_na_descricao_de_todos_os_parceiros(): void
     {
-        $this->actingAs($this->parceiro)
-            ->getJson('/api/v1/partners/me')
+        // pelo nome, sem distinguir maiúsculas
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=PARCEIRO lda')
             ->assertOk()
-            ->assertJsonPath('data.id', $this->idParceiro())
-            ->assertJsonPath('data.company_name', 'Parceiro Lda')
-            ->assertJsonPath('data.nif', '123456789');
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $this->idParceiro());
+
+        // pela descrição ("Empresa parceira de gestão imobiliária.")
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=imobili')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $this->idParceiro());
+
+        // procura em todos, não só na primeira página: com 1 por página continua a encontrá-lo
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=parceiro lda&per_page=1')
+            ->assertJsonPath('meta.total', 1);
+
+        // sem resultados
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=nao-existe-nada')
+            ->assertOk()
+            ->assertJsonCount(0, 'data')
+            ->assertJsonPath('meta.total', 0);
+
+        // pesquisa vazia = todos
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=&per_page=15')
+            ->assertJsonPath('meta.total', Partner::count());
     }
 
-    public function test_me_sem_perfil_de_parceiro_da_403(): void
+    public function test_a_pesquisa_tem_no_maximo_100_caracteres(): void
     {
         $this->actingAs($this->morador)
-            ->getJson('/api/v1/partners/me')
-            ->assertForbidden();
+            ->getJson('/api/v1/partners?search=' . str_repeat('a', 101))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['search']);
+    }
+
+    public function test_o_perfil_do_parceiro_vem_no_api_user_com_nif(): void
+    {
+        $this->actingAs($this->parceiro)
+            ->getJson('/api/user')
+            ->assertOk()
+            ->assertJsonPath('partner.id', $this->idParceiro())
+            ->assertJsonPath('partner.company_name', 'Parceiro Lda')
+            ->assertJsonPath('partner.nif', '123456789');
     }
 
     // ------------------------------------------------------------------- show
@@ -221,10 +262,10 @@ class PartnerTest extends TestCase
         $this->editar(['phone' => '911111111'])->assertOk();
 
         $this->actingAs($this->parceiro)
-            ->getJson('/api/v1/partners/me')
-            ->assertJsonPath('data.phone', '911111111')
-            ->assertJsonPath('data.company_name', 'Parceiro Lda')
-            ->assertJsonPath('data.nif', '123456789');
+            ->getJson('/api/user')
+            ->assertJsonPath('partner.phone', '911111111')
+            ->assertJsonPath('partner.company_name', 'Parceiro Lda')
+            ->assertJsonPath('partner.nif', '123456789');
     }
 
     public function test_muda_todos_os_campos_do_perfil(): void
@@ -237,13 +278,13 @@ class PartnerTest extends TestCase
             'description'  => 'Nova descrição.',
         ])->assertOk();
 
-        $this->actingAs($this->parceiro)
-            ->getJson('/api/v1/partners/me')
-            ->assertJsonPath('data.company_name', 'Parceiro Renovado Lda')
-            ->assertJsonPath('data.nif', '987654321')
-            ->assertJsonPath('data.phone', '933333333')
-            ->assertJsonPath('data.website', 'https://renovado.pt')
-            ->assertJsonPath('data.description', 'Nova descrição.');
+       $this->actingAs($this->parceiro)
+            ->getJson('/api/user')
+            ->assertJsonPath('partner.company_name', 'Parceiro Renovado Lda')
+            ->assertJsonPath('partner.nif', '987654321')
+            ->assertJsonPath('partner.phone', '933333333')
+            ->assertJsonPath('partner.website', 'https://renovado.pt')
+            ->assertJsonPath('partner.description', 'Nova descrição.');
     }
 
     public function test_a_edicao_valida_os_campos(): void
@@ -261,9 +302,10 @@ class PartnerTest extends TestCase
 
         $this->assertSame($this->parceiro->id, $this->parceiro->partner->fresh()->user_id);
 
-        // continua a aparecer na lista
-        $lista = collect($this->actingAs($this->morador)->getJson('/api/v1/partners?per_page=15')->json('data'));
-        $this->assertTrue($lista->contains('id', $this->idParceiro()));
+        $this->actingAs($this->morador)
+            ->getJson('/api/v1/partners?search=Parceiro Lda')
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $this->idParceiro());
     }
 
     public function test_so_se_edita_um_perfil_de_parceiro_que_se_tem(): void

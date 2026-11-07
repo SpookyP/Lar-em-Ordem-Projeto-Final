@@ -10,7 +10,7 @@ use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\Proposal;
 use App\Services\ServiceProvider\ProposalService;
 use App\Services\ServiceProvider\ServiceProviderService;
-use App\Http\Requests\PerPageRequest;
+use App\Http\Requests\ServiceProvider\IndexProposalRequest;
 use Illuminate\Support\Facades\Gate;
 
 class ProposalController extends Controller
@@ -21,19 +21,23 @@ class ProposalController extends Controller
     ) {}
 
     /**
-     * Lista as propostas enviadas pelo prestador autenticado.
+     * Lista as propostas enviadas pelo prestador autenticado (opcionalmente por estado).
      *
-     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
+     * @param IndexProposalRequest $request O pedido HTTP com o estado e o tamanho da página validados.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de propostas (paginada).
      */
-    public function listProviderProposals(PerPageRequest $request)
+    public function listProviderProposals(IndexProposalRequest $request)
     {
         Gate::authorize('create', Proposal::class);
 
         $provider = $this->serviceProviderService->getByUser($request->user());
 
         return ProposalResource::collection(
-            $this->service->listByProvider($provider, $request->integer('per_page', 5))
+            $this->service->listByProvider(
+                $provider,
+                $request->integer('per_page', 5),
+                $request->validated('status'),
+            )
         );
     }
 

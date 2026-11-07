@@ -4,6 +4,7 @@ namespace App\Models\Invoice;
 
 use App\Models\User\Resident;
 use App\Models\Property\Property;
+use App\Models\File\File;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -55,5 +56,10 @@ class Invoice extends Model
     public function consumptions(): HasMany
     {
         return $this->hasMany(Consumption::class);
+    }
+
+    public function file(): BelongsTo
+    {
+        return $this->belongsTo(File::class);
     }
 }

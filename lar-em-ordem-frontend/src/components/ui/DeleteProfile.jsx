@@ -40,6 +40,13 @@ export function DeleteProfile() {
         Vais remover o perfil <span className="text-text">{label}</span> desta
         conta. Os outros perfis mantêm-se.
       </p>
+      {role === "resident" && (
+        <p className="text-sm text-red-600">
+          Ao apagar o perfil de morador apagamos também as tuas casas, faturas,
+          consumos, documentos do cofre e pedidos de assistência, incluindo os
+          ficheiros. Não é possível recuperar estes dados.
+        </p>
+      )}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {confirming ? (

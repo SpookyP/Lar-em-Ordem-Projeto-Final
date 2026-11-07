@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
 import { AppLayout } from "../components/layout/AppLayout";
 import { ROLES } from "../utils/roles";
@@ -21,6 +21,9 @@ import Onboarding from "../pages/Onboarding/Onboarding";
 import Dashboard from "../pages/Resident/Dashboard/Dashboard"; //TODO: data
 import Assistance from "../pages/Resident/Assistance/Assistance";
 import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetail";
+import Partners from "../pages/Resident/Partners/Partners";
+import Offers from "../pages/Resident/Offers/Offers";
+import OfferDetail from "../pages/Resident/OfferDetail/OfferDetail";
 import Consumption from "../pages/Consumption/Consumption";
 import Invoice from "../pages/Consumption/Invoice";
 
@@ -33,10 +36,14 @@ import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
 import MyOffers from "../pages/Partner/MyOffers/MyOffers";
 import OfferFormPage from "../pages/Partner/OfferFormPage/OfferFormPage";
 
-export function AppRoutes() {
+function AppRoutesInner() {
+  const location = useLocation();
+  //pagina de fundo ofertas
+  const background = location.state?.background;
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <>
+      <Routes location={background || location}>
         {/* Rota publica: qualquer um pode aceder */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -59,6 +66,9 @@ export function AppRoutes() {
               <Route path="/assistance" element={<Assistance />} />
               <Route path="/assistance/:id" element={<AssistanceDetail />} />
               <Route path="/consumos" element={<Consumption />} />
+              <Route path="/partners" element={<Partners />} />
+              <Route path="/offers" element={<Offers />} />
+              <Route path="/offers/:id" element={<OfferDetail />} />
               <Route path="/faturas" element={<Invoice />} />
               <Route path="/assistencia" element={<Assistance />} />
               <Route path="/assistencia/:id" element={<AssistanceDetail />} />
@@ -93,6 +103,20 @@ export function AppRoutes() {
         {/* 404: nao corresponde a nenhuma */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+
+      {background && (
+        <Routes>
+          <Route path="/offers/:id" element={<OfferDetail />} />
+        </Routes>
+      )}
+    </>
+  );
+}
+
+export function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <AppRoutesInner />
     </BrowserRouter>
   );
 }

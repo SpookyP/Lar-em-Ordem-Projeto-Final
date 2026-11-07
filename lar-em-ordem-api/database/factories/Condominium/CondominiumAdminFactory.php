@@ -15,8 +15,20 @@ class CondominiumAdminFactory extends Factory
     {
         return [
             'user_id'    => User::factory(),
-            'contact'    => fake()->phoneNumber(),
+            'contact'    => fake()->randomElement(['22', '91', '93', '96']) . fake()->numerify('#######'),
             'admin_type' => fake()->randomElement(['professional', 'resident']),
         ];
+    }
+
+    /** Empresa de gestão de condomínios. */
+    public function professional(): static
+    {
+        return $this->state(['admin_type' => 'professional']);
+    }
+
+    /** Condómino que administra o próprio prédio. */
+    public function resident(): static
+    {
+        return $this->state(['admin_type' => 'resident']);
     }
 }

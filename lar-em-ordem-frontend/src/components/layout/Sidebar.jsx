@@ -7,7 +7,7 @@ export function SideBar() {
   const { activeProfile } = useAuth();
 
   return (
-    <aside className="hidden md:flex w-60 flex-col bg-navy text-white p-4 h-screen sticky top-0 self-start">
+    <aside className="hidden md:flex fixed inset-y-0 left-0 z-30 w-60 flex-col overflow-y-auto bg-navy text-white p-4">
       <div className="font-display text-xl mb-8 px-2">Lar em Ordem</div>
 
       <nav className="flex flex-col gap-1">
