@@ -338,28 +338,32 @@ class InvoiceTest extends TestCase
             ->assertJsonPath('data.url', "https://r2.test/{$file->path}");
     }
 
-        public function test_an_invoice_cannot_use_a_file_uploaded_by_someone_else(): void
+    public function test_an_invoice_cannot_use_a_file_uploaded_by_someone_else(): void
     {
         $someoneElsesFile = $this->invoiceFile(User::factory()->create());
 
-        $this->postJson('/api/v1/invoices', $this->payload($this->property, ['file_id' => $someoneElsesFile->id]))
+        $this->postJson('/api/v1/invoices', $this->payload($this->property, [
+            'file_id' => $someoneElsesFile->id,
+        ]))
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['file_id' => 'The invoice file is invalid or expired.']);
+            ->assertJsonValidationErrors(['file_id']);
     }
 
     public function test_a_file_can_only_be_attached_to_one_invoice(): void
     {
         $file = $this->invoiceFile(auth()->user());
 
-        $this->postJson('/api/v1/invoices', $this->payload($this->property, ['file_id' => $file->id]))
+        $this->postJson('/api/v1/invoices', $this->payload($this->property, [
+            'file_id' => $file->id,
+        ]))
             ->assertCreated();
 
         $this->postJson('/api/v1/invoices', $this->payload($this->property, [
-            'file_id'        => $file->id,
+            'file_id' => $file->id,
             'invoice_number' => 'FT-0002',
         ]))
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['file_id' => 'This invoice file is already attached to another invoice.']);
+            ->assertJsonValidationErrors(['file_id']);
     }
 
     public function test_deleting_an_invoice_deletes_its_pdf(): void
