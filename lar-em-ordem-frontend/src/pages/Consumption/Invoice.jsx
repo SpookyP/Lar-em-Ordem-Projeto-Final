@@ -2,15 +2,24 @@ import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import InvoiceCard from "../../components/ui/InvoiceCard";
 import InvoiceTable from "../../components/ui/InvoiceTable";
+import useInvoices from "../../hooks/useInvoices";
 
 export default function Invoice() {
   const navigate = useNavigate();
+
+  // Obtém e gere os dados das faturas através do Hook.
+  const {
+    invoices,
+    loading,
+    error,
+    refresh,
+  } = useInvoices();
 
   return (
     <div className="w-full min-w-0 space-y-8 pb-12">
       <div className="mx-auto w-full min-w-0 max-w-7xl space-y-8">
 
-        {/* Cabeçalho */}
+        {/* Cabeçalho e navegação para o formulário de faturas. */}
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-3xl font-bold text-slate-900">
@@ -36,14 +45,23 @@ export default function Invoice() {
           </button>
         </div>
 
-        {/* Resumo das faturas */}
+        {/* Cartões com o resumo das despesas das faturas. */}
         <div className="w-full min-w-0">
-          <InvoiceCard />
+          <InvoiceCard
+            invoices={invoices}
+            loading={loading}
+            error={error}
+          />
         </div>
-            
-        {/* Histórico de faturas */}
+
+        {/* Histórico, pesquisa, filtros e gestão das faturas. */}
         <div className="w-full min-w-0">
-          <InvoiceTable />
+          <InvoiceTable
+            invoices={invoices}
+            loading={loading}
+            error={error}
+            onRefresh={refresh}
+          />
         </div>
 
       </div>

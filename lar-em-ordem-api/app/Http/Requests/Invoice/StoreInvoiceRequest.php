@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Invoice;
 
+use App\Services\Invoice\InvoiceService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Services\Invoice\InvoiceService;
 use Illuminate\Validation\Rule;
 
 class StoreInvoiceRequest extends FormRequest
@@ -24,60 +24,101 @@ class StoreInvoiceRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [          
-             'property_id' => [
-                 'required',
-                 'string',
-                 function (string $attribute, mixed $value, \Closure $fail) {
-                     $allowed = \App\Models\Property\Property::query()
+        return [
+            // Validar se a propriedade pertence ao residente autenticado.
+            'property_id' => [
+                'required',
+                'string',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $allowed = \App\Models\Property\Property::query()
                         ->whereKey($value)
                         ->whereHas('residents', fn ($q) => $q
                             ->where('residents.user_id', $this->user()->id)
                             ->where('property_contracts.is_active', true))
                         ->exists();
-            
-                     if (! $allowed) {
-                         $fail('The selected property does not exist.');
-                     }
-                 },
-             ],
-            
-             'invoice_number' => ['required', 'string', 'max:100', 
-                Rule::unique('invoices')
-                ->where(fn ($query) => $query 
-                    ->where('resident_id', $this->user()->resident?->id) 
-                    ->where('supplier', $this->input('supplier')) 
-                )
-            ],
-            
-            'issue_date'                            =>      ['required', 'date'],
-            'period_start'                          =>      ['required', 'date'],
-            'period_end'                            =>      ['required', 'date', 'after_or_equal:period_start'],
-            'total_amount'                          =>      ['required', 'numeric', 'min:0'],
-            'supplier'                              =>      ['required', 'string', 'max:255'],
 
-            // a PDF this user uploaded through /invoices/upload that no other invoice uses yet
+                    if (!$allowed) {
+                        $fail('A propriedade selecionada não existe.');
+                    }
+                },
+            ],
+
+            // Impedir números de fatura duplicados para o mesmo fornecedor.
+            'invoice_number' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('invoices')
+                    ->where(fn ($query) => $query
+                        ->where('resident_id', $this->user()->resident?->id)
+                        ->where('supplier', $this->input('supplier'))
+                    ),
+            ],
+
+            'issue_date' => ['required', 'date'],
+            'period_start' => ['required', 'date'],
+            'period_end' => ['required', 'date', 'after_or_equal:period_start'],
+            'total_amount' => ['required', 'numeric', 'min:0'],
+            'supplier' => ['required', 'string', 'max:255'],
+
+            // Validar o ficheiro na tabela files.
+            // O ficheiro tem de pertencer ao utilizador e à categoria das faturas.
+            // Também não pode estar associado a outra fatura.
             'file_id' => [
-                'bail', 'nullable', 'ulid',
+                'bail',
+                'nullable',
+                'ulid',
                 Rule::exists('files', 'id')
                     ->where('user_id', $this->user()->id)
                     ->where('category', InvoiceService::FILE_CATEGORY),
                 Rule::unique('invoices', 'file_id'),
             ],
 
-            // Consumos principais (no máximo 10 por fatura)
-            'consumptions'                          =>      ['required', 'array', 'max:10'],
-            'consumptions.*.consumption_type_id'    =>      ['required', 'integer', 'exists:consumption_types,id'],
-            'consumptions.*.amount'                 =>      ['required', 'numeric', 'min:0', 'max:9999999.999'],
-            'consumptions.*.cost'                   =>      ['required', 'numeric', 'min:0', 'max:99999999.99'],
+            // Consumos principais (no máximo 10 por fatura).
+            'consumptions' => ['required', 'array', 'max:10'],
+            'consumptions.*.consumption_type_id' => [
+                'required',
+                'integer',
+                'exists:consumption_types,id',
+            ],
+            'consumptions.*.amount' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:9999999.999',
+            ],
+            'consumptions.*.cost' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:99999999.99',
+            ],
 
-            // Sub-itens detalhados opcionais para o gráfico de anel (no máximo 30 por consumo)
-            'consumptions.*.items'                  =>      ['nullable', 'array', 'max:30'],
-            'consumptions.*.items.*.name'           =>      ['required', 'string', 'max:255'],
-            'consumptions.*.items.*.category'       =>      ['nullable', Rule::in(['consumption', 'fixed_fee', 'tax', 'discount'])],
-            'consumptions.*.items.*.amount'         =>      ['nullable', 'numeric', 'between:-99999999.99,99999999.99'],
-            'consumptions.*.items.*.unit'           =>      ['nullable', 'string', 'max:50'],
-            'consumptions.*.items.*.cost'           =>      ['required', 'numeric', 'between:-99999999.99,99999999.99'], // negativos permitidos (ex: autoconsumo solar)
+            // Sub-itens detalhados opcionais para o gráfico de anel.
+            // Cada consumo pode ter no máximo 30 itens.
+            'consumptions.*.items' => ['nullable', 'array', 'max:30'],
+            'consumptions.*.items.*.name' => ['required', 'string', 'max:255'],
+            'consumptions.*.items.*.category' => [
+                'nullable',
+                Rule::in([
+                    'consumption',
+                    'fixed_fee',
+                    'tax',
+                    'discount',
+                    'other',
+                ]),
+            ],
+            'consumptions.*.items.*.amount' => [
+                'nullable',
+                'numeric',
+                'between:-99999999.99,99999999.99',
+            ],
+            'consumptions.*.items.*.unit' => ['nullable', 'string', 'max:50'],
+            'consumptions.*.items.*.cost' => [
+                'required',
+                'numeric',
+                'between:-99999999.99,99999999.99',
+            ], // Negativos permitidos (ex: autoconsumo solar).
         ];
     }
 
@@ -112,11 +153,48 @@ class StoreInvoiceRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'property_id.exists'        =>  'The selected property does not exist.',
-            'invoice_number.unique'     =>  'This invoice number has already been registered.',
-            'period_end.after_or_equal' =>  'The period end date must be equal to or after the start date.',
-            'file_id.exists'            =>  'The invoice file is invalid or expired.',
-            'file_id.unique'            =>  'This invoice file is already attached to another invoice.',
+            'invoice_number.unique' => 'Este número de fatura já foi registado para este fornecedor.',
+            'period_end.after_or_equal' => 'A data de fim do período deve ser igual ou posterior à data de início.',
+            'total_amount.min' => 'O valor total não pode ser negativo.',
+
+            'file_id.ulid' => 'O identificador do ficheiro é inválido.',
+            'file_id.exists' => 'O ficheiro da fatura é inválido ou já expirou.',
+            'file_id.unique' => 'Este ficheiro já está associado a outra fatura.',
+
+            'consumptions.required' => 'Indique pelo menos um consumo.',
+            'consumptions.max' => 'Cada fatura pode ter no máximo 10 consumos.',
+
+            'consumptions.*.consumption_type_id.exists' => 'O tipo de consumo selecionado não existe.',
+            'consumptions.*.items.max' => 'Cada consumo pode ter no máximo 30 itens.',
+            'consumptions.*.items.*.category.in' => 'A categoria do item é inválida.',
+        ];
+    }
+
+    /**
+     * Nomes legíveis dos campos nas mensagens de validação.
+     */
+    public function attributes(): array
+    {
+        return [
+            'property_id' => 'habitação',
+            'invoice_number' => 'número da fatura',
+            'issue_date' => 'data de emissão',
+            'period_start' => 'início do período',
+            'period_end' => 'fim do período',
+            'total_amount' => 'valor total',
+            'supplier' => 'fornecedor',
+            'file_id' => 'ficheiro',
+
+            'consumptions' => 'consumos',
+            'consumptions.*.consumption_type_id' => 'tipo de consumo',
+            'consumptions.*.amount' => 'quantidade',
+            'consumptions.*.cost' => 'custo',
+            'consumptions.*.items' => 'itens',
+            'consumptions.*.items.*.name' => 'descrição do item',
+            'consumptions.*.items.*.category' => 'categoria do item',
+            'consumptions.*.items.*.amount' => 'quantidade do item',
+            'consumptions.*.items.*.unit' => 'unidade do item',
+            'consumptions.*.items.*.cost' => 'custo do item',
         ];
     }
 }

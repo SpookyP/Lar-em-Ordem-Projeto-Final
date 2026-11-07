@@ -10,7 +10,7 @@ class ConsumptionService
     /**
      * Obter a lista paginada de consumos do utilizador.
      */
-    public function getConsumptions(string  $residentId, ?string  $propertyId = null, int $perPage = 15): LengthAwarePaginator
+    public function getConsumptions(string $residentId, ?string $propertyId = null, int $perPage = 15): LengthAwarePaginator
     {
         $query = Consumption::query()
             ->whereHas('invoice', function ($q) use ($residentId) {
@@ -24,13 +24,13 @@ class ConsumptionService
             $query->where('property_id', $propertyId);
         }
 
-        return $query->paginate($perPage);
+        return $query->paginate($perPage)->withQueryString();
     }
 
     /**
      * Obter um consumo específico pelo ID, validando o acesso do utilizador.
      */
-    public function getConsumptionById(string  $consumptionId, string  $residentId): Consumption
+    public function getConsumptionById(string $consumptionId, string $residentId): Consumption
     {
         $consumption = Consumption::query()
             ->where('id', $consumptionId)
@@ -41,7 +41,7 @@ class ConsumptionService
             ->first();
 
         if (!$consumption) {
-            abort(404, 'Consumption record not found.');
+            abort(404, 'Registo de consumo não encontrado.');
         }
 
         return $consumption;

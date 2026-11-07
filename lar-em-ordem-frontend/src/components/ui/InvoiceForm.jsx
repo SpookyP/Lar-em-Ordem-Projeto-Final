@@ -24,13 +24,14 @@ const numberValue = (v) =>
     : (Number.isFinite(Number(v)) ? Number(v) : 0);
 
 export default function InvoiceForm({ onInvoiceSaved }) {
-  // IDs definidos pela API: 1 eletricidade, 2 água, 3 gás.
+  // Tipos de consumo disponíveis.
   const [consumptionTypes, setConsumptionTypes] = useState([
     { id: 1, name: 'Eletricidade', unit_of_measure: 'kWh' },
     { id: 2, name: 'Água', unit_of_measure: 'm³' },
     { id: 3, name: 'Gás', unit_of_measure: 'kWh' }
   ]);
 
+  // Estrutura do estado dos consumos
   const [selectedTypeIds, setSelectedTypeIds] = useState([]);
   const [consumptionsData, setConsumptionsData] = useState({});
   const [showItems, setShowItems] = useState({});
@@ -86,7 +87,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       );
   }, []);
 
-  // Carrega o PDF ou imagem e preenche os dados reconhecidos pela API.
+  // Carrega o PDF ou imagem, envia para a API e preenche o formulário com os
+  // dados reconhecidos (campos principais + consumos + itens de detalhe).
   const handleFileUpload = async (e) => {
     const input = e.currentTarget;
     const file = input.files?.[0];
@@ -116,9 +118,11 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         throw new Error('A API não devolveu file_id.');
       }
 
+      // O file_id é enviado depois com a fatura para associar o PDF ao registo.
       setFileId(result.file_id);
       setUploadSuccess(true);
 
+      // A API pode devolver os dados extraídos em 'extracted' ou 'invoice_data'.
       const extracted = result.extracted || result.invoice_data;
 
       if (extracted) {
@@ -132,6 +136,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           total_amount: extracted.total_amount ?? prev.total_amount
         }));
 
+        // Converte a lista de consumos extraída para o formato interno do estado.
         if (Array.isArray(extracted.consumptions)) {
           const selected = [];
           const consumptionValues = {};
@@ -305,6 +310,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           propertyId;
       } catch {}
 
+      // Monta a lista de consumos; os itens de detalhe só são enviados se o
+      // utilizador ativou a opção e a linha tiver descrição.
       const consumptions = selectedTypeIds.map(id => {
         const entry = {
           consumption_type_id: id,
@@ -327,6 +334,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         return entry;
       });
 
+      // Corpo do pedido enviado para a API (valores numéricos já normalizados).
       const payload = {
         property_id: propertyId,
         invoice_number: formData.invoice_number,
@@ -369,6 +377,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     } catch (err) {
       const errors = err.response?.data?.errors;
 
+      // Mostra os erros de validação da API (se existirem) numa só mensagem.
       const message = errors
         ? Object.values(errors).flat().join(' ')
         : (
@@ -386,6 +395,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     }
   };
 
+  // Classes Tailwind reutilizadas nos campos do formulário.
   const inputClass =
     'w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-teal-600';
 

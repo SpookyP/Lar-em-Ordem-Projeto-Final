@@ -42,7 +42,7 @@ class InvoiceExtractionService
 
         if (! $process->isSuccessful()) {
             // Não regista o conteúdo do PDF nem dos dados extraídos
-            Log::warning('Invoice extraction failed', [
+            Log::warning('Falha na extração dos dados da fatura', [
                 'exit_code' => $process->getExitCode(),
                 'stderr'    => Str::limit($process->getErrorOutput(), 500),
             ]);

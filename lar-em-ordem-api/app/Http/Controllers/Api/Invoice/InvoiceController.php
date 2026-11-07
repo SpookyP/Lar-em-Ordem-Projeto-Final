@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
 use App\Http\Requests\Invoice\UploadInvoiceRequest;
 use App\Http\Resources\Invoice\InvoiceResource;
+use App\Models\Invoice\Invoice;
+use App\Services\FileStorage\FileStorageService;
 use App\Services\Invoice\InvoiceExtractionService;
 use App\Services\Invoice\InvoiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\FileStorage\FileStorageService;
+use Illuminate\Support\Facades\Gate;
 
 class InvoiceController extends Controller
 {
@@ -19,38 +21,44 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Apresentar a lista de faturas.
      */
     public function index(Request $request)
     {
+        // Validar os filtros recebidos.
+        $validated = $request->validate([
+            'property_id' => ['nullable', 'ulid'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ], [
+            'property_id.ulid' => 'O identificador da habitação é inválido.',
+        ]);
+
+        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
+        Gate::authorize('viewAny', Invoice::class);
+
         $resident = $request->user()->resident;
 
-        if (!$resident) {
-            abort(404, 'Resident profile not found.');
-        }
-
+        // Obter as faturas com os filtros aplicados.
         $invoices = $this->service->getInvoicesByResident(
-            residentId: $resident->id
+            residentId: $resident->id,
+            perPage: $validated['per_page'] ?? 15,
+            propertyId: $validated['property_id'] ?? null
         );
-
-        if ($invoices->currentPage() > $invoices->lastPage() && $invoices->lastPage() > 0) {
-            abort(404, 'Page out of bounds.');
-        }
 
         return InvoiceResource::collection($invoices);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Registar uma nova fatura.
      */
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
+        // Apenas residentes podem registar faturas (ver InvoicePolicy).
+        Gate::authorize('create', Invoice::class);
+
         $resident = $request->user()->resident;
 
-        if (!$resident) {
-            abort(404, 'Resident profile not found.');
-        }
-
+        // Criar a fatura e os respetivos consumos.
         $invoice = $this->service->createInvoiceWithConsumptions(
             residentId: $resident->id,
             invoiceData: $request->invoiceData(),
@@ -66,34 +74,43 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Apresentar os detalhes de uma fatura.
      */
     public function show(Request $request, string $invoiceId): JsonResponse
     {
+        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
+        Gate::authorize('viewAny', Invoice::class);
+
         $resident = $request->user()->resident;
 
-        if (!$resident) {
-            abort(404, 'Resident profile not found.');
-        }
-
+        // Obter a fatura pertencente ao residente.
         $invoice = $this->service->getInvoiceById(
             invoiceId: $invoiceId,
             residentId: $resident->id
         );
 
+        Gate::authorize('view', $invoice);
+
         return InvoiceResource::make($invoice)->response();
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar uma fatura.
      */
     public function destroy(Request $request, string $invoiceId): JsonResponse
     {
+        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
+        Gate::authorize('viewAny', Invoice::class);
+
         $resident = $request->user()->resident;
 
-        if (!$resident) {
-            abort(404, 'Resident profile not found.');
-        }
+        // Obter e autorizar a fatura antes da eliminação.
+        $invoice = $this->service->getInvoiceById(
+            invoiceId: $invoiceId,
+            residentId: $resident->id
+        );
+
+        Gate::authorize('delete', $invoice);
 
         $this->service->deleteInvoice(
             invoiceId: $invoiceId,
@@ -101,24 +118,30 @@ class InvoiceController extends Controller
         );
 
         return response()->json([
-            'message' => 'Invoice was successfully deleted',
+            'message' => 'Fatura eliminada com sucesso.',
         ], 200);
     }
 
     /**
-     * Upload and extract invoice data.
+     * Carregar um ficheiro e extrair os dados da fatura.
      */
     public function upload(
         UploadInvoiceRequest $request,
         InvoiceExtractionService $extraction,
         FileStorageService $files
     ): JsonResponse {
+        Gate::authorize('create', Invoice::class);
+
+        // Guardar o ficheiro através do serviço centralizado.
         $uploaded = $request->file('file');
 
-        // stored like every other user file (a row in `files`), so it is served and deleted the same way
-        $file = $files->uploadUserFile($request->user(), $uploaded, InvoiceService::FILE_CATEGORY);
+        $file = $files->uploadUserFile(
+            $request->user(),
+            $uploaded,
+            InvoiceService::FILE_CATEGORY
+        );
 
-        // Extract data from the uploaded file.
+        // Extrair os dados do ficheiro carregado.
         $extracted = $extraction->extract($uploaded->getRealPath());
 
         return response()->json([
@@ -130,23 +153,34 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Generate a temporary URL for the invoice PDF.
+     * Gerar um endereço temporário para aceder ao PDF da fatura.
      */
-    public function file(Request $request, string $invoiceId, FileStorageService $files): JsonResponse
-    {
+    public function file(
+        Request $request,
+        string $invoiceId,
+        FileStorageService $files
+    ): JsonResponse {
+        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
+        Gate::authorize('viewAny', Invoice::class);
+
         $resident = $request->user()->resident;
 
-        if (!$resident) {
-            abort(404, 'Resident profile not found.');
-        }
-
+        // Obter e autorizar a fatura.
         $invoice = $this->service->getInvoiceById(
             $invoiceId,
             $resident->id
         );
 
-        abort_if(!$invoice->file, 404, 'This invoice has no file.');
+        Gate::authorize('view', $invoice);
 
+        // Confirmar que a fatura tem um ficheiro associado.
+        abort_if(
+            !$invoice->file,
+            404,
+            'Esta fatura não tem um ficheiro associado.'
+        );
+
+        // Gerar um endereço temporário válido durante 5 minutos.
         return response()->json([
             'data' => [
                 'url' => $files->getSecureUrl($invoice->file, 5),

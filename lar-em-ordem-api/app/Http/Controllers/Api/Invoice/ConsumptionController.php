@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\Invoice;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Invoice\ConsumptionResource;
 use App\Http\Resources\Invoice\ConsumptionItemResource;
+use App\Models\Invoice\Consumption;
 use App\Services\Invoice\ConsumptionService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,29 +20,24 @@ class ConsumptionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request) 
-    { 
-        $validated = $request->validate([ 
+    public function index(Request $request)
+    {
+        $validated = $request->validate([
             'property_id' => ['nullable', 'string', 'exists:properties,id'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
-        
-        $resident = $request->user()->resident;
-        
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
 
-        $consumptions = $this->service->getConsumptions( 
-            residentId: $resident->id, 
-            propertyId: $validated['property_id'] ?? null 
+        Gate::authorize('viewAny', Consumption::class);
+
+        $resident = $request->user()->resident;
+
+        $consumptions = $this->service->getConsumptions(
+            residentId: $resident->id,
+            propertyId: $validated['property_id'] ?? null,
+            perPage: $validated['per_page'] ?? 15
         );
 
-        if ($consumptions->currentPage() > $consumptions->lastPage() && $consumptions->lastPage() > 0)
-        {
-            abort(404, 'Page out of bounds.'); 
-        }
-        
-        return ConsumptionResource::collection($consumptions); 
+        return ConsumptionResource::collection($consumptions);
     }
 
     /**
@@ -48,16 +45,16 @@ class ConsumptionController extends Controller
      */
     public function show(Request $request, string $consumptionId): JsonResponse
     {
+        Gate::authorize('viewAny', Consumption::class);
+
         $resident = $request->user()->resident;
-        
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
 
         $consumption = $this->service->getConsumptionById(
             consumptionId: $consumptionId,
             residentId: $resident->id
         );
+
+        Gate::authorize('view', $consumption);
 
         return ConsumptionResource::make($consumption)->response();
     }
@@ -67,16 +64,16 @@ class ConsumptionController extends Controller
      */
     public function items(Request $request, string $consumptionId): JsonResponse
     {
+        Gate::authorize('viewAny', Consumption::class);
+
         $resident = $request->user()->resident;
-        
-        if (! $resident) {
-            abort(404, 'Resident profile not found.');
-        }
 
         $consumption = $this->service->getConsumptionById(
             consumptionId: $consumptionId,
             residentId: $resident->id
         );
+
+        Gate::authorize('view', $consumption);
 
         return ConsumptionItemResource::collection($consumption->items)->response();
     }

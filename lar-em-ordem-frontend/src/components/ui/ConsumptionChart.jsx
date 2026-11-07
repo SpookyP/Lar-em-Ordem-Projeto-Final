@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import axiosClient from "../../services/api/axiosClient";
 import {
   PieChart,
   Pie,
@@ -8,20 +7,30 @@ import {
 } from "recharts";
 import { ChevronRight } from "lucide-react";
 
-// Tipos de consumo e respetivas cores no gráfico.
+// Mapeamento visual das utilidades domésticas.
 const UTILITIES = {
   1: { name: "Eletricidade", color: "#1C3557" },
   2: { name: "Água", color: "#0F766E" },
   3: { name: "Gás", color: "#EA580C" },
 };
 
-// Formatação dos valores monetários em euros.
 const money = new Intl.NumberFormat("pt-PT", {
   style: "currency",
   currency: "EUR",
 });
 
-// Converte valores recebidos da API para números.
+const EMPTY_TOTALS = { 1: 0, 2: 0, 3: 0 };
+
+// Possíveis nomes das relações que guardam os itens de consumo.
+const ITEM_KEYS = [
+  "items",
+  "consumption_items",
+  "consumptionItems",
+  "details",
+  "lines",
+];
+
+// Utilitários de conversão e normalização de dados.
 function asNumber(value) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -34,52 +43,40 @@ function asNumber(value) {
     .replace(/\s/g, "")
     .replace(/[€]/g, "");
 
-  // Converte valores portugueses, por exemplo 1.234,56.
+  // Converte números no formato português, por exemplo 1.234,56.
   if (text.includes(",")) {
     text = text.replace(/\./g, "").replace(",", ".");
   }
 
   const result = Number(text);
+
   return Number.isFinite(result) ? result : 0;
 }
 
-// Obtém uma lista de faturas de diferentes formatos de resposta da API.
-function responseArray(response) {
-  const body = response?.data ?? response;
+// Obtém os consumos associados a uma fatura.
+function getConsumptions(invoice) {
+  const list = invoice?.consumptions ?? invoice?.utilities ?? [];
 
-  if (Array.isArray(body)) return body;
-  if (Array.isArray(body?.data)) return body.data;
-  if (Array.isArray(body?.invoices)) return body.invoices;
-  if (Array.isArray(body?.results)) return body.results;
-  if (Array.isArray(body?.data?.data)) return body.data.data;
-
-  return [];
+  return Array.isArray(list) ? list : [];
 }
 
-// Normaliza o ID do imóvel, aceitando também objetos e JSON.
-function normalizePropertyId(value) {
-  if (!value) return "";
+// Obtém os itens de um consumo, dando prioridade à primeira lista
+// que contenha efetivamente elementos.
+function getConsumptionItems(consumption) {
+  const possibleItems = ITEM_KEYS.map(
+    (key) => consumption?.[key]
+  );
 
-  if (typeof value === "object") {
-    return value.id ?? "";
-  }
-
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-
-      if (parsed && typeof parsed === "object") {
-        return parsed.id ?? "";
-      }
-    } catch {
-      // Se não for JSON, considera-se que já é um ID.
-    }
-  }
-
-  return value;
+  return (
+    possibleItems.find(
+      (items) => Array.isArray(items) && items.length > 0
+    ) ??
+    possibleItems.find(Array.isArray) ??
+    []
+  );
 }
 
-// Identifica o tipo de consumo através do ID ou do nome.
+// Identifica o tipo de serviço associado a um consumo.
 function getTypeId(consumption) {
   const raw =
     consumption?.consumption_type_id ??
@@ -93,17 +90,16 @@ function getTypeId(consumption) {
 
   if (UTILITIES[id]) return id;
 
+  // Quando não existe um ID reconhecido, tenta identificar pelo nome.
   const name = String(
     consumption?.consumption_type?.name ??
-      consumption?.consumptionType?.name ??
-      consumption?.type?.name ??
-      consumption?.name ??
-      ""
+    consumption?.consumptionType?.name ??
+    consumption?.type?.name ??
+    consumption?.name ??
+    ""
   ).toLowerCase();
 
-  if (name.includes("eletric") || name.includes("electric")) {
-    return 1;
-  }
+  if (name.includes("eletric") || name.includes("electric")) return 1;
 
   if (
     name.includes("água") ||
@@ -113,43 +109,41 @@ function getTypeId(consumption) {
     return 2;
   }
 
-  if (name.includes("gás") || name.includes("gas")) {
-    return 3;
-  }
+  if (name.includes("gás") || name.includes("gas")) return 3;
 
   return null;
 }
 
-// Procura os itens detalhados associados a cada consumo.
-function getItems(consumption) {
-  const possible = [
-    consumption?.items,
-    consumption?.consumption_items,
-    consumption?.consumptionItems,
-    consumption?.details,
-    consumption?.lines,
-  ];
-
-  return possible.find(Array.isArray) ?? [];
-}
-
-// Obtém o custo de uma linha individual da fatura.
+// Obtém o custo de um item através dos campos disponíveis.
 function getItemCost(item) {
   return asNumber(
     item?.cost ??
-      item?.total_cost ??
-      item?.totalCost ??
-      item?.amount_cost ??
-      item?.price ??
-      0
+    item?.total_cost ??
+    item?.totalCost ??
+    item?.amount_cost ??
+    item?.price ??
+    0
   );
 }
 
-// Calcula o custo de um consumo sem duplicar os valores dos itens.
+// Obtém o custo total de um consumo.
+// Dá prioridade ao custo total registado no próprio consumo.
 function getConsumptionCost(consumption) {
-  const items = getItems(consumption);
+  if (consumption?.cost != null) {
+    return asNumber(consumption.cost);
+  }
 
-  // Se existem linhas detalhadas, soma essas linhas.
+  if (consumption?.total_cost != null) {
+    return asNumber(consumption.total_cost);
+  }
+
+  if (consumption?.totalCost != null) {
+    return asNumber(consumption.totalCost);
+  }
+
+  // Na ausência de um custo total, soma os custos dos itens.
+  const items = getConsumptionItems(consumption);
+
   if (items.length > 0) {
     return items.reduce(
       (sum, item) => sum + getItemCost(item),
@@ -157,30 +151,16 @@ function getConsumptionCost(consumption) {
     );
   }
 
-  // Caso contrário, utiliza o custo geral do consumo.
-  return asNumber(
-    consumption?.cost ??
-      consumption?.total_cost ??
-      consumption?.totalCost ??
-      0
-  );
+  return 0;
 }
 
-// Agrupa os custos de todas as faturas por tipo de consumo.
+// Agrupa os custos por tipo de serviço.
 function normalizeInvoices(invoices) {
-  const totals = {
-    1: 0,
-    2: 0,
-    3: 0,
-  };
+  const totals = { ...EMPTY_TOTALS };
+  const invoiceList = Array.isArray(invoices) ? invoices : [];
 
-  invoices.forEach((invoice) => {
-    const consumptions =
-      invoice?.consumptions ??
-      invoice?.utilities ??
-      [];
-
-    if (!Array.isArray(consumptions)) return;
+  invoiceList.forEach((invoice) => {
+    const consumptions = getConsumptions(invoice);
 
     consumptions.forEach((consumption) => {
       const typeId = getTypeId(consumption);
@@ -201,93 +181,104 @@ function normalizeInvoices(invoices) {
     .filter((item) => item.value !== 0);
 }
 
-export default function ConsumptionChart({
-  propertyId,
-  refreshKey = 0,
-  invoices: invoicesProp,
-  onCategoryClick,
-}) {
-  // Guarda as faturas, o estado de carregamento e os erros.
-  const [invoices, setInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+// Converte datas para objetos Date, evitando problemas de fuso horário
+// nas datas recebidas no formato YYYY-MM-DD.
+function parseDate(value) {
+  if (!value) return null;
 
-  // Guarda o ID da categoria selecionada ou destacada.
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+
+    if (match) {
+      const [, year, month, day] = match;
+
+      const date = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day)
+      );
+
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// Obtém a data representativa da fatura para a filtragem temporal.
+function getInvoiceDate(invoice) {
+  return (
+    invoice?.period_start ??
+    invoice?.period_end ??
+    invoice?.issue_date ??
+    invoice?.invoice_date ??
+    invoice?.date ??
+    invoice?.created_at ??
+    null
+  );
+}
+
+// Calcula a data inicial do período selecionado.
+function getPeriodStart(period) {
+  const now = new Date();
+  const months = Number(period);
+
+  const validMonths =
+    Number.isFinite(months) && months > 0
+      ? months
+      : 1;
+
+  return new Date(
+    now.getFullYear(),
+    now.getMonth() - validMonths,
+    1
+  );
+}
+
+export default function ConsumptionChart({
+  invoices = [],
+  loading = false,
+  error = "",
+  onCategoryClick,
+  period = 1,
+}) {
   const [focusedId, setFocusedId] = useState(null);
 
-  // Normaliza o imóvel antes de enviar o pedido à API.
-  const normalizedPropertyId = normalizePropertyId(propertyId);
+  // Filtragem das faturas pelo período selecionado.
+  const filteredInvoices = useMemo(() => {
+    const startDate = getPeriodStart(period);
+    const endDate = new Date();
 
-  // Carrega as faturas ou utiliza os dados recebidos por propriedades.
-  useEffect(() => {
-    let cancelled = false;
+    const invoiceList = Array.isArray(invoices)
+      ? invoices
+      : [];
 
-    async function loadInvoices() {
-      // Se a página fornecer as faturas, não é necessário fazer outro pedido.
-      if (Array.isArray(invoicesProp)) {
-        setInvoices(invoicesProp);
-        setLoading(false);
-        setError("");
-        return;
-      }
+    return invoiceList.filter((invoice) => {
+      const date = parseDate(getInvoiceDate(invoice));
 
-      setLoading(true);
-      setError("");
+      return date && date >= startDate && date <= endDate;
+    });
+  }, [invoices, period]);
 
-      try {
-        const response = await axiosClient.get(
-          "/api/v1/invoices",
-          {
-            params: normalizedPropertyId
-              ? { property_id: normalizedPropertyId }
-              : {},
-          }
-        );
-
-        if (!cancelled) {
-          setInvoices(responseArray(response));
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setInvoices([]);
-          setError(
-            err?.response?.data?.message ??
-              "Não foi possível carregar os consumos."
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadInvoices();
-
-    // Impede atualizações de estado depois de o componente ser desmontado.
-    return () => {
-      cancelled = true;
-    };
-  }, [normalizedPropertyId, refreshKey, invoicesProp]);
-
-  // Prepara os valores agregados que serão apresentados no gráfico.
+  // Preparação dos valores para o gráfico circular.
   const data = useMemo(
-    () => normalizeInvoices(invoices),
-    [invoices]
+    () => normalizeInvoices(filteredInvoices),
+    [filteredInvoices]
   );
 
-  // Calcula o custo total das categorias apresentadas.
+  // Calcula o total dos custos apresentados.
   const total = useMemo(
     () => data.reduce((sum, item) => sum + item.value, 0),
     [data]
   );
 
-  // Procura a categoria atualmente selecionada.
-  const focusedItem = data.find(
-    (item) => item.id === focusedId
-  ) ?? null;
+  // Obtém a categoria atualmente destacada.
+  const focusedItem =
+    data.find((item) => item.id === focusedId) ?? null;
 
-  // Define o conteúdo apresentado no centro do gráfico.
+  // Conteúdo apresentado no centro do gráfico.
   const center = focusedItem
     ? {
         label: focusedItem.name,
@@ -305,7 +296,7 @@ export default function ConsumptionChart({
     null
   );
 
-  // Limpa a seleção caso os dados deixem de incluir essa categoria.
+  // Remove o destaque se a categoria deixar de existir nos dados.
   useEffect(() => {
     if (
       focusedId !== null &&
@@ -315,7 +306,7 @@ export default function ConsumptionChart({
     }
   }, [data, focusedId]);
 
-  // Apresenta o estado de carregamento.
+  // Estado de carregamento.
   if (loading) {
     return (
       <div className="flex min-h-40 items-center justify-center">
@@ -326,7 +317,7 @@ export default function ConsumptionChart({
     );
   }
 
-  // Apresenta eventuais erros da API.
+  // Estado de erro.
   if (error) {
     return (
       <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
@@ -335,7 +326,7 @@ export default function ConsumptionChart({
     );
   }
 
-  // Apresenta uma mensagem quando não existem consumos.
+  // Estado sem dados.
   if (data.length === 0 || total === 0) {
     return (
       <div className="py-10 text-center">
@@ -344,16 +335,17 @@ export default function ConsumptionChart({
         </p>
 
         <p className="mt-1 text-sm text-slate-500">
-          Adiciona uma fatura para consultar a distribuição
-          dos custos.
+          Adiciona uma fatura para consultar a distribuição dos custos.
         </p>
       </div>
     );
   }
 
+  // Renderização do gráfico Recharts e da lista interativa.
   return (
     <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
-      {/* Gráfico de anel com destaque das categorias. */}
+
+      {/* Gráfico circular com o total ou a categoria selecionada. */}
       <div
         className="relative shrink-0"
         style={{ width: 260, height: 260 }}
@@ -372,19 +364,11 @@ export default function ConsumptionChart({
               endAngle={-270}
               paddingAngle={2}
               stroke="none"
-
-              // Desativa a animação para evitar interrupções no hover.
               isAnimationActive={false}
-
-              // Atualiza a categoria destacada ao passar o rato.
-              onMouseEnter={(_, index) => {
-                setFocusedId(data[index]?.id ?? null);
-              }}
-              onMouseLeave={() => {
-                setFocusedId(null);
-              }}
-
-              // Desenha cada fatia com a cor e opacidade adequadas.
+              onMouseEnter={(_, index) =>
+                setFocusedId(data[index]?.id ?? null)
+              }
+              onMouseLeave={() => setFocusedId(null)}
               shape={(props) => {
                 const { index } = props;
                 const item = data[index];
@@ -395,11 +379,11 @@ export default function ConsumptionChart({
                     {...props}
                     fill={item?.color}
                     opacity={
-                      focusedId === null || isFocused ? 1 : 0.3
+                      focusedId === null || isFocused
+                        ? 1
+                        : 0.3
                     }
-                    style={{
-                      transition: "opacity 0.18s",
-                    }}
+                    style={{ transition: "opacity 0.18s" }}
                   />
                 );
               }}
@@ -407,7 +391,7 @@ export default function ConsumptionChart({
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Texto central com o total ou o valor selecionado. */}
+        {/* Valores apresentados no centro do gráfico. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
           <p className="text-xs uppercase tracking-wide text-slate-500">
             {center.label}
@@ -419,8 +403,10 @@ export default function ConsumptionChart({
         </div>
       </div>
 
-      {/* Legenda dinâmica com os custos por categoria. */}
+      {/* Lista de categorias, percentagens e respetivos custos. */}
       <div className="w-full min-w-0 flex-1">
+
+        {/* Maior gasto do período. */}
         {biggest && (
           <>
             <p className="text-sm text-slate-500">
@@ -433,10 +419,9 @@ export default function ConsumptionChart({
           </>
         )}
 
-        {/* Lista das categorias e respetivas percentagens. */}
         <ul className="flex flex-col gap-3">
           {data.map((item) => {
-            const percent =
+            const percentage =
               total !== 0
                 ? Math.round((item.value / total) * 100)
                 : 0;
@@ -446,26 +431,16 @@ export default function ConsumptionChart({
             return (
               <li
                 key={item.id}
-
-                // Sincroniza o destaque com o gráfico.
                 onMouseEnter={() => setFocusedId(item.id)}
                 onMouseLeave={() => setFocusedId(null)}
-
-                // Permite navegar e selecionar categorias pelo teclado.
                 onFocus={() => setFocusedId(item.id)}
                 onBlur={() => setFocusedId(null)}
-
                 className={`flex items-center gap-3 rounded-lg px-2 py-2 transition ${
                   isFocused ? "bg-slate-50" : ""
-                } ${
-                  onCategoryClick ? "cursor-pointer" : ""
-                }`}
-
+                } ${onCategoryClick ? "cursor-pointer" : ""}`}
                 onClick={() => onCategoryClick?.(item)}
                 role={onCategoryClick ? "button" : undefined}
                 tabIndex={onCategoryClick ? 0 : undefined}
-
-                // Permite selecionar uma categoria com Enter ou Espaço.
                 onKeyDown={(event) => {
                   if (
                     onCategoryClick &&
@@ -486,7 +461,7 @@ export default function ConsumptionChart({
                 </span>
 
                 <span className="text-sm text-slate-500">
-                  {percent}%
+                  {percentage}%
                 </span>
 
                 <span className="w-24 text-right text-sm font-semibold text-slate-900">
@@ -504,7 +479,7 @@ export default function ConsumptionChart({
           })}
         </ul>
 
-        {/* Explica que as categorias podem abrir informação adicional. */}
+        {/* Indicação de que as categorias permitem abrir detalhes. */}
         {onCategoryClick && (
           <p className="mt-5 text-xs text-slate-500">
             Clica numa categoria para consultar o detalhe.

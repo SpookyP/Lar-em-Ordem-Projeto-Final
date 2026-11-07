@@ -19,4 +19,20 @@ class AnnualBenchmarkRequest extends FormRequest
             'year'                => ['required', 'digits:4', 'integer'], // Ex: 2026
         ];
     }
+
+    /**
+     * Mensagens de erro em português.
+     */
+    public function messages(): array
+    {
+        return [
+            'property_id.ulid'             => 'O identificador da habitação é inválido.',
+            'consumption_type_id.required' => 'Indique o tipo de consumo.',
+            'consumption_type_id.integer'  => 'O tipo de consumo é inválido.',
+            'consumption_type_id.exists'   => 'O tipo de consumo selecionado não existe.',
+            'year.required'                => 'Indique o ano a comparar.',
+            'year.digits'                  => 'O ano deve ter 4 dígitos (por exemplo, 2026).',
+            'year.integer'                 => 'O ano é inválido.',
+        ];
+    }
 }
