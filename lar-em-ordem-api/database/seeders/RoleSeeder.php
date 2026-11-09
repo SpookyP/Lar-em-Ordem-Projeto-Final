@@ -18,6 +18,7 @@ class RoleSeeder extends Seeder
             'service_provider',
             'partner',
             'condominium_admin',
+            'SU',
         ];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
