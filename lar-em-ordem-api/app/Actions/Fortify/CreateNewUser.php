@@ -31,13 +31,13 @@ class CreateNewUser implements CreatesNewUsers
      *
      * @throws ValidationException
      */
-    public function validate(array $input): array
+    public function validate(array $input, bool $existingAccount = false): array
     {
         $role = $input['role'] ?? null;
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],
-            'password' => $this->passwordRules(),
+            'password' => $existingAccount ? ['required', 'string'] : $this->passwordRules(),
             'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ];
 
@@ -68,17 +68,15 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         $role = $input['role'] ?? null;
-        $validated = $this->validate($input);
-
-        $user = User::where('email', $input['email'])->first();
-
-        if ($user) {
-            if (!Hash::check($input['password'], $user->password)) {
-                throw ValidationException::withMessages([
-                    'password' => ['Invalid credentials for existing account.']
-                ]);
-            }
+        $user = User::where('email', $input['email'] ?? '')->first();
+        
+        if ($user && !Hash::check($input['password'] ?? '', $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['O email já está em uso, tente novamente.']
+            ]);
         }
+
+        $validated = $this->validate($input, existingAccount: (bool) $user);
 
         return DB::transaction(function () use ($input, $validated, $user, $role) {
             if (!$user) {
