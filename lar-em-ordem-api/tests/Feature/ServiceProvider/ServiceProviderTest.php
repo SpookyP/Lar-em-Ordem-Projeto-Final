@@ -262,7 +262,7 @@ class ServiceProviderTest extends TestCase
 
         // validação: uma só query às zonas (antes era uma por zona)
         $zoneQueries = collect(DB::getQueryLog())
-            ->filter(fn ($q) => str_starts_with($q['query'], 'select count(*) as aggregate from "service_zones"'));
+            ->filter(fn ($q) => preg_match('/^select count\(\*\) as aggregate from [`"]service_zones[`"]/', $q['query']));
         $this->assertCount(1, $zoneQueries);
 
         $this->assertCount(count($porto), $user->fresh()->service_provider->zones);
