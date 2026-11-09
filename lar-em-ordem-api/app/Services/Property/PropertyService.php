@@ -111,6 +111,7 @@ class PropertyService
                     'is_active' => false,
                     'end_date' => now()
                 ]);
+            app(\App\Services\ServiceProvider\AssistanceRequestService::class)->cancelOpenForProperty($property);
             return $property->delete();
         });
     }

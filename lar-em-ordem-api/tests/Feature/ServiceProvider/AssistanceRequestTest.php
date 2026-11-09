@@ -589,4 +589,32 @@ class AssistanceRequestTest extends TestCase
             ->getJson('/api/v1/assistance-requests/available')
             ->assertForbidden();
     }
+
+    public function test_apagar_a_casa_cancela_os_pedidos_abertos_e_mantem_o_historico(): void
+    {
+        $sanita = $this->pedido('Sanita entupida');
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+        Property::whereKey($this->casa)->update(['condominium_id' => null]);
+
+        $this->actingAs($this->morador)->deleteJson("/api/v1/properties/{$this->casa}")->assertOk();
+
+        // o pedido aberto é cancelado e as propostas pendentes passam a rejeitadas
+        $this->assertSame('cancelled', $tomada->fresh()->status);
+        $this->assertSame(0, $tomada->proposals()->where('status', 'pending')->count());
+
+         // o fechado fica no histórico do prestador, mas sem a morada da casa apagada
+        $this->assertSame('closed', $sanita->fresh()->status);
+        $this->actingAs($this->servicos)
+            ->getJson("/api/v1/assistance-requests/{$sanita->id}")
+            ->assertOk()
+            ->assertJsonPath('data.title', 'Sanita entupida')
+            ->assertJsonPath('data.property', null);
+
+        // nem um prestador sem zonas vê o pedido da casa apagada nos disponíveis
+        $this->servicos->service_provider->zones()->sync([]);
+        $titulos = collect($this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?per_page=15')
+            ->json('data'))->pluck('title');
+        $this->assertFalse($titulos->contains(fn ($t) => str_starts_with($t, 'Fuga')));
+    }
 }
