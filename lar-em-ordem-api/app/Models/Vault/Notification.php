@@ -37,6 +37,6 @@ class Notification extends Model
 
     public function document(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Document::class);
+        return $this->belongsTo(Document::class, 'document_id');
     }
 }

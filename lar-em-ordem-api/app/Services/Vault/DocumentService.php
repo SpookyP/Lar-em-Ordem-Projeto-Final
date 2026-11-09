@@ -75,17 +75,11 @@ class DocumentService
             $fileRecord = \App\Models\File\File::find($document->file_id);
 
             if ($fileRecord) {
-                // same disk and rules as every other upload (object in R2 + row in `files`)
                 $this->fileStorageService->deleteFile($fileRecord);
-            }
-        } elseif ($document->ficheiro_path) {
-            // Fallback: limpar ficheiros antigos guardados localmente antes da transição para R2
-            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($document->ficheiro_path)) {
-                \Illuminate\Support\Facades\Storage::disk('local')->delete($document->ficheiro_path);
             }
         }
 
-        // Apagar notificações pelo document_id
+        // Apagar notificações associadas
         \App\Models\Vault\Notification::where('document_id', $document->id)->delete();
 
         // Apagar o próprio documento

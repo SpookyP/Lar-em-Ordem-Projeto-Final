@@ -38,7 +38,7 @@ class DocumentExpiryService
 
         $today = Carbon::today();
         $expiryDate = Carbon::parse($document->expiration_date)->startOfDay();
-        $daysLeft = $today->diffInDays($expiryDate, false); // Negativo se já expirou
+        $daysLeft = $today->diffInDays($expiryDate, false);
 
         // Definir o escalão de alerta
         if ($daysLeft < 0) {
@@ -54,8 +54,12 @@ class DocumentExpiryService
             $title = "Aviso: {$document->name} expira em {$daysLeft} dias";
             $message = "Renove o documento '{$document->name}' antes de {$expiryDate->format('d/m/Y')}.";
         } else {
-            return null; // Mais de 30 dias de validade, não gera alerta
+            return null;
         }
+
+        Notification::where('document_id', $document->id)
+            ->where('type', '!=', $type)
+            ->delete();
 
         // firstOrCreate evita criar notificações repetidas para o mesmo documento e escalão
         return Notification::firstOrCreate(
