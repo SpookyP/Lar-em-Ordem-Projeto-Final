@@ -28,6 +28,12 @@ class CondominiumNotice extends Model
         ];
     }
 
+    /** Avisos de um condomínio apagado deixam de ser acessíveis pela API. */
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        return parent::resolveRouteBindingQuery($query, $value, $field)->whereHas('condominium');
+    }
+
     public function condominium()
     {
         return $this->belongsTo(Condominium::class);

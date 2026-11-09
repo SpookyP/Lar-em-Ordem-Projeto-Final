@@ -149,7 +149,18 @@ class ResidentDataErasureTest extends TestCase
 
     // --------------------------------------------------- assistance requests
 
-    public function test_requests_without_a_deal_are_deleted_with_their_photos_and_proposals(): void
+     public function test_a_request_without_proposals_is_deleted_with_its_photos(): void
+    {
+        $request = $this->request('open');
+        $photo = $this->withPhoto($request);
+
+        $this->deleteAccount()->assertOk();
+
+        $this->assertFalse(AssistanceRequest::withTrashed()->whereKey($request->id)->exists());
+        $this->assertFileGone($photo);
+    }
+
+    public function test_an_open_request_with_proposals_stays_for_the_providers_cancelled_and_anonymised(): void
     {
         $request = $this->request('open');
         $photo = $this->withPhoto($request);
@@ -161,8 +172,11 @@ class ResidentDataErasureTest extends TestCase
 
         $this->deleteAccount()->assertOk();
 
-        $this->assertFalse(AssistanceRequest::withTrashed()->whereKey($request->id)->exists());
-        $this->assertFalse(Proposal::withTrashed()->whereKey($proposal->id)->exists());
+        $kept = AssistanceRequest::withTrashed()->findOrFail($request->id);
+        $this->assertSame('cancelled', $kept->status);
+        $this->assertSame(PersonalDataEraser::REMOVED_REQUEST, $kept->title);
+        $this->assertSame('', $kept->description);
+        $this->assertSame('rejected', $proposal->fresh()->status);
         $this->assertFileGone($photo);
     }
 

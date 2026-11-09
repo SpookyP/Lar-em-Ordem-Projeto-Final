@@ -212,29 +212,63 @@ class AssistanceRequestService
     }
 
     /**
-     * RGPD erasure of a resident's requests. The photos always go. A request with an accepted proposal
-     * is part of the provider's job history, so it stays without the resident's words; any other request
-     * is deleted together with its proposals (cascade).
+     * A casa foi apagada: os pedidos ainda abertos dessa casa são cancelados, e
+     * as propostas pendentes passam a rejeitadas;
+     * Os pedidos fechados ficam como estão (histórico do morador e dos prestadores).
+     *
+     * @param Property $property Casa apagada.
+     * @return void
+     */
+    public function cancelOpenForProperty(Property $property): void
+    {
+        AssistanceRequest::where('property_id', $property->id)
+            ->where('status', 'open')
+            ->get()
+            ->each(function (AssistanceRequest $request) {
+                $request->proposals()
+                    ->where('status', 'pending')
+                    ->update(['status' => 'rejected', 'response_date' => now()]);
+
+                $request->update(['status' => 'cancelled', 'closed_at' => now()]);
+            });
+    }
+
+    /**
+     * Eliminação de dados de um residente ao abrigo do RGPD.
+     * As fotografias e o texto escrito pelo residente são sempre eliminados.
+     * Um pedido que tenha recebido propostas é mantido (anonimizado) para que os prestadores
+     * de serviços conservem o seu histórico:
+     * se ainda estiver aberto, é cancelado e as propostas pendentes passam a ser rejeitadas.
+     * Um pedido sem propostas não tem relevância e é eliminado.
      */
     public function eraseForResident(Resident $resident): void
     {
         AssistanceRequest::withTrashed()
             ->where('resident_id', $resident->id)
-            ->with(['attachments', 'acceptedProposal'])
+            ->with('attachments')
+            ->withCount('proposals')
             ->get()
             ->each(function (AssistanceRequest $request) {
                 $this->attachmentService->sync($request, [], $request->attachments->modelKeys());
 
-                if ($request->acceptedProposal) {
-                    $request->forceFill([
-                        'title' => PersonalDataEraser::REMOVED_REQUEST,
-                        'description' => '',
-                    ])->save();
+                if ($request->proposals_count === 0) {
+                    $request->forceDelete();
 
                     return;
                 }
 
-                $request->forceDelete();
+                if ($request->isOpen()) {
+                    $request->proposals()
+                        ->where('status', 'pending')
+                        ->update(['status' => 'rejected', 'response_date' => now()]);
+
+                    $request->forceFill(['status' => 'cancelled', 'closed_at' => now()]);
+                }
+
+                $request->forceFill([
+                    'title'       => PersonalDataEraser::REMOVED_REQUEST,
+                    'description' => '',
+                ])->save();
             });
     }
 }

@@ -256,16 +256,34 @@ class CondominiumTest extends TestCase
 
     // ---------------------------------------------------------------- apagar
 
-    public function test_apagar_o_condominio_desliga_as_casas(): void
+   public function test_apagar_o_condominio_desliga_as_casas_e_anonimiza_o_que_fica(): void
     {
+        $aviso = $this->condominio->notices()->first();
+
         $this->actingAs($this->admin)
             ->deleteJson("/api/v1/condominiums/{$this->condominio->id}")
             ->assertOk();
 
         $this->assertSoftDeleted($this->condominio);
         $this->assertNull(Property::find($this->casa)->condominium_id);
-    }
 
+        // o morador deixa de ver o condomínio
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/properties/{$this->casa}/condominium")
+            ->assertOk()
+            ->assertJsonPath('data', null);
+
+        // o que fica na base de dados não identifica o prédio
+        $condominio = Condominium::withTrashed()->find($this->condominio->id);
+        $this->assertSame('Condomínio removido', $condominio->name);
+        $this->assertSame('Morada removida', $condominio->address()->withTrashed()->first()->street);
+        $this->assertSame(0, $condominio->notices()->where('title', '!=', 'Aviso removido')->count());
+        $this->assertSame('', $aviso->fresh()->message);
+
+        // links antigos de avisos: 404 em vez de erro
+        $this->actingAs($this->morador)->patchJson("/api/v1/condominium-notices/{$aviso->id}/read")->assertNotFound();
+        $this->actingAs($this->admin)->patchJson("/api/v1/condominium-notices/{$aviso->id}", ['title' => 'x'])->assertNotFound();
+    }
     // ------------------------------------------------------------ join/leave
 
     public function test_o_residente_junta_uma_casa_com_o_codigo(): void
