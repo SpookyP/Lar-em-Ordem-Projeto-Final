@@ -26,7 +26,7 @@ class StorePropertyRequest extends FormRequest
             // Property
             'property_type_id'     => ['required', 'integer', 'exists:property_types,id'],
             'property_typology_id' => ['required', 'integer', 'exists:property_typologies,id'],
-            'address_id'           => ['nullable', 'string', 'exists:addresses,id'],
+            'address_id'           => ['prohibited'],
             'area'                 => ['required', 'integer', 'min:1'],
 
             // Contract
@@ -35,7 +35,7 @@ class StorePropertyRequest extends FormRequest
             'end_date'             => ['nullable', 'date', 'after_or_equal:start_date'],
 
             // Address (Required if address_id is not provided)
-            'address'              => ['required_without:address_id', 'array'],
+            'address'              => ['required', 'array'],
             'address.street'       => ['required_with:address', 'string', 'max:255'],
             'address.postal_code'  => ['required_with:address', 'string', 'max:20'],
             'address.door'         => ['nullable', 'string', 'max:10'],
@@ -54,10 +54,16 @@ class StorePropertyRequest extends FormRequest
         return $this->safe()->only([
             'property_type_id',
             'property_typology_id',
-            'address_id',
             'area',
             'fraction',
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'address_id.prohibited' => 'A morada não pode ser escolhida: envia os dados da morada em "address".',
+        ];
     }
 
     /**
