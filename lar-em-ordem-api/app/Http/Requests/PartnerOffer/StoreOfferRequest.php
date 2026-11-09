@@ -25,7 +25,7 @@ class StoreOfferRequest extends FormRequest
         return [
 
             'title'       => 'required|string|max:255',
-            'description' => 'required|string',
+           'description' => 'required|string|max:2000',
             'offer_category_id' => 'required|integer|exists:offer_categories,id',
             'url'         => 'nullable|url|max:255',
             'start_date'  => 'required|date',
@@ -38,6 +38,7 @@ class StoreOfferRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'description.max' => 'A descrição não pode ter mais de 2000 caracteres.',
             'end_date.after_or_equal'    => 'A data de fim não pode ser anterior à data de início.',
             'offer_category_id.required' => 'Escolha o tipo de oferta.',
             'offer_category_id.exists'   => 'O tipo de oferta indicado não existe.',
