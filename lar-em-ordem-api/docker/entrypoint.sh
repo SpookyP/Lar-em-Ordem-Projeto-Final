@@ -2,6 +2,8 @@
 set -e
 cd /var/www/html
 
+rm -f /tmp/ready
+
 if [ ! -f .env ]; then
   echo "Falta o .env em lar-em-ordem-api (corre: make init)" >&2
   exit 1
