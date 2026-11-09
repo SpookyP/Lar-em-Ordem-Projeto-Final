@@ -12,6 +12,7 @@ use App\Services\Vault\DocumentService;
 use App\Services\FileStorage\FileStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
@@ -20,14 +21,21 @@ class DocumentController extends Controller
         private readonly FileStorageService $fileStorageService
     ) {}
 
-    public function index(Property $property): AnonymousResourceCollection
+    public function index(Request $request, Property $property): AnonymousResourceCollection
     {
         $this->authorize('view', $property);
+
+        $validated = $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
+        ]);
+
+        $perPage = $validated['per_page'] ?? 15;
 
         $documents = Document::where('property_id', $property->id)
             ->with('category')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate($perPage)
+            ->withQueryString();
 
         return DocumentResource::collection($documents);
     }
