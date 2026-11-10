@@ -100,4 +100,30 @@ class NotificationTest extends TestCase
             'read_at' => null,
         ]);
     }
+
+    public function test_uploading_expiring_document_dispatches_websocket_broadcast(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\Vault\VaultNotificationBroadcast::class]);
+
+        [$user, $property] = $this->createAuthorizedUserAndProperty();
+        $category = \App\Models\Vault\DocumentCategory::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/properties/{$property->id}/documents", [
+                'property_id'          => $property->id,
+                'document_category_id' => $category->id,
+                'name'                 => 'Certificado a Expirar',
+                'expiration_date'      => now()->addDays(5)->toDateString(),
+            ]);
+
+        $response->assertStatus(201);
+
+        \Illuminate\Support\Facades\Event::assertDispatched(
+            \App\Events\Vault\VaultNotificationBroadcast::class,
+            function ($event) use ($property) {
+                return $event->notification->property_id === $property->id
+                    && $event->notification->type === 'expiring_7_days';
+            }
+        );
+    }
 }
