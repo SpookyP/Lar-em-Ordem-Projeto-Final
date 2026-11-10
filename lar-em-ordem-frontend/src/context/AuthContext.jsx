@@ -77,6 +77,10 @@ export function AuthProvider({ children }) {
     return { pending: false, user };
   }
 
+  function patchUser(fields) {
+    setUser((current) => (current ? { ...current, ...fields } : current));
+  }
+
   async function refreshUser() {
     const currentUser = await getCurrentUser();
     setUser(currentUser);
@@ -104,6 +108,7 @@ export function AuthProvider({ children }) {
     register,
     registerSocial,
     refreshUser,
+    patchUser,
     hasRole,
     activeHouse,
     activeProfile,

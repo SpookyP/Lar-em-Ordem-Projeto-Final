@@ -8,3 +8,5 @@ export { SearchSelect } from "./SearchSelect";
 export { MultiSearchSelect } from "./MultiSearchSelect";
 export { ChoiceCards } from "./ChoiceCards";
 export { StepProgress } from "./StepProgress";
+export { Checkbox } from "./Checkbox";
+export { Toggle } from "./Toggle";
