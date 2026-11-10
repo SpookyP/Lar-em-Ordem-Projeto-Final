@@ -98,20 +98,21 @@ class DatabaseSeeder extends Seeder
         $this->call(ServiceZoneSeeder::class);
         $this->call(ProblemCategorySeeder::class);
 
-        // Rodar o script de Benchmark_Backfill automaticamente para criar os Benchmarks de mêses passados
-        Artisan::call('benchmarks:backfill');
-        $this->command->info(Artisan::output());
-        $this->call(ProblemCategorySeeder::class);
-
          // Módulos 5, 6 e 7: precisam das zonas, das categorias e dos parceiros criados acima
         $this->call([
             ServiceProviderSeeder::class,
             AssistanceRequestSeeder::class,
             CondominiumSeeder::class,
             OfferSeeder::class,
-            UserConsentSeeder::class,
         ]);
 
         $this->call(ResidenteConsumptionSeeder::class);
+    
+        // after every seeder that creates users: everyone accepts the policy and shares data
+        $this->call(UserConsentSeeder::class);
+
+        // last: benchmarks only count homes whose resident shares data, so the consents must exist first
+        Artisan::call('benchmarks:backfill');
+        $this->command->info(Artisan::output());
     }
 }

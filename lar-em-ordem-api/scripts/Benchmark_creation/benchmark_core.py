@@ -92,6 +92,22 @@ FETCH = text(f"""
       AND c.period_start < :window_end
       AND p.deleted_at IS NULL
       AND a.{REGION_COLUMN} IS NOT NULL
+      AND EXISTS (
+          SELECT 1
+          FROM property_contracts pc
+          INNER JOIN residents r ON r.id = pc.resident_id
+          WHERE pc.property_id = p.id
+            AND pc.is_active = 1
+            AND pc.deleted_at IS NULL
+            AND (
+                SELECT uc.granted
+                FROM user_consents uc
+                WHERE uc.user_id = r.user_id
+                  AND uc.type = 'data_sharing'
+                ORDER BY uc.created_at DESC, uc.id DESC
+                LIMIT 1
+            ) = 1
+      )
 """)
 
 # Apaga o benchmark anterior do mesmo período (é isto que permite reprocessar sem duplicar)
