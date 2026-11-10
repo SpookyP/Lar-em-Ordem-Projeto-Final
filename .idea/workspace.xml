@@ -4,11 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Correção do código backend">
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Apagar Notificações pelo Id do Documento">
+      <change afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/DocumentCategoryController.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Resources/Vault/DocumentCategoryResource.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Notification.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Notification.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentExpiryService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentExpiryService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/routes/modules/vault.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,8 +29,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="PHP File" />
         <option value="JavaScript File" />
+        <option value="PHP File" />
       </list>
     </option>
   </component>
@@ -77,61 +77,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.000000000000012" />
-      <entry key="S5" value="1.000011550122415" />
-      <entry key="S10" value="1.0120618564910349" />
-      <entry key="S30" value="2.2634669196232213" />
-      <entry key="S60" value="5.050999103285552" />
-      <entry key="M2" value="8.256128778175455" />
-      <entry key="M5" value="11.295241884021506" />
-      <entry key="M10" value="12.568792902790362" />
-      <entry key="M15" value="13.027431260061428" />
-      <entry key="M30" value="13.51724059167905" />
-      <entry key="H1" value="14.579546548176438" />
-      <entry key="H2" value="21.16003171857667" />
-      <entry key="H4" value="36.24403347078526" />
-      <entry key="D1" value="71.73984568639835" />
-      <entry key="W1" value="82.0980530564294" />
+      <entry key="MS100" value="1.683805616056676" />
+      <entry key="MS500" value="3.6357474633382734" />
+      <entry key="S2" value="9.100785827320145" />
+      <entry key="S5" value="15.405951955544708" />
+      <entry key="S10" value="20.072360723957626" />
+      <entry key="S30" value="25.731476531042112" />
+      <entry key="S60" value="29.742534615711033" />
+      <entry key="M2" value="33.797772799095675" />
+      <entry key="M5" value="37.59553345007857" />
+      <entry key="M10" value="39.1943585773628" />
+      <entry key="M15" value="39.771887817501714" />
+      <entry key="M30" value="40.386310085745784" />
+      <entry key="H1" value="41.51090016629018" />
+      <entry key="H2" value="48.116068264180726" />
+      <entry key="H4" value="63.21101549363093" />
+      <entry key="D1" value="98.73001412411621" />
+      <entry key="W1" value="109.09646808332941" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="1.53E-322" />
-      <entry key="MS500" value="4.326877173302376E-65" />
-      <entry key="S2" value="8.110425545302794E-17" />
-      <entry key="S5" value="3.6611494444547864E-7" />
-      <entry key="S10" value="6.050743296864267E-4" />
-      <entry key="S30" value="0.08458036911692564" />
-      <entry key="S60" value="0.2908270433039638" />
-      <entry key="M2" value="0.5392838244412339" />
-      <entry key="M5" value="0.7811365470264099" />
-      <entry key="M10" value="0.8838192955211148" />
-      <entry key="M15" value="0.920963455413931" />
-      <entry key="M30" value="0.9601866519275659" />
-      <entry key="H1" value="1.0141531091174356" />
-      <entry key="H2" value="1.298392895798906" />
-      <entry key="H4" value="1.9462346489027413" />
-      <entry key="D1" value="3.472489335486286" />
-      <entry key="W1" value="3.918158553873253" />
+      <entry key="MS100" value="3.361375907624599E-41" />
+      <entry key="MS500" value="8.040876958552206E-9" />
+      <entry key="S2" value="0.009469473960560866" />
+      <entry key="S5" value="0.15507095675205265" />
+      <entry key="S10" value="0.39400148140659785" />
+      <entry key="S30" value="0.7925108208762529" />
+      <entry key="S60" value="1.1001411330787938" />
+      <entry key="M2" value="1.419243596603485" />
+      <entry key="M5" value="1.723599552440754" />
+      <entry key="M10" value="1.853026878327185" />
+      <entry key="M15" value="1.899946451916955" />
+      <entry key="M30" value="1.9494202882087668" />
+      <entry key="H1" value="2.008604820259014" />
+      <entry key="H2" value="2.2952013134799696" />
+      <entry key="H4" value="2.944164602482721" />
+      <entry key="D1" value="4.471958171294296" />
+      <entry key="W1" value="4.918074907792473" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.4033208796110631" />
-      <entry key="MS500" value="0.833931043824964" />
-      <entry key="S2" value="0.9556140695971438" />
-      <entry key="S5" value="0.9820153250703789" />
-      <entry key="S10" value="1.0035950991490197" />
-      <entry key="S30" value="2.343540707247671" />
-      <entry key="S60" value="5.337773777891748" />
-      <entry key="M2" value="8.792306028561908" />
-      <entry key="M5" value="12.07471575001515" />
-      <entry key="M10" value="13.45169174901326" />
-      <entry key="M15" value="13.947759597942959" />
-      <entry key="M30" value="14.477097947645992" />
-      <entry key="H1" value="15.593513720132036" />
-      <entry key="H2" value="22.458251765348134" />
-      <entry key="H4" value="38.19008376787177" />
-      <entry key="D1" value="75.21226406433595" />
-      <entry key="W1" value="86.01619975956203" />
+      <entry key="MS100" value="1.602467219502978" />
+      <entry key="MS500" value="3.5983451869307954" />
+      <entry key="S2" value="9.08113566253356" />
+      <entry key="S5" value="15.50878931474443" />
+      <entry key="S10" value="20.40744125335681" />
+      <entry key="S30" value="26.487358555963816" />
+      <entry key="S60" value="30.819808493977035" />
+      <entry key="M2" value="35.20366448114128" />
+      <entry key="M5" value="39.313127257794335" />
+      <entry key="M10" value="41.04424674529389" />
+      <entry key="M15" value="41.669709370119485" />
+      <entry key="M30" value="42.334650566597816" />
+      <entry key="H1" value="43.51894241060163" />
+      <entry key="H2" value="50.410908148400054" />
+      <entry key="H4" value="66.15490140209984" />
+      <entry key="D1" value="103.20188559193267" />
+      <entry key="W1" value="114.01452888972739" />
     </decayedShown>
   </component>
   <component name="PackageJsonUpdateNotifier">
@@ -308,7 +308,7 @@
     "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "hotfix/cascade__vault",
+    "git-widget-placeholder": "feature/endpoint__documentCategories",
     "last_opened_file_path": "/home/hyper/ginasio",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
@@ -364,6 +364,7 @@
       <workItem from="1793822006001" duration="35000" />
       <workItem from="1793909184260" duration="638000" />
       <workItem from="1794000888659" duration="313000" />
+      <workItem from="1794330109195" duration="829000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -485,7 +486,15 @@
       <option name="project" value="LOCAL" />
       <updated>1793730414372</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Apagar Notificações pelo Id do Documento">
+      <option name="closed" value="true" />
+      <created>1794265484514</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1794265484514</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -514,7 +523,8 @@
     <MESSAGE value="EndPoints Notificações&#10;Seeder Categoria de Documento" />
     <MESSAGE value="implementa criacao manual de documentos, validação anti-duplicados e atualização testes" />
     <MESSAGE value="Show e Update de Documento&#10;Unread de Notificações" />
-    <option name="LAST_COMMIT_MESSAGE" value="Show e Update de Documento&#10;Unread de Notificações" />
+    <MESSAGE value="Apagar Notificações pelo Id do Documento" />
+    <option name="LAST_COMMIT_MESSAGE" value="Apagar Notificações pelo Id do Documento" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
