@@ -109,6 +109,7 @@ class DatabaseSeeder extends Seeder
             AssistanceRequestSeeder::class,
             CondominiumSeeder::class,
             OfferSeeder::class,
+            UserConsentSeeder::class,
         ]);
 
         $this->call(ResidenteConsumptionSeeder::class);
