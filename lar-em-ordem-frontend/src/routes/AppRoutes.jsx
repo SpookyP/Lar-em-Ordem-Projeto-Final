@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
 import { AppLayout } from "../components/layout/AppLayout";
+import { SiteLayout } from "../components/layout/SiteLayout";
 import { ROLES } from "../utils/roles";
 
 //Públicas
@@ -11,6 +12,7 @@ import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
 import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
+import Privacy from "../pages/Privacy/Privacy";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -52,6 +54,12 @@ function AppRoutesInner() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+
+        
+        {/* Rota publica, mas com a sidebar para quem tem sessao */}
+        <Route element={<SiteLayout />}>
+          <Route path="/privacy" element={<Privacy />} />
+        </Route>
 
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>

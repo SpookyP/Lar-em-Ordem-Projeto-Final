@@ -5,11 +5,14 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialRegisterController;
 use App\Http\Controllers\Api\Auth\PendingRegistrationController;
 use App\Http\Controllers\Api\Auth\EmailVerificationController;
+use App\Http\Controllers\Api\Auth\PrivacyController;
 
 // every throttle has its own name: unnamed ones share one counter per IP (or per user) across all routes
 
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 Route::post('/user/profile', [AuthController::class, 'store'])->middleware('auth:sanctum');
+Route::get('/user/privacy', [PrivacyController::class, 'show'])->middleware('auth:sanctum');
+Route::put('/user/privacy', [PrivacyController::class, 'update'])->middleware('auth:sanctum');
 
 Route::post('/auth/register', [PendingRegistrationController::class, 'register'])->middleware('throttle:10,1,register');
 Route::post('/auth/register/confirm', [PendingRegistrationController::class, 'confirm'])->middleware('throttle:20,1,register-confirm');

@@ -35,6 +35,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
     ];
 
+    public function consents()
+    {
+        return $this->hasMany(UserConsent::class);
+    }
     public function resident()
     {
         return $this->hasOne(Resident::class);

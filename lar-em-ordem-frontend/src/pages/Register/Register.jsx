@@ -175,6 +175,7 @@ export default function Register() {
           withAccount={!socialMode}
           accountIntro={<SocialLoginButtons />}
           onSubmit={handleSubmit}
+          askConsent
           submitLabel="Criar conta"
           submittingLabel="A criar conta..."
           footer={

@@ -85,6 +85,7 @@ class ProfileTest extends TestCase
             'phone'                 => '912345678',
             'description'           => 'Serviços.',
             'zone_ids'              => $this->zonas(1),
+            'accept_privacy' => true,
         ]);
 
         $user = User::where('email', 'novo@example.com')->firstOrFail();
@@ -103,6 +104,7 @@ class ProfileTest extends TestCase
             'password_confirmation' => $password,
             'role'                  => 'resident',
             'nif'                   => '212345678',
+            'accept_privacy' => true,
         ]);
 
         $user = User::where('email', 'res@example.com')->firstOrFail();
