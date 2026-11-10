@@ -1,5 +1,5 @@
 import { Building2, Globe, Mail } from "lucide-react";
-import { NifInput, PhoneInput, TextArea, TextInput } from "../form";
+import { ChoiceCards, NifInput, PhoneInput, TextArea, TextInput } from "../form";
 
 const DESCRIPTION_MAX = 2000;
 
@@ -15,6 +15,25 @@ export function ProfileFieldInput({ field, value, onChange, error, className }) 
     className,
   };
 
+    if (field.type === "choice") {
+    return (
+      <div className={`flex flex-col gap-1.5 ${className ?? ""}`}>
+        <span className="text-sm font-medium text-text">
+          {field.label}
+          <span className="ml-0.5 text-red" aria-hidden="true">
+            *
+          </span>
+        </span>
+        <ChoiceCards
+          label={field.label}
+          options={field.options}
+          value={value}
+          onChange={onChange}
+          error={error}
+        />
+      </div>
+    );
+  }
   if (field.name === "nif") return <NifInput {...common} />;
   if (field.type === "tel") return <PhoneInput {...common} />;
   if (field.type === "textarea") return <TextArea {...common} maxLength={DESCRIPTION_MAX} />;

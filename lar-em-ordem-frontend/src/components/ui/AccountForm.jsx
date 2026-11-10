@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { Lock, Mail, User } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { roleFields } from "../../data/registerFields";
+import { displayValue, roleFields } from "../../data/registerFields";
 import { updateProfileInformation } from "../../services/api/accountService";
 import { getMyProviderCoverage } from "../../services/api/catalogService";
 import { DataRow } from "./DataRow";
 import { TextInput } from "../form";
-import { formatPhone } from "../../utils/format";
 import { ROLES } from "../../utils/roles";
 import { EditableSection } from "../profile/EditableSection";
 import { ProfileFieldInput } from "../profile/ProfileFieldInput";
@@ -24,15 +23,12 @@ const DETAILS_TITLES = {
   [ROLES.RESIDENT]: "Dados fiscais",
   [ROLES.SERVICE_PROVIDER]: "Dados da empresa",
   [ROLES.PARTNER]: "Dados da empresa",
+  [ROLES.CONDOMINIUM_ADMIN]: "Administração",
 };
 
-function shownValue(field, value) {
-  return field.type === "tel" ? formatPhone(value) : value;
-}
-
-// the description takes the full width on larger screens
+// the description and the choice cards take the full width on larger screens
 function spanClass(field) {
-  return field.type === "textarea" ? "sm:col-span-2" : "";
+  return field.type === "textarea" || field.type === "choice" ? "sm:col-span-2" : "";
 }
 
 function PersonalSection({ user, role, onSaved }) {
@@ -125,7 +121,7 @@ function DetailsSection({ user, role, onSaved }) {
             <DataRow
               key={f.name}
               label={f.label}
-              value={shownValue(f, profile[f.name])}
+              value={displayValue(f, profile[f.name])}
               className={spanClass(f)}
             />
           ))}
