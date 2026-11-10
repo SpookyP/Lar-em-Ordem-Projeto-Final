@@ -27,7 +27,7 @@ class ResidentController extends Controller
         );
 
         if (!$resident) {
-            abort(404, 'Resident profile not found.');
+            abort(404, 'Perfil de morador não encontrado.');
         }
 
         $this->authorize('view', $resident);
@@ -57,7 +57,7 @@ class ResidentController extends Controller
             data: $request->validated()
         );
         return ResidentResource::make($property)
-            ->additional(['message' => 'Resident updated successfully.'])
+            ->additional(['message' => 'Perfil de morador atualizado.'])
             ->response();
     }
 
@@ -73,6 +73,6 @@ class ResidentController extends Controller
 
         $this->profileService->delete($request->user(), 'resident');
 
-        return response()->json(['message' => 'Resident profile removed successfully.']);
+        return response()->json(['message' => 'Perfil de morador removido.']);
     }
 }

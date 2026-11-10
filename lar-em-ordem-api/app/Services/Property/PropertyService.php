@@ -46,6 +46,7 @@ class PropertyService
                 'contracts' => fn($query) => $query->where('is_active', true)->with('residentType:id,type'),
             ])
             ->latest() // order by latest
+            ->latest('id')
             ->paginate($perPage);
     }
 

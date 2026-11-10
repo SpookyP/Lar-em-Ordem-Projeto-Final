@@ -235,7 +235,7 @@ class ProfileTest extends TestCase
         $this->actingAs($user)
             ->deleteJson('/api/v1/resident/profile')
             ->assertOk()
-            ->assertJsonPath('message', 'Resident profile removed successfully.');
+            ->assertJsonPath('message', 'Perfil de morador removido.');
 
         $this->assertSoftDeleted('residents', ['id' => $id]);
         $this->assertFalse($user->fresh()->hasRole('resident'));
