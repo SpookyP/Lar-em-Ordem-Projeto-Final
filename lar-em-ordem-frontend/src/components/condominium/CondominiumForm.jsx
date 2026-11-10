@@ -7,9 +7,14 @@ import {
   updateCondominium,
 } from "../../services/api/condominiumService";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
-import { getCounties, getDistricts } from "../../utils/zones";
+import { getCounties, getDistricts, getLocations } from "../../utils/zones";
 
-const toOptions = (names) => names.map((name) => ({ value: name, label: name }));
+// a saved value missing from the list (an older address) still shows as chosen
+const toOptions = (names, current = "") =>
+  (current && !names.includes(current) ? [current, ...names] : names).map((name) => ({
+    value: name,
+    label: name,
+  }));
 
 function initialForm(condominium) {
   const address = condominium?.address ?? {};
@@ -34,7 +39,7 @@ function validate(form) {
     "address.postal_code": "Indica o código postal.",
     "address.district": "Escolhe o distrito.",
     "address.county": "Escolhe o concelho.",
-    "address.location": "Indica a localidade.",
+    "address.location": "Escolhe a localidade.",
   };
 
   Object.entries(required).forEach(([key, message]) => {
@@ -120,8 +125,13 @@ export function CondominiumForm({ condominium = null, onSaved }) {
     }
   }
 
-  const districts = zones ? toOptions(getDistricts(zones)) : [];
-  const counties = zones && form.district ? toOptions(getCounties(zones, form.district)) : [];
+  const districts = zones ? toOptions(getDistricts(zones), form.district) : [];
+  const counties =
+    zones && form.district ? toOptions(getCounties(zones, form.district), form.county) : [];
+  const locations =
+    zones && form.district && form.county
+      ? toOptions(getLocations(zones, form.district, form.county), form.location)
+      : [];
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
@@ -199,6 +209,7 @@ export function CondominiumForm({ condominium = null, onSaved }) {
             onChange={(value) => {
               set("district", value);
               set("county", "");
+              set("location", "");
             }}
             error={errors["address.district"]}
             placeholder={zones ? "Escolher distrito..." : "A carregar..."}
@@ -209,20 +220,25 @@ export function CondominiumForm({ condominium = null, onSaved }) {
             required
             options={counties}
             value={form.county}
-            onChange={(value) => set("county", value)}
+            onChange={(value) => {
+              set("county", value);
+              set("location", "");
+            }}
             error={errors["address.county"]}
             placeholder={form.district ? "Escolher concelho..." : "Escolhe primeiro o distrito"}
             disabled={!form.district}
           />
         </div>
-        <TextInput
+        <SearchSelect
           label="Localidade"
           required
+          options={locations}
           value={form.location}
           onChange={(value) => set("location", value)}
           error={errors["address.location"]}
-          hint="Freguesia ou localidade do prédio."
-          maxLength={100}
+          placeholder={form.county ? "Escolher localidade..." : "Escolhe primeiro o concelho"}
+          disabled={!form.county}
+          hint="Freguesia onde fica o prédio."
         />
       </section>
 

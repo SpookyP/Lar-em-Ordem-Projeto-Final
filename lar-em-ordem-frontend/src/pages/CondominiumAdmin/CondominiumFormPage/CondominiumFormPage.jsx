@@ -29,7 +29,7 @@ export default function CondominiumFormPage({ mode }) {
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <div className="flex items-center gap-3">
         <Link
-          to="/admin/condominiums"
+          to={isEdit ? `/admin/condominiums/${id}` : "/admin/condominiums"}
           aria-label="Voltar"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card text-muted shadow-sm transition hover:text-navy"
         >
@@ -49,7 +49,7 @@ export default function CondominiumFormPage({ mode }) {
           <div className="rounded-2xl bg-card p-6 shadow-sm">
             <CondominiumForm
               condominium={condominium}
-              onSaved={() => navigate("/admin/condominiums")}
+              onSaved={(saved) => navigate(`/admin/condominiums/${saved.id}`)}
             />
           </div>
         )

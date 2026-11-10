@@ -1,6 +1,19 @@
 import axiosClient from "./axiosClient";
 import { cleanParams, toPage } from "./pagination";
 
+export function toNotice(n) {
+  return {
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    priority: n.priority,
+    publishedAt: n.published_at,
+    expiresAt: n.expires_at,
+    read: n.read ?? null,
+    readersCount: n.readers_count ?? null,
+  };
+}
+
 // API (snake_case) -> app (camelCase); fields the API leaves out stay null or empty
 export function toCondominium(c) {
   return {
@@ -14,7 +27,7 @@ export function toCondominium(c) {
     address: c.address ?? null,
     admin: c.admin ?? null,
     properties: c.properties ?? [],
-    notices: c.notices ?? [],
+    notices: (c.notices ?? []).map(toNotice),
     createdAt: c.created_at,
   };
 }
@@ -49,4 +62,11 @@ export async function deleteCondominium(id) {
 // the old code stops working; homes that already joined stay
 export async function regenerateInviteCode(id) {
   return updateCondominium(id, { regenerate_invite_code: true });
+}
+
+// unlinks a home from the condominium (the administrator can remove any home of the building)
+export async function removeProperty(condominiumId, propertyId) {
+  await axiosClient.patch(`/api/v1/condominiums/${condominiumId}/leave`, {
+    property_id: propertyId,
+  });
 }

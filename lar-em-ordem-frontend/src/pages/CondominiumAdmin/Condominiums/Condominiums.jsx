@@ -1,49 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Copy, House, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, House, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { deleteCondominium } from "../../../services/api/condominiumService";
 import { useMyCondominiumsPage } from "../../../hooks/useMyCondominiumsPage";
 import { Pager } from "../../../components/ui/Pager";
-import { formatMoney } from "../../../utils/format";
+import { InviteCode } from "../../../components/condominium/InviteCode";
 import { getErrorMessage } from "../../../utils/apiError";
-
-function addressLine(address) {
-  if (!address) return "";
-  return [address.street, address.door, address.postal_code, address.county]
-    .filter(Boolean)
-    .join(", ");
-}
-
-function InviteCode({ code }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard blocked (http or browser setting): the code is still visible to copy by hand
-    }
-  }
-
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3">
-      <div>
-        <p className="text-xs text-muted">Código de convite</p>
-        <p className="font-mono text-lg tracking-widest text-navy">{code}</p>
-      </div>
-      <button
-        type="button"
-        onClick={copy}
-        className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-muted transition hover:text-navy"
-      >
-        {copied ? <Check size={15} /> : <Copy size={15} />}
-        {copied ? "Copiado" : "Copiar"}
-      </button>
-    </div>
-  );
-}
+import { addressLine, formatMoney } from "../../../utils/format";
 
 export default function Condominiums() {
   const [busyId, setBusyId] = useState(null);
@@ -121,7 +84,9 @@ export default function Condominiums() {
                 className="flex flex-col gap-4 rounded-2xl bg-card p-5 shadow-sm"
               >
                 <div className="flex flex-col gap-1">
-                  <h2 className="font-display text-lg text-navy">{condominium.name}</h2>
+                  <Link to={`/admin/condominiums/${condominium.id}`} className="hover:underline">
+                    <h2 className="font-display text-lg text-navy">{condominium.name}</h2>
+                  </Link>
                   <p className="flex items-start gap-1.5 text-sm text-muted">
                     <MapPin size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
                     {addressLine(condominium.address)}
@@ -166,6 +131,12 @@ export default function Condominiums() {
                     </div>
                   ) : (
                     <>
+                      <Link
+                        to={`/admin/condominiums/${condominium.id}`}
+                        className="flex items-center gap-1.5 font-medium text-navy hover:underline"
+                      >
+                        Abrir <ChevronRight size={15} />
+                      </Link>
                       <Link
                         to={`/admin/condominiums/${condominium.id}/edit`}
                         className="flex items-center gap-1.5 text-muted hover:text-navy"

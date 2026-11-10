@@ -15,6 +15,14 @@ export function formatAddress(address) {
     .join(", ");
 }
 
+// a building's address on one line: "Rua Brito Capelo, Nº 100, 4450-073, Matosinhos"
+export function addressLine(address) {
+  if (!address) return "";
+  return [address.street, address.door, address.postal_code, address.county]
+    .filter(Boolean)
+    .join(", ");
+}
+
 // keeps an optional leading "+" and up to 14 digits (the API allows 15 characters)
 export function cleanPhone(text) {
   const raw = String(text ?? "").trim();
