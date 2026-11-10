@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Services\Privacy\ConsentService;
 
 /**
  * Registo com password: a conta so e criada depois de confirmar o email.
@@ -56,7 +57,8 @@ class PendingRegistrationController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
-            'profile' => Arr::except($validated, ['name', 'email', 'password', 'role']),
+            'profile' => Arr::except($validated, ['name', 'email', 'password', 'role', ...ConsentService::SIGN_UP_FIELDS]),
+            'consents' => ConsentService::fromSignUp($validated),
             'provider' => null,
             'provider_user_id' => null,
         ]);

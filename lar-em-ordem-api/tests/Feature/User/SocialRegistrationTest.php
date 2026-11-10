@@ -43,7 +43,7 @@ class SocialRegistrationTest extends TestCase
     private function register(array $pending, array $body = ['role' => 'resident', 'nif' => '212345678'])
     {
         return $this->withSession(['social_pending' => $pending])
-            ->postJson('/api/auth/social/register', $body);
+            ->postJson('/api/auth/social/register', $body + ['accept_privacy' => true]);
     }
 
     // ------------------------------------------------------------ pending identity

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Services\Privacy\ConsentService;
 use Throwable;
 
 /**
@@ -27,6 +28,7 @@ class PendingRegistrationService
     public function __construct(
         private SocialLoginService $social,
         private ProfileService $profiles,
+        private ConsentService $consents,
     ) {}
 
     public static function tokenKey(string $hash): string
@@ -48,7 +50,7 @@ class PendingRegistrationService
      * Stores the request and emails the link. A new request for the same email replaces the old one,
      * and every request, resends included, gets a fresh TTL_MINUTES window.
      *
-     * @param array{name: string, email: string, password: ?string, role: string, profile: array, provider: ?string, provider_user_id: ?string} $data
+     * @param array{name: string, email: string, password: ?string, role: string, profile: array, consents: array , provider: ?string, provider_user_id: ?string} $data
      *        password is already hashed (null for social registrations)
      */
     public function start(array $data): void
@@ -125,35 +127,45 @@ class PendingRegistrationService
         }
 
         $user = DB::transaction(function () use ($row) {
-            if ($row['provider'] !== null) {
-                try {
-                    return $this->social->registerFromPending([
-                        'provider' => $row['provider'],
-                        'id' => $row['provider_user_id'],
-                        'email' => $row['email'],
-                        'email_verified' => true,
-                        'name' => $row['name'],
-                    ], $row['role'], $row['profile'] ?? []);
-                } catch (SocialLoginException) {
-                    throw $this->invalid('Já existe uma conta com este email. Inicie sessão.');
-                }
-            }
+            $user = $this->createUser($row);
 
-            // the password is already hashed; the "hashed" cast on User does not hash it again
-            $user = new User([
-                'name' => $row['name'],
-                'email' => $row['email'],
-                'password' => $row['password'],
-            ]);
-            $user->forceFill(['email_verified_at' => now()])->save();
-
-            $this->profiles->create($user, $row['role'], $row['profile'] ?? []);
+            // the answers given in the form, with the policy version shown back then
+            $this->consents->recordSignUp($user, $row['consents'] ?? [], $row['provider'] ?? 'signup');
 
             return $user;
         });
 
         $this->forget($row['email']);
         Cache::put(self::doneKey($hash), true, self::DONE_SECONDS);
+
+        return $user;
+    }
+
+    private function createUser(array $row): User
+    {
+        if ($row['provider'] !== null) {
+            try {
+                return $this->social->registerFromPending([
+                    'provider' => $row['provider'],
+                    'id' => $row['provider_user_id'],
+                    'email' => $row['email'],
+                    'email_verified' => true,
+                    'name' => $row['name'],
+                ], $row['role'], $row['profile'] ?? []);
+            } catch (SocialLoginException) {
+                throw $this->invalid('Já existe uma conta com este email. Inicie sessão.');
+            }
+        }
+
+        // the password is already hashed; the "hashed" cast on User does not hash it again
+        $user = new User([
+            'name' => $row['name'],
+            'email' => $row['email'],
+            'password' => $row['password'],
+        ]);
+        $user->forceFill(['email_verified_at' => now()])->save();
+
+        $this->profiles->create($user, $row['role'], $row['profile'] ?? []);
 
         return $user;
     }

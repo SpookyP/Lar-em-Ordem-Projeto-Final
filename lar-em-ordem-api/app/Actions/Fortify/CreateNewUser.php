@@ -16,12 +16,13 @@ use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 use Illuminate\Support\Arr;
 use App\Services\Auth\ProfileService;
+use App\Services\Privacy\ConsentService;
 
 class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
 
-    public function __construct(private ProfileService $profileService) {}
+    public function __construct(private ProfileService $profileService,private ConsentService $consentService,) {}
 
     /**
      * Validate a newly registered user.
@@ -53,8 +54,8 @@ class CreateNewUser implements CreatesNewUsers
         // só os campos validados seguem para o perfil (nunca o $input bruto)
         return Validator::make(
             $input,
-            array_merge($rules, $roleRequest?->rules() ?? []),
-            $roleRequest?->messages() ?? []
+            array_merge($rules, $roleRequest?->rules() ?? [], ConsentService::signUpRules($existingAccount)),
+            array_merge($roleRequest?->messages() ?? [], ConsentService::signUpMessages())
         )->validate();
     }
 
@@ -88,8 +89,9 @@ class CreateNewUser implements CreatesNewUsers
             }
 
             // perfil + role (e zonas/especialidades do prestador) — "já tem este perfil" dá 422
-            $this->profileService->create($user, $role, Arr::except($validated, ['name', 'email', 'password', 'role']));
-
+            $this->profileService->create($user, $role, Arr::except($validated, ['name', 'email', 'password', 'role', ...ConsentService::SIGN_UP_FIELDS]));
+            $this->consentService->recordSignUp($user, ConsentService::fromSignUp($validated), 'signup');
+            
             return $user;
         });
     }
