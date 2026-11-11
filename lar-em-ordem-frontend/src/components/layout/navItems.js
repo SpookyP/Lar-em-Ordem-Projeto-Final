@@ -10,12 +10,11 @@ import {
   Building2,
   Building,
 } from "lucide-react";
+import { isOwnerHouse } from "../../utils/ownerHouse";
 
-//Lista com o items do menu de navegacao. A sidebar (desktop) e lowerbar (telemovel) leem desta lista
+//Lista com o items do menu de navegacao. A sidebar (desktop) e mobileNav (telemovel) leem desta lista
 export const navItems = [
   { path: "/dashboard", label: "Inicio", icon: Home },
-  { path: "/cofre", label: "Cofre", icon: FolderClosed },
-  { path: "/condominium", label: "Condomínio", icon: Building, requiresCondominium: true },
   { path: "/faturas", label: "Faturas", icon: Receipt },
   { path: "/consumos", label: "Consumos", icon: Zap },
   { path: "/assistance", label: "Assistência", icon: LifeBuoy },
@@ -42,8 +41,23 @@ const navItemsByProfile = {
   condominium_admin: condominiumAdminNavItems,
 };
 
-// items with requiresCondominium only show when the active home has joined a condominium
-export function getNavItems(profileName, { hasCondominium = false } = {}) {
-  const items = navItemsByProfile[profileName] ?? navItems;
-  return items.filter((item) => !item.requiresCondominium || hasCondominium);
+export function getNavItems(profileName, activeHouse, { hasCondominium = false } = {}) {
+  //arrendatário (sem cofre)
+  const byProfile = navItemsByProfile[profileName];
+  if (byProfile) return byProfile;
+
+  const items = [...navItems];
+
+  //se for proprietário
+  if (isOwnerHouse(activeHouse)) {
+    items.splice(1, 0, { path: "/vault", label: "Cofre", icon: FolderClosed });
+  }
+
+  // only when the active home has joined a condominium (joining is done in the settings)
+  if (hasCondominium) {
+    const afterVault = items.findIndex((item) => item.path === "/vault") + 1 || 1;
+    items.splice(afterVault, 0, { path: "/condominio", label: "Condomínio", icon: Building });
+  }
+
+  return items;
 }

@@ -29,6 +29,7 @@ import Offers from "../pages/Resident/Offers/Offers";
 import OfferDetail from "../pages/Resident/OfferDetail/OfferDetail";
 import Consumption from "../pages/Consumption/Consumption";
 import Invoice from "../pages/Consumption/Invoice";
+import Vault from "../pages/Resident/Vault/Vault";
 
 //Prestador
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
@@ -87,8 +88,7 @@ function AppRoutesInner() {
               <Route path="/offers" element={<Offers />} />
               <Route path="/offers/:id" element={<OfferDetail />} />
               <Route path="/faturas" element={<Invoice />} />
-              <Route path="/assistencia" element={<Assistance />} />
-              <Route path="/assistencia/:id" element={<AssistanceDetail />} />
+              <Route path="/vault" element={<Vault />} />
             </Route>
 
             <Route
