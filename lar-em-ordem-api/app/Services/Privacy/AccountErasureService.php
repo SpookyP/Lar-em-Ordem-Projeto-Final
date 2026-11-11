@@ -35,6 +35,7 @@ class AccountErasureService
         DB::table('passkeys')->where('user_id', $user->id)->delete();
         SocialAccount::withTrashed()->where('user_id', $user->id)->forceDelete();
         $user->tokens()->delete();
+        $user->consents()->delete();
         $user->syncRoles([]);
 
         $user->forceFill([

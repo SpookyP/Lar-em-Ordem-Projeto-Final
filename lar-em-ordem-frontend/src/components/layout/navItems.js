@@ -8,6 +8,7 @@ import {
   FileText,
   Tag,
   Building2,
+  Building,
 } from "lucide-react";
 import { isOwnerHouse } from "../../utils/ownerHouse";
 
@@ -30,9 +31,14 @@ export const partnerNavItems = [
   { path: "/partner/offers", label: "Ofertas", icon: Tag },
 ];
 
+export const condominiumAdminNavItems = [
+  { path: "/admin/condominiums", label: "Condomínios", icon: Building },
+];
+
 const navItemsByProfile = {
   service_provider: providerNavItems,
   partner: partnerNavItems,
+  condominium_admin: condominiumAdminNavItems,
 };
 
 export function getNavItems(profileName, activeHouse) {

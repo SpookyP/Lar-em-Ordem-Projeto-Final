@@ -12,12 +12,14 @@ import {
   UserMinus,
   Trash2,
   ArrowLeft,
+  ShieldCheck,
 } from "lucide-react";
 import { AccountForm } from "../../components/ui/AccountForm";
 import { HouseDetails } from "../../components/ui/HouseDetails";
 import { ManageHouses } from "../../components/ui/ManageHouses";
 import { DeleteProfile } from "../../components/ui/DeleteProfile";
 import { DeleteAccount } from "../../components/ui/DeleteAccount";
+import { PrivacySettings } from "../../components/ui/PrivacySettings";
 import { useAuth } from "../../hooks/useAuth";
 
 const GROUPS = [
@@ -28,6 +30,7 @@ const GROUPS = [
       { id: "password", label: "Mudar password", icon: KeyRound },
       { id: "profile", label: "Adicionar perfil", icon: UserPlus },
       { id: "delete-profile", label: "Apagar perfil", icon: UserMinus },
+      { id: "privacy", label: "Privacidade", icon: ShieldCheck },
     ],
   },
   {
@@ -123,6 +126,7 @@ export default function Settings() {
             )}
             {section === "account" && <AccountForm />}
             {section === "password" && <PasswordForm />}
+            {section === "privacy" && <PrivacySettings />}
             {section === "profile" && <ProfileForm />}
             {section === "house" && <HouseDetails />}
             {section === "property" && <PropertyForm />}

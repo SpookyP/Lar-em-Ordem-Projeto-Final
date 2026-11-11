@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
 import { AppLayout } from "../components/layout/AppLayout";
+import { SiteLayout } from "../components/layout/SiteLayout";
 import { ROLES } from "../utils/roles";
 
 //Públicas
@@ -11,6 +12,7 @@ import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
 import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
+import Privacy from "../pages/Privacy/Privacy";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -33,9 +35,16 @@ import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
 import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
 
-//Partner
+//Parceiro
 import MyOffers from "../pages/Partner/MyOffers/MyOffers";
 import OfferFormPage from "../pages/Partner/OfferFormPage/OfferFormPage";
+
+//Administrador de condominio
+import Condominiums from "../pages/CondominiumAdmin/Condominiums/Condominiums";
+import CondominiumFormPage from "../pages/CondominiumAdmin/CondominiumFormPage/CondominiumFormPage";
+import CondominiumDetail from "../pages/CondominiumAdmin/CondominiumDetail/CondominiumDetail";
+import CondominiumNotices from "../pages/CondominiumAdmin/CondominiumNotices/CondominiumNotices";
+import CondominiumDocuments from "../pages/CondominiumAdmin/CondominiumDocuments/CondominiumDocuments";
 
 function AppRoutesInner() {
   const location = useLocation();
@@ -53,6 +62,12 @@ function AppRoutesInner() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+
+        
+        {/* Rota publica, mas com a sidebar para quem tem sessao */}
+        <Route element={<SiteLayout />}>
+          <Route path="/privacy" element={<Privacy />} />
+        </Route>
 
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>
@@ -95,6 +110,29 @@ function AppRoutesInner() {
               <Route
                 path="/partner/offers/:id/edit"
                 element={<OfferFormPage mode="edit" />}
+              />
+            </Route>
+            
+            <Route
+              element={<PrivateRoute allowedRoles={[ROLES.CONDOMINIUM_ADMIN]} />}
+            >
+              <Route path="/admin/condominiums" element={<Condominiums />} />
+              <Route
+                path="/admin/condominiums/new"
+                element={<CondominiumFormPage mode="create" />}
+              />
+              <Route path="/admin/condominiums/:id" element={<CondominiumDetail />} />
+              <Route
+                path="/admin/condominiums/:id/edit"
+                element={<CondominiumFormPage mode="edit" />}
+              />
+              <Route
+                path="/admin/condominiums/:id/notices"
+                element={<CondominiumNotices />}
+              />
+              <Route
+                path="/admin/condominiums/:id/documents"
+                element={<CondominiumDocuments />}
               />
             </Route>
           </Route>

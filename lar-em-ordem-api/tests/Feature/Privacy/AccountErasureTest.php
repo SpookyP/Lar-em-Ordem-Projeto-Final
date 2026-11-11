@@ -107,6 +107,7 @@ class AccountErasureTest extends TestCase
             'password_confirmation' => $password,
             'role' => 'resident',
             'nif' => '212345678',
+            'accept_privacy' => true,
         ])->assertStatus(202);
     }
 
