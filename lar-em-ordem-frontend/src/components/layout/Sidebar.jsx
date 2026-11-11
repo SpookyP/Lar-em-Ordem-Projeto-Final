@@ -4,14 +4,16 @@ import { SidebarLink } from "./SidebarItem";
 import { AccountActions } from "./AccountActions";
 
 export function SideBar() {
-  const { activeProfile, activeCondominium } = useAuth();
+  const { activeProfile, activeHouse, activeCondominium } = useAuth();
 
   return (
     <aside className="hidden md:flex fixed inset-y-0 left-0 z-30 w-60 flex-col overflow-y-auto bg-navy text-white p-4">
       <div className="font-display text-xl mb-8 px-2">Lar em Ordem</div>
 
       <nav className="flex flex-col gap-1">
-        {getNavItems(activeProfile?.name, { hasCondominium: Boolean(activeCondominium) }).map((item) => (
+        {getNavItems(activeProfile?.name, activeHouse, {
+          hasCondominium: Boolean(activeCondominium),
+        }).map((item) => (
           <SidebarLink
             key={item.path}
             to={item.path}

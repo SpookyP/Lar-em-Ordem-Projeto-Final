@@ -6,7 +6,7 @@ import { SidebarLink } from "./SidebarItem";
 import { AccountActions } from "./AccountActions";
 
 export function MobileNav() {
-  const { activeProfile, activeCondominium } = useAuth();
+  const { activeProfile, activeHouse, activeCondominium } = useAuth();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -55,7 +55,9 @@ export function MobileNav() {
             </div>
 
             <nav className="flex flex-col gap-1">
-              {getNavItems(activeProfile?.name, { hasCondominium: Boolean(activeCondominium) }).map((item) => (
+              {getNavItems(activeProfile?.name, activeHouse, {
+                hasCondominium: Boolean(activeCondominium),
+              }).map((item) => (
                 <SidebarLink
                   key={item.path}
                   to={item.path}
