@@ -4,9 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Invoice\InvoiceController;
 use App\Http\Controllers\Api\Invoice\ConsumptionController;
 use App\Http\Controllers\Api\Invoice\ConsumptionTypeController;
-use App\Http\Controllers\Api\Invoice\MonthlyBenchmarkController;
-use App\Http\Controllers\Api\Invoice\AnnualBenchmarkController;
-
+use App\Http\Controllers\Api\Invoice\MonthlyBenchmarkSeriesController;
+use App\Http\Controllers\Api\Invoice\AnnualBenchmarkSeriesController;
 
 Route::apiResource('invoices', InvoiceController::class)
     ->only(['index', 'store', 'show', 'destroy']);
@@ -19,8 +18,8 @@ Route::apiResource('consumption-types', ConsumptionTypeController::class)
 
 Route::get('consumptions/{consumption}/items', [ConsumptionController::class, 'items']);
 
-Route::get('benchmarks/monthly', MonthlyBenchmarkController::class);
-Route::get('benchmarks/annual', AnnualBenchmarkController::class);
+Route::get('benchmarks/monthly/series', MonthlyBenchmarkSeriesController::class);
+Route::get('benchmarks/annual/series', AnnualBenchmarkSeriesController::class);
 
 // Upload das Faturas
 Route::post('invoices/upload', [InvoiceController::class, 'upload']);
