@@ -25,3 +25,9 @@ export async function deleteProfile(role) {
 export async function deleteAccount() {
   await axiosClient.delete("/api/user");
 }
+
+//Mudar a resposta à partilha de dados; devolve os consentimentos atualizados
+export async function updatePrivacy(data) {
+  const response = await axiosClient.put("/api/user/privacy", data);
+  return response.data;
+}

@@ -29,7 +29,7 @@ class UpdateServiceProviderRequest extends FormRequest
             'nif'          => 'sometimes|required|string|digits:9',
             'phone'       => 'sometimes|required|string|max:15',
             'provider_email'        => 'sometimes|nullable|email|max:255',
-            'description' => 'sometimes|required|string',
+            'description' => 'sometimes|required|string|max:2000',
             'zone_ids'   => ['sometimes', 'array', new ExistingServiceZones],
             'zone_ids.*' => ['integer', 'distinct'],
             'service_specialty_ids'   => 'sometimes|array',
@@ -49,6 +49,7 @@ class UpdateServiceProviderRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'description.max' => 'A descrição não pode ter mais de 2000 caracteres.',
             'zone_ids.*.distinct'                             => 'A lista de zonas tem valores repetidos.',
             'service_specialty_ids.*.exists'                  => 'Uma das especialidades indicadas não existe.',
             'service_specialty_ids.*.distinct'                => 'A lista de especialidades tem valores repetidos.',

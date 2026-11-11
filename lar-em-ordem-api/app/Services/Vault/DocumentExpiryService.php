@@ -2,6 +2,7 @@
 
 namespace App\Services\Vault;
 
+use App\Events\Vault\VaultNotificationBroadcast;
 use App\Models\Vault\Document;
 use App\Models\Vault\Notification;
 use Carbon\Carbon;
@@ -32,7 +33,9 @@ class DocumentExpiryService
      */
     public function checkSingleDocument(Document $document): ?Notification
     {
+        // Se o documento não tiver data de validade, limpa eventuais alertas antigos deste document_id
         if (!$document->expiration_date) {
+            Notification::where('document_id', $document->id)->delete();
             return null;
         }
 
@@ -54,11 +57,18 @@ class DocumentExpiryService
             $title = "Aviso: {$document->name} expira em {$daysLeft} dias";
             $message = "Renove o documento '{$document->name}' antes de {$expiryDate->format('d/m/Y')}.";
         } else {
-            return null; // Mais de 30 dias de validade, não gera alerta
+            // Mais de 30 dias de validade: apaga alertas antigos deste documento (ex: se foi renovado)
+            Notification::where('document_id', $document->id)->delete();
+            return null;
         }
 
+        // Limpa notificações antigas DESTE documento que sejam de OUTRO escalão
+        Notification::where('document_id', $document->id)
+            ->where('type', '!=', $type)
+            ->delete();
+
         // firstOrCreate evita criar notificações repetidas para o mesmo documento e escalão
-        return Notification::firstOrCreate(
+        $notification = Notification::firstOrCreate(
             [
                 'property_id' => $document->property_id,
                 'document_id' => $document->id,
@@ -71,5 +81,12 @@ class DocumentExpiryService
                 'read_at'    => null,
             ]
         );
+
+        // Só envia pelo WebSocket se a notificação acabou de ser criada agora
+        if ($notification->wasRecentlyCreated) {
+            VaultNotificationBroadcast::dispatch($notification);
+        }
+
+        return $notification;
     }
 }

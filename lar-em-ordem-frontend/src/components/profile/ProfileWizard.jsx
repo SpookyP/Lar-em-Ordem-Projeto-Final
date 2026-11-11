@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Mail, User } from "lucide-react";
-import { accountTypes, roleFields } from "../../data/registerFields";
+import { accountTypes, displayValue, roleFields } from "../../data/registerFields";
 import { PasswordRequirements } from "../ui/PasswordRequirements";
 import { DataRow } from "../ui/DataRow";
 import {
@@ -10,7 +10,6 @@ import {
   TextInput,
 } from "../form";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
-import { formatPhone } from "../../utils/format";
 import {
   EMPTY_COVERAGE,
   SpecialtyCoverageField,
@@ -19,8 +18,12 @@ import {
   ZoneSummary,
 } from "../ui/ProviderCoverageFields";
 import { ProfileFieldInput } from "./ProfileFieldInput";
+import { ConsentFields } from "./ConsentFields";
 import { buildPayload, buildSteps, firstStepWithErrors } from "./profileSteps";
 import { validateFields } from "./profileValidation";
+import { ROLES } from "../../utils/roles";
+
+const EMPTY_CONSENT = { accept_privacy: false, data_sharing: false };
 
 const EMPTY_VALUES = {
   name: "",
@@ -33,6 +36,8 @@ const EMPTY_VALUES = {
   provider_email: "",
   website: "",
   description: "",
+  admin_type: "",
+  contact: "",
 };
 
 function fieldFor(role, name) {
@@ -47,10 +52,12 @@ export function ProfileWizard({
   submitLabel,
   submittingLabel,
   footer = null,
+  askConsent = false,
 }) {
   const [values, setValues] = useState(EMPTY_VALUES);
   const [role, setRole] = useState(roles.length === 1 ? roles[0].role : "");
   const [coverage, setCoverage] = useState(EMPTY_COVERAGE);
+  const [consent, setConsent] = useState(EMPTY_CONSENT);
   const [stepIndex, setStepIndex] = useState(0);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
@@ -111,12 +118,28 @@ export function ProfileWizard({
       return;
     }
 
+    if (askConsent && !consent.accept_privacy) {
+      setErrors((current) => ({
+        ...current,
+        accept_privacy: "Tem de aceitar a Política de Privacidade para criar a conta.",
+      }));
+      return;
+    }
+
     submittingRef.current = true;
     setSubmitting(true);
     setFormError("");
 
     try {
-      await onSubmit(buildPayload({ withAccount, values, role, coverage }));
+      const payload = buildPayload({ withAccount, values, role, coverage });
+
+      if (askConsent) {
+        payload.accept_privacy = consent.accept_privacy;
+        // only residents are asked; for other profiles the answer stays "not given"
+        if (role === ROLES.RESIDENT) payload.data_sharing = consent.data_sharing;
+      }
+
+      await onSubmit(payload);
     } catch (error) {
       const fieldErrors = getFieldErrors(error);
 
@@ -250,14 +273,27 @@ export function ProfileWizard({
 
       default:
         return (
-          <ReviewStep
-            steps={steps}
-            values={values}
-            role={role}
-            roles={roles}
-            coverage={coverage}
-            onEdit={goTo}
-          />
+          <>
+            <ReviewStep
+              steps={steps}
+              values={values}
+              role={role}
+              roles={roles}
+              coverage={coverage}
+              onEdit={goTo}
+            />
+            {askConsent && (
+              <ConsentFields
+                value={consent}
+                onChange={(name, checked) => {
+                  setConsent((current) => ({ ...current, [name]: checked }));
+                  clearErrors(name);
+                }}
+                errors={errors}
+                askDataSharing={role === ROLES.RESIDENT}
+              />
+            )}
+          </>
         );
     }
   }
@@ -371,7 +407,7 @@ function ReviewContent({ block, values, role, roleLabel, coverage }) {
           <DataRow
             key={name}
             label={field.label}
-            value={field.type === "tel" ? formatPhone(value) : value}
+            value={displayValue(field, value)}
           />
         );
       })}

@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Services\Privacy\ConsentService;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Last step of the registration for someone who signed in with Google/Microsoft and has no account yet:
@@ -23,8 +26,11 @@ use Illuminate\Validation\ValidationException;
  */
 class SocialRegisterController extends Controller
 {
-    public function __construct(private SocialLoginService $login, private PendingRegistrationService $registrations,) {}
-
+        public function __construct(
+        private SocialLoginService $login,
+        private PendingRegistrationService $registrations,
+        private ConsentService $consents,
+    ) {}
     /**
      * Tells the frontend who is registering (to show "A continuar como ...").
      */
@@ -69,7 +75,13 @@ class SocialRegisterController extends Controller
             'partner' => (new StorePartnerRequest())->rules(),
             'service_provider' => (new StoreServiceProviderRequest())->rules(),
         };
-        $data = $request->validate($rules);
+
+        $validated = $request->validate(
+            array_merge($rules, ConsentService::signUpRules()),
+            ConsentService::signUpMessages(),
+        );
+        $data = Arr::except($validated, ConsentService::SIGN_UP_FIELDS);
+        $consents = ConsentService::fromSignUp($validated);
 
         // Microsoft does not prove the email belongs to the user, so the account is only created
         // when they open the link sent to that email
@@ -86,6 +98,7 @@ class SocialRegisterController extends Controller
                 'password' => null,
                 'role' => $role,
                 'profile' => $data,
+                'consents' => $consents,
                 'provider' => $pending['provider'],
                 'provider_user_id' => $pending['id'],
             ]);
@@ -99,7 +112,12 @@ class SocialRegisterController extends Controller
         }
 
         try {
-            $user = $this->login->registerFromPending($pending, $role, $data);
+            $user = DB::transaction(function () use ($pending, $role, $data, $consents) {
+                $user = $this->login->registerFromPending($pending, $role, $data);
+                $this->consents->recordSignUp($user, $consents, $pending['provider']);
+
+                return $user;
+            });
         } catch (SocialLoginException) {
             throw ValidationException::withMessages([
                 'social' => ['Já existe uma conta com este email. Entre com a sua password.'],

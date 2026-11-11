@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
 import { AppLayout } from "../components/layout/AppLayout";
+import { SiteLayout } from "../components/layout/SiteLayout";
 import { ROLES } from "../utils/roles";
 
 //Públicas
@@ -11,6 +12,7 @@ import ResetPassword from "../pages/Password/ResetPassword";
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import NotFound from "../pages/NotFound/NotFound";
 import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
+import Privacy from "../pages/Privacy/Privacy";
 
 //Partilhadas
 import Profiles from "../pages/Profiles/Profiles";
@@ -21,20 +23,29 @@ import Onboarding from "../pages/Onboarding/Onboarding";
 import Dashboard from "../pages/Resident/Dashboard/Dashboard"; //TODO: data
 import Assistance from "../pages/Resident/Assistance/Assistance";
 import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetail";
+import ResidentCondominium from "../pages/Resident/Condominium/Condominium";
 import Partners from "../pages/Resident/Partners/Partners";
 import Offers from "../pages/Resident/Offers/Offers";
 import OfferDetail from "../pages/Resident/OfferDetail/OfferDetail";
 import Consumption from "../pages/Consumption/Consumption";
 import Invoice from "../pages/Consumption/Invoice";
+import Vault from "../pages/Resident/Vault/Vault";
 
 //Prestador
 import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
 import Offer from "../pages/ServiceProvider/Offer/Offer";
 import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
 
-//Partner
+//Parceiro
 import MyOffers from "../pages/Partner/MyOffers/MyOffers";
 import OfferFormPage from "../pages/Partner/OfferFormPage/OfferFormPage";
+
+//Administrador de condominio
+import Condominiums from "../pages/CondominiumAdmin/Condominiums/Condominiums";
+import CondominiumFormPage from "../pages/CondominiumAdmin/CondominiumFormPage/CondominiumFormPage";
+import CondominiumDetail from "../pages/CondominiumAdmin/CondominiumDetail/CondominiumDetail";
+import CondominiumNotices from "../pages/CondominiumAdmin/CondominiumNotices/CondominiumNotices";
+import CondominiumDocuments from "../pages/CondominiumAdmin/CondominiumDocuments/CondominiumDocuments";
 
 function AppRoutesInner() {
   const location = useLocation();
@@ -53,6 +64,12 @@ function AppRoutesInner() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
+        
+        {/* Rota publica, mas com a sidebar para quem tem sessao */}
+        <Route element={<SiteLayout />}>
+          <Route path="/privacy" element={<Privacy />} />
+        </Route>
+
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>
           <Route path="/profiles" element={<Profiles />} />
@@ -65,13 +82,13 @@ function AppRoutesInner() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/assistance" element={<Assistance />} />
               <Route path="/assistance/:id" element={<AssistanceDetail />} />
+              <Route path="/condominio" element={<ResidentCondominium />} />
               <Route path="/consumos" element={<Consumption />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/offers" element={<Offers />} />
               <Route path="/offers/:id" element={<OfferDetail />} />
               <Route path="/faturas" element={<Invoice />} />
-              <Route path="/assistencia" element={<Assistance />} />
-              <Route path="/assistencia/:id" element={<AssistanceDetail />} />
+              <Route path="/vault" element={<Vault />} />
             </Route>
 
             <Route
@@ -95,6 +112,29 @@ function AppRoutesInner() {
               <Route
                 path="/partner/offers/:id/edit"
                 element={<OfferFormPage mode="edit" />}
+              />
+            </Route>
+            
+            <Route
+              element={<PrivateRoute allowedRoles={[ROLES.CONDOMINIUM_ADMIN]} />}
+            >
+              <Route path="/admin/condominiums" element={<Condominiums />} />
+              <Route
+                path="/admin/condominiums/new"
+                element={<CondominiumFormPage mode="create" />}
+              />
+              <Route path="/admin/condominiums/:id" element={<CondominiumDetail />} />
+              <Route
+                path="/admin/condominiums/:id/edit"
+                element={<CondominiumFormPage mode="edit" />}
+              />
+              <Route
+                path="/admin/condominiums/:id/notices"
+                element={<CondominiumNotices />}
+              />
+              <Route
+                path="/admin/condominiums/:id/documents"
+                element={<CondominiumDocuments />}
               />
             </Route>
           </Route>

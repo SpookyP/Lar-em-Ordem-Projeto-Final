@@ -210,4 +210,43 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_deleting_document_only_deletes_its_own_notifications_and_not_similar_named_ones(): void
+    {
+        [$user, $property] = $this->createAuthorizedUserAndProperty();
+        $category = \App\Models\Vault\DocumentCategory::factory()->create();
+
+        // Criar documento "Seguro" a expirar em 5 dias
+        $resSeguro = $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/properties/{$property->id}/documents", [
+                'property_id' => $property->id,
+                'document_category_id' => $category->id,
+                'name' => 'Seguro',
+                'expiration_date' => now()->addDays(5)->toDateString(),
+            ]);
+        $seguroId = $resSeguro->json('data.id');
+
+        // Criar documento "Seguro Casa" a expirar em 5 dias
+        $resSeguroCasa = $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/properties/{$property->id}/documents", [
+                'property_id' => $property->id,
+                'document_category_id' => $category->id,
+                'name' => 'Seguro Casa',
+                'expiration_date' => now()->addDays(5)->toDateString(),
+            ]);
+        $seguroCasaId = $resSeguroCasa->json('data.id');
+
+        // Confirmar que ambos criaram alerta na BD
+        $this->assertDatabaseHas('vault_notifications', ['document_id' => $seguroId]);
+        $this->assertDatabaseHas('vault_notifications', ['document_id' => $seguroCasaId]);
+
+        // Apagar APENAS o documento "Seguro"
+        $this->actingAs($user, 'sanctum')
+            ->deleteJson("/api/v1/documents/{$seguroId}")
+            ->assertStatus(200);
+
+        // Confirmar que o alerta do "Seguro" foi apagado, mas o do "Seguro Casa" continua intacto!
+        $this->assertDatabaseMissing('vault_notifications', ['document_id' => $seguroId]);
+        $this->assertDatabaseHas('vault_notifications', ['document_id' => $seguroCasaId]);
+    }
 }

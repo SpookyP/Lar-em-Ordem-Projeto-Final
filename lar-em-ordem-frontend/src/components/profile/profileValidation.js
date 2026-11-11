@@ -32,6 +32,8 @@ const rules = {
       ? null
       : "Indique um endereço começado por http:// ou https://.",
   description: (v) => (v.trim() ? null : "Escreva uma breve descrição."),
+  admin_type: (v) => (v ? null : "Escolha o tipo de administrador."),
+  contact: (v) => (v.trim() ? null : "Indique um contacto (telefone ou email)."),
 };
 
 export function validateFields(names, values) {

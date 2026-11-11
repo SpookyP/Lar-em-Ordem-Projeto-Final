@@ -245,4 +245,18 @@ class CondominiumDocumentTest extends TestCase
         $this->actingAs($this->morador)->patchJson($url, ['title' => 'X'])->assertForbidden();
         $this->actingAs($this->morador)->deleteJson($url)->assertForbidden();
     }
+
+     public function test_apagar_o_condominio_apaga_os_documentos_e_os_ficheiros(): void
+    {
+        $id = $this->carregar($this->admin)->json('data.id');
+        $documento = CondominiumDocument::find($id);
+        $ficheiro = $documento->file;
+
+        $this->actingAs($this->admin)->deleteJson("/api/v1/condominiums/{$this->condominio->id}")->assertOk();
+
+        Storage::disk('r2')->assertMissing($ficheiro->path);
+        $this->assertModelMissing($ficheiro);
+        $this->assertModelMissing($documento);
+        $this->actingAs($this->admin)->getJson("/api/v1/condominium-documents/{$id}/download")->assertNotFound();
+    }
 }

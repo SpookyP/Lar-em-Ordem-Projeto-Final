@@ -50,11 +50,13 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'role' => ['required', 'string', Rule::in(ProfileService::ROLES)]
         ];
 
+        Validator::make($input, ['role' => $rules['role']])->validateWithBag('updateProfileInformation');
+
         $role = $input['role'];
 
         if (!$user->hasRole($role)) {
             throw ValidationException::withMessages([
-                'role' => ["User does not have a {$role} profile attached to this account."],
+                'role' => ["Esta conta não tem este perfil."],
             ]);
         }
 

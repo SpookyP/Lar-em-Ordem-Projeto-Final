@@ -5,6 +5,7 @@ namespace Database\Factories\Condominium;
 use App\Models\Condominium\Condominium;
 use App\Models\Condominium\CondominiumAdmin;
 use App\Models\Property\Address;
+use Database\Factories\Property\AddressFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -12,18 +13,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CondominiumFactory extends Factory
 {
-    /** Pares distrito/concelho que existem em service_zones (a morada passa na validação da API). */
-    private const LOCATIONS = [
-        ['Porto', 'Matosinhos'],
-        ['Porto', 'Porto'],
-        ['Porto', 'Vila Nova de Gaia'],
-        ['Lisboa', 'Lisboa'],
-        ['Lisboa', 'Oeiras'],
-        ['Braga', 'Braga'],
-        ['Aveiro', 'Aveiro'],
-        ['Coimbra', 'Coimbra'],
-    ];
-
     private const NAMES = [
         'Edifício Atlântico',
         'Edifício Primavera',
@@ -40,8 +29,8 @@ class CondominiumFactory extends Factory
 
     public function definition(): array
     {
-        [$district, $county] = fake()->randomElement(self::LOCATIONS);
-
+        [$district, $county] = fake()->randomElement(AddressFactory::LOCATIONS);
+        
         return [
             'condominium_admin_id' => CondominiumAdmin::factory(),
             // morada do prédio: sem andar nem fração

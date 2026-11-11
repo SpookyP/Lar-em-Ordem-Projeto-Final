@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Validation\ValidationException;
 
 class PropertyContract extends Model
 {
@@ -22,6 +23,27 @@ class PropertyContract extends Model
         'resident_type_id',
         'is_active',
     ];
+
+    protected static function booted(): void
+    {
+        // Only one active contract per property is allowed.
+        static::saving(function (PropertyContract $contract) {
+            if (! $contract->is_active) {
+                return;
+            }
+
+            $taken = static::where('property_id', $contract->property_id)
+                ->where('is_active', true)
+                ->when($contract->exists, fn ($query) => $query->whereKeyNot($contract->getKey()))
+                ->exists();
+
+            if ($taken) {
+                throw ValidationException::withMessages([
+                    'property_id' => ['Esta casa já tem um contrato ativo.'],
+                ]);
+            }
+        });
+    }
 
     protected function casts(): array
     {

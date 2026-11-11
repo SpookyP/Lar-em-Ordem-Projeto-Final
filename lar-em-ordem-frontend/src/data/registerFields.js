@@ -1,5 +1,22 @@
-import { Handshake, House, Wrench } from "lucide-react";
+import { Briefcase, Building, Handshake, House, Wrench } from "lucide-react";
 import { ROLES } from "../utils/roles";
+import { formatPhone } from "../utils/format";
+
+// who administers the building: a company that does it for a living, or one of the residents
+export const ADMIN_TYPES = [
+  {
+    value: "professional",
+    label: "Empresa de administração",
+    description: "Administro condomínios como atividade profissional.",
+    icon: Briefcase,
+  },
+  {
+    value: "resident",
+    label: "Condómino",
+    description: "Moro no prédio e trato da administração.",
+    icon: House,
+  },
+];
 
 // account types offered on sign-up and in "Adicionar perfil"
 export const accountTypes = [
@@ -20,6 +37,12 @@ export const accountTypes = [
     label: "Parceiro",
     description: "Empresa parceira de gestão.",
     icon: Handshake,
+  },
+  {
+    role: ROLES.CONDOMINIUM_ADMIN,
+    label: "Administrador de condomínio",
+    description: "Giro um ou mais prédios: avisos, documentos e frações.",
+    icon: Building,
   },
 ];
 
@@ -64,7 +87,30 @@ export const roleFields = {
       hint: "O que a empresa oferece aos moradores.",
     },
   ],
+  [ROLES.CONDOMINIUM_ADMIN]: [
+    {
+      name: "admin_type",
+      label: "Tipo de administrador",
+      type: "choice",
+      options: ADMIN_TYPES,
+    },
+    {
+      name: "contact",
+      label: "Contacto",
+      type: "text",
+      hint: "Telefone ou email que os condóminos podem usar.",
+    },
+  ],
 };
+
+// how a saved value is shown: phones grouped, choices by their label
+export function displayValue(field, value) {
+  if (field.type === "tel") return formatPhone(value);
+  if (field.type === "choice") {
+    return field.options.find((o) => o.value === value)?.label ?? value;
+  }
+  return value;
+}
 
 // how those fields are split into steps when a profile is created
 export const detailSteps = {
@@ -102,6 +148,14 @@ export const detailSteps = {
       title: "Contacto e apresentação",
       description: "Onde os moradores podem saber mais.",
       fields: ["phone", "website", "description"],
+    },
+  ],
+  [ROLES.CONDOMINIUM_ADMIN]: [
+    {
+      id: "admin",
+      title: "Administração",
+      description: "Como se apresenta aos condóminos.",
+      fields: ["admin_type", "contact"],
     },
   ],
 };

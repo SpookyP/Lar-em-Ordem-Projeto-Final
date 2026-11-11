@@ -45,7 +45,7 @@ class PropertyController extends Controller
             addressData: $request->addressData(),
         );
         return PropertyResource::make($property)
-            ->additional(['message' => 'Property created successfully.'])
+            ->additional(['message' => 'Casa criada.'])
             ->response()
             ->setStatusCode(201);
     }
@@ -78,7 +78,7 @@ class PropertyController extends Controller
         );
 
         return PropertyResource::make($updatedProperty)
-            ->additional(['message' => 'Property updated successfully.'])
+            ->additional(['message' => 'Casa atualizada.'])
             ->response();
     }
 
@@ -88,7 +88,7 @@ class PropertyController extends Controller
     public function destroy(Property $property)
     {
         $this->service->deleteResidentProperty($property);
-        return response()->json(['message' => 'Property was successfully deleted']);
+        return response()->json(['message' => 'Casa excluída.']);
     }
 
     /**
@@ -105,7 +105,7 @@ class PropertyController extends Controller
 
     public function terminateContract(Request $request, Property $property): JsonResponse
     {
-        $this->authorize('terminate', $property);
+        $this->authorize('terminateContract', $property);
 
         $terminated = $this->service->terminateContract(
             property: $property,
@@ -114,12 +114,12 @@ class PropertyController extends Controller
 
         if (!$terminated) {
             return response()->json([
-                'message' => 'Contract not found or already inactive.'
+                'message' => 'Não tens um contrato ativo nesta casa.'
             ], 404);
         }
 
         return response()->json([
-            'message' => 'Contract terminated successfully.'
+            'message' => 'Contrato terminado.'
         ]);
     }
 }

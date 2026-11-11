@@ -46,6 +46,7 @@ class PropertyService
                 'contracts' => fn($query) => $query->where('is_active', true)->with('residentType:id,type'),
             ])
             ->latest() // order by latest
+            ->latest('id')
             ->paginate($perPage);
     }
 
@@ -111,6 +112,7 @@ class PropertyService
                     'is_active' => false,
                     'end_date' => now()
                 ]);
+            app(\App\Services\ServiceProvider\AssistanceRequestService::class)->cancelOpenForProperty($property);
             return $property->delete();
         });
     }

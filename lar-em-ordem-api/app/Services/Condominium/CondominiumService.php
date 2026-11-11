@@ -4,6 +4,7 @@ namespace App\Services\Condominium;
 
 use App\Models\Condominium\Condominium;
 use App\Models\Condominium\CondominiumAdmin;
+use App\Models\Condominium\CondominiumDocument;
 use App\Models\File\File;
 use App\Models\Property\Address;
 use App\Models\Property\Property;
@@ -16,11 +17,18 @@ use Illuminate\Validation\ValidationException;
 
 class CondominiumService
 {
+    public function __construct(private CondominiumDocumentService $documents) {}
+
     /** Caracteres dos códigos (convite e transferência): sem 0/O nem 1/I/L */
     private const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
     /** Dias de validade do código de transferência. */
     private const TRANSFER_DAYS = 7;
+
+    /** Textos que substituem os dados de um condomínio apagado. */
+    private const REMOVED_NAME = 'Condomínio removido';
+    private const REMOVED_NOTICE = 'Aviso removido';
+    private const REMOVED_STREET = 'Morada removida';
 
     /**
      * Devolve os condomínios que o utilizador administra, paginados.
@@ -96,16 +104,41 @@ class CondominiumService
         return $this->loadFull($condominium, withProperties: true);
     }
 
-    /**
-     * Remove o condomínio (soft delete) e desliga as casas que lhe pertenciam.
+  /**
+     * Apaga o condomínio: desliga as casas, apaga os documentos
+     * e anonimiza o que fica (nome, morada e avisos) antes do soft delete.
      *
-     * @param Condominium $condominium Condomínio a remover.
+     * @param Condominium $condominium Condomínio a apagar.
      * @return void
      */
     public function delete(Condominium $condominium): void
     {
         DB::transaction(function () use ($condominium) {
             Property::where('condominium_id', $condominium->id)->update(['condominium_id' => null]);
+
+            $condominium->documents()->with('file')->get()
+                ->each(fn (CondominiumDocument $document) => $this->documents->delete($document));
+
+            $condominium->notices()->update([
+                'title'   => self::REMOVED_NOTICE,
+                'message' => '',
+            ]);
+
+            // distrito, concelho e localidade não identificam o prédio; a rua e o código postal saem
+            $condominium->address->forceFill([
+                'street'      => self::REMOVED_STREET,
+                'postal_code' => '0000-000',
+                'door'        => null,
+                'fraction'    => null,
+            ])->save();
+            $condominium->address->delete();
+
+            $condominium->forceFill([
+                'name'                => self::REMOVED_NAME,
+                'transfer_code_hash'  => null,
+                'transfer_expires_at' => null,
+            ])->save();
+
             $condominium->delete();
         });
     }

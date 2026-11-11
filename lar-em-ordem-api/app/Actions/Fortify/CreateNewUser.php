@@ -16,12 +16,13 @@ use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 use Illuminate\Support\Arr;
 use App\Services\Auth\ProfileService;
+use App\Services\Privacy\ConsentService;
 
 class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
 
-    public function __construct(private ProfileService $profileService) {}
+    public function __construct(private ProfileService $profileService,private ConsentService $consentService,) {}
 
     /**
      * Validate a newly registered user.
@@ -31,13 +32,13 @@ class CreateNewUser implements CreatesNewUsers
      *
      * @throws ValidationException
      */
-    public function validate(array $input): array
+    public function validate(array $input, bool $existingAccount = false): array
     {
         $role = $input['role'] ?? null;
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],
-            'password' => $this->passwordRules(),
+            'password' => $existingAccount ? ['required', 'string'] : $this->passwordRules(),
             'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ];
 
@@ -53,8 +54,8 @@ class CreateNewUser implements CreatesNewUsers
         // só os campos validados seguem para o perfil (nunca o $input bruto)
         return Validator::make(
             $input,
-            array_merge($rules, $roleRequest?->rules() ?? []),
-            $roleRequest?->messages() ?? []
+            array_merge($rules, $roleRequest?->rules() ?? [], ConsentService::signUpRules($existingAccount)),
+            array_merge($roleRequest?->messages() ?? [], ConsentService::signUpMessages())
         )->validate();
     }
 
@@ -68,17 +69,15 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         $role = $input['role'] ?? null;
-        $validated = $this->validate($input);
-
-        $user = User::where('email', $input['email'])->first();
-
-        if ($user) {
-            if (!Hash::check($input['password'], $user->password)) {
-                throw ValidationException::withMessages([
-                    'password' => ['Invalid credentials for existing account.']
-                ]);
-            }
+        $user = User::where('email', $input['email'] ?? '')->first();
+        
+        if ($user && !Hash::check($input['password'] ?? '', $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['O email já está em uso, tente novamente.']
+            ]);
         }
+
+        $validated = $this->validate($input, existingAccount: (bool) $user);
 
         return DB::transaction(function () use ($input, $validated, $user, $role) {
             if (!$user) {
@@ -90,8 +89,9 @@ class CreateNewUser implements CreatesNewUsers
             }
 
             // perfil + role (e zonas/especialidades do prestador) — "já tem este perfil" dá 422
-            $this->profileService->create($user, $role, Arr::except($validated, ['name', 'email', 'password', 'role']));
-
+            $this->profileService->create($user, $role, Arr::except($validated, ['name', 'email', 'password', 'role', ...ConsentService::SIGN_UP_FIELDS]));
+            $this->consentService->recordSignUp($user, ConsentService::fromSignUp($validated), 'signup');
+            
             return $user;
         });
     }

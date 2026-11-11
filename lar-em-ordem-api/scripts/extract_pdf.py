@@ -3,12 +3,6 @@
 Extração inteligente de dados de documentos de habitação (PDF).
 
 Uso:  python pdf_extractor.py /caminho/ficheiro.pdf [--full-text]
-
-Devolve sempre JSON em stdout. Mantém compatibilidade com a versão anterior
-(status, extracted_text, issue_date, expiration_date) e acrescenta:
-tipo de documento, datas classificadas, NIFs, IBANs, morada, valores,
-dados específicos por tipo (certificado energético, caderneta, seguro, faturas...)
-e alertas de validade.
 """
 import sys
 import json
@@ -33,13 +27,11 @@ def normalize(text: str) -> str:
 
 
 def fold(text: str) -> str:
-    """Minúsculas e sem acentos, MANTENDO o mesmo comprimento do original.
-    Assim, posições encontradas no texto 'folded' servem para fatiar o original."""
+    """Minúsculas e sem acentos, MANTENDO o mesmo comprimento do original."""
     return "".join(unicodedata.normalize("NFKD", c)[0] for c in text).lower()
 
 
 def search(pattern, f, o, group=1):
-    """Procura no texto folded e devolve o valor com a grafia original."""
     m = re.search(pattern, f)
     if not m or m.group(group) is None:
         return None
@@ -47,7 +39,6 @@ def search(pattern, f, o, group=1):
 
 
 def prune(obj):
-    """Remove None, strings vazias e estruturas vazias."""
     if isinstance(obj, dict):
         out = {k: prune(v) for k, v in obj.items()}
         return {k: v for k, v in out.items() if v not in (None, "", [], {})}
@@ -58,15 +49,12 @@ def prune(obj):
 
 AMOUNT = r"(\d{1,3}(?:[. ]\d{3})*,\d{2}|\d+,\d{2})"
 
-
 def to_float(s: str) -> float:
     return float(s.replace(" ", "").replace(".", "").replace(",", "."))
-
 
 def labelled_amount(f, label_regex):
     m = re.search(r"(?:" + label_regex + r")[^\d\n]{0,40}" + AMOUNT, f)
     return to_float(m.group(1)) if m else None
-
 
 def all_amounts(f):
     found = re.findall(AMOUNT + r"\s?(?:€|eur\b)", f)
@@ -83,10 +71,7 @@ def valid_nif(nif: str) -> bool:
         return False
     total = sum(int(nif[i]) * (9 - i) for i in range(8))
     check = 11 - total % 11
-    if check >= 10:
-        check = 0
-    return check == int(nif[8])
-
+    return (0 if check >= 10 else check) == int(nif[8])
 
 def valid_iban(iban: str) -> bool:
     iban = re.sub(r"\s", "", iban).upper()
@@ -106,13 +91,44 @@ MONTHS = {
     "julho": 7, "agosto": 8, "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12,
 }
 
+IGNORE_DATE_CONTEXT = [
+    "cartao de cidadao", "cartao do cidadao", "bilhete de identidade",
+    "passaporte", "titulo de residencia", "autorizacao de residencia",
+    "carta de conducao", "cedula", "identificacao civil",
+    "data de nascimento", "nascid", "natural de",
+    "decreto-lei", "decreto lei", "portaria n", "lei n",
+    "diario da republica", "regulamento n", "alvara de construcao n",
+]
+
 DATE_LABELS = {
-    "expiration_date": ["valido ate", "valida ate", "validade", "expira", "caduca", "termo",
-                        "fim de vigencia", "fim do contrato", "vencimento"],
-    "due_date": ["limite de pagamento", "pagar ate", "data limite"],
-    "start_date": ["inicio", "a partir de", "inicio de vigencia"],
-    "issue_date": ["emitid", "emissao", "data do documento", "data da fatura", "lavrad",
-                   "outorgad", "celebrad", "passad", "data do contrato", "data de emissao"],
+    "expiration_date": [
+        ("validade do certificado", 3), ("validade do documento", 3),
+        ("fim do contrato", 3), ("termo do contrato", 3), ("fim de vigencia", 3),
+        ("data de validade", 2), ("data de vencimento", 2), ("data de termo", 2),
+        ("valido ate", 1), ("valida ate", 1), ("validade", 1),
+        ("expira", 1), ("caduca", 1), ("termo", 1), ("vencimento", 1),
+    ],
+    "due_date": [
+        ("data limite de pagamento", 3), ("limite de pagamento", 2),
+        ("pagar ate", 2), ("data limite", 1),
+    ],
+    "start_date": [
+        ("inicio de vigencia", 3), ("inicio do contrato", 3),
+        ("produz efeitos a partir de", 3), ("com inicio em", 2),
+        ("a partir de", 1), ("inicio", 1),
+    ],
+    "issue_date": [
+        ("data de emissao", 3), ("data do documento", 3), ("data da fatura", 3),
+        ("data do contrato", 3), ("feito e assinado", 3),
+        ("celebrado em", 2), ("outorgado em", 2), ("lavrado em", 2),
+        ("emitid", 1), ("emissao", 1), ("lavrad", 1),
+        ("outorgad", 1), ("celebrad", 1), ("passad", 1), ("assinad", 1),
+    ],
+}
+
+NO_EXPIRATION_DOC_TYPES = {
+    "escritura", "caderneta_predial", "licenca_utilizacao", "ficha_tecnica_habitacao",
+    "imt", "imposto_selo", "declaracao_juros"
 }
 
 
@@ -126,57 +142,135 @@ def make_date(y, m, d):
 
 
 def find_dates(f):
-    """Devolve [(posição, date)] ordenado."""
-    found = {}
+    """Devolve uma lista de tuplos: (start_pos, end_pos, date_obj)."""
+    found = []
     for m in re.finditer(r"\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})\b", f):
         d = make_date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
-        if d:
-            found[m.start()] = d
+        if d: found.append((m.start(), m.end(), d))
+
     for m in re.finditer(r"\b(\d{4})-(\d{2})-(\d{2})\b", f):
         d = make_date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
-        if d:
-            found[m.start()] = d
+        if d: found.append((m.start(), m.end(), d))
+
     for m in re.finditer(r"\b(\d{1,2})\s+de\s+([a-z]+)\s+de\s+(\d{4})\b", f):
         month = MONTHS.get(m.group(2))
         if month:
             d = make_date(int(m.group(3)), month, int(m.group(1)))
-            if d:
-                found[m.start()] = d
-    return sorted(found.items())
+            if d: found.append((m.start(), m.end(), d))
+
+    return sorted(found, key=lambda x: x[0])
 
 
-def classify_date(f, pos):
-    window = f[max(0, pos - 70):pos]
-    best_field, best_idx = None, -1
-    for field, kws in DATE_LABELS.items():
-        for kw in kws:
-            i = window.rfind(kw)
-            if i > best_idx:
-                best_field, best_idx = field, i
-    return best_field
+def get_context_window(f: str, pos: int, prev_date_end: int, max_back: int = 120) -> str:
+    """Extrai texto seguro para trás, parando em barreiras para evitar misturar contextos."""
+    start = max(prev_date_end, pos - max_back)
+
+    # Parar em ponto final real (. seguido de espaço ou de nova linha)
+    last_dot = max(f.rfind(". ", start, pos), f.rfind(".\n", start, pos))
+    if last_dot != -1 and (pos - last_dot) > 15:
+        start = last_dot + 2
+
+    # Parar noutro parágrafo (dupla quebra de linha)
+    last_para = f.rfind("\n\n", start, pos)
+    if last_para != -1:
+        start = last_para
+
+    # Transforma quebras de linha em espaços para manter as frases unidas
+    return f[start:pos].replace("\n", " ")
+
+
+def is_ignored_date_context(window_before: str, context_after: str) -> bool:
+    full_context = window_before + " " + context_after
+    for bad_kw in IGNORE_DATE_CONTEXT:
+        if bad_kw in full_context:
+            return True
+
+    if re.search(r"\b(?:cc|bi|nif|nic)\b.{0,45}(?:valido|validade)", window_before):
+        return True
+
+    return False
+
+
+def classify_date(window_before: str):
+    best_field, best_score, best_idx = None, 0, -1
+    for field, kw_list in DATE_LABELS.items():
+        for kw, weight in kw_list:
+            i = window_before.rfind(kw)
+            if i != -1:
+                distance = len(window_before) - (i + len(kw))
+                distance_bonus = 2 if distance <= 15 else (1 if distance <= 35 else 0)
+                score = (weight * 10) + distance_bonus
+                if score > best_score or (score == best_score and i > best_idx):
+                    best_field, best_score, best_idx = field, score, i
+    return best_field, best_score
 
 
 def add_years(d: date, years: int) -> date:
     try:
         return d.replace(year=d.year + years)
-    except ValueError:  # 29 de fevereiro
+    except ValueError:
         return d.replace(year=d.year + years, day=28)
 
 
-def extract_dates(f):
+def add_months(d: date, months: int) -> date:
+    total_months = (d.month - 1) + months
+    year = d.year + total_months // 12
+    month = total_months % 12 + 1
+    try:
+        return d.replace(year=year, month=month)
+    except ValueError:
+        for day in (30, 29, 28):
+            try:
+                return d.replace(year=year, month=month, day=day)
+            except ValueError:
+                continue
+        return d
+
+
+def extract_dates(f: str, doc_type: str = "desconhecido"):
     dates = find_dates(f)
-    by_field, unclassified = {}, []
-    for pos, d in dates:
-        field = classify_date(f, pos)
+    best_by_field = {}
+    unclassified = []
+
+    text_len = max(1, len(f))
+    prev_date_end = 0
+
+    for start_pos, end_pos, d in dates:
+        context_after = f[end_pos:min(len(f), end_pos + 30)].replace("\n", " ")
+        window_before = get_context_window(f, start_pos, prev_date_end, 120)
+
+        prev_date_end = end_pos # A próxima data já não pode ler antes disto
+
+        if is_ignored_date_context(window_before, context_after):
+            continue
+
+        field, score = classify_date(window_before)
+
         if field:
-            by_field.setdefault(field, d)
+            # Bónus para datas no final de contratos/escrituras
+            if start_pos / text_len >= 0.70:
+                score += 2
+
+            prev = best_by_field.get(field)
+            if not prev or score >= prev[0]:
+                best_by_field[field] = (score, start_pos, d)
         else:
-            unclassified.append(d)
+            unclassified.append((start_pos, d))
+
+    by_field = {field: val[2] for field, val in best_by_field.items()}
+
+    # Fallback seguro para issue_date
     if "issue_date" not in by_field and unclassified:
-        by_field["issue_date"] = unclassified.pop(0)
-    if "expiration_date" not in by_field and unclassified:
-        by_field["expiration_date"] = unclassified[0]
-    return by_field, [d.isoformat() for _, d in dates][:15]
+        if doc_type in ("contrato_arrendamento", "escritura", "condominio"):
+            by_field["issue_date"] = unclassified[-1][1]
+        else:
+            by_field["issue_date"] = unclassified[0][1]
+
+    # Impedir validações falsas
+    if doc_type in NO_EXPIRATION_DOC_TYPES:
+        by_field.pop("expiration_date", None)
+
+    return by_field, [d.isoformat() for _, _, d in dates][:15]
 
 
 # ----------------------------------------------------------------------------
@@ -185,7 +279,7 @@ def extract_dates(f):
 
 DOC_TYPES = {
     "certificado_energetico": ["certificado energetico", "sce", "classe energetica", "adene",
-                              "desempenho energetico"],
+                               "desempenho energetico"],
     "caderneta_predial": ["caderneta predial", "valor patrimonial tributario", "artigo matricial",
                           "matriz predial", "servicos de financas"],
     "certidao_registo_predial": ["certidao permanente", "conservatoria do registo predial",
@@ -207,6 +301,11 @@ DOC_TYPES = {
     "fatura_agua": ["abastecimento de agua", "saneamento", "tarifa de agua", "residuos", "agua"],
     "fatura_telecom": ["fibra", "internet", "televisao", "telemovel", "telecomunicacoes"],
     "garantia_equipamento": ["garantia", "prazo de garantia", "numero de serie"],
+    "imt": ["imposto municipal sobre as transmissoes onerosas", "imt", "documento unico de cobranca"],
+    "imposto_selo": ["imposto do selo", "verba"],
+    "aimi": ["adicional ao imi", "aimi", "adicional ao imposto municipal"],
+    "credito_habitacao": ["credito a habitacao", "credito habitacao", "mapa de amortizacoes", "fine", "taeg", "tan", "spread"],
+    "declaracao_juros": ["declaracao anual", "juros suportados", "encargos com credito", "efeitos de irs"],
 }
 
 DOC_LABELS = {
@@ -225,7 +324,12 @@ DOC_LABELS = {
     "fatura_agua": "Fatura Água",
     "fatura_telecom": "Fatura Telecomunicações",
     "garantia_equipamento": "Garantia de Equipamento",
-    "desconhecido": "Documento",
+    "imt": "Comprovativo de IMT",
+    "imposto_selo": "Imposto do Selo",
+    "aimi": "Comprovativo de AIMI",
+    "credito_habitacao": "Contrato e Mapa de Amortizações",
+    "declaracao_juros": "Declaração Anual de Juros",
+    "desconhecido": "Outros",
 }
 
 
@@ -247,8 +351,8 @@ PROVIDERS = {
     "seguradoras": ["fidelidade", "tranquilidade", "ageas", "allianz", "zurich", "generali",
                     "liberty", "mapfre", "lusitania", "ok teleseguros", "una seguros", "logo"],
     "energia_agua_telecom": ["edp", "endesa", "iberdrola", "galp", "goldenergy", "repsol",
-                            "su eletricidade", "luzboa", "epal", "simas", "aguas do porto",
-                            "aguas de gaia", "nos", "meo", "vodafone", "nowo"],
+                             "su eletricidade", "luzboa", "epal", "simas", "aguas do porto",
+                             "aguas de gaia", "nos", "meo", "vodafone", "nowo"],
 }
 
 
@@ -280,10 +384,8 @@ def extract_property(f, o):
     cps = re.findall(r"\b\d{4}-\d{3}\b", f)
     return {
         "codigo_postal": cps[0] if cps else None,
-        # Aqui está a correção: usar [^\n,]+ em vez de [^\n]+
         "freguesia": search(r"freguesia(?: de| da| do)?[:\s]+([^\n,]{3,60})", f, o),
         "concelho": search(r"concelho(?: de| da| do)?[:\s]+([^\n,]{3,40})", f, o),
-
         "artigo_matricial": search(r"artigo(?: matricial)?\W{0,6}(?:n[ºo.]*\W{0,3})?(\d{1,6}(?:-[a-z])?)\b", f, o),
         "descricao_predial": search(r"descricao(?: predial)?\W{0,6}(?:n[ºo.]*\W{0,3})?(\d{1,6}(?:/\d{4,8})?)", f, o),
         "fracao": search(r"fracao(?: autonoma)?\W{0,4}([a-z]{1,3})\b", f, o),
@@ -459,6 +561,18 @@ EXTRACTORS = {
 DEFAULT_VALIDITY_YEARS = {"certificado_energetico": 10}
 
 
+def infer_expiration_from_duration(base_date: date, duration_str: str) -> date:
+    """Calcula a data de validade a partir de strings como '3 anos' ou '24 meses'."""
+    if not base_date or not duration_str:
+        return None
+    m = re.search(r"(\d+)\s*(anos?|meses)", duration_str.lower())
+    if not m:
+        return None
+    val = int(m.group(1))
+    unit = m.group(2)
+    return add_years(base_date, val) if unit.startswith("ano") else add_months(base_date, val)
+
+
 # ----------------------------------------------------------------------------
 # Análise
 # ----------------------------------------------------------------------------
@@ -469,14 +583,29 @@ def analyze_text(text: str, today: date = None) -> dict:
     f = fold(o)
 
     doc_type, confidence = classify(f)
-    by_field, all_dates = extract_dates(f)
+    by_field, all_dates = extract_dates(f, doc_type)
+
+    extractor = EXTRACTORS.get(doc_type)
+    details = extractor(f, o) if extractor else {}
 
     issue = by_field.get("issue_date")
+    start = by_field.get("start_date")
     expiration = by_field.get("expiration_date")
     expiration_inferred = False
+
+    # Inferência por validade fixa do tipo de documento
     if not expiration and issue and doc_type in DEFAULT_VALIDITY_YEARS:
         expiration = add_years(issue, DEFAULT_VALIDITY_YEARS[doc_type])
         expiration_inferred = True
+
+    # Inferência por prazo explícito no texto (Contratos ou Garantias)
+    if not expiration:
+        duration_str = details.get("duracao") or details.get("prazo_garantia")
+        base_for_duration = start or issue
+        inferred = infer_expiration_from_duration(base_for_duration, duration_str)
+        if inferred:
+            expiration = inferred
+            expiration_inferred = True
 
     alerts, days_left = [], None
     if expiration:
@@ -486,8 +615,6 @@ def analyze_text(text: str, today: date = None) -> dict:
         elif days_left <= 90:
             alerts.append("expira_em_menos_de_90_dias")
 
-    extractor = EXTRACTORS.get(doc_type)
-    details = extractor(f, o) if extractor else {}
     provider = details.get("seguradora") or details.get("fornecedor") or find_provider(f)
     prop = extract_property(f, o)
 
@@ -504,8 +631,8 @@ def analyze_text(text: str, today: date = None) -> dict:
         "issue_date": issue.isoformat() if issue else None,
         "expiration_date": expiration.isoformat() if expiration else None,
         "expiration_inferred": expiration_inferred or None,
-        "start_date": by_field["start_date"].isoformat() if "start_date" in by_field else None,
-        "due_date": by_field["due_date"].isoformat() if "due_date" in by_field else None,
+        "start_date": start.isoformat() if start else None,
+        "due_date": by_field.get("due_date").isoformat() if "due_date" in by_field else None,
         "days_to_expiration": days_left,
         "alerts": alerts,
         "provider": provider,

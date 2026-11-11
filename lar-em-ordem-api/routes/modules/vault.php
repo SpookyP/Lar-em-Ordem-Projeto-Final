@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Vault\DocumentCategoryController;
 use App\Http\Controllers\Api\Vault\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Vault\DocumentController;
@@ -19,6 +20,7 @@ Route::get('/documents/{document}/download', [DocumentController::class, 'downlo
     ->whereUlid('document');
 Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])
     ->whereUlid('document');
+Route::get('/document-categories', [DocumentCategoryController::class, 'index']);
 
 // Notificações
 Route::get('/properties/{property}/notifications', [NotificationController::class, 'index'])

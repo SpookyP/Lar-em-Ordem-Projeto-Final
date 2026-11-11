@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { PropertyForm } from "../../components/ui/PropertyForm";
 import { PasswordForm } from "../../components/ui/PasswordForm";
 import { ProfileForm } from "../../components/ui/ProfileForm";
@@ -12,12 +13,16 @@ import {
   UserMinus,
   Trash2,
   ArrowLeft,
+  ShieldCheck,
+  Building,
 } from "lucide-react";
 import { AccountForm } from "../../components/ui/AccountForm";
 import { HouseDetails } from "../../components/ui/HouseDetails";
 import { ManageHouses } from "../../components/ui/ManageHouses";
 import { DeleteProfile } from "../../components/ui/DeleteProfile";
 import { DeleteAccount } from "../../components/ui/DeleteAccount";
+import { PrivacySettings } from "../../components/ui/PrivacySettings";
+import { CondominiumSettings } from "../../components/condominium/CondominiumSettings";
 import { useAuth } from "../../hooks/useAuth";
 
 const GROUPS = [
@@ -28,6 +33,7 @@ const GROUPS = [
       { id: "password", label: "Mudar password", icon: KeyRound },
       { id: "profile", label: "Adicionar perfil", icon: UserPlus },
       { id: "delete-profile", label: "Apagar perfil", icon: UserMinus },
+      { id: "privacy", label: "Privacidade", icon: ShieldCheck },
     ],
   },
   {
@@ -37,6 +43,7 @@ const GROUPS = [
       { id: "house", label: "A minha habitação", icon: House },
       { id: "property", label: "Adicionar habitação", icon: HousePlus },
       { id: "manage-house", label: "Gerir habitações", icon: Pencil },
+            { id: "condominium", label: "Condomínio", icon: Building },
     ],
   },
   {
@@ -46,7 +53,9 @@ const GROUPS = [
 ];
 
 export default function Settings() {
-  const [section, setSection] = useState(null);
+  // other pages can open a section directly: navigate("/settings", { state: { section } })
+  const location = useLocation();
+  const [section, setSection] = useState(location.state?.section ?? null);
   const { activeProfile, user } = useAuth();
   const canHaveHouses = activeProfile?.hasHouses ?? false;
 
@@ -123,10 +132,12 @@ export default function Settings() {
             )}
             {section === "account" && <AccountForm />}
             {section === "password" && <PasswordForm />}
+            {section === "privacy" && <PrivacySettings />}
             {section === "profile" && <ProfileForm />}
             {section === "house" && <HouseDetails />}
             {section === "property" && <PropertyForm />}
             {section === "manage-house" && <ManageHouses />}
+            {section === "condominium" && <CondominiumSettings />}
             {section === "delete-profile" && <DeleteProfile />}
             {section === "delete-account" && <DeleteAccount />}
           </div>

@@ -26,7 +26,7 @@ class UpdatePropertyRequest extends FormRequest
             // Property
             'property_type_id'     => ['sometimes', 'nullable', 'integer', 'exists:property_types,id'],
             'property_typology_id' => ['sometimes', 'nullable', 'integer', 'exists:property_typologies,id'],
-            'address_id'           => ['sometimes', 'nullable', 'string', 'exists:addresses,id'],
+            'address_id'           => ['prohibited'],
             'area'                 => ['sometimes', 'nullable', 'integer', 'min:1'],
             
 
@@ -47,6 +47,13 @@ class UpdatePropertyRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'address_id.prohibited' => 'A morada não pode ser escolhida: envia os dados da morada em "address".',
+        ];
+    }
+
     /**
      * Extract only present Property data for update.
      */
@@ -55,7 +62,6 @@ class UpdatePropertyRequest extends FormRequest
         return array_filter($this->safe()->only([
             'property_type_id',
             'property_typology_id',
-            'address_id',
             'area',
             'fraction',
         ]), fn($value) => $value !== null);
