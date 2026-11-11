@@ -22,7 +22,7 @@ export default function Invoice() {
         {/* Cabeçalho e navegação para o formulário de faturas. */}
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-3xl font-bold text-slate-900">
+            <h1 className="font-display text-3xl text-slate-900">
               Faturas
             </h1>
 
@@ -38,7 +38,7 @@ export default function Invoice() {
                 state: { scrollToInvoiceForm: true },
               })
             }
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1C3557] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#29496F]"
           >
             <Plus size={18} />
             Adicionar Fatura
