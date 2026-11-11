@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { fetchAllInvoices } from "../../services/api/invoiceService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
+const HEADER_COLOR = "#1C3557";
+
 const UTILITIES = {
   1: { name: "Eletricidade", color: "#1C3557" },
   2: { name: "Água", color: "#0F766E" },
@@ -9,10 +11,10 @@ const UTILITIES = {
 };
 
 const FILTERS = [
-  { id: "all", label: "Geral" },
-  { id: "1", label: "Eletricidade" },
-  { id: "2", label: "Água" },
-  { id: "3", label: "Gás" },
+  { id: "all", label: "Geral", color: "#583D69" },
+  { id: "1", label: "Eletricidade", color: "#1C3557" },
+  { id: "2", label: "Água", color: "#0F766E" },
+  { id: "3", label: "Gás", color: "#EA580C" },
 ];
 
 const CATEGORY_LABELS = {
@@ -517,33 +519,48 @@ export default function DetailedConsumptionChart({
   // Renderiza os filtros, o gráfico circular e os detalhes dos itens.
   return (
     <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      {/* Cabeçalho e filtros por tipo de consumo. */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
+      {/* Cabeçalho fixo em azul da Eletricidade. */}
+      <div
+        className="relative -mx-4 -mt-4 mb-4 flex flex-col gap-4 overflow-hidden rounded-t-2xl p-5 text-white shadow-sm sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+        style={{ backgroundColor: HEADER_COLOR }}
+      >
+        <div className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -bottom-16 right-1/3 h-32 w-32 rounded-full bg-black/10" />
+
+        <div className="relative z-10">
+          <h2 className="text-lg font-semibold text-white">
             Detalhe dos consumos
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-white/80">
             Custos detalhados por serviço e por item de fatura.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {FILTERS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => selectFilter(option.id)}
-              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-                filter === option.id
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
+        <div className="relative z-10 flex flex-wrap gap-2">
+          {FILTERS.map((option) => {
+            const active = filter === option.id;
+
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => selectFilter(option.id)}
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                  active
+                    ? "border-white bg-white shadow-sm"
+                    : "border-white/40 bg-white/10 text-white hover:bg-white/20"
+                }`}
+                style={
+                  active
+                    ? { color: option.color }
+                    : { color: "#FFFFFF" }
+                }
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 

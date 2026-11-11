@@ -405,13 +405,22 @@ export default function InvoiceForm({ onInvoiceSaved }) {
   return (
     <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-8">
       {/* Cabeçalho do formulário. */}
-      <div>
-        <h2 className="text-lg font-bold text-slate-800">
-          Registar Nova Fatura
-        </h2>
-        <p className="text-xs text-slate-400">
-          Carrega o PDF para preencher automaticamente ou introduz os dados manualmente.
-        </p>
+      <div
+        className="relative -mx-6 -mt-6 mb-8 flex flex-col gap-2 overflow-hidden rounded-t-2xl p-6 text-white"
+        style={{ backgroundColor: "#0F766E" }}
+      >
+        <div className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -bottom-16 right-1/3 h-32 w-32 rounded-full bg-black/10" />
+
+        <div className="relative z-10">
+          <h2 className="text-lg font-bold text-white">
+            Registar Nova Fatura
+          </h2>
+
+          <p className="mt-1 text-xs text-white/80">
+            Carrega o PDF para preencher automaticamente ou introduz os dados manualmente.
+          </p>
+        </div>
       </div>
 
       {/* Área de carregamento do documento. */}
