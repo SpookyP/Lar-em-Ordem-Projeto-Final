@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Mail, MapPin, Phone, PiggyBank, Settings, UserRound } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { usePropertyDocumentsPage } from "../../../hooks/usePropertyDocumentsPage";
+import { CategoryFilter } from "../../../components/condominium/CategoryFilter";
+import { DocumentCard } from "../../../components/condominium/DocumentCard";
+import { Pager } from "../../../components/ui/Pager";
 import { priorityInfo } from "../../../data/condominiumInfo";
 import { addressLine, formatMoney } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
@@ -58,9 +63,61 @@ function Notices({ notices }) {
   );
 }
 
+// documents the administration shared (minutes, rules, budgets...), read-only for the resident
+function Documents({ propertyId }) {
+  const [categoryId, setCategoryId] = useState("");
+  const {
+    items: documents,
+    extra,
+    page,
+    totalPages,
+    total,
+    loading,
+    error,
+    setPage,
+  } = usePropertyDocumentsPage(propertyId, { categoryId, perPage: 5 });
+
+  const categories = extra?.categories ?? [];
+
+  return (
+    <section className="flex flex-col gap-4">
+      <h2 className="font-medium text-navy">Documentos</h2>
+
+      {categories.length > 0 && (
+        <CategoryFilter categories={categories} value={categoryId} onChange={setCategoryId} />
+      )}
+
+      {error ? (
+        <p role="alert" className="text-sm text-red">
+          {error}
+        </p>
+      ) : loading && documents.length === 0 ? (
+        <p className="text-sm text-muted">A carregar...</p>
+      ) : total === 0 ? (
+        <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
+          <p className="text-sm text-muted">
+            {categoryId
+              ? "Não há documentos nesta categoria."
+              : "A administração ainda não partilhou nenhum documento."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-4">
+            {documents.map((doc) => (
+              <DocumentCard key={doc.id} doc={doc} />
+            ))}
+          </div>
+          <Pager page={page} totalPages={totalPages} onChange={setPage} />
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function Condominium() {
   // loaded once per home by AuthContext, the same answer that decides the menu item
-  const { activeCondominium: condominium } = useAuth();
+  const { activeHouse, activeCondominium: condominium } = useAuth();
 
   if (condominium === undefined) {
     return <p className="text-sm text-muted">A carregar...</p>;
@@ -114,6 +171,10 @@ export default function Condominium() {
           <Card title="Avisos em vigor">
             <Notices notices={condominium.notices ?? []} />
           </Card>
+        </div>
+        
+        <div className="lg:col-span-2">
+          <Documents propertyId={activeHouse.id} />
         </div>
       </div>
     </div>

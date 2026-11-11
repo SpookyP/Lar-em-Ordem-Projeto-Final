@@ -200,3 +200,10 @@ export async function markAllNoticesRead(propertyId) {
 export async function dismissNotice(noticeId) {
   await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}/dismiss`);
 }
+
+export async function getPropertyDocuments({ propertyId, categoryId, page = 1, perPage = 5 }) {
+  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium-documents`, {
+    params: cleanParams({ page, per_page: perPage, category_id: categoryId }),
+  });
+  return toDocumentsPage(response);
+}
