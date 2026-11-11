@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Zap, FolderClosed } from "lucide-react";
 
@@ -8,6 +7,8 @@ import ConsumptionSummary from "../../../components/ui/ConsumptionSummary";
 import { NotificationBell } from "../../../components/ui/NotificationBell";
 import { OfferRecommendations } from "../../../components/ui/OfferRecommendations";
 import useInvoices from "../../../hooks/useInvoices";
+import { useAuth } from "../../../hooks/useAuth";
+import { isOwnerHouse } from "../../../utils/ownerHouse";
 
 // Períodos disponíveis para consultar os consumos.
 const periods = [
@@ -21,15 +22,12 @@ export default function Dashboard() {
   const [period, setPeriod] = useState(1);
 
   // Obter as faturas através do hook centralizado.
-  const {
-    invoices,
-    loading,
-    error,
-  } = useInvoices();
+  const { invoices, loading, error } = useInvoices();
 
+  const { activeHouse } = useAuth();
+  const isOwner = isOwnerHouse(activeHouse);
   return (
     <div className="flex flex-col gap-6">
-
       {/* Cabeçalho do painel e notificações. */}
       <header className="flex items-center justify-between gap-3 w-full">
         <h1 className="min-w-0 font-display text-2xl sm:text-3xl text-navy">
@@ -41,22 +39,16 @@ export default function Dashboard() {
 
       {/* Área principal: gráfico de consumos e resumo lateral. */}
       <div className="flex flex-col lg:flex-row gap-6">
-
         {/* Gráfico de distribuição dos gastos. */}
         <div className="min-w-0 flex-1">
           <div className="rounded-2xl bg-card p-4 sm:p-8 shadow-sm">
-
             {/* Título e seleção do período. */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
               <div>
-                <h2 className="font-display text-xl text-navy">
-                  Gasto Mensal
-                </h2>
+                <h2 className="font-display text-xl text-navy">Gasto Mensal</h2>
 
                 <p className="text-sm text-muted">
-                  {period === 1
-                    ? "Último mês"
-                    : `Últimos ${period} meses`}
+                  {period === 1 ? "Último mês" : `Últimos ${period} meses`}
                 </p>
               </div>
 
@@ -97,7 +89,6 @@ export default function Dashboard() {
 
         {/* Resumo dos consumos e atalhos de navegação. */}
         <div className="w-full lg:w-80 flex flex-col gap-3">
-
           {/* Resumo dos valores físicos por tipo de consumo. */}
           <ConsumptionSummary
             invoices={invoices}
@@ -106,14 +97,16 @@ export default function Dashboard() {
             period={period}
           />
 
-          {/* Atalho para o cofre digital. */}
-          <ShortcutCard
-            icon={FolderClosed}
-            iconColor="bg-navy/10 text-navy"
-            title="Cofre Digital"
-            description="1 documento a expirar"
-            to="/cofre"
-          />
+          {/* Atalho para o cofre digital (só proprietário). */}
+          {isOwner && (
+            <ShortcutCard
+              icon={FolderClosed}
+              iconColor="bg-navy/10 text-navy"
+              title="Cofre Digital"
+              description="1 documento a expirar"
+              to="/vault"
+            />
+          )}
 
           {/* Atalho para a gestão de consumos e faturas. */}
           <ShortcutCard
