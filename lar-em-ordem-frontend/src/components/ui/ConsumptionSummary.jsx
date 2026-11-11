@@ -7,22 +7,23 @@ const CONSUMPTION_CONFIG = {
   1: {
     name: "Eletricidade",
     icon: Zap,
-    iconColor: "bg-amber-light text-amber",
+    iconColor: "bg-[#1C3557] text-white",
     unit: "kWh",
   },
   2: {
     name: "Água",
     icon: Droplet,
-    iconColor: "bg-teal-light text-teal",
+    iconColor: "bg-[#0F766E] text-white",
     unit: "m³",
   },
   3: {
     name: "Gás",
     icon: Flame,
-    iconColor: "bg-orange-light text-orange",
+    iconColor: "bg-[#EA580C] text-white",
     unit: "kWh",
   },
 };
+
 
 const EMPTY_TOTALS = { 1: 0, 2: 0, 3: 0 };
 
