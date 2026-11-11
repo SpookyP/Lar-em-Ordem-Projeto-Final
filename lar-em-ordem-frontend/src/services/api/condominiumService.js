@@ -94,3 +94,55 @@ export async function updateNotice(noticeId, data) {
 export async function deleteNotice(noticeId) {
   await axiosClient.delete(`/api/v1/condominium-notices/${noticeId}`);
 }
+
+export function toDocument(d) {
+  return {
+    id: d.id,
+    title: d.title,
+    description: d.description ?? "",
+    documentDate: d.document_date,
+    category: d.category ?? null,
+    file: d.file
+      ? { name: d.file.name, mimeType: d.file.mime_type, size: d.file.size }
+      : null,
+    createdAt: d.created_at,
+  };
+}
+
+// a page of documents plus the categories, which every listing brings for the filter
+function toDocumentsPage(response) {
+  return { ...toPage(response, toDocument), extra: { categories: response.data.categories ?? [] } };
+}
+
+export async function getCondominiumDocuments({ condominiumId, categoryId, page = 1, perPage = 5 }) {
+  const response = await axiosClient.get(`/api/v1/condominiums/${condominiumId}/documents`, {
+    params: cleanParams({ page, per_page: perPage, category_id: categoryId }),
+  });
+  return toDocumentsPage(response);
+}
+
+// data: { file, title, description, document_date, condominium_document_category_id }
+export async function uploadDocument(condominiumId, data) {
+  const body = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    if (value != null && value !== "") body.append(key, value);
+  });
+  const response = await axiosClient.post(`/api/v1/condominiums/${condominiumId}/documents`, body);
+  return toDocument(response.data.data);
+}
+
+// only the details change; the file stays the same
+export async function updateDocument(documentId, data) {
+  const response = await axiosClient.patch(`/api/v1/condominium-documents/${documentId}`, data);
+  return toDocument(response.data.data);
+}
+
+export async function deleteDocument(documentId) {
+  await axiosClient.delete(`/api/v1/condominium-documents/${documentId}`);
+}
+
+// temporary link (30 minutes) to view or download the file
+export async function getDocumentLink(documentId) {
+  const response = await axiosClient.get(`/api/v1/condominium-documents/${documentId}/download`);
+  return response.data.data.url;
+}

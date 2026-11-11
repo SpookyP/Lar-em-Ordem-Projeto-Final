@@ -38,3 +38,11 @@ export function formatPhone(value) {
   const [, prefix, a, b, c] = match;
   return [prefix, a, b, c].filter(Boolean).join(" ");
 }
+
+// "245 KB", "1,2 MB"
+export function formatBytes(bytes) {
+  const size = Number(bytes);
+  if (!Number.isFinite(size) || size <= 0) return "";
+  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`;
+  return `${(size / (1024 * 1024)).toLocaleString("pt-PT", { maximumFractionDigits: 1 })} MB`;
+}

@@ -275,6 +275,20 @@ export default function CondominiumDetail() {
             >
               <CurrentNotices notices={condominium.notices} />
             </Card>
+            
+            <Card
+              title="Documentos"
+              description="Atas, regulamento interno e orçamentos, visíveis para os condóminos."
+              action={
+                <Link
+                  to={`/admin/condominiums/${id}/documents`}
+                  state={{ name: condominium.name }}
+                  className="shrink-0 text-sm font-medium text-navy hover:underline"
+                >
+                  Gerir documentos
+                </Link>
+              }
+            />
           </div>
         )
       )}

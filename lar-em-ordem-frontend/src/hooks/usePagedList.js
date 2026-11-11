@@ -35,6 +35,8 @@ export function usePagedList(
     page,
     totalPages: result.lastPage,
     total: result.total,
+    // anything else the page brings (e.g. the categories for a filter)
+    extra: result.extra ?? null,
     loading: enabled && result.key !== requestKey,
     error: result.error,
     setPage: (next) => setPageState({ key: paramsKey, page: next }),

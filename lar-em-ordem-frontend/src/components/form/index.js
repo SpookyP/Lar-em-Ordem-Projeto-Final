@@ -10,3 +10,4 @@ export { ChoiceCards } from "./ChoiceCards";
 export { StepProgress } from "./StepProgress";
 export { Checkbox } from "./Checkbox";
 export { Toggle } from "./Toggle";
+export { FileInput } from "./FileInput";
