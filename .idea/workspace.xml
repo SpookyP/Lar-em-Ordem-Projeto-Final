@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="Melhoria do Script de leitura de Documentos">
-      <change afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Events/Vault/VaultNotificationBroadcast.php" afterDir="false" />
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="WebSocket Vault">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentExpiryService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentExpiryService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/NotificationTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/tests/Feature/Vault/NotificationTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lar-em-ordem-frontend/src/hooks/useNotifications.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-frontend/src/hooks/useNotifications.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/database/seeders/DocumentCategorySeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/database/seeders/DocumentCategorySeeder.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/scripts/extract_pdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/scripts/extract_pdf.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,61 +76,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000000000000122" />
-      <entry key="MS500" value="1.0020451962570016" />
-      <entry key="S2" value="1.3427182310911334" />
-      <entry key="S5" value="1.9839323556122705" />
-      <entry key="S10" value="2.401924184635442" />
-      <entry key="S30" value="2.776372666970813" />
-      <entry key="S60" value="2.884839830720629" />
-      <entry key="M2" value="2.9417680957277" />
-      <entry key="M5" value="3.046127592701344" />
-      <entry key="M10" value="3.6868422179388354" />
-      <entry key="M15" value="4.796917136626561" />
-      <entry key="M30" value="10.692102398609096" />
-      <entry key="H1" value="24.97644377091333" />
-      <entry key="H2" value="45.8487387996563" />
-      <entry key="H4" value="72.07103277934202" />
-      <entry key="D1" value="126.74326269937941" />
-      <entry key="W1" value="142.9886319304935" />
+      <entry key="MS100" value="1.8545044532897763" />
+      <entry key="MS500" value="4.950199821531209" />
+      <entry key="S2" value="11.322732178668167" />
+      <entry key="S5" value="18.263854541971277" />
+      <entry key="S10" value="23.01450671387783" />
+      <entry key="S30" value="27.802773244230604" />
+      <entry key="S60" value="29.317725409982653" />
+      <entry key="M2" value="30.13656763963129" />
+      <entry key="M5" value="30.716544156501154" />
+      <entry key="M10" value="31.511558773596896" />
+      <entry key="M15" value="32.668595493404425" />
+      <entry key="M30" value="38.59780080132266" />
+      <entry key="H1" value="52.89281340366997" />
+      <entry key="H2" value="73.78026503040752" />
+      <entry key="H4" value="100.02004917347885" />
+      <entry key="D1" value="154.72894588242383" />
+      <entry key="W1" value="170.9863396276074" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="0.0" />
-      <entry key="S10" value="1.448265342149082E-217" />
-      <entry key="S30" value="8.373532333765346E-73" />
-      <entry key="S60" value="1.4331021233918349E-36" />
-      <entry key="M2" value="1.997235307219597E-18" />
-      <entry key="M5" value="1.5913494037846218E-7" />
-      <entry key="M10" value="6.896092058826257E-4" />
-      <entry key="M15" value="0.011252566903484413" />
-      <entry key="M30" value="0.1837239871114919" />
-      <entry key="H1" value="0.7508943250709761" />
-      <entry key="H2" value="1.646215917047149" />
-      <entry key="H4" value="2.7877622495658145" />
-      <entry key="D1" value="5.164470638432868" />
-      <entry key="W1" value="5.869381110410311" />
+      <entry key="MS100" value="2.4823370835470654E-32" />
+      <entry key="MS500" value="4.774986532742185E-7" />
+      <entry key="S2" value="0.026287121820332472" />
+      <entry key="S5" value="0.2332905865850709" />
+      <entry key="S10" value="0.4830016424248169" />
+      <entry key="S30" value="0.7846022258480173" />
+      <entry key="S60" value="0.8857777519491082" />
+      <entry key="M2" value="0.9411576658292213" />
+      <entry key="M5" value="0.9760341702230485" />
+      <entry key="M10" value="0.9886234612102258" />
+      <entry key="M15" value="1.0030848584082848" />
+      <entry key="M30" value="1.1787531564321299" />
+      <entry key="H1" value="1.746959646134386" />
+      <entry key="H2" value="2.643104921491991" />
+      <entry key="H4" value="3.7854776834263224" />
+      <entry key="D1" value="6.163836886489674" />
+      <entry key="W1" value="6.869279854745683" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9395227492140235" />
-      <entry key="MS500" value="0.989618316545475" />
-      <entry key="S2" value="1.3379182283777715" />
-      <entry key="S5" value="1.9806028382738168" />
-      <entry key="S10" value="2.3997813948131017" />
-      <entry key="S30" value="2.775513079661496" />
-      <entry key="S60" value="2.884388803580201" />
-      <entry key="M2" value="2.9415355912181456" />
-      <entry key="M5" value="3.0459355802505224" />
-      <entry key="M10" value="3.687193615872671" />
-      <entry key="M15" value="4.807750209873447" />
-      <entry key="M30" value="10.875275120355527" />
-      <entry key="H1" value="25.726742590815217" />
-      <entry key="H2" value="47.49443899845687" />
-      <entry key="H4" value="74.85839083504423" />
-      <entry key="D1" value="131.90760990259793" />
-      <entry key="W1" value="148.85799291423407" />
+      <entry key="MS100" value="1.766177639477429" />
+      <entry key="MS500" value="4.898187308194365" />
+      <entry key="S2" value="11.307170832431876" />
+      <entry key="S5" value="18.425012380686628" />
+      <entry key="S10" value="23.42523514520405" />
+      <entry key="S30" value="28.54767295239471" />
+      <entry key="S60" value="30.180932851283732" />
+      <entry key="M2" value="31.065685266077022" />
+      <entry key="M5" value="31.68747630557271" />
+      <entry key="M10" value="32.49735952288389" />
+      <entry key="M15" value="33.669598223701584" />
+      <entry key="M30" value="39.77516846787233" />
+      <entry key="H1" value="54.63875964792196" />
+      <entry key="H2" value="76.42264495880775" />
+      <entry key="H4" value="103.80501789820511" />
+      <entry key="D1" value="160.89264183520163" />
+      <entry key="W1" value="177.85559685413583" />
     </decayedShown>
   </component>
   <component name="PackageJsonUpdateNotifier">
@@ -309,7 +307,7 @@
     "RunOnceActivity.laravel_idea.move_run_console_settings": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "feature/websocket__Vault",
+    "git-widget-placeholder": "hotfix/Novas__Categorias__Documentos",
     "last_opened_file_path": "/home/hyper/ginasio",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.jshint": "true",
@@ -367,6 +365,7 @@
       <workItem from="1794000888659" duration="313000" />
       <workItem from="1794330109195" duration="5816000" />
       <workItem from="1794343881951" duration="7937000" />
+      <workItem from="1794426043208" duration="1409000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />

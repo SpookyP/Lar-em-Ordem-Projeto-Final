@@ -127,7 +127,8 @@ DATE_LABELS = {
 }
 
 NO_EXPIRATION_DOC_TYPES = {
-    "escritura", "caderneta_predial", "licenca_utilizacao", "ficha_tecnica_habitacao"
+    "escritura", "caderneta_predial", "licenca_utilizacao", "ficha_tecnica_habitacao",
+    "imt", "imposto_selo", "declaracao_juros"
 }
 
 
@@ -300,6 +301,11 @@ DOC_TYPES = {
     "fatura_agua": ["abastecimento de agua", "saneamento", "tarifa de agua", "residuos", "agua"],
     "fatura_telecom": ["fibra", "internet", "televisao", "telemovel", "telecomunicacoes"],
     "garantia_equipamento": ["garantia", "prazo de garantia", "numero de serie"],
+    "imt": ["imposto municipal sobre as transmissoes onerosas", "imt", "documento unico de cobranca"],
+    "imposto_selo": ["imposto do selo", "verba"],
+    "aimi": ["adicional ao imi", "aimi", "adicional ao imposto municipal"],
+    "credito_habitacao": ["credito a habitacao", "credito habitacao", "mapa de amortizacoes", "fine", "taeg", "tan", "spread"],
+    "declaracao_juros": ["declaracao anual", "juros suportados", "encargos com credito", "efeitos de irs"],
 }
 
 DOC_LABELS = {
@@ -318,7 +324,12 @@ DOC_LABELS = {
     "fatura_agua": "Fatura Água",
     "fatura_telecom": "Fatura Telecomunicações",
     "garantia_equipamento": "Garantia de Equipamento",
-    "desconhecido": "Documento",
+    "imt": "Comprovativo de IMT",
+    "imposto_selo": "Imposto do Selo",
+    "aimi": "Comprovativo de AIMI",
+    "credito_habitacao": "Contrato e Mapa de Amortizações",
+    "declaracao_juros": "Declaração Anual de Juros",
+    "desconhecido": "Outros",
 }
 
 
