@@ -15,7 +15,7 @@ import {
 export const navItems = [
   { path: "/dashboard", label: "Inicio", icon: Home },
   { path: "/cofre", label: "Cofre", icon: FolderClosed },
-  { path: "/condominium", label: "Condomínio", icon: Building },
+  { path: "/condominium", label: "Condomínio", icon: Building, requiresCondominium: true },
   { path: "/faturas", label: "Faturas", icon: Receipt },
   { path: "/consumos", label: "Consumos", icon: Zap },
   { path: "/assistance", label: "Assistência", icon: LifeBuoy },
@@ -42,6 +42,8 @@ const navItemsByProfile = {
   condominium_admin: condominiumAdminNavItems,
 };
 
-export function getNavItems(profileName) {
-  return navItemsByProfile[profileName] ?? navItems;
+// items with requiresCondominium only show when the active home has joined a condominium
+export function getNavItems(profileName, { hasCondominium = false } = {}) {
+  const items = navItemsByProfile[profileName] ?? navItems;
+  return items.filter((item) => !item.requiresCondominium || hasCondominium);
 }
