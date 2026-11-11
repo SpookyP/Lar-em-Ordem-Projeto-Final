@@ -182,3 +182,21 @@ export async function joinCondominium(inviteCode, propertyId) {
   });
   return toCondominium(response.data.data);
 }
+
+export async function getBellNotices(propertyId) {
+  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium-notices`);
+  return response.data.data.map(toNotice);
+}
+
+export async function markNoticeRead(noticeId) {
+  await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}/read`);
+}
+
+export async function markAllNoticesRead(propertyId) {
+  await axiosClient.patch(`/api/v1/properties/${propertyId}/condominium-notices/read-all`);
+}
+
+// hides the notice from this resident's bell only (it stays on the condominium page)
+export async function dismissNotice(noticeId) {
+  await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}/dismiss`);
+}
