@@ -41,15 +41,23 @@ const navItemsByProfile = {
   condominium_admin: condominiumAdminNavItems,
 };
 
-export function getNavItems(profileName, activeHouse) {
+export function getNavItems(profileName, activeHouse, { hasCondominium = false } = {}) {
   //arrendatário (sem cofre)
   const byProfile = navItemsByProfile[profileName];
   if (byProfile) return byProfile;
 
-  //se for proprietário
   const items = [...navItems];
+
+  //se for proprietário
   if (isOwnerHouse(activeHouse)) {
     items.splice(1, 0, { path: "/vault", label: "Cofre", icon: FolderClosed });
   }
+
+  // only when the active home has joined a condominium (joining is done in the settings)
+  if (hasCondominium) {
+    const afterVault = items.findIndex((item) => item.path === "/vault") + 1 || 1;
+    items.splice(afterVault, 0, { path: "/condominio", label: "Condomínio", icon: Building });
+  }
+
   return items;
 }

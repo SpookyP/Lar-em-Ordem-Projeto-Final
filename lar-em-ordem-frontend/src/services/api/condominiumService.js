@@ -167,3 +167,43 @@ export async function claimCondominium(transferCode) {
   });
   return toCondominium(response.data.data);
 }
+
+// the condominium of a home, or null when the home has not joined one
+export async function getPropertyCondominium(propertyId) {
+  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium`);
+  return response.data.data ? toCondominium(response.data.data) : null;
+}
+
+// links the home to the condominium of that invite code (the code ignores upper/lower case)
+export async function joinCondominium(inviteCode, propertyId) {
+  const response = await axiosClient.post("/api/v1/condominiums/join", {
+    invite_code: inviteCode,
+    property_id: propertyId,
+  });
+  return toCondominium(response.data.data);
+}
+
+export async function getBellNotices(propertyId) {
+  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium-notices`);
+  return response.data.data.map(toNotice);
+}
+
+export async function markNoticeRead(noticeId) {
+  await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}/read`);
+}
+
+export async function markAllNoticesRead(propertyId) {
+  await axiosClient.patch(`/api/v1/properties/${propertyId}/condominium-notices/read-all`);
+}
+
+// hides the notice from this resident's bell only (it stays on the condominium page)
+export async function dismissNotice(noticeId) {
+  await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}/dismiss`);
+}
+
+export async function getPropertyDocuments({ propertyId, categoryId, page = 1, perPage = 5 }) {
+  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium-documents`, {
+    params: cleanParams({ page, per_page: perPage, category_id: categoryId }),
+  });
+  return toDocumentsPage(response);
+}

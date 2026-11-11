@@ -23,6 +23,7 @@ import Onboarding from "../pages/Onboarding/Onboarding";
 import Dashboard from "../pages/Resident/Dashboard/Dashboard"; //TODO: data
 import Assistance from "../pages/Resident/Assistance/Assistance";
 import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetail";
+import ResidentCondominium from "../pages/Resident/Condominium/Condominium";
 import Partners from "../pages/Resident/Partners/Partners";
 import Offers from "../pages/Resident/Offers/Offers";
 import OfferDetail from "../pages/Resident/OfferDetail/OfferDetail";
@@ -81,6 +82,7 @@ function AppRoutesInner() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/assistance" element={<Assistance />} />
               <Route path="/assistance/:id" element={<AssistanceDetail />} />
+              <Route path="/condominio" element={<ResidentCondominium />} />
               <Route path="/consumos" element={<Consumption />} />
               <Route path="/partners" element={<Partners />} />
               <Route path="/offers" element={<Offers />} />

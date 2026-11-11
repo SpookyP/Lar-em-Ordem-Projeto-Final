@@ -3,7 +3,7 @@ import axiosClient from '../services/api/axiosClient.js';
 import { useAuth } from './useAuth';
 import { echo } from '../services/echo.js';
 
-function timeAgo(dateString) {
+export function timeAgo(dateString) {
     if (!dateString) return 'agora mesmo';
     const date = new Date(dateString);
     const diffInSeconds = Math.floor((new Date() - date) / 1000);
