@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Mail, User } from "lucide-react";
-import { accountTypes, roleFields } from "../../data/registerFields";
+import { accountTypes, displayValue, roleFields } from "../../data/registerFields";
 import { PasswordRequirements } from "../ui/PasswordRequirements";
 import { DataRow } from "../ui/DataRow";
 import {
@@ -10,7 +10,6 @@ import {
   TextInput,
 } from "../form";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
-import { formatPhone } from "../../utils/format";
 import {
   EMPTY_COVERAGE,
   SpecialtyCoverageField,
@@ -37,6 +36,8 @@ const EMPTY_VALUES = {
   provider_email: "",
   website: "",
   description: "",
+  admin_type: "",
+  contact: "",
 };
 
 function fieldFor(role, name) {
@@ -406,7 +407,7 @@ function ReviewContent({ block, values, role, roleLabel, coverage }) {
           <DataRow
             key={name}
             label={field.label}
-            value={field.type === "tel" ? formatPhone(value) : value}
+            value={displayValue(field, value)}
           />
         );
       })}

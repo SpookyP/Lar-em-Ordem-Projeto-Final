@@ -1,8 +1,9 @@
-import { Home, Wrench, ChevronRight } from "lucide-react";
+import { Building, Home, Wrench, ChevronRight } from "lucide-react";
 import { HouseList } from "./HouseList";
 
 function getProfileIcon(name) {
   if (name === "service_provider") return Wrench;
+  if (name === "condominium_admin") return Building;
   return Home;
 }
 
