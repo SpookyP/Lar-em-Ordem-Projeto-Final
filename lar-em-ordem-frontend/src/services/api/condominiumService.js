@@ -70,3 +70,27 @@ export async function removeProperty(condominiumId, propertyId) {
     property_id: propertyId,
   });
 }
+
+// every notice of the condominium, expired ones included, newest first
+export async function getNotices({ condominiumId, page = 1, perPage = 5 }) {
+  const response = await axiosClient.get(`/api/v1/condominiums/${condominiumId}/notices`, {
+    params: cleanParams({ page, per_page: perPage }),
+  });
+  return toPage(response, toNotice);
+}
+
+// publishing emails the residents and pushes the notice to their homes in real time
+export async function createNotice(condominiumId, data) {
+  const response = await axiosClient.post(`/api/v1/condominiums/${condominiumId}/notices`, data);
+  return toNotice(response.data.data);
+}
+
+// a changed notice that is still current becomes unread again and is sent again
+export async function updateNotice(noticeId, data) {
+  const response = await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}`, data);
+  return toNotice(response.data.data);
+}
+
+export async function deleteNotice(noticeId) {
+  await axiosClient.delete(`/api/v1/condominium-notices/${noticeId}`);
+}

@@ -12,12 +12,15 @@ import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
 import { fractionLabel, priorityInfo } from "../../../data/condominiumInfo";
 
-function Card({ title, description, children }) {
+function Card({ title, description, action, children }) {
   return (
     <section className="flex flex-col gap-4 rounded-2xl bg-card p-6 shadow-sm">
-      <div>
-        <h2 className="font-medium text-navy">{title}</h2>
-        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="font-medium text-navy">{title}</h2>
+          {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+        </div>
+        {action}
       </div>
       {children}
     </section>
@@ -257,7 +260,19 @@ export default function CondominiumDetail() {
               <Fractions condominium={condominium} onRemoved={handleRemoved} />
             </Card>
 
-            <Card title="Avisos em vigor" description="Quantos residentes já leram cada aviso.">
+            <Card
+              title="Avisos em vigor"
+              description="Quantos residentes já leram cada aviso."
+              action={
+                <Link
+                  to={`/admin/condominiums/${id}/notices`}
+                  state={{ name: condominium.name }}
+                  className="shrink-0 text-sm font-medium text-navy hover:underline"
+                >
+                  Gerir avisos
+                </Link>
+              }
+            >
               <CurrentNotices notices={condominium.notices} />
             </Card>
           </div>

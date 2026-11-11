@@ -42,6 +42,7 @@ import OfferFormPage from "../pages/Partner/OfferFormPage/OfferFormPage";
 import Condominiums from "../pages/CondominiumAdmin/Condominiums/Condominiums";
 import CondominiumFormPage from "../pages/CondominiumAdmin/CondominiumFormPage/CondominiumFormPage";
 import CondominiumDetail from "../pages/CondominiumAdmin/CondominiumDetail/CondominiumDetail";
+import CondominiumNotices from "../pages/CondominiumAdmin/CondominiumNotices/CondominiumNotices";
 
 function AppRoutesInner() {
   const location = useLocation();
@@ -123,6 +124,10 @@ function AppRoutesInner() {
               <Route
                 path="/admin/condominiums/:id/edit"
                 element={<CondominiumFormPage mode="edit" />}
+              />
+              <Route
+                path="/admin/condominiums/:id/notices"
+                element={<CondominiumNotices />}
               />
             </Route>
           </Route>
