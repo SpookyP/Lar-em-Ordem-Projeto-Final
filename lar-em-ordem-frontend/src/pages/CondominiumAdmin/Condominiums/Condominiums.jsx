@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, House, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, House, MapPin, Pencil, Plus, Trash2, KeyRound } from "lucide-react";
 import { deleteCondominium } from "../../../services/api/condominiumService";
 import { useMyCondominiumsPage } from "../../../hooks/useMyCondominiumsPage";
 import { Pager } from "../../../components/ui/Pager";
 import { InviteCode } from "../../../components/condominium/InviteCode";
+import { ClaimCondominium } from "../../../components/condominium/ClaimCondominium";
 import { getErrorMessage } from "../../../utils/apiError";
 import { addressLine, formatMoney } from "../../../utils/format";
 
@@ -12,6 +13,8 @@ export default function Condominiums() {
   const [busyId, setBusyId] = useState(null);
   const [confirmingId, setConfirmingId] = useState(null);
   const [actionError, setActionError] = useState("");
+  const [claiming, setClaiming] = useState(false);
+  const [message, setMessage] = useState("");
 
   const {
     items: condominiums,
@@ -42,20 +45,58 @@ export default function Condominiums() {
     }
   }
 
+  function handleClaimed(condominium) {
+    setClaiming(false);
+    setMessage(`Agora geres o condomínio ${condominium.name}.`);
+    if (page !== 1) setPage(1);
+    else reload();
+  }
+
   const isEmpty = !loading && !error && total === 0;
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-display text-2xl text-navy">Os meus condomínios</h1>
-        <Link
-          to="/admin/condominiums/new"
-          className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2 font-bold text-white transition hover:bg-navy-light"
-        >
-          <Plus size={18} />
-          Novo condomínio
-        </Link>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {!claiming && (
+            <button
+              type="button"
+              onClick={() => {
+                setMessage("");
+                setClaiming(true);
+              }}
+              className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 font-medium text-navy transition hover:bg-surface"
+            >
+              <KeyRound size={18} />
+              Receber condomínio
+            </button>
+          )}
+          <Link
+            to="/admin/condominiums/new"
+            className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2 font-bold text-white transition hover:bg-navy-light"
+          >
+            <Plus size={18} />
+            Novo condomínio
+          </Link>
+        </div>
       </div>
+
+      {message && (
+        <p role="status" className="rounded-lg bg-green-light px-3 py-2 text-sm text-green">
+          {message}
+        </p>
+      )}
+
+      {claiming && (
+        <section className="rounded-2xl bg-card p-6 shadow-sm">
+          <h2 className="mb-1 font-medium text-navy">Receber condomínio</h2>
+          <p className="mb-4 text-sm text-muted">
+            Passas a gerir o condomínio, com os avisos, os documentos e as frações.
+          </p>
+          <ClaimCondominium onClaimed={handleClaimed} onCancel={() => setClaiming(false)} />
+        </section>
+      )}
 
       {(error || actionError) && (
         <p role="alert" className="text-sm text-red">

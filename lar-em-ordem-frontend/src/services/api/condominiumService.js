@@ -146,3 +146,24 @@ export async function getDocumentLink(documentId) {
   const response = await axiosClient.get(`/api/v1/condominium-documents/${documentId}/download`);
   return response.data.data.url;
 }
+
+// the code is only ever shown in this answer; a new one replaces the previous
+export async function startTransfer(condominiumId) {
+  const response = await axiosClient.post(`/api/v1/condominiums/${condominiumId}/transfer`);
+  return {
+    code: response.data.data.transfer_code,
+    expiresAt: response.data.data.transfer_expires_at,
+  };
+}
+
+export async function cancelTransfer(condominiumId) {
+  await axiosClient.delete(`/api/v1/condominiums/${condominiumId}/transfer`);
+}
+
+// the new administrator accepts the condominium with the code they were given
+export async function claimCondominium(transferCode) {
+  const response = await axiosClient.post("/api/v1/condominiums/claim", {
+    transfer_code: transferCode,
+  });
+  return toCondominium(response.data.data);
+}

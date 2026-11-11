@@ -7,6 +7,7 @@ import {
   removeProperty,
 } from "../../../services/api/condominiumService";
 import { InviteCode } from "../../../components/condominium/InviteCode";
+import { TransferCondominium } from "../../../components/condominium/TransferCondominium";
 import { addressLine, formatMoney } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
@@ -289,6 +290,19 @@ export default function CondominiumDetail() {
                 </Link>
               }
             />
+            
+            <Card
+              title="Transferir condomínio"
+              description="Passa a administração para outra pessoa ou empresa, com um código válido durante 7 dias."
+            >
+              <TransferCondominium
+                condominiumId={id}
+                expiresAt={condominium.transferExpiresAt}
+                onChange={(expiresAt) =>
+                  setCondominium((current) => ({ ...current, transferExpiresAt: expiresAt }))
+                }
+              />
+            </Card>
           </div>
         )
       )}

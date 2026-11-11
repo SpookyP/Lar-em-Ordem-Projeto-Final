@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileInput, SearchSelect, TextArea, TextInput } from "../form";
+import { DatePicker, FileInput, SearchSelect, TextArea, TextInput } from "../form";
 import { updateDocument, uploadDocument } from "../../services/api/condominiumService";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import { todayISO } from "../../utils/date";
@@ -121,9 +121,8 @@ export function DocumentForm({ condominiumId, doc = null, categories, onSaved, o
           error={errors.condominium_document_category_id}
           placeholder="Escolher categoria..."
         />
-        <TextInput
+        <DatePicker
           label="Data do documento"
-          type="date"
           required
           max={todayISO()}
           value={form.document_date}

@@ -14,10 +14,26 @@ export function fractionLabel(property) {
   return [property.door, property.fraction].filter(Boolean).join(" · ") || "Fração sem identificação";
 }
 
+// order low -> high, as they read left to right; activeClass colours the chosen pill
 export const PRIORITY_OPTIONS = [
-  { value: "high", label: "Alta", description: "Assuntos urgentes, como cortes de água ou luz." },
-  { value: "normal", label: "Normal" },
-  { value: "low", label: "Baixa", description: "Informações sem urgência." },
+  {
+    value: "low",
+    label: "Baixa",
+    description: "Informações sem urgência.",
+    activeClass: "data-checked:bg-card data-checked:text-text",
+  },
+  {
+    value: "normal",
+    label: "Normal",
+    description: "Avisos do dia a dia.",
+    activeClass: "data-checked:bg-navy data-checked:text-white",
+  },
+  {
+    value: "high",
+    label: "Alta",
+    description: "Assuntos urgentes, como cortes de água ou luz.",
+    activeClass: "data-checked:bg-red data-checked:text-white",
+  },
 ];
 
 // a notice without an end date stays current until it is deleted

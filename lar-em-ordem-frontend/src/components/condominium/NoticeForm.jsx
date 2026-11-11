@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SearchSelect, TextArea, TextInput } from "../form";
+import { DatePicker, SegmentedControl, TextArea, TextInput } from "../form";
 import { createNotice, updateNotice } from "../../services/api/condominiumService";
 import { PRIORITY_OPTIONS, isNoticeCurrent } from "../../data/condominiumInfo";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
@@ -101,20 +101,20 @@ export function NoticeForm({ condominiumId, notice = null, onSaved, onCancel }) 
         rows={5}
       />
       <div className="grid gap-4 sm:grid-cols-2">
-        <SearchSelect
+        <SegmentedControl
           label="Prioridade"
           options={PRIORITY_OPTIONS}
           value={form.priority}
-          onChange={(value) => set("priority", value || "normal")}
+          onChange={(value) => set("priority", value)}
           error={errors.priority}
         />
-        <TextInput
+        <DatePicker
           label="Em vigor até"
-          type="date"
           min={todayISO()}
           value={form.expires_on}
           onChange={(value) => set("expires_on", value)}
           error={errors.expires_at}
+          placeholder="Sem data de fim"
           hint="Opcional. Sem data, fica em vigor até ser apagado."
         />
       </div>

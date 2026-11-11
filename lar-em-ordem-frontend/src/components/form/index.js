@@ -11,3 +11,5 @@ export { StepProgress } from "./StepProgress";
 export { Checkbox } from "./Checkbox";
 export { Toggle } from "./Toggle";
 export { FileInput } from "./FileInput";
+export { SegmentedControl } from "./SegmentedControl";
+export { DatePicker } from "./DatePicker";

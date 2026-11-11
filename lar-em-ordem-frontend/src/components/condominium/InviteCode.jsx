@@ -1,24 +1,14 @@
 import { useState } from "react";
-import { Check, Copy, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import { CopyButton } from "./CopyButton";
 
 /**
  * The code residents type to link their home to the condominium, with a copy button and,
  * when onRegenerate is given, a way to replace it (the old code stops working).
  */
 export function InviteCode({ code, onRegenerate }) {
-  const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard blocked (http or browser setting): the code is still visible to copy by hand
-    }
-  }
 
   async function regenerate() {
     setBusy(true);
@@ -38,14 +28,7 @@ export function InviteCode({ code, onRegenerate }) {
           <p className="font-mono text-lg tracking-widest text-navy">{code}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={copy}
-            className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-muted transition hover:text-navy"
-          >
-            {copied ? <Check size={15} /> : <Copy size={15} />}
-            {copied ? "Copiado" : "Copiar"}
-          </button>
+          <CopyButton text={code} />
           {onRegenerate && !confirming && (
             <button
               type="button"
