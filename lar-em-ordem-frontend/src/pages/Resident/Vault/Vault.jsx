@@ -20,6 +20,8 @@ const FILTERS = [
   { value: "expired", label: "Expirados" },
 ];
 
+const STATUS_ORDER = { expired: 0, expiring: 1, valid: 2 };
+
 export default function Vault() {
   const { activeHouse } = useAuth();
   const isOwner = isOwnerHouse(activeHouse);
@@ -59,17 +61,21 @@ export default function Vault() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return docs.filter((d) => {
-      const matchFilter = filter === "all" || d.status === filter;
-      const matchQuery =
-        !q ||
-        [d.name, d.description, d.category?.name]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase()
-          .includes(q);
-      return matchFilter && matchQuery;
-    });
+    return docs
+      .filter((d) => {
+        const matchFilter = filter === "all" || d.status === filter;
+        const matchQuery =
+          !q ||
+          [d.name, d.description, d.category?.name]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(q);
+        return matchFilter && matchQuery;
+      })
+      .sort(
+        (a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9),
+      );
   }, [docs, query, filter]);
 
   if (!isOwner) {
@@ -84,9 +90,12 @@ export default function Vault() {
     setRefreshKey((k) => k + 1);
   }
 
-  //carrosel de docs
+  //carrosel de docs (seta anda exatamente à largura de um cartão)
   function scroll(dir) {
-    scrollRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+    const el = scrollRef.current;
+    if (!el) return;
+    const step = (el.firstElementChild?.offsetWidth ?? 288) + 16;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
   }
 
   async function confirmDelete() {
@@ -194,7 +203,10 @@ export default function Vault() {
               : "Nenhum documento corresponde à pesquisa."}
           </p>
         ) : (
-          <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2">
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory md:snap-none"
+          >
             {filtered.map((doc) => (
               <DocumentCard
                 key={doc.id}

@@ -32,7 +32,10 @@ export function AuthProvider({ children }) {
 
   // the condominium of the active home: undefined while loading, null when the home has none.
   // The answer is kept with the home it belongs to, so a refresh keeps showing the old one.
-  const [condominiumResult, setCondominiumResult] = useState({ houseId: null, data: null });
+  const [condominiumResult, setCondominiumResult] = useState({
+    houseId: null,
+    data: null,
+  });
   const [condominiumVersion, setCondominiumVersion] = useState(0);
   const activeHouseId = activeHouse?.id ?? null;
   const isAuthenticated = Boolean(user);
@@ -41,9 +44,16 @@ export function AuthProvider({ children }) {
     if (!isAuthenticated || !activeHouseId) return;
     let active = true;
     getPropertyCondominium(activeHouseId)
-      .then((data) => active && setCondominiumResult({ houseId: activeHouseId, data }))
+      .then(
+        (data) =>
+          active && setCondominiumResult({ houseId: activeHouseId, data }),
+      )
       // without an answer, hide the condominium instead of breaking the menu
-      .catch(() => active && setCondominiumResult({ houseId: activeHouseId, data: null }));
+      .catch(
+        () =>
+          active &&
+          setCondominiumResult({ houseId: activeHouseId, data: null }),
+      );
     return () => {
       active = false;
     };
@@ -83,7 +93,7 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       await logoutService();
-    }finally {
+    } finally {
       setUser(null);
       setActiveHouse(null);
       setActiveProfile(null);
@@ -147,7 +157,6 @@ export function AuthProvider({ children }) {
     selectProfile,
     activeCondominium,
     refreshCondominium,
-  };
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

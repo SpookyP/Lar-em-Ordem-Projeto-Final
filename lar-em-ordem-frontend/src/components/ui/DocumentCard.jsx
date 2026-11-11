@@ -2,10 +2,13 @@ import {
   Zap,
   ShieldCheck,
   FileSignature,
-  BadgeCheck,
-  FileText,
+  Landmark,
+  Receipt,
+  ScrollText,
+  Banknote,
   Building2,
   Users,
+  FileText,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -40,11 +43,38 @@ const STATUS = {
 
 function pickIcon(categoryName) {
   const n = (categoryName ?? "").toLowerCase();
+  //Certificado energético
   if (n.includes("energ")) return Zap;
-  if (n.includes("seguro")) return ShieldCheck;
-  if (n.includes("contrato")) return FileSignature;
-  if (n.includes("garantia")) return BadgeCheck;
+  //Multirriscos / seguro de vida
+  if (n.includes("seguro") || n.includes("multirriscos")) return ShieldCheck;
+  // Amortizações / juros
+  if (
+    n.includes("amortiz") ||
+    n.includes("juros") ||
+    n.includes("crédito") ||
+    n.includes("credito")
+  )
+    return Banknote;
+  //Contrato de arrendamento
+  if (n.includes("arrendamento") || n.includes("contrato"))
+    return FileSignature;
+  //Licença de utilização
+  if (n.includes("licen")) return Landmark;
+  //IMT / IMI / AIMI / Imposto do Selo / Faturas
+  if (
+    n.includes("imi") ||
+    n.includes("imt") ||
+    n.includes("imposto") ||
+    n.includes("selo") ||
+    n.includes("fatura")
+  )
+    return Receipt;
+  //Escritura / certidões / declarações
+  if (n.includes("escritura") || n.includes("certid") || n.includes("declara"))
+    return ScrollText;
+  //Caderneta predial
   if (n.includes("caderneta") || n.includes("predial")) return Building2;
+  //Outros
   if (n.includes("condomin")) return Users;
   return FileText;
 }
@@ -57,7 +87,7 @@ export function DocumentCard({ doc, onEdit, onDelete, onOpen }) {
 
   return (
     <div
-      className={`flex w-72 shrink-0 flex-col rounded-2xl border border-border border-t-4 ${st.border} bg-card p-5 shadow-sm`}
+      className={`flex w-72 shrink-0 snap-center flex-col rounded-2xl border border-border border-t-4 ${st.border} bg-card p-5 shadow-sm`}
     >
       <div className="flex items-start justify-between">
         <div
@@ -120,20 +150,18 @@ export function DocumentCard({ doc, onEdit, onDelete, onOpen }) {
           )}
         </div>
       </div>
-
-      <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
-        {doc.category?.name ?? "Documento"}
-      </p>
-      <h3 className="mt-0.5 font-display text-lg text-navy wrap-break-word">
-        {doc.name}
-      </h3>
-      {doc.description ? (
-        <p className="mt-1 text-sm text-muted wrap-break-word">
+      <div className="mt-4">
+        <p className="min-h-[2lh] text-xs font-semibold uppercase leading-snug tracking-wide text-muted line-clamp-2">
+          {doc.category?.name ?? "Documento"}
+        </p>
+        <h3 className="mt-0.5 min-h-[2lh] font-display text-lg leading-tight text-navy line-clamp-2 wrap-break-word">
+          {doc.name}
+        </h3>
+        <p className="mt-0.5 min-h-lh text-sm text-muted line-clamp-1 wrap-break-word">
           {doc.description}
         </p>
-      ) : null}
-
-      <div className="mt-4 flex items-end justify-between gap-2 border-t border-border pt-3">
+      </div>
+      <div className="mt-3 flex items-end justify-between gap-2 border-t border-border pt-3">
         <div className="min-w-0">
           <p className="text-xs text-muted">{st.validityLabel}</p>
           <p className="truncate font-semibold text-navy">
