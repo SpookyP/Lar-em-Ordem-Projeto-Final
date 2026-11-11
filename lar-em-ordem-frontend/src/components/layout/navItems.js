@@ -15,6 +15,7 @@ import {
 export const navItems = [
   { path: "/dashboard", label: "Inicio", icon: Home },
   { path: "/cofre", label: "Cofre", icon: FolderClosed },
+  { path: "/condominium", label: "Condomínio", icon: Building },
   { path: "/faturas", label: "Faturas", icon: Receipt },
   { path: "/consumos", label: "Consumos", icon: Zap },
   { path: "/assistance", label: "Assistência", icon: LifeBuoy },

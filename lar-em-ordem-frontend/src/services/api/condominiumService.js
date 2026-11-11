@@ -167,3 +167,18 @@ export async function claimCondominium(transferCode) {
   });
   return toCondominium(response.data.data);
 }
+
+// the condominium of a home, or null when the home has not joined one
+export async function getPropertyCondominium(propertyId) {
+  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium`);
+  return response.data.data ? toCondominium(response.data.data) : null;
+}
+
+// links the home to the condominium of that invite code (the code ignores upper/lower case)
+export async function joinCondominium(inviteCode, propertyId) {
+  const response = await axiosClient.post("/api/v1/condominiums/join", {
+    invite_code: inviteCode,
+    property_id: propertyId,
+  });
+  return toCondominium(response.data.data);
+}
