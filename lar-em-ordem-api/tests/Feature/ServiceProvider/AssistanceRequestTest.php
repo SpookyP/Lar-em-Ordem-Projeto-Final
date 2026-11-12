@@ -140,6 +140,13 @@ class AssistanceRequestTest extends TestCase
 
         $this->assertSame(2, $contagens['Tomada da sala sem corrente']);
         $this->assertSame(0, $contagens['Fuga de água debaixo do lava-loiça']);
+        // uma proposta pendente fora da validade deixa de contar
+        $this->pedido('Tomada da sala sem corrente')->proposals()->where('status', 'pending')->first()
+            ->update(['validity' => now()->subDay()->toDateString()]);
+        $contagens = collect($this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests?property_id={$this->casa}&status=open")
+            ->json('data'))->pluck('pending_proposals_count', 'title');
+        $this->assertSame(1, $contagens['Tomada da sala sem corrente']);
 
         $this->actingAs($this->morador)
             ->getJson("/api/v1/assistance-requests?property_id={$this->casa}&status=xpto")
