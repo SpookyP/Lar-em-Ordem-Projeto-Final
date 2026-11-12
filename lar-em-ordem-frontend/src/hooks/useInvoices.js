@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchAllInvoices } from "../services/api/invoiceService";
+import {
+  fetchAllInvoices,
+  fetchMonthlyCostBenchmarks,
+} from "../services/api/invoiceService";
 
 // Obtém o ID da propriedade atualmente selecionada.
 function getActivePropertyId() {
@@ -39,8 +42,11 @@ export default function useInvoices() {
     return {
       propertyId,
       invoices: [],
+      benchmarks: [],
       loading: Boolean(propertyId),
+      benchmarkLoading: Boolean(propertyId),
       error: "",
+      benchmarkError: "",
     };
   });
 
@@ -57,8 +63,14 @@ export default function useInvoices() {
           prev.propertyId === nextPropertyId
             ? prev.invoices
             : [],
+        benchmarks:
+          prev.propertyId === nextPropertyId
+            ? prev.benchmarks
+            : [],
         loading: Boolean(nextPropertyId),
+        benchmarkLoading: Boolean(nextPropertyId),
         error: "",
+        benchmarkError: "",
       }));
 
       // Volta a carregar os dados da propriedade selecionada.
@@ -90,21 +102,24 @@ export default function useInvoices() {
     };
   }, []);
 
-  // Carregamento das faturas através do serviço centralizado.
+  // Carregamento das faturas e dos benchmarks através dos serviços centralizados.
   useEffect(() => {
     let cancelled = false;
 
     const propertyId = state.propertyId;
 
-    // Sem propriedade selecionada, não existem faturas para carregar.
+    // Sem propriedade selecionada, não existem dados para carregar.
     if (!propertyId) {
       setState((prev) =>
         prev.propertyId === propertyId
           ? {
               ...prev,
               invoices: [],
+              benchmarks: [],
               loading: false,
+              benchmarkLoading: false,
               error: "",
+              benchmarkError: "",
             }
           : prev
       );
@@ -118,44 +133,49 @@ export default function useInvoices() {
         ? {
             ...prev,
             loading: true,
+            benchmarkLoading: true,
             error: "",
+            benchmarkError: "",
           }
         : prev
     );
 
-    // Obtém todas as páginas de faturas da propriedade.
+    // Obtém as faturas e os benchmarks da propriedade.
     async function loadInvoices() {
-      try {
-        const invoices = await fetchAllInvoices(propertyId);
+      const [invoiceResult, benchmarkResult] = await Promise.allSettled([
+        fetchAllInvoices(propertyId),
+        fetchMonthlyCostBenchmarks(propertyId),
+      ]);
 
-        if (!cancelled) {
-          setState((prev) =>
-            prev.propertyId === propertyId
-              ? {
-                  ...prev,
-                  invoices,
-                  loading: false,
-                  error: "",
-                }
-              : prev
-          );
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setState((prev) =>
-            prev.propertyId === propertyId
-              ? {
-                  ...prev,
-                  invoices: [],
-                  loading: false,
-                  error:
-                    err?.response?.data?.message ||
-                    "Não foi possível carregar as faturas.",
-                }
-              : prev
-          );
-        }
-      }
+      if (cancelled) return;
+
+      setState((prev) => {
+        if (prev.propertyId !== propertyId) return prev;
+
+        return {
+          ...prev,
+          invoices:
+            invoiceResult.status === "fulfilled"
+              ? invoiceResult.value
+              : [],
+          benchmarks:
+            benchmarkResult.status === "fulfilled"
+              ? benchmarkResult.value
+              : [],
+          loading: false,
+          benchmarkLoading: false,
+          error:
+            invoiceResult.status === "rejected"
+              ? invoiceResult.reason?.response?.data?.message ||
+                "Não foi possível carregar as faturas."
+              : "",
+          benchmarkError:
+            benchmarkResult.status === "rejected"
+              ? benchmarkResult.reason?.response?.data?.message ||
+                "Não foi possível carregar os benchmarks de custos."
+              : "",
+        };
+      });
     }
 
     loadInvoices();
@@ -175,8 +195,11 @@ export default function useInvoices() {
   return {
     propertyId: state.propertyId,
     invoices: state.invoices,
+    benchmarks: state.benchmarks,
     loading: state.loading,
+    benchmarkLoading: state.benchmarkLoading,
     error: state.error,
+    benchmarkError: state.benchmarkError,
     refresh,
   };
 }

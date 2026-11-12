@@ -67,3 +67,25 @@ export async function fetchAllInvoices(propertyId) {
 
   return invoices;
 }
+
+/**
+ * Obtém a série histórica mensal de custos médios do grupo comparável.
+ */
+export async function fetchMonthlyCostBenchmarks(propertyId) {
+  // Evita pedidos à API quando não existe uma propriedade selecionada.
+  if (!propertyId) return [];
+
+  const response = await axiosClient.get(
+    "/api/v1/benchmarks/monthly/series",
+    {
+      params: {
+        property_id: propertyId,
+      },
+    }
+  );
+
+  const body = getResponseBody(response);
+
+  // A API devolve diretamente uma lista de benchmarks.
+  return Array.isArray(body) ? body : [];
+}

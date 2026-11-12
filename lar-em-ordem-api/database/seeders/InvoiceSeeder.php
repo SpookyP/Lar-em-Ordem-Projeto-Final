@@ -17,7 +17,7 @@ class InvoiceSeeder extends Seeder
 
     public function run(): void
     {
-        // firstOrCreate keeps the seeder repeatable (the 'hashed' cast takes care of the password)
+        // Cria ou reutiliza o utilizador temporário das faturas FT.
         $user = User::firstOrCreate(
             ['email' => 'temp@teste.com'],
             ['name' => 'Utilizador Temporario', 'password' => 'password']
@@ -25,13 +25,29 @@ class InvoiceSeeder extends Seeder
 
         $resident = Resident::firstOrCreate(
             ['user_id' => $user->id],
-            ['nif'     => '123456789']
+            ['nif' => '123456789']
         );
 
-        $propertyIds = DB::table('properties')
-            ->whereNull('deleted_at')
-            ->pluck('id')
-            ->all();
+        // Não criar faturas nas propriedades do residente de teste.
+        $testUser = User::where('email', 'residente@example.com')->first();
+        $testResidentId = $testUser?->resident?->id;
+
+        $excludedPropertyIds = $testResidentId
+            ? DB::table('property_contracts')
+                ->where('resident_id', $testResidentId)
+                ->whereNull('deleted_at')
+                ->pluck('property_id')
+                ->all()
+            : [];
+
+        $propertyQuery = DB::table('properties')
+            ->whereNull('deleted_at');
+
+        if ($excludedPropertyIds !== []) {
+            $propertyQuery->whereNotIn('id', $excludedPropertyIds);
+        }
+
+        $propertyIds = $propertyQuery->pluck('id')->all();
 
         if (empty($propertyIds)) {
             return;
@@ -40,7 +56,7 @@ class InvoiceSeeder extends Seeder
         $thisMonth = now()->startOfMonth();
         $rows = [];
 
-        // Last 3 months: every property has an invoice.
+        // Últimos 3 meses: todas as propriedades incluídas recebem uma fatura.
         for ($month = 3; $month >= 1; $month--) {
             $start = $thisMonth->copy()->subMonths($month);
 
@@ -49,8 +65,7 @@ class InvoiceSeeder extends Seeder
             }
         }
 
-        // Previous year: ~90% of the properties have an invoice each month
-        // (enough coverage to test the annual benchmark).
+        // Ano anterior: aproximadamente 90% das propriedades recebem uma fatura por mês.
         $lastYearStart = $thisMonth->copy()->subYear()->startOfYear();
 
         for ($month = 0; $month < 12; $month++) {
@@ -65,7 +80,7 @@ class InvoiceSeeder extends Seeder
             }
         }
 
-        // plain inserts in chunks: one query per 500 invoices instead of one per invoice
+        // Inserts em blocos: uma query por cada conjunto de 500 faturas.
         foreach (array_chunk($rows, 500) as $chunk) {
             DB::table('invoices')->insert($chunk);
         }
@@ -76,18 +91,18 @@ class InvoiceSeeder extends Seeder
         $now = now();
 
         return [
-            'id'             => (string) Str::ulid(),
-            'resident_id'    => $residentId,
-            'property_id'    => $propertyId,
+            'id' => (string) Str::ulid(),
+            'resident_id' => $residentId,
+            'property_id' => $propertyId,
             'invoice_number' => 'FT-' . str_pad((string) ++$this->sequence, 5, '0', STR_PAD_LEFT),
-            'issue_date'     => $start->copy()->addMonth()->addDays(10)->toDateString(),
-            'period_start'   => $start->toDateString(),
-            'period_end'     => $start->copy()->endOfMonth()->toDateString(),
-            'total_amount'   => round(mt_rand(2000, 50000) / 100, 2),
-            'supplier'       => self::SUPPLIERS[array_rand(self::SUPPLIERS)],
-            'file_id'        => null,
-            'created_at'     => $now,
-            'updated_at'     => $now,
+            'issue_date' => $start->copy()->addMonth()->addDays(10)->toDateString(),
+            'period_start' => $start->toDateString(),
+            'period_end' => $start->copy()->endOfMonth()->toDateString(),
+            'total_amount' => round(mt_rand(2000, 50000) / 100, 2),
+            'supplier' => self::SUPPLIERS[array_rand(self::SUPPLIERS)],
+            'file_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
         ];
     }
 }

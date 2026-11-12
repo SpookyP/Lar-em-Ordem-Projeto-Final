@@ -1,5 +1,7 @@
+
 import { useState } from "react";
-import { Zap, FolderClosed } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Zap, FolderClosed, ChevronRight } from "lucide-react";
 
 import { ShortcutCard } from "../../../components/ui/ShortcutCard";
 import ConsumptionChart from "../../../components/ui/ConsumptionChart";
@@ -10,7 +12,6 @@ import useInvoices from "../../../hooks/useInvoices";
 import { useAuth } from "../../../hooks/useAuth";
 import { isOwnerHouse } from "../../../utils/ownerHouse";
 
-// Períodos disponíveis para consultar os consumos.
 const periods = [
   { label: "1 mês", value: 1 },
   { label: "3 meses", value: 3 },
@@ -20,39 +21,45 @@ const periods = [
 
 export default function Dashboard() {
   const [period, setPeriod] = useState(1);
+  const navigate = useNavigate();
 
-  // Obter as faturas através do hook centralizado.
   const { invoices, loading, error } = useInvoices();
 
   const { activeHouse } = useAuth();
   const isOwner = isOwnerHouse(activeHouse);
+
+  const handleAddInvoice = () => {
+    navigate("/consumos", {
+      state: { scrollToInvoiceForm: true },
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Cabeçalho do painel e notificações. */}
-      <header className="flex items-center justify-between gap-3 w-full">
-        <h1 className="min-w-0 font-display text-2xl sm:text-3xl text-navy">
+      <header className="flex w-full items-center justify-between gap-3">
+        <h1 className="min-w-0 font-display text-2xl text-navy sm:text-3xl">
           Painel da Habitação
         </h1>
 
         <NotificationBell />
       </header>
 
-      {/* Área principal: gráfico de consumos e resumo lateral. */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Gráfico de distribuição dos gastos. */}
+      <div className="flex flex-col gap-6 lg:flex-row">
         <div className="min-w-0 flex-1">
-          <div className="rounded-2xl bg-card p-4 sm:p-8 shadow-sm">
-            {/* Título e seleção do período. */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
+          <div className="rounded-2xl bg-card p-4 shadow-sm sm:p-8">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="font-display text-xl text-navy">Gasto Mensal</h2>
+                <h2 className="font-display text-xl text-navy">
+                  Gasto Mensal
+                </h2>
 
                 <p className="text-sm text-muted">
-                  {period === 1 ? "Último mês" : `Últimos ${period} meses`}
+                  {period === 1
+                    ? "Último mês"
+                    : `Últimos ${period} meses`}
                 </p>
               </div>
 
-              {/* Seleção dos períodos, com scroll horizontal em ecrãs pequenos. */}
               <div className="flex w-full max-w-full overflow-x-auto rounded-full bg-surface p-1 sm:w-auto">
                 {periods.map((p) => (
                   <button
@@ -60,7 +67,7 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => setPeriod(p.value)}
                     aria-pressed={period === p.value}
-                    className={`flex-1 sm:flex-none whitespace-nowrap rounded-full px-3 py-1 text-sm transition ${
+                    className={`flex-1 whitespace-nowrap rounded-full px-3 py-1 text-sm transition sm:flex-none ${
                       period === p.value
                         ? "bg-card text-navy shadow-sm"
                         : "text-muted hover:text-navy"
@@ -72,7 +79,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Gráfico circular com os custos por serviço. */}
             <ConsumptionChart
               invoices={invoices}
               loading={loading}
@@ -80,16 +86,13 @@ export default function Dashboard() {
               period={period}
             />
 
-            {/* Notas sobre as conversões de unidades. */}
-            <p className="text-xs text-muted mt-6">
+            <p className="mt-6 text-xs text-muted">
               * Conversões: Água — 1 m³ = 1 000 L | Gás — 1 kWh ≈ 0,076–0,087 m³
             </p>
           </div>
         </div>
 
-        {/* Resumo dos consumos e atalhos de navegação. */}
-        <div className="w-full lg:w-80 flex flex-col gap-3">
-          {/* Resumo dos valores físicos por tipo de consumo. */}
+        <div className="flex w-full flex-col gap-3 lg:w-80">
           <ConsumptionSummary
             invoices={invoices}
             loading={loading}
@@ -97,7 +100,6 @@ export default function Dashboard() {
             period={period}
           />
 
-          {/* Atalho para o cofre digital (só proprietário). */}
           {isOwner && (
             <ShortcutCard
               icon={FolderClosed}
@@ -108,18 +110,33 @@ export default function Dashboard() {
             />
           )}
 
-          {/* Atalho para a gestão de consumos e faturas. */}
-          <ShortcutCard
-            icon={Zap}
-            iconColor="bg-teal-light text-teal"
-            title="Consumos"
-            description="Registar fatura"
-            to="/consumos"
-          />
+          <button
+            type="button"
+            onClick={handleAddInvoice}
+            className="group flex w-full items-center gap-4 rounded-2xl bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1C3557] text-white">
+              <Zap size={22} />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-navy">
+                Consumos
+              </h3>
+
+              <p className="mt-1 text-sm text-muted">
+                Registar fatura
+              </p>
+            </div>
+
+            <ChevronRight
+              size={20}
+              className="shrink-0 text-muted transition group-hover:translate-x-1 group-hover:text-[#1C3557]"
+            />
+          </button>
         </div>
       </div>
 
-      {/* Recomendações de ofertas disponíveis. */}
       <div>
         <OfferRecommendations />
       </div>

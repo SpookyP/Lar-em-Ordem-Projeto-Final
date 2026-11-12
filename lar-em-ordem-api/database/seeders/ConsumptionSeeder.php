@@ -18,17 +18,22 @@ class ConsumptionSeeder extends Seeder
             return;
         }
 
-        // First type on every invoice; the other types only on the last 3 months.
+        // Primeiro tipo em todas as faturas FT; os restantes tipos apenas nos últimos 3 meses.
         $commonTypeId = $consumptionTypeIds->first();
         $recentLimit = now()->startOfMonth()->subMonths(3)->toDateString();
-        $units = DB::table('consumption_types')->pluck('unit_of_measure', 'id'); // unit of each type
+        $units = DB::table('consumption_types')->pluck('unit_of_measure', 'id');
         $now = now();
 
         $consumptions = [];
         $items = [];
 
-        // plain inserts in chunks: going through the models and factories means 4+ queries per consumption
-        foreach (DB::table('invoices')->select('id', 'property_id', 'period_start', 'period_end')->cursor() as $invoice) {
+        // Processa exclusivamente faturas FT criadas pelo InvoiceSeeder.
+        $invoices = DB::table('invoices')
+            ->select('id', 'property_id', 'period_start', 'period_end')
+            ->where('invoice_number', 'like', 'FT-%')
+            ->cursor();
+
+        foreach ($invoices as $invoice) {
             $isRecent = substr($invoice->period_start, 0, 10) >= $recentLimit;
             $typeIds = $isRecent ? $consumptionTypeIds : collect([$commonTypeId]);
 
@@ -38,22 +43,46 @@ class ConsumptionSeeder extends Seeder
                 $cost = round(mt_rand(1000, 8000) / 100, 2);
 
                 $consumptions[] = [
-                    'id'                  => $id,
-                    'property_id'         => $invoice->property_id,
-                    'invoice_id'          => $invoice->id,
+                    'id' => $id,
+                    'property_id' => $invoice->property_id,
+                    'invoice_id' => $invoice->id,
                     'consumption_type_id' => $typeId,
-                    'period_start'        => $invoice->period_start,
-                    'period_end'          => $invoice->period_end,
-                    'amount'              => $amount,
-                    'cost'                => $cost,
-                    'created_at'          => $now,
-                    'updated_at'          => $now,
+                    'period_start' => $invoice->period_start,
+                    'period_end' => $invoice->period_end,
+                    'amount' => $amount,
+                    'cost' => $cost,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
 
-                // simulated sub-items, proportional to the consumption cost
-                $items[] = $this->item($id, 'Consumo Principal', 'consumption', round($amount * 0.8, 2), $units[$typeId] ?? null, round($cost * 0.7, 2), $now);
-                $items[] = $this->item($id, 'Termo Fixo / Potência', 'fixed_fee', null, null, round($cost * 0.2, 2), $now);
-                $items[] = $this->item($id, 'IVA (6% / 23%)', 'tax', null, null, round($cost * 0.1, 2), $now);
+                // Itens simulados, proporcionais ao custo do consumo.
+                $items[] = $this->item(
+                    $id,
+                    'Consumo Principal',
+                    'consumption',
+                    round($amount * 0.8, 2),
+                    $units[$typeId] ?? null,
+                    round($cost * 0.7, 2),
+                    $now
+                );
+                $items[] = $this->item(
+                    $id,
+                    'Termo Fixo / Potência',
+                    'fixed_fee',
+                    null,
+                    null,
+                    round($cost * 0.2, 2),
+                    $now
+                );
+                $items[] = $this->item(
+                    $id,
+                    'IVA (6% / 23%)',
+                    'tax',
+                    null,
+                    null,
+                    round($cost * 0.1, 2),
+                    $now
+                );
             }
 
             if (count($consumptions) >= self::CHUNK) {
@@ -64,21 +93,28 @@ class ConsumptionSeeder extends Seeder
         $this->flush($consumptions, $items);
     }
 
-    private function item(string $consumptionId, string $name, string $category, ?float $amount, ?string $unit, float $cost, $now): array
-    {
+    private function item(
+        string $consumptionId,
+        string $name,
+        string $category,
+        ?float $amount,
+        ?string $unit,
+        float $cost,
+        $now
+    ): array {
         return [
             'consumption_id' => $consumptionId,
-            'name'           => $name,
-            'category'       => $category,
-            'amount'         => $amount,
-            'unit'           => $unit,
-            'cost'           => $cost,
-            'created_at'     => $now,
-            'updated_at'     => $now,
+            'name' => $name,
+            'category' => $category,
+            'amount' => $amount,
+            'unit' => $unit,
+            'cost' => $cost,
+            'created_at' => $now,
+            'updated_at' => $now,
         ];
     }
 
-    // consumptions go first: the items point at them
+    // Os consumos são inseridos primeiro porque os itens dependem deles.
     private function flush(array &$consumptions, array &$items): void
     {
         if ($consumptions !== []) {

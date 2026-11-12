@@ -1,13 +1,13 @@
 """
 Núcleo do cálculo de benchmarks de consumo.
- 
+
 Ideia geral:
-  1. Vai buscar à BD os consumos que tocam o período (mês ou ano) a processar.
-  2. Para cada propriedade e tipo de consumo, calcula quanto consumiu nesse período
-     (repartindo faturas que cruzam meses proporcionalmente aos dias).
-  3. Agrupa propriedades parecidas (mesmo tipo de consumo, tipo de propriedade,
-     tipologia e região) e calcula a média de cada grupo.
-  4. Grava a média em consumption_benchmarks (só se o grupo tiver propriedades suficientes).
+ 1. Vai buscar à BD os consumos que tocam o período (mês ou ano) a processar.
+ 2. Para cada propriedade e tipo de consumo, calcula quanto consumiu nesse período
+    (repartindo faturas que cruzam meses proporcionalmente aos dias).
+ 3. Agrupa propriedades parecidas (mesmo tipo de consumo, tipo de propriedade,
+    tipologia e região) e calcula a média de cada grupo.
+ 4. Grava a média em consumption_benchmarks (só se o grupo tiver propriedades suficientes).
 """
 
 import os
@@ -32,12 +32,12 @@ load_dotenv(BASE_DIR / ".env")
 #   BENCHMARK_MIN_COVERAGE_ANNUAL=0.75
 
 # Mínimo de propriedades por grupo para o benchmark ser gravado.
-MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "2"))
+MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "3"))
 
 # Percentagem mínima do período que tem de estar coberta por faturas.
 MIN_COVERAGE = {
-    "monthly": float(os.getenv("BENCHMARK_MIN_COVERAGE_MONTHLY", "0.20")),
-    "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.20")),
+    "monthly": float(os.getenv("BENCHMARK_MIN_COVERAGE_MONTHLY", "0.90")),
+    "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.275")),
 }
 
 REGION_COLUMN = os.getenv("BENCHMARK_REGION_COLUMN", "district")
@@ -72,7 +72,6 @@ engine = create_engine(
 # QUERIES
 # ============================================================
 
-
 # Consumos que se sobrepõem à janela [window_start, window_end),
 # já com as características da propriedade (tipo, tipologia, região).
 FETCH = text(f"""
@@ -82,6 +81,7 @@ FETCH = text(f"""
         c.period_start,
         c.period_end,
         c.amount,
+        c.cost,
         p.property_type_id,
         p.property_typology_id AS typology_id,
         a.{REGION_COLUMN} AS region
@@ -120,11 +120,11 @@ DELETE = text("""
 INSERT = text("""
     INSERT INTO consumption_benchmarks (
         consumption_type_id, property_type_id, typology_id, region,
-        reference_period, period_start, average_value, sample_size
+        reference_period, period_start, average_value, average_cost, sample_size
     )
     VALUES (
         :consumption_type_id, :property_type_id, :typology_id, :region,
-        :reference_period, :period_start, :average_value, :sample_size
+        :reference_period, :period_start, :average_value, :average_cost, :sample_size
     )
 """)
 
@@ -156,8 +156,8 @@ def build_benchmarks(window_start: date, window_end: date, reference_period: str
     expected_days = (window_end - window_start).days
     min_coverage = MIN_COVERAGE[reference_period]
 
-    # (property_id, consumption_type_id) -> [valor, dias_cobertos]
-    property_consumption = defaultdict(lambda: [0.0, 0])
+    # (property_id, consumption_type_id) -> [valor, custo, dias_consumo, dias_custo]
+    property_consumption = defaultdict(lambda: [0.0, 0.0, 0, 0])
     property_data = {}
 
     with engine.connect() as conn:
@@ -183,10 +183,16 @@ def build_benchmarks(window_start: date, window_end: date, reference_period: str
         key = (row["property_id"], row["consumption_type_id"])
 
         property_consumption[key][0] += float(row["amount"]) * overlap_days / total_days
-        # nunca conta mais dias do que o período tem (faturas sobrepostas)
-        property_consumption[key][1] = min(
-            property_consumption[key][1] + overlap_days, expected_days
+
+        property_consumption[key][2] = min(
+            property_consumption[key][2] + overlap_days, expected_days
         )
+
+        if row["cost"] is not None:
+            property_consumption[key][1] += float(row["cost"]) * overlap_days / total_days
+            property_consumption[key][3] = min(
+                property_consumption[key][3] + overlap_days, expected_days
+            )
 
         property_data[row["property_id"]] = {
             "property_type_id": row["property_type_id"],
@@ -194,21 +200,33 @@ def build_benchmarks(window_start: date, window_end: date, reference_period: str
             "region": row["region"],
         }
 
-    groups = defaultdict(list)
+    groups = defaultdict(lambda: {"values": [], "costs": []})
 
-    for (property_id, consumption_type_id), (total_value, covered_days) in property_consumption.items():
+    for (property_id, consumption_type_id), (
+        total_value,
+        total_cost,
+        covered_days,
+        cost_covered_days,
+    ) in property_consumption.items():
+
         if covered_days < expected_days * min_coverage:
             continue
 
         value = total_value * expected_days / covered_days
         info = property_data[property_id]
 
-        groups[(
+        group_key = (
             consumption_type_id,
             info["property_type_id"],
             info["typology_id"],
             info["region"],
-        )].append(value)
+        )
+
+        groups[group_key]["values"].append(value)
+
+        if cost_covered_days >= expected_days * min_coverage:
+            cost = total_cost * expected_days / cost_covered_days
+            groups[group_key]["costs"].append(cost)
 
     saved = 0
 
@@ -218,9 +236,18 @@ def build_benchmarks(window_start: date, window_end: date, reference_period: str
             {"reference_period": reference_period, "period_start": window_start},
         )
 
-        for (ctype, ptype, typology, region), values in groups.items():
+        for (ctype, ptype, typology, region), group_data in groups.items():
+            values = group_data["values"]
+            costs = group_data["costs"]
+
             if len(values) < MIN_SAMPLE:
                 continue
+
+            average_cost = (
+                round(sum(costs) / len(costs), 2)
+                if len(costs) >= MIN_SAMPLE
+                else None
+            )
 
             conn.execute(
                 INSERT,
@@ -232,6 +259,7 @@ def build_benchmarks(window_start: date, window_end: date, reference_period: str
                     "reference_period": reference_period,
                     "period_start": window_start,
                     "average_value": round(sum(values) / len(values), 3),
+                    "average_cost": average_cost,
                     "sample_size": len(values),
                 },
             )
