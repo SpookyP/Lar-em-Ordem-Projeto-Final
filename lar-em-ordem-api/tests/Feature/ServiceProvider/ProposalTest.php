@@ -410,4 +410,52 @@ class ProposalTest extends TestCase
             ->patchJson("/api/v1/proposals/{$proposta->id}/reject")
             ->assertForbidden();
     }
+
+    public function test_uma_proposta_pendente_fora_da_validade_aparece_como_expirada(): void
+    {
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+        $expirada = $this->proposta($this->servicos, 'Tomada da sala sem corrente');
+        $expirada->update(['validity' => now()->subDay()->toDateString()]);
+        $valida = $this->proposta($this->servicinhos, 'Tomada da sala sem corrente');
+
+        // o morador vê-a como expirada; a outra continua válida
+        $propostas = collect($this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}")
+            ->assertOk()
+            ->json('data.proposals'))->keyBy('id');
+
+        $this->assertSame('pending', $propostas[$expirada->id]['status']);
+        $this->assertTrue($propostas[$expirada->id]['is_expired']);
+        $this->assertFalse($propostas[$valida->id]['is_expired']);
+
+        // o prestador também
+        $minhas = collect($this->actingAs($this->servicos)->getJson('/api/v1/proposals/mine?per_page=15')->json('data'))->keyBy('id');
+        $this->assertTrue($minhas[$expirada->id]['is_expired']);
+    }
+
+    public function test_uma_proposta_aceite_nunca_aparece_como_expirada(): void
+    {
+        $aceite = $this->proposta($this->servicos, 'Sanita entupida');
+        $aceite->update(['validity' => now()->subMonth()->toDateString()]);
+
+        $minhas = collect($this->actingAs($this->servicos)->getJson('/api/v1/proposals/mine?per_page=15')->json('data'))->keyBy('id');
+
+        $this->assertSame('accepted', $minhas[$aceite->id]['status']);
+        $this->assertFalse($minhas[$aceite->id]['is_expired']);
+    }
+
+    public function test_prolongar_a_validade_volta_a_tornar_a_proposta_valida(): void
+    {
+        $proposta = $this->proposta($this->servicos, 'Tomada da sala sem corrente');
+        $proposta->update(['validity' => now()->subDay()->toDateString()]);
+
+        $this->actingAs($this->servicos)
+            ->patchJson("/api/v1/proposals/{$proposta->id}", ['validity' => now()->addWeek()->toDateString()])
+            ->assertOk()
+            ->assertJsonPath('data.is_expired', false);
+
+        $this->actingAs($this->morador)
+            ->patchJson("/api/v1/proposals/{$proposta->id}/accept")
+            ->assertOk();
+    }
 }
