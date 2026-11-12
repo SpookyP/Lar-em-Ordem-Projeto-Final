@@ -8,10 +8,7 @@ use App\Models\User\User;
 
 class CondominiumNoticePolicy
 {
-    public function before(User $user, string $ability): ?bool
-    {
-        return $user->hasRole('SU') ? true : null;
-    }
+
 
     /** Histórico de avisos: só o administrador do condomínio. */
     public function viewAny(User $user, Condominium $condominium): bool

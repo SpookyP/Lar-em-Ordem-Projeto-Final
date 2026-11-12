@@ -7,10 +7,7 @@ use App\Models\User\User;
 
 class CondominiumAdminPolicy
 {
-    public function before(User $user, string $ability): ?bool
-    {
-        return $user->hasRole('SU') ? true : null;
-    }
+
 
     public function view(User $user, CondominiumAdmin $admin): bool
     {

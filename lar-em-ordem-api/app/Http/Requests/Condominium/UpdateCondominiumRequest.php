@@ -34,12 +34,8 @@ class UpdateCondominiumRequest extends FormRequest
                 'required_with:address.county', 'string', 'max:100',
                 Rule::exists('service_zones', 'district')->whereNull('deleted_at'),
             ],
-            'condominium_admin_id' => [
-                Rule::prohibitedIf(fn () => ! $this->user()?->hasRole('SU')),
-                'sometimes',
-                'ulid',
-                Rule::exists('condominium_admins', 'id')->whereNull('deleted_at'),
-            ],
+            // the administrator only changes through the condominium transfer
+            'condominium_admin_id' => ['prohibited'],
         ];
     }
 
@@ -50,7 +46,6 @@ class UpdateCondominiumRequest extends FormRequest
             'reserve_fund.min' => 'O fundo comum de reserva não pode ser negativo.',
             'regenerate_invite_code.boolean' => 'O campo regenerate_invite_code tem de ser true ou false.',
             'condominium_admin_id.prohibited' => 'Para mudar de administrador use a transferência do condomínio.',
-            'condominium_admin_id.exists'     => 'O administrador indicado não existe.',
             'address.county.exists'          => 'O concelho indicado não existe nesse distrito.',
             'address.county.required_with'   => 'Indique o concelho juntamente com o distrito.',
             'address.district.required_with' => 'Indique o distrito juntamente com o concelho.',
