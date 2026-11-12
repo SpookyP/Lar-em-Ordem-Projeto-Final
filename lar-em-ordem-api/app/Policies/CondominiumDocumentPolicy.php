@@ -8,10 +8,7 @@ use App\Models\User\User;
 
 class CondominiumDocumentPolicy
 {
-    public function before(User $user, string $ability): ?bool
-    {
-        return $user->hasRole('SU') ? true : null;
-    }
+
 
     /** Lista pelo condomínio: só o administrador (o residente usa a lista pela casa). */
     public function viewAny(User $user, Condominium $condominium): bool

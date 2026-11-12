@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 class RoleSeeder extends Seeder
 {
@@ -18,7 +17,6 @@ class RoleSeeder extends Seeder
             'service_provider',
             'partner',
             'condominium_admin',
-            'SU',
         ];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);

@@ -12,7 +12,7 @@ class CondominiumResource extends JsonResource
         $user = $request->user();
 
         // código de convite e nº de casas só para quem gere o condomínio
-        $canManage = $this->resource->isManagedBy($user) || (bool) $user?->hasRole('SU');
+        $canManage = $this->resource->isManagedBy($user);
 
         return [
             'id'               => $this->id,

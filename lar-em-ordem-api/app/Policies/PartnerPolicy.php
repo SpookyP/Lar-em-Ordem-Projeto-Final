@@ -8,10 +8,7 @@ use App\Models\User\User;
 class PartnerPolicy
 {
 
-    public function before(User $user, string $ability): ?bool
-    {
-        return $user->hasRole('SU') ? true : null;
-    }
+
     /**
      * Determine whether the user can view any models.
      */
