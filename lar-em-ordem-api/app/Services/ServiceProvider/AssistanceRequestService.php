@@ -33,7 +33,7 @@ class AssistanceRequestService
             ->where('property_id', $propertyId)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->with(['property.address', 'problemCategory'])
-            ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->where('status', 'pending')])
+            ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->stillValid()])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate($perPage)
