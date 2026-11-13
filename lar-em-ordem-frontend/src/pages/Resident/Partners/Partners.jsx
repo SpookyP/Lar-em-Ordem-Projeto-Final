@@ -19,7 +19,7 @@ const PALETTE = [
   { bg: "bg-navy", shadow: "shadow-navy/30" },
   { bg: "bg-orange", shadow: "shadow-orange/40" },
   { bg: "bg-teal", shadow: "shadow-teal/40" },
-  { bg: "bg-navy-dark", shadow: "shadow-navy-dark/30" },
+  { bg: "bg-[#583D69]", shadow: "shadow-[#583D69]/30" },
   { bg: "bg-red", shadow: "shadow-red/30" },
 ];
 

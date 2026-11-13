@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Tag, ChevronRight } from "lucide-react";
 import { formatDate } from "../../utils/date";
 
-const COLORS = ["bg-navy", "bg-orange", "bg-teal", "bg-navy-dark", "bg-red"];
+const COLORS = ["bg-navy", "bg-orange", "bg-teal", "bg-[#583D69]", "bg-red"];
 
 export function OfferRow({ offer, index = 0 }) {
   const location = useLocation();
