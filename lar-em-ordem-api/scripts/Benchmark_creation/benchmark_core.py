@@ -50,6 +50,7 @@ DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_DATABASE = os.getenv("DB_DATABASE")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_SSL_CA = os.getenv("MYSQL_ATTR_SSL_CA")
 
 if not DB_DATABASE:
     raise RuntimeError("DB_DATABASE não encontrado no ficheiro .env")
@@ -65,7 +66,8 @@ engine = create_engine(
         host=DB_HOST,
         port=DB_PORT,
         database=DB_DATABASE,
-    )
+    ),
+    connect_args={"ssl": {"ca": DB_SSL_CA}} if DB_SSL_CA else {},
 )
 
 # ============================================================

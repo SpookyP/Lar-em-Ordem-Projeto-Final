@@ -51,8 +51,7 @@ class PdfExtractionService
      */
     public function extractInfo(string $absolutePath): array
     {
-        // Usa o Python base do sistema
-        $pythonBinary = '/usr/bin/python';
+        $pythonBinary = config('invoices.python_bin');
 
         if (!file_exists($pythonBinary)) {
             $pythonBinary = 'python';
@@ -70,10 +69,17 @@ class PdfExtractionService
         ]);
 
         $process->setTimeout(30);
-        $process->run();
+
+        try {
+            $process->run();
+        } catch (\Throwable $e) {
+            Log::warning('Extração de PDF indisponível: ' . $e->getMessage());
+            return [];
+        }
 
         if (!$process->isSuccessful()) {
-            throw new \RuntimeException('PYTHON PATH USADO: ' . $pythonBinary . ' | ERRO: ' . $process->getErrorOutput());
+            Log::warning('A extração de PDF falhou: ' . $process->getErrorOutput());
+            return [];
         }
 
         $output = json_decode(trim($process->getOutput()), true);

@@ -45,6 +45,10 @@ class InvoiceTest extends TestCase
             fn (string $path) => "https://r2.test/{$path}"
         );
 
+        // the seeder writes demo benchmarks for a random home; when that home happens to match
+        // this test's (Porto, first type and typology) they leak into the results
+        DB::table('consumption_benchmarks')->delete();
+
         $user = $this->signIn();
 
         $this->resident = Resident::where('user_id', $user->id)->first()

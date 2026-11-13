@@ -19,7 +19,7 @@ Route::post('/auth/register/confirm', [PendingRegistrationController::class, 'co
 Route::post('/auth/register/resend', [PendingRegistrationController::class, 'resend'])->middleware('throttle:3,1,register-resend');
 
 Route::post('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-    ->middleware(['signed', 'throttle:6,1,email-verify'])
+    ->middleware(['signed:relative', 'throttle:6,1,email-verify'])
     ->name('verification.verify');
 Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
     ->middleware(['auth:sanctum', 'throttle:3,1,email-resend']);
