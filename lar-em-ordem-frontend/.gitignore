@@ -25,3 +25,4 @@ dist-ssr
 
 # Variáveis de ambiente (locais, nunca vão para o Git)
 .env
+.env.production
