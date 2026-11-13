@@ -28,18 +28,6 @@ export async function getPropertiesPage({ page = 1, perPage = 5 } = {}) {
   return toPage(response, toHouse);
 }
 
-export async function getProperties(page = 1) {
-  const response = await axiosClient.get(`/api/v1/properties?page=${page}`);
-  const houses = response.data.data.map(toHouse);
-
-  return {
-    houses,
-    currentPage: response.data.meta.current_page,
-    lastPage: response.data.meta.last_page,
-    total: response.data.meta.total,
-  };
-}
-
 export async function getFormOptions() {
   const response = await axiosClient.get("/api/v1/properties/forms-options");
   const { propertyTypes, propertyTypologies, residentTypes } =
