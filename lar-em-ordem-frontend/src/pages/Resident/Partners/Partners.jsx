@@ -47,15 +47,14 @@ export default function Partners() {
     setSelectedId(id);
     setOffersPage(1);
     setDetail(null);
+    setDetailLoading(true);
   }
 
   useEffect(() => {
     if (!selectedId) {
-      setDetail(null);
       return;
     }
     let active = true;
-    setDetailLoading(true);
     getPartner(selectedId, { page: offersPage, perPage: 4 })
       .then((data) => {
         if (active) setDetail(data);

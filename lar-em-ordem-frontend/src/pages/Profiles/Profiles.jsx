@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ProfileCard } from "../../components/ui/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
-import { getProperties } from "../../services/api/propertyService";
+import { getPropertiesPage } from "../../services/api/propertyService";
 import { HouseList } from "../../components/ui/HouseList";
 
 export default function Profiles() {
@@ -41,7 +41,8 @@ export default function Profiles() {
     navigate("/login");
   }
 
-  //Decidir se há perfis ou casas para escolher, se não houver, não passa pelo /profiles
+  //Decidir, uma vez por utilizador, se há perfis ou casas para escolher, se não houver, não passa pelo /profiles
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!user) return;
 
@@ -65,7 +66,7 @@ export default function Profiles() {
           return;
         }
 
-        const { houses, total } = await getProperties(1);
+        const { items: houses, total } = await getPropertiesPage({ page: 1 });
 
         if (total === 1) {
           enter(unique, houses[0]);
@@ -87,6 +88,7 @@ export default function Profiles() {
 
     decideEntry();
   }, [user]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   if (deciding) {
     return (
