@@ -3,49 +3,89 @@ import { PrivateRoute } from "./PrivateRoute";
 import { AppLayout } from "../components/layout/AppLayout";
 import { SiteLayout } from "../components/layout/SiteLayout";
 import { ROLES } from "../utils/roles";
+import { lazy, Suspense } from "react";
 
-//Públicas
+//Login fica eager: é a página de entrada, evita loading no arranque
 import Login from "../pages/Login/Login";
-import Register from "../pages/Register/Register";
-import ForgotPassword from "../pages/Password/ForgotPassword";
-import ResetPassword from "../pages/Password/ResetPassword";
-import Unauthorized from "../pages/Unauthorized/Unauthorized";
-import NotFound from "../pages/NotFound/NotFound";
-import VerifyEmail from "../pages/VerifyEmail/VerifyEmail";
-import Privacy from "../pages/Privacy/Privacy";
+
+//Lazy :devolve um componente que só pede o código quando é preciso renderizá-lo
+//Públicas
+const Register = lazy(() => import("../pages/Register/Register"));
+const ForgotPassword = lazy(() => import("../pages/Password/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/Password/ResetPassword"));
+const Unauthorized = lazy(() => import("../pages/Unauthorized/Unauthorized"));
+const NotFound = lazy(() => import("../pages/NotFound/NotFound"));
+const VerifyEmail = lazy(() => import("../pages/VerifyEmail/VerifyEmail"));
+const Privacy = lazy(() => import("../pages/Privacy/Privacy"));
 
 //Partilhadas
-import Profiles from "../pages/Profiles/Profiles";
-import Settings from "../pages/Settings/Settings";
-import Onboarding from "../pages/Onboarding/Onboarding";
+const Profiles = lazy(() => import("../pages/Profiles/Profiles"));
+const Settings = lazy(() => import("../pages/Settings/Settings"));
+const Onboarding = lazy(() => import("../pages/Onboarding/Onboarding"));
 
 //Morador
-import Dashboard from "../pages/Resident/Dashboard/Dashboard"; //TODO: data
-import Assistance from "../pages/Resident/Assistance/Assistance";
-import AssistanceDetail from "../pages/Resident/AssistanceDetail/AssistanceDetail";
-import ResidentCondominium from "../pages/Resident/Condominium/Condominium";
-import Partners from "../pages/Resident/Partners/Partners";
-import Offers from "../pages/Resident/Offers/Offers";
-import OfferDetail from "../pages/Resident/OfferDetail/OfferDetail";
-import Consumption from "../pages/Consumption/Consumption";
-import Invoice from "../pages/Consumption/Invoice";
-import Vault from "../pages/Resident/Vault/Vault";
+const Dashboard = lazy(() => import("../pages/Resident/Dashboard/Dashboard"));
+const Assistance = lazy(
+  () => import("../pages/Resident/Assistance/Assistance"),
+);
+const AssistanceDetail = lazy(
+  () => import("../pages/Resident/AssistanceDetail/AssistanceDetail"),
+);
+const ResidentCondominium = lazy(
+  () => import("../pages/Resident/Condominium/Condominium"),
+);
+const Partners = lazy(() => import("../pages/Resident/Partners/Partners"));
+const Offers = lazy(() => import("../pages/Resident/Offers/Offers"));
+const OfferDetail = lazy(
+  () => import("../pages/Resident/OfferDetail/OfferDetail"),
+);
+const Consumption = lazy(() => import("../pages/Consumption/Consumption"));
+const Invoice = lazy(() => import("../pages/Consumption/Invoice"));
+const Vault = lazy(() => import("../pages/Resident/Vault/Vault"));
 
 //Prestador
-import JobListing from "../pages/ServiceProvider/JobListing/JobListing";
-import Offer from "../pages/ServiceProvider/Offer/Offer";
-import Proposals from "../pages/ServiceProvider/Proposal/Proposal";
+const JobListing = lazy(
+  () => import("../pages/ServiceProvider/JobListing/JobListing"),
+);
+const Offer = lazy(() => import("../pages/ServiceProvider/Offer/Offer"));
+const Proposals = lazy(
+  () => import("../pages/ServiceProvider/Proposal/Proposal"),
+);
 
 //Parceiro
-import MyOffers from "../pages/Partner/MyOffers/MyOffers";
-import OfferFormPage from "../pages/Partner/OfferFormPage/OfferFormPage";
+const MyOffers = lazy(() => import("../pages/Partner/MyOffers/MyOffers"));
+const OfferFormPage = lazy(
+  () => import("../pages/Partner/OfferFormPage/OfferFormPage"),
+);
 
 //Administrador de condominio
-import Condominiums from "../pages/CondominiumAdmin/Condominiums/Condominiums";
-import CondominiumFormPage from "../pages/CondominiumAdmin/CondominiumFormPage/CondominiumFormPage";
-import CondominiumDetail from "../pages/CondominiumAdmin/CondominiumDetail/CondominiumDetail";
-import CondominiumNotices from "../pages/CondominiumAdmin/CondominiumNotices/CondominiumNotices";
-import CondominiumDocuments from "../pages/CondominiumAdmin/CondominiumDocuments/CondominiumDocuments";
+const Condominiums = lazy(
+  () => import("../pages/CondominiumAdmin/Condominiums/Condominiums"),
+);
+const CondominiumFormPage = lazy(
+  () =>
+    import("../pages/CondominiumAdmin/CondominiumFormPage/CondominiumFormPage"),
+);
+const CondominiumDetail = lazy(
+  () => import("../pages/CondominiumAdmin/CondominiumDetail/CondominiumDetail"),
+);
+const CondominiumNotices = lazy(
+  () =>
+    import("../pages/CondominiumAdmin/CondominiumNotices/CondominiumNotices"),
+);
+const CondominiumDocuments = lazy(
+  () =>
+    import("../pages/CondominiumAdmin/CondominiumDocuments/CondominiumDocuments"),
+);
+
+//Ecrã mostrado enquanto o código de uma página ainda está a carregar
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-surface flex items-center justify-center">
+      <p className="text-muted">A carregar...</p>
+    </div>
+  );
+}
 
 function AppRoutesInner() {
   const location = useLocation();
@@ -53,7 +93,7 @@ function AppRoutesInner() {
   const background = location.state?.background;
 
   return (
-    <>
+    <Suspense fallback={<RouteFallback />}>
       <Routes location={background || location}>
         {/* Rota publica: qualquer um pode aceder */}
         <Route path="/" element={<Login />} />
@@ -64,7 +104,6 @@ function AppRoutesInner() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        
         {/* Rota publica, mas com a sidebar para quem tem sessao */}
         <Route element={<SiteLayout />}>
           <Route path="/privacy" element={<Privacy />} />
@@ -114,16 +153,21 @@ function AppRoutesInner() {
                 element={<OfferFormPage mode="edit" />}
               />
             </Route>
-            
+
             <Route
-              element={<PrivateRoute allowedRoles={[ROLES.CONDOMINIUM_ADMIN]} />}
+              element={
+                <PrivateRoute allowedRoles={[ROLES.CONDOMINIUM_ADMIN]} />
+              }
             >
               <Route path="/admin/condominiums" element={<Condominiums />} />
               <Route
                 path="/admin/condominiums/new"
                 element={<CondominiumFormPage mode="create" />}
               />
-              <Route path="/admin/condominiums/:id" element={<CondominiumDetail />} />
+              <Route
+                path="/admin/condominiums/:id"
+                element={<CondominiumDetail />}
+              />
               <Route
                 path="/admin/condominiums/:id/edit"
                 element={<CondominiumFormPage mode="edit" />}
@@ -149,7 +193,7 @@ function AppRoutesInner() {
           <Route path="/offers/:id" element={<OfferDetail />} />
         </Routes>
       )}
-    </>
+    </Suspense>
   );
 }
 
