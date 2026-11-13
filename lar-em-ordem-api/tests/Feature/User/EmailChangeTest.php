@@ -39,7 +39,7 @@ class EmailChangeTest extends TestCase
         return URL::temporarySignedRoute('verification.verify', now()->addMinutes($minutes), [
             'id'   => $user->id,
             'hash' => sha1($emailForHash),
-        ]);
+        ], absolute: false);
     }
 
     // --------------------------------------------------------------- normal account
