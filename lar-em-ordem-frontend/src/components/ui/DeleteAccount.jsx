@@ -17,7 +17,9 @@ export function DeleteAccount() {
       await deleteAccount();
       try {
         await logout();
-      } catch {}
+      } catch {
+        //Conta já apagada: se o logout falhar, ignoramos e seguimos para o login
+      }
       navigate("/login");
     } catch (err) {
       setStatus(null);
