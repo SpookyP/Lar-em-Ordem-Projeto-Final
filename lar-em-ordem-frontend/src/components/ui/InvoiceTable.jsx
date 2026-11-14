@@ -247,22 +247,6 @@ function matchesDateSearch(invoice, query) {
   return false;
 }
 
-function getFileUrl(response) {
-  const body = response?.data ?? response;
-
-  if (typeof body === "string") return body;
-
-  return (
-    body?.url ??
-    body?.file_url ??
-    body?.signed_url ??
-    body?.data?.url ??
-    body?.data?.file_url ??
-    body?.data?.signed_url ??
-    null
-  );
-}
-
 // Indicadores dos serviços associados à fatura.
 function InvoiceTypeBadge({ invoice }) {
   const types = getInvoiceTypes(invoice);
@@ -419,13 +403,10 @@ export default function InvoiceTable({
 
     try {
       const response = await axiosClient.get(
-        `/api/v1/invoices/${invoice.id}/file`
+        `/api/v1/invoices/${invoice.id}/file/content`,
+        { responseType: "blob" }
       );
-      const url = getFileUrl(response);
-
-      if (!url) {
-        throw new Error("O servidor não devolveu o URL do ficheiro.");
-      }
+      const url = URL.createObjectURL(response.data);
 
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (err) {

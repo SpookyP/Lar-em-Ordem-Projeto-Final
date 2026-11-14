@@ -93,16 +93,13 @@ class CondominiumDocumentController extends Controller
     }
 
     /**
-     * Link temporário para ver/descarregar o ficheiro (administrador ou residentes do prédio).
-     *
-     * @param CondominiumDocument $condominiumDocument Documento.
-     * @return \Illuminate\Http\JsonResponse
+     * The file itself: same rule as the link (administrator and residents of the building).
      */
-    public function download(CondominiumDocument $condominiumDocument)
+    public function content(CondominiumDocument $condominiumDocument)
     {
         Gate::authorize('view', $condominiumDocument);
 
-        return response()->json(['data' => $this->service->downloadLink($condominiumDocument)]);
+        return $this->service->content($condominiumDocument);
     }
 
     /**

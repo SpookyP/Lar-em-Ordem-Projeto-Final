@@ -9,6 +9,8 @@ use App\Http\Requests\ServiceProvider\StoreAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
 use App\Models\ServiceProvider\AssistanceRequest;
+use App\Models\ServiceProvider\RequestAttachment;
+use App\Services\FileStorage\FileStorageService;
 use App\Services\ServiceProvider\AssistanceRequestService;
 use App\Services\ServiceProvider\ServiceProviderService;
 use Illuminate\Http\Request;
@@ -125,5 +127,17 @@ class AssistanceRequestController extends Controller
                 $request->validated('location'),
             )
         );
+    }
+    
+    /**
+     * A photo or file attached to a request: whoever may see the request may see its attachments.
+     */
+    public function attachmentContent(RequestAttachment $requestAttachment, FileStorageService $files)
+    {
+        abort_if($requestAttachment->assistanceRequest === null, 404);
+
+        Gate::authorize('view', $requestAttachment->assistanceRequest);
+
+        return $files->contentResponse($requestAttachment->file);
     }
 }

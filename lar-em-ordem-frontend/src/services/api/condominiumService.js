@@ -141,10 +141,12 @@ export async function deleteDocument(documentId) {
   await axiosClient.delete(`/api/v1/condominium-documents/${documentId}`);
 }
 
-// temporary link (30 minutes) to view or download the file
+// the file itself, read through the API with the session; the address only works in this browser
 export async function getDocumentLink(documentId) {
-  const response = await axiosClient.get(`/api/v1/condominium-documents/${documentId}/download`);
-  return response.data.data.url;
+  const response = await axiosClient.get(`/api/v1/condominium-documents/${documentId}/content`, {
+    responseType: "blob",
+  });
+  return URL.createObjectURL(response.data);
 }
 
 // the code is only ever shown in this answer; a new one replaces the previous

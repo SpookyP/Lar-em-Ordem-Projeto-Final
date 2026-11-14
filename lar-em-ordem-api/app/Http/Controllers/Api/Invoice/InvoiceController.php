@@ -13,6 +13,7 @@ use App\Services\Invoice\InvoiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use \Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceController extends Controller
 {
@@ -153,38 +154,21 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Gerar um endereço temporário para aceder ao PDF da fatura.
+     * The invoice PDF itself, streamed through the API.
      */
-    public function file(
+    public function fileContent(
         Request $request,
         string $invoiceId,
         FileStorageService $files
-    ): JsonResponse {
-        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
+    ): StreamedResponse {
         Gate::authorize('viewAny', Invoice::class);
 
-        $resident = $request->user()->resident;
-
-        // Obter e autorizar a fatura.
-        $invoice = $this->service->getInvoiceById(
-            $invoiceId,
-            $resident->id
-        );
+        $invoice = $this->service->getInvoiceById($invoiceId, $request->user()->resident->id);
 
         Gate::authorize('view', $invoice);
 
-        // Confirmar que a fatura tem um ficheiro associado.
-        abort_if(
-            !$invoice->file,
-            404,
-            'Esta fatura não tem um ficheiro associado.'
-        );
+        abort_if(!$invoice->file, 404, 'Esta fatura não tem um ficheiro associado.');
 
-        // Gerar um endereço temporário válido durante 5 minutos.
-        return response()->json([
-            'data' => [
-                'url' => $files->getSecureUrl($invoice->file, 5),
-            ],
-        ]);
+        return $files->contentResponse($invoice->file);
     }
 }

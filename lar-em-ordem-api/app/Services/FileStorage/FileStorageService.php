@@ -9,10 +9,15 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FileStorageService
 {
     private string $disk = 'r2';
+    
+    // types the browser may show inside the app; anything else is only ever downloaded,
+    // so an uploaded HTML or SVG file can never run in our own origin
+    private const INLINE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
     public function uploadUserFile(User $user, UploadedFile $uploadedFile, string $category, ?string $customTitle = null): File
     {
@@ -40,16 +45,27 @@ class FileStorageService
     }
 
     /**
-     * Gera um URL temporário e assinado para visualização/download do ficheiro.
+     * Streams the file itself through the API (no public or signed link).
+     * The caller must have authorized the user before calling this.
      */
-    public function getSecureUrl(File $file, int $expirationMinutes = 30): string
+    public function contentResponse(File $file): StreamedResponse
     {
         /** @var FilesystemAdapter $disk */
         $disk = Storage::disk($this->disk);
 
-        return $disk->temporaryUrl(
+        abort_unless($disk->exists($file->path), 404, 'O ficheiro já não existe.');
+
+        $inline = in_array($file->mime_type, self::INLINE_TYPES, true);
+
+        return $disk->response(
             $file->path,
-            now()->addMinutes($expirationMinutes)
+            $file->original_name,
+            [
+                'Content-Type'           => $inline ? $file->mime_type : 'application/octet-stream',
+                'Cache-Control'          => 'private, no-store',
+                'X-Content-Type-Options' => 'nosniff',
+            ],
+            $inline ? 'inline' : 'attachment',
         );
     }
 
