@@ -106,6 +106,16 @@ class CondominiumDocumentController extends Controller
     }
 
     /**
+     * The file itself: same rule as the link (administrator and residents of the building).
+     */
+    public function content(CondominiumDocument $condominiumDocument)
+    {
+        Gate::authorize('view', $condominiumDocument);
+
+        return $this->service->content($condominiumDocument);
+    }
+
+    /**
      * Lista paginada + catálogo de categorias, no mesmo pedido.
      */
     private function listing(?Condominium $condominium, IndexCondominiumDocumentRequest $request)

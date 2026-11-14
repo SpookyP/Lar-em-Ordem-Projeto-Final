@@ -45,6 +45,8 @@ Route::post('condominiums/{condominium}/documents', [CondominiumDocumentControll
     ->whereUlid('condominium');
 Route::get('condominium-documents/{condominium_document}/download', [CondominiumDocumentController::class, 'download'])
     ->whereUlid('condominium_document');
+Route::get('condominium-documents/{condominium_document}/content', [CondominiumDocumentController::class, 'content'])
+    ->whereUlid('condominium_document');
 Route::patch('condominium-documents/{condominium_document}', [CondominiumDocumentController::class, 'update'])
     ->whereUlid('condominium_document');
 Route::delete('condominium-documents/{condominium_document}', [CondominiumDocumentController::class, 'destroy'])

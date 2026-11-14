@@ -167,6 +167,37 @@ class DocumentTest extends TestCase
             ->assertJsonStructure(['url']);
     }
 
+    public function test_the_file_is_read_through_the_api_only_by_who_has_access(): void
+    {
+        Storage::fake('r2');
+        [$user, $property] = $this->createAuthorizedUserAndProperty();
+
+        $file = \App\Models\File\File::factory()->create([
+            'user_id' => $user->id,
+            'path' => 'vault_documents/contrato.pdf',
+        ]);
+        Storage::disk('r2')->put($file->path, 'conteudo falso do pdf');
+
+        $document = \App\Models\Vault\Document::create([
+            'property_id' => $property->id,
+            'document_category_id' => DocumentCategory::factory()->create()->id,
+            'name' => 'contrato.pdf',
+            'description' => 'Contrato',
+            'file_id' => $file->id,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->get("/api/v1/documents/{$document->id}/content")
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+
+        $this->assertSame('conteudo falso do pdf', $response->streamedContent());
+
+        $this->actingAs(User::factory()->create(), 'sanctum')
+            ->getJson("/api/v1/documents/{$document->id}/content")
+            ->assertForbidden();
+    }
+
     public function test_authorized_user_can_delete_document(): void
     {
         // Usa a Cloud (R2) em vez do disco local para o Fake

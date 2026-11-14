@@ -108,6 +108,20 @@ class DocumentController extends Controller
         ]);
     }
 
+    /**
+     * The document's file itself, streamed through the API.
+     */
+    public function content(Document $document): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $this->authorize('view', $document->property);
+
+        abort_if(!$document->file_id, 404, 'Este documento não tem nenhum ficheiro anexado.');
+
+        return $this->fileStorageService->contentResponse(
+            \App\Models\File\File::findOrFail($document->file_id)
+        );
+    }
+
     public function destroy(Document $document): JsonResponse
     {
         $this->authorize('update', $document->property);

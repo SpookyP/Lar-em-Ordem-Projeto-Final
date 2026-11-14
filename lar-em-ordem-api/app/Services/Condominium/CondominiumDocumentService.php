@@ -127,4 +127,12 @@ class CondominiumDocumentService
             'expires_at' => now()->addMinutes(self::DOWNLOAD_MINUTES),
         ];
     }
+
+    /**
+     * The file itself, streamed through the API.
+     */
+    public function content(CondominiumDocument $document): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        return $this->fileStorage->contentResponse($document->file);
+    }
 }

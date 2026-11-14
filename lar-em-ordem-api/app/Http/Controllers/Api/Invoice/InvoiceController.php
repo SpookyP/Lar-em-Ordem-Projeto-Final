@@ -13,6 +13,7 @@ use App\Services\Invoice\InvoiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use \Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceController extends Controller
 {
@@ -186,5 +187,23 @@ class InvoiceController extends Controller
                 'url' => $files->getSecureUrl($invoice->file, 5),
             ],
         ]);
+    }
+    /**
+     * The invoice PDF itself, streamed through the API.
+     */
+    public function fileContent(
+        Request $request,
+        string $invoiceId,
+        FileStorageService $files
+    ): StreamedResponse {
+        Gate::authorize('viewAny', Invoice::class);
+
+        $invoice = $this->service->getInvoiceById($invoiceId, $request->user()->resident->id);
+
+        Gate::authorize('view', $invoice);
+
+        abort_if(!$invoice->file, 404, 'Esta fatura não tem um ficheiro associado.');
+
+        return $files->contentResponse($invoice->file);
     }
 }
