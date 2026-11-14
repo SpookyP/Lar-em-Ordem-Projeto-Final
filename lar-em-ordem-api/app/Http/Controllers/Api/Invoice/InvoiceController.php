@@ -154,41 +154,6 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Gerar um endereço temporário para aceder ao PDF da fatura.
-     */
-    public function file(
-        Request $request,
-        string $invoiceId,
-        FileStorageService $files
-    ): JsonResponse {
-        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
-        Gate::authorize('viewAny', Invoice::class);
-
-        $resident = $request->user()->resident;
-
-        // Obter e autorizar a fatura.
-        $invoice = $this->service->getInvoiceById(
-            $invoiceId,
-            $resident->id
-        );
-
-        Gate::authorize('view', $invoice);
-
-        // Confirmar que a fatura tem um ficheiro associado.
-        abort_if(
-            !$invoice->file,
-            404,
-            'Esta fatura não tem um ficheiro associado.'
-        );
-
-        // Gerar um endereço temporário válido durante 5 minutos.
-        return response()->json([
-            'data' => [
-                'url' => $files->getSecureUrl($invoice->file, 5),
-            ],
-        ]);
-    }
-    /**
      * The invoice PDF itself, streamed through the API.
      */
     public function fileContent(

@@ -45,20 +45,6 @@ class FileStorageService
     }
 
     /**
-     * Gera um URL temporário e assinado para visualização/download do ficheiro.
-     */
-    public function getSecureUrl(File $file, int $expirationMinutes = 30): string
-    {
-        /** @var FilesystemAdapter $disk */
-        $disk = Storage::disk($this->disk);
-
-        return $disk->temporaryUrl(
-            $file->path,
-            now()->addMinutes($expirationMinutes)
-        );
-    }
-
-    /**
      * Streams the file itself through the API (no public or signed link).
      * The caller must have authorized the user before calling this.
      */

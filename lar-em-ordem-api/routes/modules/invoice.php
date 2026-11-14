@@ -23,7 +23,5 @@ Route::get('benchmarks/annual/series', AnnualBenchmarkSeriesController::class);
 
 // Upload das Faturas
 Route::post('invoices/upload', [InvoiceController::class, 'upload']);
-Route::get('invoices/{invoiceId}/file', [InvoiceController::class, 'file'])
-    ->whereUlid('invoiceId');
 Route::get('invoices/{invoiceId}/file/content', [InvoiceController::class, 'fileContent'])
     ->whereUlid('invoiceId');

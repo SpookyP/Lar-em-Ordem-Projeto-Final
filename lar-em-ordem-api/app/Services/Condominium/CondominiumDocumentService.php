@@ -14,8 +14,6 @@ use Illuminate\Support\Arr;
 
 class CondominiumDocumentService
 {
-    /** Minutos de validade do link de download. */
-    private const DOWNLOAD_MINUTES = 30;
 
     public function __construct(private FileStorageService $fileStorage) {}
 
@@ -112,20 +110,6 @@ class CondominiumDocumentService
     public function delete(CondominiumDocument $document): void
     {
         $this->fileStorage->deleteFile($document->file);
-    }
-
-    /**
-     * Link temporário (assinado) para ver/descarregar o ficheiro.
-     *
-     * @param CondominiumDocument $document Documento.
-     * @return array{url: string, expires_at: \Illuminate\Support\Carbon}
-     */
-    public function downloadLink(CondominiumDocument $document): array
-    {
-        return [
-            'url'        => $this->fileStorage->getSecureUrl($document->file, self::DOWNLOAD_MINUTES),
-            'expires_at' => now()->addMinutes(self::DOWNLOAD_MINUTES),
-        ];
     }
 
     /**

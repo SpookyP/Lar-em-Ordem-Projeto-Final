@@ -16,8 +16,6 @@ Route::get('/documents/{document}', [DocumentController::class, 'show'])
     ->whereUlid('document');
 Route::put('/documents/{document}', [DocumentController::class, 'update'])
     ->whereUlid('document');
-Route::get('/documents/{document}/download', [DocumentController::class, 'download'])
-    ->whereUlid('document');
 Route::get('/documents/{document}/content', [DocumentController::class, 'content'])
     ->whereUlid('document');
 Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])

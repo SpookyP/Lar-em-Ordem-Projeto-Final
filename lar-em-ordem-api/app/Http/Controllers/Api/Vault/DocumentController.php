@@ -88,26 +88,6 @@ class DocumentController extends Controller
         ], 200);
     }
 
-    public function download(Document $document): JsonResponse
-    {
-        $this->authorize('view', $document->property);
-
-        if (!$document->file_id) {
-            return response()->json([
-                'message' => 'Este documento não tem nenhum ficheiro anexado.'
-            ], 404);
-        }
-
-        $file = \App\Models\File\File::findOrFail($document->file_id);
-
-        // Pede ao FileStorageService o link pre-assinado do Cloudflare R2
-        $url = $this->fileStorageService->getSecureUrl($file);
-
-        return response()->json([
-            'url' => $url,
-        ]);
-    }
-
     /**
      * The document's file itself, streamed through the API.
      */
