@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { ChevronLeft, MapPin, Calendar } from "lucide-react";
 import { useAssistanceRequest } from "../../../hooks/useAssistanceRequest";
 import {
@@ -7,7 +7,7 @@ import {
   rejectProposal,
 } from "../../../services/api/proposalService";
 import { cancelAssistanceRequest } from "../../../services/api/assistanceService";
-import { categoryInfo } from "../../../data/assistanceInfo";
+import { categoryInfo, statusInfo } from "../../../data/assistanceInfo";
 import { ProposalCard } from "../../../components/ui/ProposalCard";
 import { AttachmentGallery } from "../../../components/ui/AttachmentGallery";
 import { formatAddress } from "../../../utils/format";
@@ -20,6 +20,7 @@ export default function AssistanceDetail() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const navigate = useNavigate();
 
   async function run(action) {
     setBusy(true);
@@ -37,13 +38,26 @@ export default function AssistanceDetail() {
 
   const handleAccept = (proposal) => run(() => acceptProposal(proposal.id));
   const handleReject = (proposal) => run(() => rejectProposal(proposal.id));
-  const handleCancel = () => run(() => cancelAssistanceRequest(request.id));
+
+  async function handleCancel() {
+    setBusy(true);
+    setActionError("");
+    try {
+      await cancelAssistanceRequest(request.id);
+      navigate("/assistance");
+    } catch (err) {
+      setActionError(getErrorMessage(err));
+      setBusy(false);
+      setConfirmingCancel(false);
+    }
+  }
 
   const open = request?.status === "open";
   const { icon: Icon, color } = categoryInfo(request?.category.slug);
+  const badge = statusInfo(request?.status);
 
   return (
-    <div className="flex flex-col gap-6 max-w-3xl mx-auto">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
         <Link
           to="/assistance"
@@ -68,8 +82,8 @@ export default function AssistanceDetail() {
       ) : error && !request ? (
         <p className="text-sm text-red">{error}</p>
       ) : (
-        <>
-          <div className="rounded-2xl bg-card p-8 shadow-sm flex flex-col gap-6">
+        <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
+          <div className="lg:col-span-3 flex flex-col gap-6 rounded-2xl bg-card p-8 shadow-sm">
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span
@@ -78,8 +92,10 @@ export default function AssistanceDetail() {
                   <Icon size={14} />
                   {request.category.name}
                 </span>
-                <span className="rounded-md bg-orange-light px-2.5 py-1 text-[11px] font-medium text-orange">
-                  {request.statusLabel}
+                <span
+                  className={`rounded-md px-2.5 py-1 text-[11px] font-medium ${badge.style}`}
+                >
+                  {badge.label}
                 </span>
               </div>
 
@@ -89,19 +105,17 @@ export default function AssistanceDetail() {
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
                 <span className="flex items-center gap-1.5">
-                  <MapPin size={16} />
-                  {formatAddress(request.address)}
+                  <MapPin size={16} /> {formatAddress(request.address)}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Calendar size={16} />
-                  {formatDate(request.createdAt)}
+                  <Calendar size={16} /> {formatDate(request.createdAt)}
                 </span>
               </div>
             </div>
 
             <div className="flex flex-col gap-2 border-t border-surface pt-4">
               <h3 className="text-sm font-semibold text-muted">Descrição</h3>
-              <p className="text-sm text-navy leading-relaxed whitespace-pre-line wrap-break-word">
+              <p className="whitespace-pre-line wrap-break-word text-sm leading-relaxed text-navy">
                 {request.description}
               </p>
             </div>
@@ -142,7 +156,7 @@ export default function AssistanceDetail() {
             )}
           </div>
 
-          <div className="rounded-2xl bg-card p-6 shadow-sm flex flex-col gap-4">
+          <div className="lg:col-span-2 flex flex-col gap-4 rounded-2xl bg-card p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-xl text-navy">
                 Propostas recebidas
@@ -153,7 +167,7 @@ export default function AssistanceDetail() {
             </div>
 
             {(actionError || error) && (
-              <p className="text-sm text-red font-medium">
+              <p className="text-sm font-medium text-red">
                 {actionError || error}
               </p>
             )}
@@ -177,7 +191,7 @@ export default function AssistanceDetail() {
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
