@@ -8,7 +8,8 @@ import { formatAddress, formatMoney } from "../../utils/format";
 //proposta vista pelo prestador
 export function ProviderProposalCard({ proposal, busy, onEdit, onWithdraw }) {
   const [confirming, setConfirming] = useState(false);
-  const status = proposalStatus(proposal.status);
+  const expired = proposal.isExpired;
+  const status = proposalStatus(proposal.status, expired);
   const pending = proposal.status === "pending";
   const request = proposal.request;
   const { icon: Icon, color } = categoryInfo(request?.category.slug);
@@ -54,7 +55,9 @@ export function ProviderProposalCard({ proposal, busy, onEdit, onWithdraw }) {
           </div>
           {pending && (
             <span className="text-[11px] text-muted">
-              Válida até {formatDay(proposal.validity)}
+              {expired
+                ? `Expirou a ${formatDay(proposal.validity)}. Edite a validade para a reativar.`
+                : `Válida até ${formatDay(proposal.validity)}`}
             </span>
           )}
         </div>

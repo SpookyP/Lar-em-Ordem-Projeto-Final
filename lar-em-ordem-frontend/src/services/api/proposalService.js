@@ -23,6 +23,7 @@ export function toProposal(p) {
     availableFrom: p.available_from,
     availableUntil: p.available_until,
     status: p.status,
+    isExpired: p.is_expired,
     createdAt: p.created_at,
     provider: p.service_provider
       ? {
