@@ -19,6 +19,7 @@ const Unauthorized = lazy(() => import("../pages/Unauthorized/Unauthorized"));
 const NotFound = lazy(() => import("../pages/NotFound/NotFound"));
 const VerifyEmail = lazy(() => import("../pages/VerifyEmail/VerifyEmail"));
 const Privacy = lazy(() => import("../pages/Privacy/Privacy"));
+const SitePage = lazy(() => import("../pages/SitePage/SitePage"));
 
 //Partilhadas
 const Profiles = lazy(() => import("../pages/Profiles/Profiles"));
@@ -111,7 +112,9 @@ function AppRoutesInner() {
         {/* Rota publica, mas com a sidebar para quem tem sessao */}
         <Route element={<SiteLayout />}>
           <Route path="/privacy" element={<Privacy />} />
-        </Route>
+          <Route path="/about" element={<SitePage page="about" />} />
+          <Route path="/help" element={<SitePage page="help" />} />
+          <Route path="/terms" element={<SitePage page="terms" />} /></Route>
 
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>

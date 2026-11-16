@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { ROLE_INFO } from "../../data/roleInfo";
+import { homePath } from "../../data/roleInfo";
 
 export default function Unauthorized() {
   const navigate = useNavigate();
@@ -10,8 +10,7 @@ export default function Unauthorized() {
   const roleCount = user?.roles?.length ?? 0;
 
   function goHome() {
-    const home = ROLE_INFO[activeProfile?.name]?.home ?? "/profiles";
-    navigate(home);
+    navigate(homePath(activeProfile?.name));
   }
 
   async function handleLogout() {

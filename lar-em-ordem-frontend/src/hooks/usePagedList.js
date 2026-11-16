@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getErrorMessage } from "../utils/apiError";
 
 const EMPTY = { key: null, items: [], lastPage: 1, total: 0, error: "" };
 
@@ -22,8 +23,14 @@ export function usePagedList(
       .then((data) => {
         if (active) setResult({ ...data, key: requestKey, error: "" });
       })
-      .catch(() => {
-        if (active) setResult({ ...EMPTY, key: requestKey, error: errorMessage });
+      .catch((err) => {
+        if (active) {
+          setResult({
+            ...EMPTY,
+            key: requestKey,
+            error: getErrorMessage(err, errorMessage),
+          });
+        }
       });
     return () => {
       active = false;
