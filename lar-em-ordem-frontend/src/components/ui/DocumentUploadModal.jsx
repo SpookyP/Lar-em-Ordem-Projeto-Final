@@ -5,6 +5,7 @@ import {
   uploadDocument,
   getDocumentCategories,
 } from "../../services/api/documentService";
+import { TextInput, SearchSelect, FileInput, DatePicker } from "../form";
 
 export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
   const [file, setFile] = useState(null);
@@ -50,6 +51,13 @@ export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
     }
   }
 
+  const categoryOptions = categories.map((c) => ({
+    value: String(c.id),
+    label: c.name,
+  }));
+
+  const today = new Date().toLocaleDateString("sv-SE");
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
@@ -68,79 +76,56 @@ export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">Ficheiro</span>
-            <input
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-navy file:px-4 file:py-2 file:text-white hover:file:bg-navy-light"
-            />
-          </label>
+          <p className="text-xs text-muted">
+            <span className="text-red">*</span> Campos de preenchimento
+            obrigatório
+          </p>
 
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">Nome</span>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex.: Seguro Multirriscos"
-              className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-            />
-          </label>
+          <FileInput
+            label="Ficheiro"
+            required
+            value={file}
+            onChange={setFile}
+            accept=".pdf,.jpg,.jpeg,.png"
+          />
 
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">Categoria</span>
-            <select
-              value={documentCategoryId}
-              onChange={(e) => setDocumentCategoryId(e.target.value)}
-              className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-            >
-              <option value="">Escolhe uma categoria…</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <TextInput
+            label="Nome"
+            required
+            value={name}
+            onChange={setName}
+            placeholder="Ex.: Seguro Multirriscos"
+          />
 
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">
-              Descrição <span className="text-muted">(opcional)</span>
-            </span>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex.: Fidelidade - Apólice 123456"
-              className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-            />
-          </label>
+          <SearchSelect
+            label="Categoria"
+            required
+            options={categoryOptions}
+            value={documentCategoryId}
+            onChange={setDocumentCategoryId}
+            placeholder="Escolhe uma categoria…"
+          />
+
+          <TextInput
+            label="Descrição"
+            value={description}
+            onChange={setDescription}
+            placeholder="Ex.: Fidelidade - Apólice 123456"
+          />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-navy">
-                Data de validade <span className="text-muted">(opcional)</span>
-              </span>
-              <input
-                type="date"
-                value={expirationDate}
-                onChange={(e) => setExpirationDate(e.target.value)}
-                className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-navy">
-                Data de emissão <span className="text-muted">(opcional)</span>
-              </span>
-              <input
-                type="date"
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-              />
-            </label>
+            <DatePicker
+              label="Data de emissão"
+              value={issueDate}
+              onChange={setIssueDate}
+              max={today}
+            />
+            <DatePicker
+              label="Data de validade"
+              value={expirationDate}
+              onChange={setExpirationDate}
+              min={issueDate || undefined}
+            />
           </div>
 
           {error && <p className="text-sm text-red">{error}</p>}
