@@ -1,17 +1,29 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { ChevronRight, House, MapPin, Pencil, Plus, Trash2, KeyRound } from "lucide-react";
+import { ArrowRight, Building, KeyRound, MapPin, Pencil, Plus, Trash2, X } from "lucide-react";
 import { deleteCondominium } from "../../../services/api/condominiumService";
 import { useMyCondominiumsPage } from "../../../hooks/useMyCondominiumsPage";
 import { Pager } from "../../../components/ui/Pager";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { InviteCode } from "../../../components/condominium/InviteCode";
 import { ClaimCondominium } from "../../../components/condominium/ClaimCondominium";
 import { getErrorMessage } from "../../../utils/apiError";
 import { addressLine, formatMoney } from "../../../utils/format";
 
+function Stat({ label, value, hint }) {
+  return (
+    <div className="flex flex-col gap-1 px-7 py-6">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">{label}</p>
+      <p className="font-display text-3xl text-navy">{value}</p>
+      {hint && <p className="text-sm text-muted">{hint}</p>}
+    </div>
+  );
+}
+
 export default function Condominiums() {
-  const [busyId, setBusyId] = useState(null);
-  const [confirmingId, setConfirmingId] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState(null);
   const [actionError, setActionError] = useState("");
   const [claiming, setClaiming] = useState(false);
   const [message, setMessage] = useState("");
@@ -27,12 +39,11 @@ export default function Condominiums() {
     reload,
   } = useMyCondominiumsPage({ perPage: 6 });
 
-  async function handleDelete(condominium) {
-    setBusyId(condominium.id);
+  async function handleDelete() {
+    setBusy(true);
     setActionError("");
     try {
-      await deleteCondominium(condominium.id);
-      setConfirmingId(null);
+      await deleteCondominium(deleting.id);
       if (condominiums.length === 1 && page > 1) {
         setPage(page - 1);
       } else {
@@ -41,7 +52,8 @@ export default function Condominiums() {
     } catch (err) {
       setActionError(getErrorMessage(err, "Não foi possível eliminar o condomínio."));
     } finally {
-      setBusyId(null);
+      setBusy(false);
+      setDeleting(null);
     }
   }
 
@@ -53,28 +65,34 @@ export default function Condominiums() {
   }
 
   const isEmpty = !loading && !error && total === 0;
+  const scope = totalPages > 1 ? "nesta página" : "soma de todos";
+  const linkedFractions = condominiums.reduce((sum, c) => sum + c.propertiesCount, 0);
+  const reserveFund = condominiums.reduce((sum, c) => sum + Number(c.reserveFund ?? 0), 0);
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="font-display text-2xl text-navy">Os meus condomínios</h1>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {!claiming && (
-            <button
-              type="button"
-              onClick={() => {
-                setMessage("");
-                setClaiming(true);
-              }}
-              className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 font-medium text-navy transition hover:bg-surface"
-            >
-              <KeyRound size={18} />
-              Receber condomínio
-            </button>
-          )}
+    <div className="mx-auto flex max-w-6xl flex-col gap-7">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+            Administração
+          </p>
+          <h1 className="mt-1 font-display text-4xl text-navy">Os meus condomínios</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setMessage("");
+              setClaiming(true);
+            }}
+            className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 font-medium text-navy transition hover:bg-surface"
+          >
+            <KeyRound size={18} />
+            Receber
+          </button>
           <Link
             to="/admin/condominiums/new"
-            className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2 font-bold text-white transition hover:bg-navy-light"
+            className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 font-semibold text-white transition hover:bg-navy-light"
           >
             <Plus size={18} />
             Novo condomínio
@@ -83,122 +101,168 @@ export default function Condominiums() {
       </div>
 
       {message && (
-        <p role="status" className="rounded-lg bg-green-light px-3 py-2 text-sm text-green">
+        <p role="status" className="rounded-xl bg-green-light px-3.5 py-2.5 text-sm text-green">
           {message}
         </p>
       )}
 
-      {claiming && (
-        <section className="rounded-2xl bg-card p-6 shadow-sm">
-          <h2 className="mb-1 font-medium text-navy">Receber condomínio</h2>
-          <p className="mb-4 text-sm text-muted">
-            Passas a gerir o condomínio, com os avisos, os documentos e as frações.
-          </p>
-          <ClaimCondominium onClaimed={handleClaimed} onCancel={() => setClaiming(false)} />
-        </section>
-      )}
-
       {(error || actionError) && (
-        <p role="alert" className="text-sm text-red">
+        <p role="alert" className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
           {error || actionError}
         </p>
       )}
 
+      {condominiums.length > 0 && (
+        <section
+          aria-label="Resumo"
+          className="grid divide-y divide-border rounded-2xl border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+        >
+          <Stat label="Condomínios" value={total} />
+          <Stat label="Frações ligadas" value={linkedFractions} hint={scope} />
+          <Stat label="Fundo de reserva" value={formatMoney(reserveFund)} hint={scope} />
+        </section>
+      )}
+
       {loading && condominiums.length === 0 ? (
         <p className="text-sm text-muted">A carregar...</p>
-      ) : isEmpty ? (
-        <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted">Ainda não geres nenhum condomínio.</p>
-          <Link
-            to="/admin/condominiums/new"
-            className="mt-3 inline-block font-semibold text-navy hover:underline"
-          >
-            Criar o primeiro condomínio
-          </Link>
-        </div>
       ) : (
         <>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {condominiums.map((condominium) => (
               <article
                 key={condominium.id}
-                className="flex flex-col gap-4 rounded-2xl bg-card p-5 shadow-sm"
+                className="flex flex-col rounded-2xl border border-border bg-card shadow-sm"
               >
-                <div className="flex flex-col gap-1">
-                  <Link to={`/admin/condominiums/${condominium.id}`} className="hover:underline">
-                    <h2 className="font-display text-lg text-navy">{condominium.name}</h2>
-                  </Link>
-                  <p className="flex items-start gap-1.5 text-sm text-muted">
-                    <MapPin size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
-                    {addressLine(condominium.address)}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-text">
-                  <span className="flex items-center gap-1.5">
-                    <House size={15} className="text-muted" aria-hidden="true" />
-                    {condominium.propertiesCount}{" "}
-                    {condominium.propertiesCount === 1 ? "fração ligada" : "frações ligadas"}
-                  </span>
-                  {condominium.reserveFund != null && (
-                    <span>Fundo de reserva: {formatMoney(condominium.reserveFund)}</span>
-                  )}
-                </div>
-
-                {condominium.inviteCode && <InviteCode code={condominium.inviteCode} />}
-
-                <div className="mt-auto flex items-center gap-4 border-t border-border pt-3 text-sm">
-                  {confirmingId === condominium.id ? (
-                    <div className="flex w-full flex-col gap-2">
-                      <p className="text-muted">
-                        Eliminar este condomínio? As casas ficam desligadas, os documentos são
-                        apagados e os avisos deixam de identificar o prédio.
+                <div className="flex flex-col gap-5 p-6">
+                  <div className="flex items-start gap-4">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-navy text-white">
+                      <Building size={22} aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate font-display text-xl text-navy">
+                        {condominium.name}
+                      </h2>
+                      <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted">
+                        <MapPin size={14} className="shrink-0" aria-hidden="true" />
+                        <span className="truncate">{addressLine(condominium.address)}</span>
                       </p>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => handleDelete(condominium)}
-                          disabled={busyId === condominium.id}
-                          className="rounded-full bg-red px-3 py-1 text-white transition hover:opacity-90 disabled:opacity-60"
-                        >
-                          {busyId === condominium.id ? "A eliminar..." : "Sim, eliminar"}
-                        </button>
-                        <button
-                          onClick={() => setConfirmingId(null)}
-                          className="text-muted underline hover:text-navy"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
                     </div>
-                  ) : (
-                    <>
-                      <Link
-                        to={`/admin/condominiums/${condominium.id}`}
-                        className="flex items-center gap-1.5 font-medium text-navy hover:underline"
-                      >
-                        Abrir <ChevronRight size={15} />
-                      </Link>
+                    <div className="flex shrink-0 items-center gap-1">
                       <Link
                         to={`/admin/condominiums/${condominium.id}/edit`}
-                        className="flex items-center gap-1.5 text-muted hover:text-navy"
+                        aria-label={`Editar ${condominium.name}`}
+                        className="rounded-lg p-2 text-muted transition hover:bg-surface hover:text-navy"
                       >
-                        <Pencil size={15} /> Editar
+                        <Pencil size={17} />
                       </Link>
                       <button
-                        onClick={() => setConfirmingId(condominium.id)}
-                        className="ml-auto flex items-center gap-1.5 text-red hover:opacity-80"
+                        type="button"
+                        onClick={() => setDeleting(condominium)}
+                        aria-label={`Eliminar ${condominium.name}`}
+                        className="rounded-lg p-2 text-muted transition hover:bg-red-light hover:text-red"
                       >
-                        <Trash2 size={15} /> Eliminar
+                        <Trash2 size={17} />
                       </button>
-                    </>
-                  )}
+                    </div>
+                  </div>
+
+                  <dl className="grid grid-cols-2 divide-x divide-border rounded-xl bg-surface py-3 text-center">
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                        Frações ligadas
+                      </dt>
+                      <dd className="mt-1 font-semibold text-text">
+                        {condominium.propertiesCount}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                        Reserva
+                      </dt>
+                      <dd className="mt-1 font-semibold text-text">
+                        {condominium.reserveFund != null
+                          ? formatMoney(condominium.reserveFund)
+                          : "Sem valor"}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {condominium.inviteCode && <InviteCode code={condominium.inviteCode} />}
                 </div>
+
+                <Link
+                  to={`/admin/condominiums/${condominium.id}`}
+                  className="mt-auto flex items-center justify-between border-t border-border px-6 py-4 font-medium text-navy transition hover:bg-surface"
+                >
+                  Abrir condomínio
+                  <ArrowRight size={18} aria-hidden="true" />
+                </Link>
               </article>
             ))}
+
+            <Link
+              to="/admin/condominiums/new"
+              className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border p-6 text-center transition hover:border-navy/40 hover:bg-card"
+            >
+              <span className="flex size-14 items-center justify-center rounded-full bg-card text-muted shadow-sm">
+                <Plus size={22} aria-hidden="true" />
+              </span>
+              <span className="font-semibold text-navy">
+                {isEmpty ? "Criar o primeiro condomínio" : "Adicionar condomínio"}
+              </span>
+              <span className="max-w-56 text-sm text-muted">
+                Crie um novo edifício e convide os condóminos.
+              </span>
+            </Link>
           </div>
 
           <Pager page={page} totalPages={totalPages} onChange={setPage} />
         </>
+      )}
+
+      {claiming &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60" onClick={() => setClaiming(false)} />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="claim-title"
+              className="relative z-10 w-full max-w-lg rounded-2xl bg-card p-7 shadow-xl"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <h2 id="claim-title" className="font-display text-2xl text-navy">
+                  Receber condomínio
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setClaiming(false)}
+                  aria-label="Fechar"
+                  className="rounded-lg p-1 text-muted transition hover:bg-surface hover:text-navy"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <p className="mt-1 mb-5 text-sm text-muted">
+                Passas a gerir o condomínio, com os avisos, os documentos e as frações.
+              </p>
+              <ClaimCondominium onClaimed={handleClaimed} onCancel={() => setClaiming(false)} />
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {deleting && (
+        <ConfirmDialog
+          title={`Eliminar ${deleting.name}?`}
+          message="As casas ficam desligadas, os documentos são apagados e os avisos deixam de identificar o prédio."
+          confirmLabel="Sim, eliminar"
+          loadingLabel="A eliminar..."
+          danger
+          loading={busy}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleting(null)}
+        />
       )}
     </div>
   );
