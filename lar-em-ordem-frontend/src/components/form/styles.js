@@ -22,7 +22,7 @@ export const chipClass =
   "inline-flex items-center gap-1 rounded-full bg-navy/10 px-3 py-1 text-xs font-medium text-navy";
 
 export const optionsPanelClass =
-  "z-50 max-h-64 w-(--input-width) overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-lg [--anchor-gap:6px] transition duration-100 ease-out data-closed:opacity-0";
+  "z-50 max-h-56! w-(--input-width) overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-lg [--anchor-gap:6px] transition duration-100 ease-out data-closed:opacity-0";
 
 // slugify strips accents and lower-cases, so "agueda" finds "Águeda"
 export function filterOptions(options, query) {

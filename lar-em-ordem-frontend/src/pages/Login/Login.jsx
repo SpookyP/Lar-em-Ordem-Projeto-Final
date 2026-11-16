@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { PasswordInput } from "../../components/ui/PasswordInput";
 import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
 import { socialErrorMessage } from "../../utils/socialErrors";
+import { TextInput, PasswordField } from "../../components/form";
 
 export default function Login() {
   const { login, refreshUser } = useAuth();
   const navigate = useNavigate();
-  
+
   const [searchParams] = useSearchParams();
   const errorSocial = socialErrorMessage(searchParams.get("erro"));
 
@@ -59,25 +59,21 @@ export default function Login() {
         <SocialLoginButtons />
 
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-          <label className=" flex flex-col gap-4">
-            <span className="text-sm font-medium text-text mr-4">Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-navy"
-            />
-          </label>
-          <label className=" flex flex-col gap-4">
-            <span className="text-sm font-medium text-text mr-2">Password</span>
-            <PasswordInput
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-navy"
-            />
-          </label>
+          <TextInput
+            label="Email"
+            type="email"
+            required
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+          />
+          <PasswordField
+            label="Password"
+            required
+            value={password}
+            onChange={setPassword}
+            autoComplete="current-password"
+          />
           <button
             type="submit"
             disabled={submitting}

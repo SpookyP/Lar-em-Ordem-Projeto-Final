@@ -5,6 +5,7 @@ import {
   updateDocument,
   getDocumentCategories,
 } from "../../services/api/documentService";
+import { TextInput, SearchSelect, FileInput, DatePicker } from "../form";
 
 export function DocumentEditModal({ doc, onClose, onSaved }) {
   const [name, setName] = useState(doc.name ?? "");
@@ -17,7 +18,7 @@ export function DocumentEditModal({ doc, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [documentCategoryId, setDocumentCategoryId] = useState(
-    doc.category?.id ?? "",
+    doc.category?.id ? String(doc.category.id) : "",
   );
   const [categories, setCategories] = useState([]);
 
@@ -53,6 +54,15 @@ export function DocumentEditModal({ doc, onClose, onSaved }) {
     }
   }
 
+  const today = new Date().toLocaleDateString("sv-SE");
+
+  const categoryOptions = [
+    ...(doc.category && !categories.some((c) => c.id === doc.category.id)
+      ? [{ value: String(doc.category.id), label: doc.category.name }]
+      : []),
+    ...categories.map((c) => ({ value: String(c.id), label: c.name })),
+  ];
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
@@ -71,83 +81,48 @@ export function DocumentEditModal({ doc, onClose, onSaved }) {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">Nome</span>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-            />
-          </label>
+          <p className="text-xs text-muted">
+            <span className="text-red">*</span> Campos de preenchimento
+            obrigatório
+          </p>
 
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">Categoria</span>
-            <select
-              value={documentCategoryId}
-              onChange={(e) => setDocumentCategoryId(e.target.value)}
-              className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-            >
-              {doc.category &&
-                !categories.some((c) => c.id === doc.category.id) && (
-                  <option value={doc.category.id}>{doc.category.name}</option>
-                )}
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <TextInput label="Nome" required value={name} onChange={setName} />
 
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">
-              Descrição <span className="text-muted">(opcional)</span>
-            </span>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-            />
-          </label>
+          <SearchSelect
+            label="Categoria"
+            options={categoryOptions}
+            value={documentCategoryId}
+            onChange={setDocumentCategoryId}
+            placeholder="Escolhe uma categoria…"
+          />
+
+          <TextInput
+            label="Descrição"
+            value={description}
+            onChange={setDescription}
+          />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-navy">
-                Data de validade <span className="text-muted">(opcional)</span>
-              </span>
-              <input
-                type="date"
-                value={expirationDate}
-                onChange={(e) => setExpirationDate(e.target.value)}
-                className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-navy">
-                Data de emissão <span className="text-muted">(opcional)</span>
-              </span>
-              <input
-                type="date"
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                className="rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-navy"
-              />
-            </label>
+            <DatePicker
+              label="Data de emissão"
+              value={issueDate}
+              onChange={setIssueDate}
+              max={today}
+            />
+            <DatePicker
+              label="Data de validade"
+              value={expirationDate}
+              onChange={setExpirationDate}
+              min={issueDate || undefined}
+            />
           </div>
 
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-navy">
-              Substituir ficheiro <span className="text-muted">(opcional)</span>
-            </span>
-            <input
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-navy file:px-4 file:py-2 file:text-white hover:file:bg-navy-light"
-            />
-          </label>
+          <FileInput
+            label="Substituir ficheiro"
+            value={file}
+            onChange={setFile}
+            accept=".pdf,.jpg,.jpeg,.png"
+          />
 
           {error && <p className="text-sm text-red">{error}</p>}
 
