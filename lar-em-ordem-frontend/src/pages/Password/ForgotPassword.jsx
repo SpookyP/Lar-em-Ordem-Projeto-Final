@@ -16,12 +16,16 @@ export default function ForgotPassword() {
       await forgotPassword(email);
       setStatus("sent");
     } catch (requestError) {
-      if (requestError.response) {
+      if (requestError.response?.status === 422) {
         setStatus("sent");
-      } else {
-        setError("Não foi possível contactar o servidor. Tente novamente.");
-        setStatus(null);
+        return;
       }
+      setError(
+        requestError.response
+          ? "Não foi possível enviar o email. Tente novamente dentro de momentos."
+          : "Não foi possível contactar o servidor. Tente novamente.",
+      );
+      setStatus(null);
     }
   }
 

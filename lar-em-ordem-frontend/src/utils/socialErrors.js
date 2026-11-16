@@ -7,6 +7,7 @@ const SOCIAL_ERRORS = {
     "O fornecedor não partilhou o seu email, por isso não foi possível criar a conta.",
   indisponivel: "Este método de início de sessão não está disponível.",
   falhou: "Não foi possível iniciar sessão. Tente novamente.",
+  sessao_expirada: "A sua sessão terminou. Inicie sessão novamente.",
 };
 
 //codigo do URL -> mensagem ("" quando nao ha erro)
