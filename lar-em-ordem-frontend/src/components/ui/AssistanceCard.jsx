@@ -1,20 +1,22 @@
 import { Link } from "react-router-dom";
 import { Clock, Wrench } from "lucide-react";
+import { statusInfo } from "../../data/assistanceInfo";
 
 export function AssistanceCard({
   icon: Icon = Wrench,
   iconColor = "bg-orange-light text-orange",
   id,
   category,
-  description,
+  title,
   postedAt,
   status,
   proposals = 0,
   to,
 }) {
+  const badge = statusInfo(status);
+
   return (
     <div className="flex flex-col sm:flex-row rounded-xl bg-surface border border-border/50 hover:border-orange/40 transition-colors overflow-hidden">
-      {/* Corpo do ticket */}
       <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3">
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconColor}`}
@@ -22,14 +24,19 @@ export function AssistanceCard({
           <Icon size={16} />
         </div>
 
-        <div className="flex min-w-0 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-2">
             <h3 className="truncate font-display text-sm text-navy capitalize">
               {category}
             </h3>
+            <span
+              className={`ml-auto shrink-0 rounded-md px-2.5 py-1 text-[11px] font-medium whitespace-nowrap ${badge.style}`}
+            >
+              {badge.label}
+            </span>
           </div>
-          <p className="text-xs text-muted truncate max-w-xs sm:max-w-md">
-            {description}
+          <p className="mt-2 text-xs text-muted truncate max-w-xs sm:max-w-md">
+            {title}
           </p>
           <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-muted mt-0.5">
             <span>#{id}</span>
@@ -41,25 +48,18 @@ export function AssistanceCard({
         </div>
       </div>
 
-      {/* Talão totalmente responsivo utilizando classes padrão do Tailwind */}
-      <div className="flex items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-navy/20 px-4 py-3 sm:w-64 shrink-0">
-        <div className="flex flex-col items-start gap-1">
-          <span className="font-medium text-[11px] capitalize bg-orange-light text-orange px-2.5 py-1 rounded-md whitespace-nowrap">
-            {status || "Pendente"}
+      <div className="flex shrink-0 flex-col items-center justify-center gap-1 border-t border-dashed border-navy/20 px-4 py-3 sm:border-l sm:border-t-0">
+        {proposals > 0 && (
+          <span className="text-[11px] font-medium text-navy text-center">
+            {proposals} {proposals === 1 ? "proposta nova" : "propostas novas"}
           </span>
-          {proposals > 0 && (
-            <span className="text-[11px] text-navy font-medium">
-              {proposals}{" "}
-              {proposals === 1 ? "proposta nova" : "propostas novas"}
-            </span>
-          )}
-        </div>
+        )}
         {to && (
           <Link
             to={to}
-            className="rounded-full bg-navy px-3.5 py-1.5 text-xs whitespace-nowrap text-white transition hover:opacity-90 text-center"
+            className="rounded-full bg-navy px-3 py-1 text-[11px] whitespace-nowrap text-white transition hover:opacity-90 text-center"
           >
-            Ver detalhes
+            Ver Detalhes
           </Link>
         )}
       </div>
