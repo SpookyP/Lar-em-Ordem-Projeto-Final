@@ -88,24 +88,18 @@ class DocumentController extends Controller
         ], 200);
     }
 
-    public function download(Document $document): JsonResponse
+    /**
+     * The document's file itself, streamed through the API.
+     */
+    public function content(Document $document): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         $this->authorize('view', $document->property);
 
-        if (!$document->file_id) {
-            return response()->json([
-                'message' => 'Este documento não tem nenhum ficheiro anexado.'
-            ], 404);
-        }
+        abort_if(!$document->file_id, 404, 'Este documento não tem nenhum ficheiro anexado.');
 
-        $file = \App\Models\File\File::findOrFail($document->file_id);
-
-        // Pede ao FileStorageService o link pre-assinado do Cloudflare R2
-        $url = $this->fileStorageService->getSecureUrl($file);
-
-        return response()->json([
-            'url' => $url,
-        ]);
+        return $this->fileStorageService->contentResponse(
+            \App\Models\File\File::findOrFail($document->file_id)
+        );
     }
 
     public function destroy(Document $document): JsonResponse

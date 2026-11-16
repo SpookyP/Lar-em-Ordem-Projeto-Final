@@ -198,14 +198,21 @@ class AssistanceRequestTest extends TestCase
 
     public function test_o_morador_abre_um_pedido_com_duas_imagens(): void
     {
-        $this->multipart($this->morador, '/api/v1/assistance-requests', $this->dadosNovoPedido([
+        $resposta = $this->multipart($this->morador, '/api/v1/assistance-requests', $this->dadosNovoPedido([
             'images' => [$this->imagem('a.jpg'), $this->imagem('b.png')],
         ]))
             ->assertCreated()
             ->assertJsonCount(2, 'data.attachments')
-            ->assertJsonStructure(['data' => ['attachments' => [['id', 'original_name', 'url']]]]);
+            ->assertJsonStructure(['data' => ['attachments' => [['id', 'original_name']]]])
+            // no link to the bucket: the photo is only read through the API
+            ->assertJsonMissingPath('data.attachments.0.url');
 
         $this->assertCount(2, Storage::disk('r2')->allFiles());
+
+        $foto = "/api/v1/assistance-attachments/{$resposta->json('data.attachments.0.id')}/content";
+
+        $this->actingAs($this->morador)->get($foto)->assertOk();
+        $this->actingAs(User::factory()->create())->getJson($foto)->assertForbidden();
     }
 
     public function test_nao_e_possivel_enviar_mais_de_duas_imagens(): void

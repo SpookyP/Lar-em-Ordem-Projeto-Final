@@ -188,14 +188,15 @@ class CondominiumDocumentTest extends TestCase
 
     // ------------------------------------------------------------- download
 
-    public function test_administrador_e_residentes_do_predio_recebem_um_link_temporario(): void
+    public function test_o_ficheiro_e_lido_pela_api_so_por_quem_tem_acesso(): void
     {
-        $url = "/api/v1/condominium-documents/{$this->documento('Outros')->id}/download";
+        $documento = $this->documento('Outros');
+        Storage::disk('r2')->put($documento->file->path, 'conteudo da ata');
+        $url = "/api/v1/condominium-documents/{$documento->id}/content";
 
         foreach ([$this->admin, $this->morador] as $user) {
-            $this->actingAs($user)->getJson($url)
-                ->assertOk()
-                ->assertJsonStructure(['data' => ['url', 'expires_at']]);
+            $response = $this->actingAs($user)->get($url)->assertOk();
+            $this->assertSame('conteudo da ata', $response->streamedContent());
         }
 
         $this->actingAs($this->residente)->getJson($url)->assertForbidden();
@@ -257,6 +258,6 @@ class CondominiumDocumentTest extends TestCase
         Storage::disk('r2')->assertMissing($ficheiro->path);
         $this->assertModelMissing($ficheiro);
         $this->assertModelMissing($documento);
-        $this->actingAs($this->admin)->getJson("/api/v1/condominium-documents/{$id}/download")->assertNotFound();
+        $this->actingAs($this->admin)->getJson("/api/v1/condominium-documents/{$id}/content")->assertNotFound();
     }
 }

@@ -12,6 +12,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProposalFactory extends Factory
 {
+    /** Descrições realistas de uma proposta. */
+    private const DESCRIPTIONS = [
+        'Deslocação, diagnóstico e reparação, material incluído.',
+        'Visita técnica e orçamento final no local.',
+        'Substituição da peça avariada e teste do funcionamento.',
+        'Reparação com garantia de 6 meses.',
+        'Mão de obra e material, com limpeza no fim do trabalho.',
+        'Intervenção num só dia, com marcação à escolha do cliente.',
+    ];
+
     /**
      * Define the model's default state.
      *
@@ -25,7 +35,7 @@ class ProposalFactory extends Factory
             'assistance_request_id' => AssistanceRequest::factory(),
             'service_provider_id'   => ServiceProviderModel::factory(),
             'estimated_value'       => fake()->randomFloat(2, 30, 800),
-            'description'           => fake()->sentence(),
+            'description'           => fake()->randomElement(self::DESCRIPTIONS),
             'validity'              => now()->addDays(15)->toDateString(),
             'available_date'        => now()->addDays(fake()->numberBetween(1, 10))->toDateString(),
             'available_from'        => sprintf('%02d:00', $hour),

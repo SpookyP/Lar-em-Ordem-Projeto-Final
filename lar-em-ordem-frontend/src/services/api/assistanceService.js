@@ -22,7 +22,7 @@ function toAssistanceDetail(a) {
     ...toAssistance(a),
     closedAt: a.closed_at,
     address: a.property ?? {},
-    attachments: (a.attachments ?? []).map((f) => ({ id: f.id, url: f.url })),
+    attachments: (a.attachments ?? []).map((f) => ({ id: f.id })),
     proposals: (a.proposals ?? []).map(toProposal),
   };
 }
@@ -56,6 +56,15 @@ export async function getAssistanceRequests({
 export async function getAssistanceRequest(id) {
   const response = await axiosClient.get(`/api/v1/assistance-requests/${id}`);
   return toAssistanceDetail(response.data.data);
+}
+
+// a request photo, read through the API with the session; the address only works in this browser
+export async function getAttachmentUrl(attachmentId) {
+  const response = await axiosClient.get(
+    `/api/v1/assistance-attachments/${attachmentId}/content`,
+    { responseType: "blob" },
+  );
+  return URL.createObjectURL(response.data);
 }
 
 export async function createAssistanceRequest({ images = [], ...fields }) {
