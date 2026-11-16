@@ -1,4 +1,7 @@
 export function getErrorMessage(err, fallback = "Não foi possível concluir o pedido.") {
+  if (err.code === "ERR_NETWORK") {
+    return "Sem ligação ao servidor. Verifique a internet e tente novamente.";
+  }
   const status = err.response?.status;
   if (status === 422) {
     const errors = err.response.data.errors ?? {};
@@ -10,6 +13,9 @@ export function getErrorMessage(err, fallback = "Não foi possível concluir o p
   if (status === 404) return "O registo já não existe.";
   if (status === 429) {
     return "Demasiados pedidos. Tente novamente dentro de um minuto.";
+  }
+  if (status >= 500) {
+    return "O servidor está com problemas. Tente novamente dentro de momentos.";
   }
   return fallback;
 }

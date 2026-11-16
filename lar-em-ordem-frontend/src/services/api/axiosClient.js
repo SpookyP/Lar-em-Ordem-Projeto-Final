@@ -32,7 +32,7 @@ axiosClient.interceptors.request.use((config) => {
 });
 
 // Se a sessão for invalida ou expirar manda para o login
-const ROTAS_SEM_LOGOUT_FORCADO = ['/login', '/register', '/api/user'];
+const ROTAS_SEM_LOGOUT_FORCADO = ['/login', '/logout', '/register', '/forgot-password', '/reset-password'];
 
 //intercetor de resposta: corre depois de cada resposta entrar
 axiosClient.interceptors.response.use(
@@ -40,10 +40,10 @@ axiosClient.interceptors.response.use(
     (error) => {
         const status = error.response?.status;
         const url = error.config?.url ?? '';
-        const isRotaDeAuth = ROTAS_SEM_LOGOUT_FORCADO.some((r) => url.includes(r));
+        const isRotaDeAuth = url === '/api/user' || ROTAS_SEM_LOGOUT_FORCADO.some((r) => url.includes(r));
 
-        if (status === 401 && !isRotaDeAuth) {
-            window.location.href = '/login';
+        if ((status === 401 || status === 419) && !isRotaDeAuth) {
+            window.location.href = '/login?erro=sessao_expirada';
         }
 
         return Promise.reject(error);

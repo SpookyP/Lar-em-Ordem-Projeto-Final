@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
+import { GuestRoute } from "./GuestRoute";
 import { AppLayout } from "../components/layout/AppLayout";
 import { SiteLayout } from "../components/layout/SiteLayout";
+import { SessionTimeout } from "../components/layout/SessionTimeout";
 import { ROLES } from "../utils/roles";
 import { lazy, Suspense } from "react";
 
@@ -17,6 +19,7 @@ const Unauthorized = lazy(() => import("../pages/Unauthorized/Unauthorized"));
 const NotFound = lazy(() => import("../pages/NotFound/NotFound"));
 const VerifyEmail = lazy(() => import("../pages/VerifyEmail/VerifyEmail"));
 const Privacy = lazy(() => import("../pages/Privacy/Privacy"));
+const SitePage = lazy(() => import("../pages/SitePage/SitePage"));
 
 //Partilhadas
 const Profiles = lazy(() => import("../pages/Profiles/Profiles"));
@@ -95,22 +98,28 @@ function AppRoutesInner() {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes location={background || location}>
+        {/* Rota publica com restricao de sessao: se o user tiver sessao, redireciona para a pagina principal */}
+        <Route element={<GuestRoute />}>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
         {/* Rota publica: qualquer um pode aceder */}
-        <Route path="/" element={<Login />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/unauthorized" element={<Unauthorized />} />
-
+      
         {/* Rota publica, mas com a sidebar para quem tem sessao */}
         <Route element={<SiteLayout />}>
           <Route path="/privacy" element={<Privacy />} />
-        </Route>
+          <Route path="/about" element={<SitePage page="about" />} />
+          <Route path="/help" element={<SitePage page="help" />} />
+          <Route path="/terms" element={<SitePage page="terms" />} /></Route>
 
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>
+          <Route path="/unauthorized" element={<Unauthorized />} />
+
           <Route path="/profiles" element={<Profiles />} />
           <Route path="/welcome" element={<Onboarding />} />
 
@@ -201,6 +210,7 @@ export function AppRoutes() {
   return (
     <BrowserRouter>
       <AppRoutesInner />
+      <SessionTimeout />
     </BrowserRouter>
   );
 }

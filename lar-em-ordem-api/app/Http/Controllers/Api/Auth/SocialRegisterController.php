@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 use App\Http\Requests\PartnerOffer\StorePartnerRequest;
 use App\Http\Requests\Resident\StoreResidentRequest;
 use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Models\User\User;
 use App\Services\Auth\PendingRegistrationService;
+use App\Services\Auth\ProfileService;
 use App\Services\Auth\SocialLoginException;
 use App\Services\Auth\SocialLoginService;
 use Illuminate\Http\JsonResponse;
@@ -65,7 +67,7 @@ class SocialRegisterController extends Controller
         }
 
         $role = $request->validate([
-            'role' => ['required', 'string', Rule::in(['resident', 'service_provider', 'partner'])],
+            'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ])['role'];
 
         // same rules as the normal registration; name and email do not come from the request,
@@ -74,6 +76,7 @@ class SocialRegisterController extends Controller
             'resident' => (new StoreResidentRequest())->rules(),
             'partner' => (new StorePartnerRequest())->rules(),
             'service_provider' => (new StoreServiceProviderRequest())->rules(),
+            'condominium_admin' => (new StoreCondominiumAdminRequest())->rules(),
         };
 
         $validated = $request->validate(

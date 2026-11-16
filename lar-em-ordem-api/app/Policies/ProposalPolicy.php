@@ -20,7 +20,7 @@ class ProposalPolicy
      */
     public function update(User $user, Proposal $proposal): bool
     {
-        return $proposal->serviceProvider->user_id === $user->id;
+        return $proposal->serviceProvider?->user_id === $user->id;
     }
 
     /**
@@ -28,7 +28,7 @@ class ProposalPolicy
      */
     public function withdraw(User $user, Proposal $proposal): bool
     {
-        return $proposal->serviceProvider->user_id === $user->id;
+        return $proposal->serviceProvider?->user_id === $user->id;
     }
 
     /**
