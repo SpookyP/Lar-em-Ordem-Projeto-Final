@@ -6,7 +6,15 @@ import { cx, inputClass } from "./styles";
 
 const LOCALE = "pt-PT";
 const WEEKDAYS = ["S", "T", "Q", "Q", "S", "S", "D"]; // Monday first
-const WEEKDAY_NAMES = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"];
+const WEEKDAY_NAMES = [
+  "segunda",
+  "terça",
+  "quarta",
+  "quinta",
+  "sexta",
+  "sábado",
+  "domingo",
+];
 
 // dates travel as "YYYY-MM-DD" (local day), like a native date input
 const pad = (n) => String(n).padStart(2, "0");
@@ -32,13 +40,19 @@ function shownValue(key) {
 function monthGrid(year, month) {
   const offset = (new Date(year, month, 1).getDay() + 6) % 7;
   const days = new Date(year, month + 1, 0).getDate();
-  const cells = [...Array(offset).fill(null), ...Array.from({ length: days }, (_, i) => i + 1)];
+  const cells = [
+    ...Array(offset).fill(null),
+    ...Array.from({ length: days }, (_, i) => i + 1),
+  ];
   while (cells.length % 7) cells.push(null);
   return cells;
 }
 
 function Calendar({ value, min, max, onPick }) {
-  const [view, setView] = useState(() => parse(value || (min && min > todayKey() ? min : "")));
+  const [view, setView] = useState(() =>
+    parse(value || (min && min > todayKey() ? min : "")),
+  );
+  const [pickingYear, setPickingYear] = useState(false);
   const today = todayKey();
 
   const title = new Date(view.year, view.month, 1).toLocaleDateString(LOCALE, {
@@ -54,7 +68,16 @@ function Calendar({ value, min, max, onPick }) {
   }
 
   const firstOfMonth = toKey(view.year, view.month, 1);
-  const lastOfMonth = toKey(view.year, view.month, new Date(view.year, view.month + 1, 0).getDate());
+  const lastOfMonth = toKey(
+    view.year,
+    view.month,
+    new Date(view.year, view.month + 1, 0).getDate(),
+  );
+
+  const minYear = min ? Number(min.slice(0, 4)) : view.year - 100;
+  const maxYear = max ? Number(max.slice(0, 4)) : view.year + 10;
+  const years = [];
+  for (let y = maxYear; y >= minYear; y--) years.push(y);
 
   return (
     <div className="flex w-72 flex-col gap-3">
@@ -62,19 +85,26 @@ function Calendar({ value, min, max, onPick }) {
         <button
           type="button"
           onClick={() => move(-1)}
-          disabled={Boolean(min) && firstOfMonth <= min}
+          disabled={pickingYear || (Boolean(min) && firstOfMonth <= min)}
           aria-label="Mês anterior"
           className="rounded-lg p-1.5 text-muted transition hover:bg-surface hover:text-navy disabled:opacity-30"
         >
           <ChevronLeft size={18} />
         </button>
-        <span className="font-medium capitalize text-navy" aria-live="polite">
+
+        <button
+          type="button"
+          onClick={() => setPickingYear((p) => !p)}
+          aria-label="Escolher ano"
+          className="rounded-lg px-2 py-1 font-medium capitalize text-navy transition hover:bg-surface"
+        >
           {title}
-        </span>
+        </button>
+
         <button
           type="button"
           onClick={() => move(1)}
-          disabled={Boolean(max) && lastOfMonth >= max}
+          disabled={pickingYear || (Boolean(max) && lastOfMonth >= max)}
           aria-label="Mês seguinte"
           className="rounded-lg p-1.5 text-muted transition hover:bg-surface hover:text-navy disabled:opacity-30"
         >
@@ -82,42 +112,70 @@ function Calendar({ value, min, max, onPick }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {WEEKDAYS.map((day, i) => (
-          <span key={i} className="py-1 text-xs font-medium text-muted" title={WEEKDAY_NAMES[i]}>
-            {day}
-          </span>
-        ))}
-        {monthGrid(view.year, view.month).map((day, i) => {
-          if (!day) return <span key={`empty-${i}`} />;
-
-          const key = toKey(view.year, view.month, day);
-          const disabled = (min && key < min) || (max && key > max);
-          const selected = key === value;
-
-          return (
+      {pickingYear ? (
+        <div className="grid max-h-56 grid-cols-4 gap-1 overflow-y-auto">
+          {years.map((y) => (
             <button
-              key={key}
+              key={y}
               type="button"
-              disabled={Boolean(disabled)}
-              onClick={() => onPick(key)}
-              aria-pressed={selected}
-              aria-label={shownValue(key)}
+              onClick={() => {
+                setView((v) => ({ ...v, year: y }));
+                setPickingYear(false);
+              }}
+              aria-pressed={y === view.year}
               className={cx(
-                "flex h-9 items-center justify-center rounded-lg text-sm transition outline-none focus-visible:ring-4 focus-visible:ring-navy/10",
-                selected
+                "rounded-lg py-2 text-sm transition",
+                y === view.year
                   ? "bg-navy font-semibold text-white"
-                  : key === today
-                    ? "font-semibold text-navy ring-1 ring-navy/30 hover:bg-navy/10"
-                    : "text-text hover:bg-surface",
-                "disabled:cursor-not-allowed disabled:text-muted/40 disabled:hover:bg-transparent",
+                  : "text-text hover:bg-surface",
               )}
             >
-              {day}
+              {y}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {WEEKDAYS.map((day, i) => (
+            <span
+              key={i}
+              className="py-1 text-xs font-medium text-muted"
+              title={WEEKDAY_NAMES[i]}
+            >
+              {day}
+            </span>
+          ))}
+          {monthGrid(view.year, view.month).map((day, i) => {
+            if (!day) return <span key={`empty-${i}`} />;
+
+            const key = toKey(view.year, view.month, day);
+            const disabled = (min && key < min) || (max && key > max);
+            const selected = key === value;
+
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={Boolean(disabled)}
+                onClick={() => onPick(key)}
+                aria-pressed={selected}
+                aria-label={shownValue(key)}
+                className={cx(
+                  "flex h-9 items-center justify-center rounded-lg text-sm transition outline-none focus-visible:ring-4 focus-visible:ring-navy/10",
+                  selected
+                    ? "bg-navy font-semibold text-white"
+                    : key === today
+                      ? "font-semibold text-navy ring-1 ring-navy/30 hover:bg-navy/10"
+                      : "text-text hover:bg-surface",
+                  "disabled:cursor-not-allowed disabled:text-muted/40 disabled:hover:bg-transparent",
+                )}
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -143,7 +201,13 @@ export function DatePicker({
   const todayAllowed = (!min || today >= min) && (!max || today <= max);
 
   return (
-    <FormField label={label} hint={hint} error={error} required={required} className={className}>
+    <FormField
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      className={className}
+    >
       <Popover className="relative">
         <div className="relative">
           <PopoverButton
