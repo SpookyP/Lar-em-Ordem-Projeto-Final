@@ -6,7 +6,7 @@ import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
 import { socialErrorMessage } from "../../utils/socialErrors";
 
 export default function Login() {
-  const { login, isAuthenticated, logout } = useAuth();
+  const { login, refreshUser } = useAuth();
   const navigate = useNavigate();
   
   const [searchParams] = useSearchParams();
@@ -32,44 +32,14 @@ export default function Login() {
         message = "Email ou password incorretos.";
       } else if (status === 429) {
         message = "Demasiadas tentativas. Aguarde um pouco e tente novamente.";
+      } else if (status === 409) {
+        const current = await refreshUser().catch(() => null);
+        if (current) return;
       }
       setError(message);
     } finally {
       setSubmitting(false);
     }
-  }
-
-  async function handleLogout() {
-    await logout();
-  }
-
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface px-4">
-        <div className="w-full max-w-sm rounded-2xl bg-card p-8 shadow-lg text-center">
-          <h1 className="font-display text-2xl text-navy">
-            Já existe uma sessão iniciada
-          </h1>
-          <p className="mt-2 text-sm text-muted">
-            Clique em continuar para aceder à aplicação ou termine sessão.
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
-            <button
-              onClick={() => navigate("/profiles")}
-              className="rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
-            >
-              Continuar
-            </button>
-            <button
-              onClick={handleLogout}
-              className="rounded-xl border border-border px-5 py-3 font-medium text-text transition hover:bg-surface"
-            >
-              Terminar sessão
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
