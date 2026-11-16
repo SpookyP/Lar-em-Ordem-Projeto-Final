@@ -17,7 +17,7 @@ export function SiteLayout({ flush = false }) {
 
   return (
     <div className={`flex min-h-screen flex-col ${flush ? "bg-card" : "bg-surface"}`}>
-      <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
         <Link to="/login" className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-xl bg-navy text-white">
             <House size={18} aria-hidden="true" />

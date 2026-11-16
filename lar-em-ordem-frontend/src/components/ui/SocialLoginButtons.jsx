@@ -4,7 +4,7 @@ const API_URL = String(import.meta.env.VITE_API_BASE_URL ?? "").replace(
 );
 
 const linkClass =
-  "flex items-center justify-center gap-3 rounded-xl border border-border px-5 py-3 font-medium text-text transition hover:bg-surface";
+  "flex items-center justify-center gap-2.5 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-text transition hover:bg-surface";
 
 function MicrosoftIcon() {
   return (
@@ -19,21 +19,23 @@ function MicrosoftIcon() {
 
 export function SocialLoginButtons() {
   return (
-    <div className="mb-6 flex flex-col gap-3">
-      <a href={`${API_URL}/auth/google/redirect`} className={linkClass}>
-        <span className="w-5 text-center text-lg font-bold text-[#4285F4]">
-          G
-        </span>
-        Continuar com Google
-      </a>
-      <a href={`${API_URL}/auth/microsoft/redirect`} className={linkClass}>
-        <MicrosoftIcon />
-        Continuar com Microsoft
-      </a>
+    <div className="mb-6 flex flex-col gap-5">
+      <div className="grid grid-cols-2 gap-3">
+        <a href={`${API_URL}/auth/google/redirect`} className={linkClass}>
+          <span className="w-5 text-center text-lg font-bold leading-none text-[#4285F4]">
+            G
+          </span>
+          Google
+        </a>
+        <a href={`${API_URL}/auth/microsoft/redirect`} className={linkClass}>
+          <MicrosoftIcon />
+          Microsoft
+        </a>
+      </div>
 
-      <div className="mt-2 flex items-center gap-3 text-xs text-muted">
+      <div className="flex items-center gap-3 text-xs text-muted">
         <span className="h-px flex-1 bg-border" />
-        ou
+        ou com email
         <span className="h-px flex-1 bg-border" />
       </div>
     </div>

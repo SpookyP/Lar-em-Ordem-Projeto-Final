@@ -100,7 +100,6 @@ function AppRoutesInner() {
       <Routes location={background || location}>
         {/* Rota publica com restricao de sessao: se o user tiver sessao, redireciona para a pagina principal */}
         <Route element={<GuestRoute />}>
-          <Route path="/" element={<Login />} />
           <Route element={<SiteLayout flush />}>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />

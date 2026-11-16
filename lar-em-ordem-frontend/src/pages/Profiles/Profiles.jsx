@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
 import { getPropertiesPage } from "../../services/api/propertyService";
 import { HouseList } from "../../components/ui/HouseList";
+import { AuthSplit } from "../../components/layout/AuthSplit";
 
 export default function Profiles() {
   const navigate = useNavigate();
@@ -92,59 +93,66 @@ export default function Profiles() {
 
   if (deciding) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <p className="text-muted">A carregar...</p>
+      <div className="flex min-h-screen flex-col bg-card">
+        <AuthSplit>
+          <p className="text-muted">A carregar...</p>
+        </AuthSplit>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <h1 className="font-display text-3xl text-navy text-center">
-          {preselectedProfile ? "As minhas casas" : "Olá de novo"}
-        </h1>
-        <p className="text-muted text-center mb-8">
-          {preselectedProfile
-            ? "Em que casa quer entrar?"
-            : "Com que perfil quer entrar?"}
-        </p>
+    return (
+    <div className="flex min-h-screen flex-col bg-card">
+      <AuthSplit>
+        <div className="w-full max-w-md">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+            {preselectedProfile ? "Gestor de casas" : "Olá de novo"}
+          </p>
+          <h1 className="mt-2 font-display text-4xl text-navy">
+            {preselectedProfile ? "As minhas casas" : "Escolha o perfil"}
+          </h1>
+          <p className="mt-2 mb-7 text-sm text-muted">
+            {preselectedProfile
+              ? "Em que casa quer entrar?"
+              : "Com que perfil quer entrar?"}
+          </p>
 
-        {preselectedProfile ? (
-          <div className="rounded-2xl bg-card border border-border overflow-hidden">
-            <HouseList onEnter={(house) => enter(preselectedProfile, house)} />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {profiles.map((profile) => (
-              <ProfileCard
-                key={profile.name}
-                profile={profile}
-                isOpen={openProfile === profile.name}
-                onProfileClick={handleProfileClick}
-                onEnter={(house) => enter(profile, house)}
-              />
-            ))}
-          </div>
-        )}
-
-        <div className="mt-6 flex flex-col items-center gap-2">
-          {preselectedProfile && (
-            <button
-              onClick={() => navigate(-1)}
-              className="text-sm text-navy hover:underline"
-            >
-              ← Voltar
-            </button>
+          {preselectedProfile ? (
+            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <HouseList onEnter={(house) => enter(preselectedProfile, house)} />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {profiles.map((profile) => (
+                <ProfileCard
+                  key={profile.name}
+                  profile={profile}
+                  isOpen={openProfile === profile.name}
+                  onProfileClick={handleProfileClick}
+                  onEnter={(house) => enter(profile, house)}
+                />
+              ))}
+            </div>
           )}
-          <button
-            onClick={handleLogout}
-            className="text-sm text-muted hover:text-navy transition"
-          >
-            Terminar sessão
-          </button>
+
+          <div className="mt-7 flex items-center gap-5 text-sm">
+            {preselectedProfile && (
+              <button
+                onClick={() => navigate(-1)}
+                className="font-medium text-navy hover:underline"
+              >
+                ← Voltar
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="text-muted transition hover:text-navy"
+            >
+              Terminar sessão
+            </button>
+          </div>
         </div>
-      </div>
+      </AuthSplit>
     </div>
   );
 }

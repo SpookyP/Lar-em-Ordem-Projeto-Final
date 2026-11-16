@@ -23,6 +23,8 @@ const FEATURES = [
   },
 ];
 
+const EXAMPLE_BARS = ["h-20", "h-14", "h-16", "h-12", "h-10", "h-16"];
+
 export function AuthSplit({ children }) {
   return (
     <div className="grid flex-1 lg:grid-cols-2">
@@ -62,6 +64,42 @@ export function AuthSplit({ children }) {
               </li>
             ))}
           </ul>
+
+          <div aria-hidden="true" className="relative mt-6 h-56 max-w-md">
+            <div className="absolute left-0 top-0 w-80 rounded-2xl bg-card p-6 text-text shadow-xl">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                    Eletricidade
+                  </p>
+                  <p className="mt-1 font-display text-2xl text-navy">54 kWh</p>
+                </div>
+                <span className="rounded-full bg-green-light px-2.5 py-1 text-[11px] font-semibold text-green">
+                  −12% vs. mês anterior
+                </span>
+              </div>
+              <div className="mt-5 flex items-end gap-3">
+                {EXAMPLE_BARS.map((height, index) => (
+                  <span
+                    key={index}
+                    className={`flex-1 rounded-lg ${height} ${
+                      index === EXAMPLE_BARS.length - 1 ? "bg-teal" : "bg-border"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="absolute bottom-0 right-0 flex items-center gap-3.5 rounded-2xl bg-card px-5 py-4 text-text shadow-xl">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-orange-light text-orange">
+                <Wrench size={18} />
+              </span>
+              <div>
+                <p className="text-sm font-semibold">Fuga na cozinha</p>
+                <p className="text-xs text-muted">3 propostas recebidas</p>
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
     </div>
