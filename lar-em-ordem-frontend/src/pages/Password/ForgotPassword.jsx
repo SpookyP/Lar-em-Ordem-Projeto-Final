@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { forgotPassword } from "../../services/api/authService";
+import { TextInput } from "../../components/form";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -63,16 +64,14 @@ export default function ForgotPassword() {
         )}
 
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-text">Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-navy"
-            />
-          </label>
+          <TextInput
+            label="Email"
+            type="email"
+            required
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+          />
 
           <button
             type="submit"
