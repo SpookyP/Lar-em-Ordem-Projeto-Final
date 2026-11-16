@@ -16,7 +16,7 @@ export function ProposalCard({ proposal, canRespond, busy, onAccept, onReject })
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-col">
           <h3 className="font-display text-base text-navy">
-            {provider?.companyName ?? "Prestador"}
+            {provider?.companyName ?? "Prestador removido"}
           </h3>
           <span className="text-lg font-semibold text-navy">
             {formatMoney(proposal.value)}

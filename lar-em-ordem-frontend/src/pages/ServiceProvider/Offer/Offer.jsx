@@ -82,7 +82,7 @@ export default function Offer() {
             <div className="flex flex-col gap-2 border-t border-surface pt-4">
               <h3 className="text-sm font-semibold text-muted">Descrição</h3>
               <p className="text-sm text-navy leading-relaxed whitespace-pre-line wrap-break-word">
-                {request.description}
+                {request.description || "A descrição deste pedido foi removida."} 
               </p>
             </div>
 
