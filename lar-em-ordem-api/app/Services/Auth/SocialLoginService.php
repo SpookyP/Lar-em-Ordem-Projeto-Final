@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
  */
 class SocialLoginService
 {
+    public function __construct(private ProfileService $profiles) {}
     /**
      * @param array{id: string, email: ?string, email_verified: bool, name: string} $profile
      *
@@ -94,39 +95,10 @@ class SocialLoginService
             $user->save();
 
             $this->link($user, $pending['provider'], $pending);
-            $user->assignRole($role);
-            $this->createProfile($user, $role, $data);
+            $this->profiles->create($user, $role, $data);
 
             return $user;
         });
-    }
-
-    /**
-     * Os mesmos campos que o registo normal (CreateNewUser) guarda para cada tipo de conta.
-     */
-    private function createProfile(User $user, string $role, array $data): void
-    {
-        match ($role) {
-            'resident' => $user->resident()->create([
-                'nif' => $data['nif'],
-            ]),
-
-            'partner' => $user->partner()->create([
-                'company_name' => $data['company_name'],
-                'nif' => $data['nif'],
-                'phone' => $data['phone'],
-                'website' => $data['website'] ?? null,
-                'description' => $data['description'],
-            ]),
-
-            'service_provider' => $user->service_provider()->create([
-                'company_name' => $data['company_name'],
-                'nif' => $data['nif'],
-                'phone' => $data['phone'],
-                'provider_email' => $data['provider_email'] ?? null,
-                'description' => $data['description'],
-            ]),
-        };
     }
 
     /**

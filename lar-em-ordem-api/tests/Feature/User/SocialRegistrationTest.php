@@ -91,6 +91,20 @@ class SocialRegistrationTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_google_can_register_a_condominium_admin(): void
+    {
+        $this->register($this->pending(), [
+            'role' => 'condominium_admin',
+            'contact' => '912345678',
+            'admin_type' => 'professional',
+        ])->assertCreated();
+
+        $user = User::where('email', 'ana@gmail.com')->firstOrFail();
+
+        $this->assertTrue($user->hasRole('condominium_admin'));
+        $this->assertSame('912345678', $user->condominium_admin->contact);
+    }
+
     public function test_name_and_email_come_from_the_session_not_from_the_request(): void
     {
         $this->register($this->pending(), [
@@ -181,7 +195,7 @@ class SocialRegistrationTest extends TestCase
 
     public function test_unknown_or_privileged_role_is_rejected(): void
     {
-        foreach (['condominium_admin', 'SU', 'admin', ''] as $role) {
+        foreach (['SU', 'admin', ''] as $role) {
             $this->register($this->pending(), ['role' => $role, 'nif' => '212345678'])
                 ->assertStatus(422)
                 ->assertJsonValidationErrors(['role']);
