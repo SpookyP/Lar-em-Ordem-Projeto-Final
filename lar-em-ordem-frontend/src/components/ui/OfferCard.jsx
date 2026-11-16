@@ -60,7 +60,7 @@ export function OfferCard({
           to={to}
           className="rounded-full bg-navy px-3 py-1.5 text-sm whitespace-nowrap text-white transition hover:opacity-90"
         >
-          Fazer oferta
+          Ver pedido
         </Link>
       </div>
     </div>
