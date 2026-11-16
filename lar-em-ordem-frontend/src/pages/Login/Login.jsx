@@ -6,6 +6,8 @@ import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
 import { socialErrorMessage } from "../../utils/socialErrors";
 import { TextInput, PasswordField } from "../../components/form";
 import { AuthSplit } from "../../components/layout/AuthSplit";
+import { ServiceStatus } from "../../components/ui/ServiceStatus";
+import { InstallButton } from "../../components/ui/InstallButton";
 
 export default function Login() {
   const { login, refreshUser } = useAuth();
@@ -101,6 +103,11 @@ export default function Login() {
             </Link>
           </p>
         </form>
+
+        <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5">
+          <InstallButton />
+          <ServiceStatus />
+        </div>
       </div>
     </AuthSplit>
   );
