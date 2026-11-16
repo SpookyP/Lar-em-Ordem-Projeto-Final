@@ -6,6 +6,7 @@ import {
 } from "../../services/api/propertyService";
 import { useHouses } from "../../hooks/useHouses";
 import { ZoneSelect } from "./ZoneSelect";
+import { TextInput, SearchSelect, DatePicker, StepProgress } from "../form";
 
 const EMPTY_FORM = {
   property_type_id: "",
@@ -22,6 +23,23 @@ const EMPTY_FORM = {
   location: "",
   district: "",
 };
+
+const STEP1_FIELDS = [
+  "property_type_id",
+  "property_typology_id",
+  "resident_type_id",
+  "area",
+  "start_date",
+];
+
+const STEP2_FIELDS = [
+  "street",
+  "door",
+  "postal_code",
+  "district",
+  "county",
+  "location",
+];
 
 function propertyToForm(p) {
   return {
@@ -56,6 +74,7 @@ export function PropertyForm({
   const { refreshHouses } = useHouses();
   const [createdSummary, setCreatedSummary] = useState(null);
   const isEditing = Boolean(property);
+  const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -67,15 +86,48 @@ export function PropertyForm({
     };
   }, []);
 
-  function handleChange(e) {
-    const { name, value } = e.target;
+  function setField(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function isMissing(fields) {
+    return fields.some((name) => !form[name]);
+  }
+
+  function goBack() {
+    setStatus(null);
+    setErrorMsg("");
+    setStepIndex(0);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setStatus("saving");
     setErrorMsg("");
+
+    if (stepIndex === 0) {
+      if (isMissing(STEP1_FIELDS)) {
+        setErrorMsg("Preenche todos os campos obrigatórios.");
+        setStatus("error");
+        return;
+      }
+      setStatus(null);
+      setStepIndex(1);
+      return;
+    }
+
+    if (isMissing(STEP1_FIELDS)) {
+      setErrorMsg("Preenche todos os campos obrigatórios.");
+      setStatus("error");
+      setStepIndex(0);
+      return;
+    }
+    if (isMissing(STEP2_FIELDS)) {
+      setErrorMsg("Preenche todos os campos obrigatórios.");
+      setStatus("error");
+      return;
+    }
+
+    setStatus("saving");
 
     const payload = {
       property_type_id: Number(form.property_type_id),
@@ -138,6 +190,7 @@ export function PropertyForm({
     setForm(EMPTY_FORM);
     setCreatedSummary(null);
     setStatus(null);
+    setStepIndex(0);
   }
 
   if (createdSummary) {
@@ -186,215 +239,138 @@ export function PropertyForm({
     return <p className="text-sm text-muted">A carregar...</p>;
   }
 
-  const inputClass =
-    "rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-navy";
-
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {/* Tipo de imóvel */}
-      <div className="flex flex-col gap-1">
-        <label htmlFor="property_type_id" className="text-sm text-muted">
-          Tipo de imóvel
-        </label>
-        <select
-          id="property_type_id"
-          name="property_type_id"
-          value={form.property_type_id}
-          onChange={handleChange}
-          required
-          className={inputClass}
-        >
-          <option value="" disabled>
-            Escolher...
-          </option>
-          {options.propertyTypes.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <StepProgress current={stepIndex} total={2} />
+      <p className="text-xs text-muted">
+        <span className="text-red">*</span> Campos de preenchimento obrigatório
+      </p>
 
-      {/* Tipologia */}
-      <div className="flex flex-col gap-1">
-        <label htmlFor="property_typology_id" className="text-sm text-muted">
-          Tipologia
-        </label>
-        <select
-          id="property_typology_id"
-          name="property_typology_id"
-          value={form.property_typology_id}
-          onChange={handleChange}
-          required
-          className={inputClass}
-        >
-          <option value="" disabled>
-            Escolher...
-          </option>
-          {options.typologies.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {stepIndex === 0 ? (
+        <>
+          <SearchSelect
+            label="Tipo de imóvel"
+            required
+            options={options.propertyTypes.map((t) => ({
+              value: String(t.id),
+              label: t.label,
+            }))}
+            value={form.property_type_id}
+            onChange={(v) => setField("property_type_id", v)}
+          />
 
-      {/* Vinculo */}
-      <div className="flex flex-col gap-1">
-        <label htmlFor="resident_type_id" className="text-sm text-muted">
-          Vínculo
-        </label>
-        <select
-          id="resident_type_id"
-          name="resident_type_id"
-          value={form.resident_type_id}
-          onChange={handleChange}
-          required
-          className={inputClass}
-        >
-          <option value="" disabled>
-            Escolher...
-          </option>
-          {options.residentTypes.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
+          <SearchSelect
+            label="Tipologia"
+            required
+            options={options.typologies.map((t) => ({
+              value: String(t.id),
+              label: t.label,
+            }))}
+            value={form.property_typology_id}
+            onChange={(v) => setField("property_typology_id", v)}
+          />
 
-      {/* Área */}
-      <div className="flex flex-col gap-1">
-        <label htmlFor="area" className="text-sm text-muted">
-          Área (m²)
-        </label>
-        <input
-          id="area"
-          name="area"
-          type="number"
-          value={form.area}
-          onChange={handleChange}
-          onWheel={(e) => e.currentTarget.blur()}
-          required
-          placeholder="ex: 100"
-          className={inputClass}
-        />
-      </div>
+          <SearchSelect
+            label="Vínculo"
+            required
+            options={options.residentTypes.map((t) => ({
+              value: String(t.id),
+              label: t.label,
+            }))}
+            value={form.resident_type_id}
+            onChange={(v) => setField("resident_type_id", v)}
+          />
 
-      {/* Datas */}
-      <div className="flex flex-col gap-1">
-        <label htmlFor="start_date" className="text-sm text-muted">
-          Data de início
-        </label>
-        <input
-          id="start_date"
-          name="start_date"
-          type="date"
-          value={form.start_date}
-          onChange={handleChange}
-          required
-          className={inputClass}
-        />
-      </div>
+          <TextInput
+            label="Área (m²)"
+            type="number"
+            required
+            value={form.area}
+            onChange={(v) => setField("area", v)}
+            onWheel={(e) => e.currentTarget.blur()}
+            placeholder="ex: 100"
+          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <DatePicker
+              label="Data de início"
+              required
+              value={form.start_date}
+              onChange={(v) => setField("start_date", v)}
+            />
+            <DatePicker
+              label="Data de fim"
+              value={form.end_date}
+              onChange={(v) => setField("end_date", v)}
+              min={form.start_date || undefined}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <TextInput
+            label="Rua"
+            required
+            value={form.street}
+            onChange={(v) => setField("street", v)}
+            placeholder="ex: Rua Amália Rodrigues"
+          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <TextInput
+              label="Porta"
+              required
+              value={form.door}
+              onChange={(v) => setField("door", v)}
+              placeholder="ex: 153"
+            />
+            <TextInput
+              label="Fração"
+              value={form.fraction}
+              onChange={(v) => setField("fraction", v)}
+              placeholder="ex: 2º Dto."
+            />
+          </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="end_date" className="text-sm text-muted">
-          Data de fim (opcional)
-        </label>
-        <input
-          id="end_date"
-          name="end_date"
-          type="date"
-          value={form.end_date}
-          onChange={handleChange}
-          className={inputClass}
-        />
-      </div>
+          <TextInput
+            label="Código postal"
+            required
+            value={form.postal_code}
+            onChange={(v) => setField("postal_code", v)}
+            placeholder="ex: 4000-400"
+          />
 
-      {/* Morada */}
-      <div className="flex flex-col gap-1">
-        <label htmlFor="street" className="text-sm text-muted">
-          Rua
-        </label>
-        <input
-          id="street"
-          name="street"
-          type="text"
-          value={form.street}
-          onChange={handleChange}
-          required
-          placeholder="ex: Rua Amália Rodrigues"
-          className={inputClass}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="door" className="text-sm text-muted">
-          Porta
-        </label>
-        <input
-          id="door"
-          name="door"
-          type="text"
-          value={form.door}
-          onChange={handleChange}
-          required
-          placeholder="ex: Nº 153"
-          className={inputClass}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="fraction" className="text-sm text-muted">
-          Fração (opcional)
-        </label>
-        <input
-          id="fraction"
-          name="fraction"
-          type="text"
-          value={form.fraction}
-          onChange={handleChange}
-          placeholder="ex: 2º Dto."
-          className={inputClass}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="postal_code" className="text-sm text-muted">
-          Código postal
-        </label>
-        <input
-          id="postal_code"
-          name="postal_code"
-          type="text"
-          value={form.postal_code}
-          onChange={handleChange}
-          required
-          placeholder="ex: 4000-400"
-          className={inputClass}
-        />
-      </div>
-
-      <ZoneSelect
-        district={form.district}
-        county={form.county}
-        location={form.location}
-        onChange={(zone) => setForm((prev) => ({ ...prev, ...zone }))}
-      />
+          <ZoneSelect
+            district={form.district}
+            county={form.county}
+            location={form.location}
+            onChange={(zone) => setForm((prev) => ({ ...prev, ...zone }))}
+          />
+        </>
+      )}
 
       {status === "error" && <p className="text-sm text-red-600">{errorMsg}</p>}
 
       <div className="flex gap-3 self-start">
+        {stepIndex === 1 && (
+          <button
+            type="button"
+            onClick={goBack}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text transition hover:bg-surface"
+          >
+            Voltar
+          </button>
+        )}
         <button
           type="submit"
           disabled={status === "saving"}
           className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-dark disabled:opacity-60"
         >
-          {status === "saving"
-            ? "A guardar..."
-            : isEditing
-              ? "Guardar alterações"
-              : "Criar habitação"}
+          {stepIndex === 0
+            ? "Continuar"
+            : status === "saving"
+              ? "A guardar..."
+              : isEditing
+                ? "Guardar alterações"
+                : "Criar habitação"}
         </button>
         {secondaryAction}
       </div>

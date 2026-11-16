@@ -6,14 +6,26 @@ const selectClass =
   "rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-navy disabled:bg-surface disabled:text-muted";
 
 function withCurrent(options, current) {
-  return current && !options.includes(current) ? [current, ...options] : options;
+  return current && !options.includes(current)
+    ? [current, ...options]
+    : options;
 }
 
-function Select({ id, label, value, options, placeholder, disabled, onChange }) {
+function Select({
+  id,
+  label,
+  value,
+  options,
+  placeholder,
+  disabled,
+  required,
+  onChange,
+}) {
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="text-sm text-muted">
         {label}
+        {required && <span className="ml-0.5 text-red">*</span>}
       </label>
       <select
         id={id}
@@ -53,7 +65,9 @@ export function ZoneSelect({ district, county, location, onChange }) {
 
   if (failed) {
     return (
-      <p className="text-sm text-red-600">Não foi possível carregar as zonas.</p>
+      <p className="text-sm text-red-600">
+        Não foi possível carregar as zonas.
+      </p>
     );
   }
   if (!zones) return <p className="text-sm text-muted">A carregar zonas...</p>;
@@ -75,7 +89,10 @@ export function ZoneSelect({ district, county, location, onChange }) {
         value={district}
         options={districts}
         placeholder="Escolher distrito..."
-        onChange={(value) => onChange({ district: value, county: "", location: "" })}
+        required
+        onChange={(value) =>
+          onChange({ district: value, county: "", location: "" })
+        }
       />
       <Select
         id="county"
@@ -84,7 +101,10 @@ export function ZoneSelect({ district, county, location, onChange }) {
         options={counties}
         placeholder="Escolher concelho..."
         disabled={!district}
-        onChange={(value) => onChange({ district, county: value, location: "" })}
+        required
+        onChange={(value) =>
+          onChange({ district, county: value, location: "" })
+        }
       />
       <Select
         id="location"
@@ -93,6 +113,7 @@ export function ZoneSelect({ district, county, location, onChange }) {
         options={locations}
         placeholder="Escolher localidade..."
         disabled={!county}
+        required
         onChange={(value) => onChange({ district, county, location: value })}
       />
     </>
