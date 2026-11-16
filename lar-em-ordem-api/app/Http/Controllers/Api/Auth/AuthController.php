@@ -20,31 +20,6 @@ class AuthController extends Controller
 {
     public function __construct(private ProfileService $profileService) {}
     
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if (!AuthFacade::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        $request->session()->regenerate();
-
-        return response()->json(['user' => AuthFacade::user()]);
-    }
-
-    public function logout(Request $request)
-    {
-        AuthFacade::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return response()->json(['message' => 'Logged out']);
-    }
-
     public function user(Request $request)
     {
         $user = $request->user()->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin','social_account']);
