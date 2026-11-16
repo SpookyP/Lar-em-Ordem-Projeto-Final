@@ -16,7 +16,7 @@ export function SiteLayout({ flush = false }) {
   if (isAuthenticated) return <AppLayout />;
 
   return (
-    <div className={`flex min-h-screen flex-col ${flush ? "bg-card" : "bg-surface"}`}>
+    <div className={`flex flex-col ${flush ? "h-dvh bg-card" : "min-h-screen bg-surface"}`}>
       <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
         <Link to="/login" className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-xl bg-navy text-white">
@@ -39,7 +39,7 @@ export function SiteLayout({ flush = false }) {
           </Link>
         </nav>
       </header>
-      <main className={flush ? "flex flex-1 flex-col" : "flex-1 p-6"}>
+      <main className={flush ? "flex min-h-0 flex-1 flex-col" : "flex-1 p-6"}>
         <Outlet />
       </main>
       <Footer />

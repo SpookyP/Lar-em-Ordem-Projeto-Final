@@ -27,10 +27,12 @@ const EXAMPLE_BARS = ["h-20", "h-14", "h-16", "h-12", "h-10", "h-16"];
 
 export function AuthSplit({ children }) {
   return (
-    <div className="grid flex-1 lg:grid-cols-2">
-      <div className="flex items-center justify-center px-6 py-10">{children}</div>
+    <div className="grid min-h-0 flex-1 lg:grid-cols-2">
+      <div className="flex min-h-0 overflow-y-auto px-6 py-8">
+        <div className="m-auto flex w-full justify-center">{children}</div>
+      </div>
 
-      <aside className="relative hidden overflow-hidden bg-navy px-14 py-16 text-white lg:flex lg:flex-col lg:justify-center">
+      <aside className="relative hidden min-h-0 overflow-hidden bg-navy px-12 py-8 text-white lg:flex lg:flex-col lg:justify-center">
         <House
           size={420}
           strokeWidth={0.4}
@@ -38,11 +40,11 @@ export function AuthSplit({ children }) {
           className="pointer-events-none absolute -right-24 -top-10 text-white/10"
         />
 
-        <div className="relative flex max-w-xl flex-col gap-6">
+        <div className="relative flex max-w-xl flex-col gap-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-light">
             Sobre o projeto
           </p>
-          <h2 className="font-display text-5xl leading-tight">
+          <h2 className="font-display text-4xl leading-tight 2xl:text-5xl">
             A sua casa, <em className="text-orange">em ordem.</em>
           </h2>
           <p className="leading-relaxed text-white/80">
@@ -51,7 +53,7 @@ export function AuthSplit({ children }) {
             pilha de papéis e faturas.
           </p>
 
-          <ul className="mt-4 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+          <ul className="mt-2 grid gap-x-8 gap-y-5 sm:grid-cols-2">
             {FEATURES.map(({ icon: Icon, title, text }) => (
               <li key={title} className="flex items-start gap-3.5">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
@@ -65,7 +67,10 @@ export function AuthSplit({ children }) {
             ))}
           </ul>
 
-          <div aria-hidden="true" className="relative mt-6 h-56 max-w-md">
+          <div
+            aria-hidden="true"
+            className="relative mt-4 hidden h-56 max-w-md [@media(min-height:900px)]:block"
+          >
             <div className="absolute left-0 top-0 w-80 rounded-2xl bg-card p-6 text-text shadow-xl">
               <div className="flex items-start justify-between gap-3">
                 <div>
