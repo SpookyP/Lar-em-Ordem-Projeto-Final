@@ -19,6 +19,11 @@ function readStored(key) {
   }
 }
 
+function forgetStoredProfile() {
+  localStorage.removeItem("activeProfile");
+  localStorage.removeItem("activeHouse");
+}
+
 //Provider vai distribuir a info da autenticacao
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -77,6 +82,9 @@ export function AuthProvider({ children }) {
         setUser(currentUser);
       } catch {
         setUser(null);
+        setActiveProfile(null);
+        setActiveHouse(null);
+        forgetStoredProfile();
       } finally {
         setLoading(false);
       }
@@ -93,13 +101,14 @@ export function AuthProvider({ children }) {
   async function logout() {
     try {
       await logoutService();
+    } catch (error) {
+      if (![401, 419].includes(error.response?.status)) throw error;
     } finally {
       setUser(null);
       setActiveHouse(null);
       setActiveProfile(null);
       setCondominiumResult({ houseId: null, data: null });
-      localStorage.removeItem("activeProfile");
-      localStorage.removeItem("activeHouse");
+      forgetStoredProfile();
     }
   }
 
