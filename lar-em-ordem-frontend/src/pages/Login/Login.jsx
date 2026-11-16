@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
 import { socialErrorMessage } from "../../utils/socialErrors";
 import { TextInput, PasswordField } from "../../components/form";
+import { AuthSplit } from "../../components/layout/AuthSplit";
 
 export default function Login() {
   const { login, refreshUser } = useAuth();
@@ -43,22 +45,25 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-card p-8 shadow-lg">
-        <h1 className="font-display text-3xl text-center text-navy">Login</h1>
-        <p className="mt-1 mb-6 text-sm text-center text-muted">
-          Inicie sessão para continuar
+    <AuthSplit>
+      <div className="w-full max-w-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+          Bem-vindo de volta
+        </p>
+        <h1 className="mt-2 font-display text-4xl text-navy">Iniciar sessão</h1>
+        <p className="mt-2 mb-7 text-sm text-muted">
+          Aceda à sua casa, aos seus documentos e aos seus pedidos.
         </p>
 
         {(error || errorSocial) && (
-          <div className="mb-4 rounded-lg bg-red-light px-3 py-2 text-sm text-red">
+          <div role="alert" className="mb-5 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
             {error || errorSocial}
           </div>
         )}
 
         <SocialLoginButtons />
 
-        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           <TextInput
             label="Email"
             type="email"
@@ -66,6 +71,7 @@ export default function Login() {
             value={email}
             onChange={setEmail}
             autoComplete="email"
+            placeholder="nome@exemplo.pt"
           />
           <PasswordField
             label="Password"
@@ -74,29 +80,28 @@ export default function Login() {
             onChange={setPassword}
             autoComplete="current-password"
           />
+          <Link
+            to="/forgot-password"
+            className="-mt-1 self-end text-sm font-medium text-teal hover:underline"
+          >
+            Esqueceu-se da password?
+          </Link>
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
+            className="flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3.5 font-semibold text-white shadow-lg shadow-navy/20 transition hover:bg-navy-light disabled:opacity-60"
           >
             {submitting ? "A entrar..." : "Entrar"}
+            {!submitting && <ArrowRight size={18} aria-hidden="true" />}
           </button>
-          <div className="mt-3 text-center">
-            <Link
-              to="/forgot-password"
-              className="text-sm font-medium text-navy hover:underline"
-            >
-              Esqueceu-se da password?
-            </Link>
-          </div>
-          <p className="-mt-3 text-center text-sm text-muted">
-            Não tem conta?{" "}
-            <Link to="/register" className="font-medium text-navy">
+          <p className="text-center text-sm text-muted">
+            Ainda não tem conta?{" "}
+            <Link to="/register" className="font-semibold text-navy hover:underline">
               Criar conta
             </Link>
           </p>
         </form>
       </div>
-    </div>
+    </AuthSplit>
   );
 }

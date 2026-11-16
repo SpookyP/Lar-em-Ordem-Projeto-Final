@@ -7,18 +7,15 @@ import {
 } from "../../services/api/authService";
 import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
 import { ProfileWizard } from "../../components/profile/ProfileWizard";
+import { AuthSplit } from "../../components/layout/AuthSplit";
 
 const PROVIDER_NAMES = { google: "Google", microsoft: "Microsoft" };
 
 function Card({ children, className = "" }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface p-6">
-      <div
-        className={`w-full max-w-lg rounded-2xl border border-border bg-card p-8 ${className}`}
-      >
-        {children}
-      </div>
-    </div>
+    <AuthSplit>
+      <div className={`w-full max-w-lg ${className}`}>{children}</div>
+    </AuthSplit>
   );
 }
 
@@ -134,9 +131,9 @@ export default function Register() {
 
   if (wantsSocial && socialStatus === "checking") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface p-6">
+      <AuthSplit>
         <p className="text-muted">A verificar o registo...</p>
-      </div>
+      </AuthSplit>
     );
   }
 
@@ -160,7 +157,10 @@ export default function Register() {
 
   return (
     <Card>
-      <h1 className="font-display text-3xl text-navy">Criar conta</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+        Comece aqui
+      </p>
+      <h1 className="mt-2 font-display text-4xl text-navy">Criar conta</h1>
       {socialMode && (
         <p className="mt-2 text-sm text-muted">
           A continuar com {providerName}:{" "}

@@ -101,9 +101,11 @@ function AppRoutesInner() {
         {/* Rota publica com restricao de sessao: se o user tiver sessao, redireciona para a pagina principal */}
         <Route element={<GuestRoute />}>
           <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route element={<SiteLayout flush />}>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
         </Route>
         {/* Rota publica: qualquer um pode aceder */}
         <Route path="/reset-password" element={<ResetPassword />} />
