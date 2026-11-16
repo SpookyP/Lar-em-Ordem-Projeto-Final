@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Clock, Euro } from "lucide-react";
-import { DatePicker, TextArea, TextInput } from "../form";
+import { Euro } from "lucide-react";
+import { DatePicker, TextArea, TextInput, TimePicker } from "../form";
 import { todayISO } from "../../utils/date";
 import { getErrorMessage } from "../../utils/apiError";
 
@@ -24,8 +24,8 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!form.validity || !form.availableDate) {
-      setError("Indique a validade da proposta e a data de disponibilidade.");
+    if (!form.availableFrom || !form.availableUntil) {
+      setError("Indique a hora de início e a hora de fim.");
       return;
     }
     if (form.availableUntil <= form.availableFrom) {
@@ -79,18 +79,14 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
           value={form.availableDate}
           onChange={(v) => setField("availableDate", v)}
         />
-        <TextInput
+        <TimePicker
           label="Disponível a partir das"
-          icon={Clock}
-          type="time"
           required
           value={form.availableFrom}
           onChange={(v) => setField("availableFrom", v)}
         />
-        <TextInput
+        <TimePicker
           label="Disponível até às"
-          icon={Clock}
-          type="time"
           required
           value={form.availableUntil}
           onChange={(v) => setField("availableUntil", v)}
