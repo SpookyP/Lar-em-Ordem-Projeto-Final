@@ -1,16 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Compass } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { ROLE_INFO } from "../../data/roleInfo";
+import { homePath } from "../../data/roleInfo";
 
 export default function NotFound() {
   const navigate = useNavigate();
   const { isAuthenticated, activeProfile } = useAuth();
 
   function goHome() {
-    if (!isAuthenticated) return navigate("/");
-    if (!activeProfile) return navigate("/profiles");
-    navigate(ROLE_INFO[activeProfile.name]?.home ?? "/profiles");
+    navigate(isAuthenticated ? homePath(activeProfile?.name) : "/");
   }
 
   return (
