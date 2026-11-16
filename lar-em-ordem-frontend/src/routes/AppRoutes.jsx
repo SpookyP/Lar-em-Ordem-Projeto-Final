@@ -3,6 +3,7 @@ import { PrivateRoute } from "./PrivateRoute";
 import { GuestRoute } from "./GuestRoute";
 import { AppLayout } from "../components/layout/AppLayout";
 import { SiteLayout } from "../components/layout/SiteLayout";
+import { SessionTimeout } from "../components/layout/SessionTimeout";
 import { ROLES } from "../utils/roles";
 import { lazy, Suspense } from "react";
 
@@ -206,6 +207,7 @@ export function AppRoutes() {
   return (
     <BrowserRouter>
       <AppRoutesInner />
+      <SessionTimeout />
     </BrowserRouter>
   );
 }
