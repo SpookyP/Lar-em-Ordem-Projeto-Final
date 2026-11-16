@@ -32,5 +32,7 @@ export const PROPOSAL_STATUS = {
   withdrawn: { label: "Retirada", style: "bg-surface text-muted" },
 };
 
-export const proposalStatus = (status) =>
-  PROPOSAL_STATUS[status] ?? PROPOSAL_FALLBACK;
+const PROPOSAL_EXPIRED = { label: "Expirada", style: "bg-surface text-muted" };
+
+export const proposalStatus = (status, isExpired = false) =>
+  isExpired ? PROPOSAL_EXPIRED : (PROPOSAL_STATUS[status] ?? PROPOSAL_FALLBACK);
