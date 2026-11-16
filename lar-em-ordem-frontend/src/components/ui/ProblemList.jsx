@@ -3,6 +3,13 @@ import { Pager } from "./Pager";
 import { categoryInfo } from "../../data/assistanceInfo";
 import { formatDate } from "../../utils/date";
 
+const STATUS_FILTERS = [
+  { value: "", label: "Todos" },
+  { value: "open", label: "Pendente" },
+  { value: "closed", label: "Aceite" },
+  { value: "cancelled", label: "Cancelado" },
+];
+
 export default function ProblemList({
   requests,
   loading,
@@ -11,6 +18,8 @@ export default function ProblemList({
   totalPages,
   total,
   onPageChange,
+  status = "",
+  onStatusChange,
 }) {
   return (
     <div className="rounded-2xl bg-card p-6 shadow-sm flex flex-col gap-4">
@@ -19,13 +28,34 @@ export default function ProblemList({
         <span className="text-xs text-muted">Total: {total} pedidos</span>
       </div>
 
+      {onStatusChange && (
+        <div className="flex flex-wrap gap-2">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value || "all"}
+              type="button"
+              onClick={() => onStatusChange(f.value)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                status === f.value
+                  ? "bg-navy text-white"
+                  : "bg-surface text-muted hover:text-navy"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <p className="text-sm text-muted">A carregar...</p>
       ) : error ? (
         <p className="text-sm text-red">{error}</p>
       ) : requests.length === 0 ? (
         <p className="text-sm text-muted">
-          Ainda não existem pedidos registados.
+          {status
+            ? "Nenhum pedido com este estado."
+            : "Ainda não existem pedidos registados."}
         </p>
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -38,9 +68,9 @@ export default function ProblemList({
                 icon={icon}
                 iconColor={color}
                 category={r.category.name}
-                description={r.description}
+                title={r.title}
                 postedAt={formatDate(r.createdAt)}
-                status={r.statusLabel}
+                status={r.status}
                 proposals={r.proposalsCount}
                 to={`/assistance/${r.id}`}
               />
