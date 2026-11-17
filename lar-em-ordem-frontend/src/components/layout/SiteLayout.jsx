@@ -1,5 +1,4 @@
 import { Link, Outlet } from "react-router-dom";
-import { House } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { AppLayout } from "./AppLayout";
 import { Footer } from "./Footer";
@@ -19,9 +18,7 @@ export function SiteLayout({ flush = false }) {
     <div className={`flex flex-col ${flush ? "min-h-dvh bg-card lg:h-dvh" : "min-h-screen bg-surface"}`}>
       <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
         <Link to="/login" className="flex items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-navy text-white">
-            <House size={18} aria-hidden="true" />
-          </span>
+          <img src="/logo.svg" alt="" className="size-9" />
           <span className="whitespace-nowrap font-display text-lg text-navy sm:text-xl">
             Lar em Ordem
           </span>
