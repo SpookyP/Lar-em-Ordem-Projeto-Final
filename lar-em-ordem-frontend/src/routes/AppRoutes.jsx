@@ -54,6 +54,9 @@ const Offer = lazy(() => import("../pages/ServiceProvider/Offer/Offer"));
 const Proposals = lazy(
   () => import("../pages/ServiceProvider/Proposal/Proposal"),
 );
+const ProposalFormPage = lazy(
+  () => import("../pages/ServiceProvider/ProposalFormPage/ProposalFormPage"),
+);
 
 //Parceiro
 const MyOffers = lazy(() => import("../pages/Partner/MyOffers/MyOffers"));
