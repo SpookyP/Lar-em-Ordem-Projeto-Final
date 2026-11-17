@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Building, FolderClosed, House, Wrench, Zap } from "lucide-react";
 
 const FEATURES = [
@@ -24,8 +25,26 @@ const FEATURES = [
 ];
 
 const EXAMPLE_BARS = ["h-20", "h-14", "h-16", "h-12", "h-10", "h-16"];
+const SLIDES = ["O que pode fazer", "Exemplo"];
+const SLIDE_MS = 7000;
+
+const slideClass = (active) =>
+  `col-start-1 row-start-1 transition-opacity duration-700 ${
+    active ? "opacity-100" : "pointer-events-none opacity-0"
+  }`;
 
 export function AuthSplit({ children }) {
+  const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = setInterval(
+      () => setSlide((current) => (current + 1) % SLIDES.length),
+      SLIDE_MS,
+    );
+    return () => clearInterval(timer);
+  }, [slide]);
+
   return (
     <div className="grid min-h-0 flex-1 lg:grid-cols-2">
       <div className="flex min-h-0 overflow-y-auto px-6 py-8">
@@ -53,57 +72,74 @@ export function AuthSplit({ children }) {
             pilha de papéis e faturas.
           </p>
 
-          <ul className="mt-2 grid gap-x-8 gap-y-5 sm:grid-cols-2">
-            {FEATURES.map(({ icon: Icon, title, text }) => (
-              <li key={title} className="flex items-start gap-3.5">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                  <Icon size={18} aria-hidden="true" />
+          <div className="mt-2 grid items-center">
+            <ul
+              aria-hidden={slide !== 0}
+              className={`grid gap-x-8 gap-y-5 sm:grid-cols-2 ${slideClass(slide === 0)}`}
+            >
+              {FEATURES.map(({ icon: Icon, title, text }) => (
+                <li key={title} className="flex items-start gap-3.5">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
+                    <Icon size={18} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h3 className="font-semibold">{title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-white/70">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div aria-hidden="true" className={`relative h-56 max-w-md ${slideClass(slide === 1)}`}>
+              <div className="absolute left-0 top-0 w-80 rounded-2xl bg-card p-6 text-text shadow-xl">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                      Eletricidade
+                    </p>
+                    <p className="mt-1 font-display text-2xl text-navy">54 kWh</p>
+                  </div>
+                  <span className="rounded-full bg-green-light px-2.5 py-1 text-[11px] font-semibold text-green">
+                    −12% vs. mês anterior
+                  </span>
+                </div>
+                <div className="mt-5 flex items-end gap-3">
+                  {EXAMPLE_BARS.map((height, index) => (
+                    <span
+                      key={index}
+                      className={`flex-1 rounded-lg ${height} ${
+                        index === EXAMPLE_BARS.length - 1 ? "bg-teal" : "bg-border"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="absolute bottom-0 right-0 flex items-center gap-3.5 rounded-2xl bg-card px-5 py-4 text-text shadow-xl">
+                <span className="flex size-10 items-center justify-center rounded-xl bg-orange-light text-orange">
+                  <Wrench size={18} />
                 </span>
                 <div>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-white/70">{text}</p>
+                  <p className="text-sm font-semibold">Fuga na cozinha</p>
+                  <p className="text-xs text-muted">3 propostas recebidas</p>
                 </div>
-              </li>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-2 flex gap-2">
+            {SLIDES.map((label, index) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setSlide(index)}
+                aria-label={label}
+                aria-pressed={slide === index}
+                className={`h-1.5 rounded-full transition-all ${
+                  slide === index ? "w-8 bg-white" : "w-4 bg-white/30 hover:bg-white/50"
+                }`}
+              />
             ))}
-          </ul>
-
-          <div
-            aria-hidden="true"
-            className="relative mt-4 hidden h-56 max-w-md [@media(min-height:900px)]:block"
-          >
-            <div className="absolute left-0 top-0 w-80 rounded-2xl bg-card p-6 text-text shadow-xl">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-                    Eletricidade
-                  </p>
-                  <p className="mt-1 font-display text-2xl text-navy">54 kWh</p>
-                </div>
-                <span className="rounded-full bg-green-light px-2.5 py-1 text-[11px] font-semibold text-green">
-                  −12% vs. mês anterior
-                </span>
-              </div>
-              <div className="mt-5 flex items-end gap-3">
-                {EXAMPLE_BARS.map((height, index) => (
-                  <span
-                    key={index}
-                    className={`flex-1 rounded-lg ${height} ${
-                      index === EXAMPLE_BARS.length - 1 ? "bg-teal" : "bg-border"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="absolute bottom-0 right-0 flex items-center gap-3.5 rounded-2xl bg-card px-5 py-4 text-text shadow-xl">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-orange-light text-orange">
-                <Wrench size={18} />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Fuga na cozinha</p>
-                <p className="text-xs text-muted">3 propostas recebidas</p>
-              </div>
-            </div>
           </div>
         </div>
       </aside>
