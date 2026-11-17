@@ -5,7 +5,7 @@ import { Check } from "lucide-react";
 import { addProfile } from "../../services/api/accountService";
 import { accountTypes } from "../../data/registerFields";
 import { ProfileWizard } from "../profile/ProfileWizard";
-
+import { ROLES } from "../../utils/roles";
 
 export function ProfileForm() {
   const { user, refreshUser } = useAuth();
@@ -13,12 +13,15 @@ export function ProfileForm() {
   const [round, setRound] = useState(0);
 
   const currentRoles = user?.roles ?? [];
-  const available = accountTypes.filter((t) => !currentRoles.includes(t.role));
+  const available = accountTypes.filter(
+    (t) => !currentRoles.includes(t.role) && t.role !== ROLES.PARTNER,
+  );
 
   async function handleSubmit(payload) {
     await addProfile(payload);
     await refreshUser();
-    const label = accountTypes.find((t) => t.role === payload.role)?.label ?? "";
+    const label =
+      accountTypes.find((t) => t.role === payload.role)?.label ?? "";
     setAdded(label.toLowerCase());
   }
 
@@ -60,7 +63,9 @@ export function ProfileForm() {
   }
 
   if (available.length === 0) {
-    return <p className="text-sm text-muted">Já tem todos os perfis disponíveis.</p>;
+    return (
+      <p className="text-sm text-muted">Já tem todos os perfis disponíveis.</p>
+    );
   }
 
   return (
