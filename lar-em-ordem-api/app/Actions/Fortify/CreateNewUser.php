@@ -55,7 +55,7 @@ class CreateNewUser implements CreatesNewUsers
         return Validator::make(
             $input,
             array_merge($rules, $roleRequest?->rules() ?? [], ConsentService::signUpRules($existingAccount)),
-            array_merge($roleRequest?->messages() ?? [], ConsentService::signUpMessages())
+            array_merge($roleRequest?->messages() ?? [], ConsentService::signUpMessages(), $this->passwordMessages())
         )->validate();
     }
 
