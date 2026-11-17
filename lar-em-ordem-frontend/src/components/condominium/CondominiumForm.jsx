@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Building, Euro, MapPin } from "lucide-react";
-import { SearchSelect, TextInput } from "../form";
+import { createPortal } from "react-dom";
+import { Building, Euro, MapPin, X } from "lucide-react";
+import { SearchSelect, StepProgress, TextInput } from "../form";
 import { getZones } from "../../services/api/catalogService";
 import {
   createCondominium,
@@ -9,7 +10,33 @@ import {
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import { getCounties, getDistricts, getLocations } from "../../utils/zones";
 
-// a saved value missing from the list (an older address) still shows as chosen
+const STEPS = [
+  {
+    title: "Condomínio",
+    description: "O nome do prédio e o valor do fundo comum de reserva.",
+    fields: ["name", "reserve_fund"],
+  },
+  {
+    title: "Morada",
+    description: "A rua, o código postal e a porta do prédio.",
+    fields: ["address.street", "address.postal_code", "address.door"],
+  },
+  {
+    title: "Localização",
+    description: "O distrito, o concelho e a localidade onde fica o prédio.",
+    fields: ["address.district", "address.county", "address.location"],
+  },
+];
+
+const REQUIRED = {
+  name: "Indica o nome do condomínio.",
+  "address.street": "Indica a rua.",
+  "address.postal_code": "Indica o código postal.",
+  "address.district": "Escolhe o distrito.",
+  "address.county": "Escolhe o concelho.",
+  "address.location": "Escolhe a localidade.",
+};
+
 const toOptions = (names, current = "") =>
   (current && !names.includes(current) ? [current, ...names] : names).map((name) => ({
     value: name,
@@ -30,24 +57,19 @@ function initialForm(condominium) {
   };
 }
 
-// same rules as the API, so most mistakes show up before sending; the API still checks everything
-function validate(form) {
+function validate(form, fields) {
   const errors = {};
-  const required = {
-    name: "Indica o nome do condomínio.",
-    "address.street": "Indica a rua.",
-    "address.postal_code": "Indica o código postal.",
-    "address.district": "Escolhe o distrito.",
-    "address.county": "Escolhe o concelho.",
-    "address.location": "Escolhe a localidade.",
-  };
 
-  Object.entries(required).forEach(([key, message]) => {
+  fields.forEach((key) => {
     const value = form[key.replace("address.", "")];
-    if (!String(value ?? "").trim()) errors[key] = message;
+    if (REQUIRED[key] && !String(value ?? "").trim()) errors[key] = REQUIRED[key];
   });
 
-  if (form.reserve_fund !== "" && Number(form.reserve_fund) < 0) {
+  if (
+    fields.includes("reserve_fund") &&
+    form.reserve_fund !== "" &&
+    Number(form.reserve_fund) < 0
+  ) {
     errors.reserve_fund = "O fundo comum de reserva não pode ser negativo.";
   }
 
@@ -57,7 +79,6 @@ function validate(form) {
 function toPayload(form) {
   const payload = {
     name: form.name.trim(),
-    // district and county always go together: the API checks the pair against the zones
     address: {
       street: form.street.trim(),
       postal_code: form.postal_code.trim(),
@@ -73,10 +94,11 @@ function toPayload(form) {
   return payload;
 }
 
-/** Create or edit a condominium (name, reserve fund and the building's address). */
-export function CondominiumForm({ condominium = null, onSaved }) {
+/** Popup to create or edit a condominium, one step at a time. */
+export function CondominiumForm({ condominium = null, onSaved, onClose }) {
   const isEdit = Boolean(condominium);
   const [form, setForm] = useState(() => initialForm(condominium));
+  const [step, setStep] = useState(0);
   const [zones, setZones] = useState(null);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
@@ -106,9 +128,14 @@ export function CondominiumForm({ condominium = null, onSaved }) {
     e.preventDefault();
     setFormError("");
 
-    const found = validate(form);
+    const found = validate(form, STEPS[step].fields);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
+
+    if (step < STEPS.length - 1) {
+      setStep(step + 1);
+      return;
+    }
 
     setSaving(true);
     try {
@@ -116,9 +143,12 @@ export function CondominiumForm({ condominium = null, onSaved }) {
       const saved = isEdit
         ? await updateCondominium(condominium.id, payload)
         : await createCondominium(payload);
-      onSaved?.(saved);
+      onSaved(saved);
     } catch (err) {
-      setErrors(getFieldErrors(err));
+      const fieldErrors = getFieldErrors(err);
+      const firstStep = STEPS.findIndex((s) => s.fields.some((field) => fieldErrors[field]));
+      setErrors(fieldErrors);
+      if (firstStep >= 0) setStep(firstStep);
       setFormError(getErrorMessage(err, "Não foi possível guardar o condomínio."));
     } finally {
       setSaving(false);
@@ -133,122 +163,179 @@ export function CondominiumForm({ condominium = null, onSaved }) {
       ? toOptions(getLocations(zones, form.district, form.county), form.location)
       : [];
 
-  return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-      {formError && (
-        <p role="alert" className="rounded-lg bg-red-light px-3 py-2 text-sm text-red">
-          {formError}
-        </p>
-      )}
+  const isLast = step === STEPS.length - 1;
+  const submitLabel = saving
+    ? "A guardar..."
+    : !isLast
+      ? "Continuar"
+      : isEdit
+        ? "Guardar alterações"
+        : "Criar condomínio";
 
-      <section className="flex flex-col gap-4">
-        <h2 className="font-medium text-navy">Condomínio</h2>
-        <TextInput
-          label="Nome"
-          icon={Building}
-          required
-          value={form.name}
-          onChange={(value) => set("name", value)}
-          error={errors.name}
-          placeholder="Edifício Mar"
-          maxLength={255}
-        />
-        <TextInput
-          label="Fundo comum de reserva"
-          icon={Euro}
-          type="number"
-          inputMode="decimal"
-          min={0}
-          step="0.01"
-          value={form.reserve_fund}
-          onChange={(value) => set("reserve_fund", value)}
-          error={errors.reserve_fund}
-          hint="Opcional. Valor atual do fundo, em euros."
-        />
-      </section>
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      <section className="flex flex-col gap-4">
-        <h2 className="font-medium text-navy">Morada do prédio</h2>
-        <TextInput
-          label="Rua"
-          icon={MapPin}
-          required
-          value={form.street}
-          onChange={(value) => set("street", value)}
-          error={errors["address.street"]}
-          autoComplete="street-address"
-          maxLength={255}
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
-            label="Código postal"
-            required
-            value={form.postal_code}
-            onChange={(value) => set("postal_code", value)}
-            error={errors["address.postal_code"]}
-            placeholder="4450-073"
-            autoComplete="postal-code"
-            maxLength={20}
-          />
-          <TextInput
-            label="Porta"
-            value={form.door}
-            onChange={(value) => set("door", value)}
-            error={errors["address.door"]}
-            placeholder="Nº 100"
-            hint="Opcional."
-            maxLength={10}
-          />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SearchSelect
-            label="Distrito"
-            required
-            options={districts}
-            value={form.district}
-            onChange={(value) => {
-              set("district", value);
-              set("county", "");
-              set("location", "");
-            }}
-            error={errors["address.district"]}
-            placeholder={zones ? "Escolher distrito..." : "A carregar..."}
-            disabled={!zones}
-          />
-          <SearchSelect
-            label="Concelho"
-            required
-            options={counties}
-            value={form.county}
-            onChange={(value) => {
-              set("county", value);
-              set("location", "");
-            }}
-            error={errors["address.county"]}
-            placeholder={form.district ? "Escolher concelho..." : "Escolhe primeiro o distrito"}
-            disabled={!form.district}
-          />
-        </div>
-        <SearchSelect
-          label="Localidade"
-          required
-          options={locations}
-          value={form.location}
-          onChange={(value) => set("location", value)}
-          error={errors["address.location"]}
-          placeholder={form.county ? "Escolher localidade..." : "Escolhe primeiro o concelho"}
-          disabled={!form.county}
-          hint="Freguesia onde fica o prédio."
-        />
-      </section>
-
-      <button
-        type="submit"
-        disabled={saving}
-        className="self-end rounded-xl bg-navy px-5 py-2.5 font-bold text-white transition hover:bg-navy-light disabled:opacity-60"
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="condominium-form-title"
+        className="relative z-10 flex max-h-full w-full max-w-lg flex-col rounded-2xl bg-card shadow-xl"
       >
-        {saving ? "A guardar..." : isEdit ? "Guardar alterações" : "Criar condomínio"}
-      </button>
-    </form>
+        <div className="flex flex-col gap-4 p-7 pb-0">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 id="condominium-form-title" className="font-display text-2xl text-navy">
+                {isEdit ? "Editar condomínio" : "Novo condomínio"}
+              </h2>
+              <p className="mt-1 text-sm text-muted">{STEPS[step].description}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar"
+              className="rounded-lg p-1 text-muted transition hover:bg-surface hover:text-navy"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <StepProgress current={step} total={STEPS.length} />
+        </div>
+
+        <div className="flex flex-col gap-4 overflow-y-auto p-7">
+          {formError && (
+            <p role="alert" className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+              {formError}
+            </p>
+          )}
+
+          {step === 0 && (
+            <>
+              <TextInput
+                label="Nome"
+                icon={Building}
+                required
+                value={form.name}
+                onChange={(value) => set("name", value)}
+                error={errors.name}
+                placeholder="Edifício Mar"
+                maxLength={255}
+              />
+              <TextInput
+                label="Fundo comum de reserva"
+                icon={Euro}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.01"
+                value={form.reserve_fund}
+                onChange={(value) => set("reserve_fund", value)}
+                error={errors.reserve_fund}
+                hint="Opcional. Valor atual do fundo, em euros."
+              />
+            </>
+          )}
+
+          {step === 1 && (
+            <>
+              <TextInput
+                label="Rua"
+                icon={MapPin}
+                required
+                value={form.street}
+                onChange={(value) => set("street", value)}
+                error={errors["address.street"]}
+                autoComplete="street-address"
+                maxLength={255}
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextInput
+                  label="Código postal"
+                  required
+                  value={form.postal_code}
+                  onChange={(value) => set("postal_code", value)}
+                  error={errors["address.postal_code"]}
+                  placeholder="4450-073"
+                  autoComplete="postal-code"
+                  maxLength={20}
+                />
+                <TextInput
+                  label="Porta"
+                  value={form.door}
+                  onChange={(value) => set("door", value)}
+                  error={errors["address.door"]}
+                  placeholder="Nº 100"
+                  maxLength={10}
+                />
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <SearchSelect
+                label="Distrito"
+                required
+                options={districts}
+                value={form.district}
+                onChange={(value) => {
+                  set("district", value);
+                  set("county", "");
+                  set("location", "");
+                }}
+                error={errors["address.district"]}
+                placeholder={zones ? "Escolher distrito..." : "A carregar..."}
+                disabled={!zones}
+              />
+              <SearchSelect
+                label="Concelho"
+                required
+                options={counties}
+                value={form.county}
+                onChange={(value) => {
+                  set("county", value);
+                  set("location", "");
+                }}
+                error={errors["address.county"]}
+                placeholder={form.district ? "Escolher concelho..." : "Escolhe primeiro o distrito"}
+                disabled={!form.district}
+              />
+              <SearchSelect
+                label="Localidade"
+                required
+                options={locations}
+                value={form.location}
+                onChange={(value) => set("location", value)}
+                error={errors["address.location"]}
+                placeholder={form.county ? "Escolher localidade..." : "Escolhe primeiro o concelho"}
+                disabled={!form.county}
+                hint="Freguesia onde fica o prédio."
+              />
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-border px-7 py-5">
+          <button
+            type="button"
+            onClick={step === 0 ? onClose : () => setStep(step - 1)}
+            disabled={saving}
+            className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-navy transition hover:bg-surface disabled:opacity-60"
+          >
+            {step === 0 ? "Cancelar" : "Voltar"}
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-light disabled:opacity-60"
+          >
+            {submitLabel}
+          </button>
+        </div>
+      </form>
+    </div>,
+    document.body,
   );
 }

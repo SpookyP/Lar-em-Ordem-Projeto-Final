@@ -19,6 +19,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::middleware('throttle:80,1,zones')->group(function () {
+        require __DIR__ . '/modules/health.php';
         require __DIR__ . '/modules/service_zone.php';
         require __DIR__ . '/modules/problem_category.php';
     });

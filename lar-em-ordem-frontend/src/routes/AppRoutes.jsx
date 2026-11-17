@@ -65,10 +65,6 @@ const OfferFormPage = lazy(
 const Condominiums = lazy(
   () => import("../pages/CondominiumAdmin/Condominiums/Condominiums"),
 );
-const CondominiumFormPage = lazy(
-  () =>
-    import("../pages/CondominiumAdmin/CondominiumFormPage/CondominiumFormPage"),
-);
 const CondominiumDetail = lazy(
   () => import("../pages/CondominiumAdmin/CondominiumDetail/CondominiumDetail"),
 );
@@ -100,10 +96,11 @@ function AppRoutesInner() {
       <Routes location={background || location}>
         {/* Rota publica com restricao de sessao: se o user tiver sessao, redireciona para a pagina principal */}
         <Route element={<GuestRoute />}>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route element={<SiteLayout flush />}>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
         </Route>
         {/* Rota publica: qualquer um pode aceder */}
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -170,16 +167,8 @@ function AppRoutesInner() {
             >
               <Route path="/admin/condominiums" element={<Condominiums />} />
               <Route
-                path="/admin/condominiums/new"
-                element={<CondominiumFormPage mode="create" />}
-              />
-              <Route
                 path="/admin/condominiums/:id"
                 element={<CondominiumDetail />}
-              />
-              <Route
-                path="/admin/condominiums/:id/edit"
-                element={<CondominiumFormPage mode="edit" />}
               />
               <Route
                 path="/admin/condominiums/:id/notices"

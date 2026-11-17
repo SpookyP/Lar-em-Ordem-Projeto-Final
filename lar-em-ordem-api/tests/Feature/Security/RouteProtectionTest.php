@@ -40,6 +40,7 @@ class RouteProtectionTest extends TestCase
     private const PUBLIC_V1 = [
         'api/v1/service-zones',
         'api/v1/problem-categories',
+        'api/v1/health',
     ];
 
     public function test_every_v1_route_requires_authentication(): void

@@ -1,10 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { House } from "lucide-react";
 import { ProfileCard } from "../../components/ui/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
 import { getPropertiesPage } from "../../services/api/propertyService";
 import { HouseList } from "../../components/ui/HouseList";
+import { AuthSplit } from "../../components/layout/AuthSplit";
+import { Footer } from "../../components/layout/Footer";
+
+function Shell({ onLogout, children }) {
+  return (
+    <div className="flex min-h-dvh flex-col bg-card lg:h-dvh">
+      <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
+        <div className="flex items-center gap-2.5">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-navy text-white">
+            <House size={18} aria-hidden="true" />
+          </span>
+          <span className="font-display text-xl text-navy">Lar em Ordem</span>
+        </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="rounded-full bg-surface px-4 py-2 text-sm font-medium text-navy transition hover:bg-border"
+        >
+          Terminar sessão
+        </button>
+      </header>
+      <AuthSplit>{children}</AuthSplit>
+      <Footer />
+    </div>
+  );
+}
 
 export default function Profiles() {
   const navigate = useNavigate();
@@ -92,26 +119,29 @@ export default function Profiles() {
 
   if (deciding) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <Shell onLogout={handleLogout}>
         <p className="text-muted">A carregar...</p>
-      </div>
+      </Shell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <h1 className="font-display text-3xl text-navy text-center">
-          {preselectedProfile ? "As minhas casas" : "Olá de novo"}
+    <Shell onLogout={handleLogout}>
+      <div className="w-full">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+          {preselectedProfile ? "Gestor de casas" : "Olá de novo"}
+        </p>
+        <h1 className="mt-2 font-display text-4xl text-navy">
+          {preselectedProfile ? "As minhas casas" : "Escolha o perfil"}
         </h1>
-        <p className="text-muted text-center mb-8">
+        <p className="mt-2 mb-7 text-sm text-muted">
           {preselectedProfile
             ? "Em que casa quer entrar?"
             : "Com que perfil quer entrar?"}
         </p>
 
         {preselectedProfile ? (
-          <div className="rounded-2xl bg-card border border-border overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
             <HouseList onEnter={(house) => enter(preselectedProfile, house)} />
           </div>
         ) : (
@@ -128,23 +158,15 @@ export default function Profiles() {
           </div>
         )}
 
-        <div className="mt-6 flex flex-col items-center gap-2">
-          {preselectedProfile && (
-            <button
-              onClick={() => navigate(-1)}
-              className="text-sm text-navy hover:underline"
-            >
-              ← Voltar
-            </button>
-          )}
+        {preselectedProfile && (
           <button
-            onClick={handleLogout}
-            className="text-sm text-muted hover:text-navy transition"
+            onClick={() => navigate(-1)}
+            className="mt-7 text-sm font-medium text-navy hover:underline"
           >
-            Terminar sessão
+            ← Voltar
           </button>
-        </div>
+        )}
       </div>
-    </div>
+    </Shell>
   );
 }
