@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Building, KeyRound, MapPin, Pencil, Plus, Trash2, X } from "lucide-react";
 import { deleteCondominium } from "../../../services/api/condominiumService";
 import { useMyCondominiumsPage } from "../../../hooks/useMyCondominiumsPage";
@@ -8,6 +8,7 @@ import { Pager } from "../../../components/ui/Pager";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { InviteCode } from "../../../components/condominium/InviteCode";
 import { ClaimCondominium } from "../../../components/condominium/ClaimCondominium";
+import { CondominiumForm } from "../../../components/condominium/CondominiumForm";
 import { getErrorMessage } from "../../../utils/apiError";
 import { addressLine, formatMoney } from "../../../utils/format";
 
@@ -27,6 +28,8 @@ export default function Condominiums() {
   const [actionError, setActionError] = useState("");
   const [claiming, setClaiming] = useState(false);
   const [message, setMessage] = useState("");
+  const [form, setForm] = useState(null);
+  const navigate = useNavigate();
 
   const {
     items: condominiums,
@@ -64,6 +67,15 @@ export default function Condominiums() {
     else reload();
   }
 
+  function handleSaved(saved) {
+    if (form.condominium) {
+      setForm(null);
+      reload();
+    } else {
+      navigate(`/admin/condominiums/${saved.id}`);
+    }
+  }
+
   const isEmpty = !loading && !error && total === 0;
   const scope = totalPages > 1 ? "nesta página" : "soma de todos";
   const linkedFractions = condominiums.reduce((sum, c) => sum + c.propertiesCount, 0);
@@ -90,13 +102,14 @@ export default function Condominiums() {
             <KeyRound size={18} />
             Receber
           </button>
-          <Link
-            to="/admin/condominiums/new"
+          <button
+            type="button"
+            onClick={() => setForm({ condominium: null })}
             className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 font-semibold text-white transition hover:bg-navy-light"
           >
             <Plus size={18} />
             Novo condomínio
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -148,13 +161,14 @@ export default function Condominiums() {
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
-                      <Link
-                        to={`/admin/condominiums/${condominium.id}/edit`}
+                      <button
+                        type="button"
+                        onClick={() => setForm({ condominium })}
                         aria-label={`Editar ${condominium.name}`}
                         className="rounded-lg p-2 text-muted transition hover:bg-surface hover:text-navy"
                       >
                         <Pencil size={17} />
-                      </Link>
+                      </button>
                       <button
                         type="button"
                         onClick={() => setDeleting(condominium)}
@@ -200,8 +214,9 @@ export default function Condominiums() {
               </article>
             ))}
 
-            <Link
-              to="/admin/condominiums/new"
+            <button
+              type="button"
+              onClick={() => setForm({ condominium: null })}
               className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border p-6 text-center transition hover:border-navy/40 hover:bg-card"
             >
               <span className="flex size-14 items-center justify-center rounded-full bg-card text-muted shadow-sm">
@@ -213,7 +228,7 @@ export default function Condominiums() {
               <span className="max-w-56 text-sm text-muted">
                 Crie um novo edifício e convide os condóminos.
               </span>
-            </Link>
+            </button>
           </div>
 
           <Pager page={page} totalPages={totalPages} onChange={setPage} />
@@ -251,6 +266,14 @@ export default function Condominiums() {
           </div>,
           document.body,
         )}
+
+      {form && (
+        <CondominiumForm
+          condominium={form.condominium}
+          onSaved={handleSaved}
+          onClose={() => setForm(null)}
+        />
+      )}
 
       {deleting && (
         <ConfirmDialog

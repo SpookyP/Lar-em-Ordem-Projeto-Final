@@ -8,6 +8,7 @@ import {
 } from "../../../services/api/condominiumService";
 import { InviteCode } from "../../../components/condominium/InviteCode";
 import { TransferCondominium } from "../../../components/condominium/TransferCondominium";
+import { CondominiumForm } from "../../../components/condominium/CondominiumForm";
 import { addressLine, formatMoney } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
@@ -170,6 +171,7 @@ export default function CondominiumDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [codeError, setCodeError] = useState("");
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -245,12 +247,13 @@ export default function CondominiumDetail() {
                     </span>
                   </p>
                 </div>
-                <Link
-                  to={`/admin/condominiums/${id}/edit`}
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
                   className="flex shrink-0 items-center gap-2 rounded-xl bg-card px-4 py-2.5 font-semibold text-navy transition hover:bg-surface"
                 >
                   <Pencil size={16} /> Editar dados
-                </Link>
+                </button>
               </div>
               <div className="relative grid divide-y divide-white/10 border-t border-white/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                 <HeroStat
@@ -332,6 +335,19 @@ export default function CondominiumDetail() {
             </div>
           </>
         )
+      )}
+
+      {editing && (
+        <CondominiumForm
+          condominium={condominium}
+          onSaved={() => {
+            setEditing(false);
+            getCondominium(id)
+              .then(setCondominium)
+              .catch(() => {});
+          }}
+          onClose={() => setEditing(false)}
+        />
       )}
     </div>
   );
