@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
-import { Field } from "./Field";
+import { TextInput, TextArea, SearchSelect, DatePicker } from "../form";
 import {
   createOffer,
   updateOffer,
   getOfferCategories,
 } from "../../services/api/offerService";
 import { getErrorMessage } from "../../utils/apiError";
+import { formatDate } from "../../utils/date";
 
 export function OfferForm({ offer = null, onSaved, readOnly = false }) {
   const isEdit = Boolean(offer);
 
   const [form, setForm] = useState({
     title: offer?.title ?? "",
-    offer_category_id: offer?.category?.id ?? "",
+    offer_category_id: offer?.category?.id ? String(offer.category.id) : "",
     description: offer?.description ?? "",
     url: offer?.url ?? "",
     start_date: offer?.startDate ?? "",
@@ -34,8 +35,8 @@ export function OfferForm({ offer = null, onSaved, readOnly = false }) {
     };
   }, []);
 
-  function handleChange(e) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  function setField(name, value) {
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSubmit(e) {
@@ -81,6 +82,11 @@ export function OfferForm({ offer = null, onSaved, readOnly = false }) {
     }
   }
 
+  const categoryOptions = categories.map((c) => ({
+    value: String(c.id),
+    label: c.name,
+  }));
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && !readOnly && (
@@ -89,73 +95,82 @@ export function OfferForm({ offer = null, onSaved, readOnly = false }) {
         </p>
       )}
 
-      <Field
+      {!readOnly && (
+        <p className="text-xs text-muted">
+          <span className="text-red">*</span> Campos de preenchimento
+          obrigatório
+        </p>
+      )}
+
+      <TextInput
         label="Título"
-        name="title"
+        required
         value={form.title}
-        onChange={handleChange}
+        onChange={(v) => setField("title", v)}
         disabled={readOnly}
       />
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="offer_category_id"
-          className="text-sm font-medium text-text"
-        >
-          Categoria
-        </label>
-        <select
-          id="offer_category_id"
-          name="offer_category_id"
-          value={form.offer_category_id}
-          onChange={handleChange}
-          disabled={readOnly}
-          className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-text outline-none focus:border-navy disabled:bg-surface disabled:text-muted disabled:cursor-default"
-        >
-          <option value="">Escolhe uma categoria…</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <Field
+
+      <SearchSelect
+        label="Categoria"
+        required
+        options={categoryOptions}
+        value={form.offer_category_id}
+        onChange={(v) => setField("offer_category_id", v)}
+        placeholder="Escolhe uma categoria…"
+        disabled={readOnly}
+      />
+
+      <TextArea
         label="Descrição"
-        name="description"
-        type="textarea"
+        required
         value={form.description}
-        onChange={handleChange}
+        onChange={(v) => setField("description", v)}
         disabled={readOnly}
       />
-      <Field
-        label="Website (opcional)"
-        name="url"
+
+      <TextInput
+        label="Website"
         type="url"
         value={form.url}
-        onChange={handleChange}
+        onChange={(v) => setField("url", v)}
         disabled={readOnly}
+        placeholder="https://"
       />
 
       <div className="flex gap-4">
         <div className="flex-1">
-          <Field
-            label="Data de início"
-            name="start_date"
-            type="date"
-            value={form.start_date}
-            onChange={handleChange}
-            disabled={readOnly}
-          />
+          {readOnly ? (
+            <TextInput
+              label="Data de início"
+              value={formatDate(form.start_date)}
+              onChange={() => {}}
+              disabled
+            />
+          ) : (
+            <DatePicker
+              label="Data de início"
+              required
+              value={form.start_date}
+              onChange={(v) => setField("start_date", v)}
+            />
+          )}
         </div>
         <div className="flex-1">
-          <Field
-            label="Data de fim (opcional)"
-            name="end_date"
-            type="date"
-            value={form.end_date}
-            onChange={handleChange}
-            disabled={readOnly}
-          />
+          {readOnly ? (
+            <TextInput
+              label="Data de fim"
+              value={form.end_date ? formatDate(form.end_date) : "—"}
+              onChange={() => {}}
+              disabled
+            />
+          ) : (
+            <DatePicker
+              label="Data de fim"
+              value={form.end_date}
+              onChange={(v) => setField("end_date", v)}
+              min={form.start_date || undefined}
+            />
+          )}
         </div>
       </div>
 
