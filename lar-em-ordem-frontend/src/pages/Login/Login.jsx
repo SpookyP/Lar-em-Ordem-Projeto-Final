@@ -48,12 +48,12 @@ export default function Login() {
 
   return (
     <AuthSplit>
-      <div className="w-full max-w-sm">
+      <div className="w-full">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
           Bem-vindo de volta
         </p>
         <h1 className="mt-2 font-display text-4xl text-navy">Iniciar sessão</h1>
-        <p className="mt-2 mb-7 text-sm text-muted">
+        <p className="mt-2 mb-5 text-sm text-muted">
           Aceda à sua casa, aos seus documentos e aos seus pedidos.
         </p>
 
@@ -65,7 +65,7 @@ export default function Login() {
 
         <SocialLoginButtons />
 
-        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <TextInput
             label="Email"
             type="email"
@@ -91,7 +91,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3.5 font-semibold text-white shadow-lg shadow-navy/20 transition hover:bg-navy-light disabled:opacity-60"
+            className="flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3 font-semibold text-white shadow-lg shadow-navy/20 transition hover:bg-navy-light disabled:opacity-60"
           >
             {submitting ? "A entrar..." : "Entrar"}
             {!submitting && <ArrowRight size={18} aria-hidden="true" />}

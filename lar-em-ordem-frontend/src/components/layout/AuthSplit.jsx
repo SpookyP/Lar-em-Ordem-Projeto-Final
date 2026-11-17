@@ -46,9 +46,9 @@ export function AuthSplit({ children }) {
   }, [slide]);
 
   return (
-    <div className="grid min-h-0 flex-1 lg:grid-cols-2">
-      <div className="flex min-h-0 overflow-y-auto px-6 py-8">
-        <div className="m-auto flex w-full justify-center">{children}</div>
+    <div className="grid flex-1 lg:min-h-0 lg:grid-cols-2">
+      <div className="flex px-6 py-6 [scrollbar-width:thin] lg:min-h-0 lg:overflow-y-auto">
+        <div className="m-auto w-full max-w-md">{children}</div>
       </div>
 
       <aside className="relative hidden min-h-0 overflow-hidden bg-navy px-12 py-8 text-white lg:flex lg:flex-col lg:justify-center">

@@ -14,7 +14,7 @@ const PROVIDER_NAMES = { google: "Google", microsoft: "Microsoft" };
 function Card({ children, className = "" }) {
   return (
     <AuthSplit>
-      <div className={`w-full max-w-lg ${className}`}>{children}</div>
+      <div className={`w-full ${className}`}>{children}</div>
     </AuthSplit>
   );
 }

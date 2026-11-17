@@ -269,8 +269,8 @@ export default function CondominiumDetail() {
               </div>
             </header>
 
-            <div className="grid items-start gap-6 lg:grid-cols-3">
-              <div className="flex flex-col gap-6 lg:col-span-2">
+            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+              <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
                 <Card title="Frações" description="Casas ligadas a este condomínio.">
                   <Fractions condominium={condominium} onRemoved={handleRemoved} />
                 </Card>
@@ -306,7 +306,7 @@ export default function CondominiumDetail() {
                 />
               </div>
 
-              <div className="flex flex-col gap-6">
+              <div className="flex min-w-0 flex-col gap-6">
                 <Card
                   title="Convidar condóminos"
                   description="Cada morador liga a sua casa ao condomínio com este código."

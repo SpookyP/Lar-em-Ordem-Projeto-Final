@@ -11,7 +11,7 @@ import { Footer } from "../../components/layout/Footer";
 
 function Shell({ onLogout, children }) {
   return (
-    <div className="flex h-dvh flex-col bg-card">
+    <div className="flex min-h-dvh flex-col bg-card lg:h-dvh">
       <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
         <div className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-xl bg-navy text-white">
@@ -127,7 +127,7 @@ export default function Profiles() {
 
   return (
     <Shell onLogout={handleLogout}>
-      <div className="w-full max-w-md">
+      <div className="w-full">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
           {preselectedProfile ? "Gestor de casas" : "Olá de novo"}
         </p>

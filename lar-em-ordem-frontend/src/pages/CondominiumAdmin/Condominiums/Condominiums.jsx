@@ -140,11 +140,11 @@ export default function Condominiums() {
         <p className="text-sm text-muted">A carregar...</p>
       ) : (
         <>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {condominiums.map((condominium) => (
               <article
                 key={condominium.id}
-                className="flex flex-col rounded-2xl border border-border bg-card shadow-sm"
+                className="flex min-w-0 flex-col rounded-2xl border border-border bg-card shadow-sm"
               >
                 <div className="flex flex-col gap-5 p-6">
                   <div className="flex items-start gap-4">

@@ -16,30 +16,32 @@ export function SiteLayout({ flush = false }) {
   if (isAuthenticated) return <AppLayout />;
 
   return (
-    <div className={`flex flex-col ${flush ? "h-dvh bg-card" : "min-h-screen bg-surface"}`}>
+    <div className={`flex flex-col ${flush ? "min-h-dvh bg-card lg:h-dvh" : "min-h-screen bg-surface"}`}>
       <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
         <Link to="/login" className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-xl bg-navy text-white">
             <House size={18} aria-hidden="true" />
           </span>
-          <span className="font-display text-xl text-navy">Lar em Ordem</span>
+          <span className="whitespace-nowrap font-display text-lg text-navy sm:text-xl">
+            Lar em Ordem
+          </span>
         </Link>
         <nav className="flex items-center gap-2 text-sm">
           <Link
             to="/login"
-            className="rounded-full bg-surface px-4 py-2 font-medium text-navy transition hover:bg-border"
+            className="whitespace-nowrap rounded-full bg-surface px-3 py-2 font-medium text-navy transition hover:bg-border sm:px-4"
           >
             Entrar
           </Link>
           <Link
             to="/register"
-            className="rounded-full bg-navy px-4 py-2 font-semibold text-white transition hover:bg-navy-light"
+            className="whitespace-nowrap rounded-full bg-navy px-3 py-2 font-semibold text-white transition hover:bg-navy-light sm:px-4"
           >
             Criar conta
           </Link>
         </nav>
       </header>
-      <main className={flush ? "flex min-h-0 flex-1 flex-col" : "flex-1 p-6"}>
+      <main className={flush ? "flex flex-1 flex-col lg:min-h-0" : "flex-1 p-6"}>
         <Outlet />
       </main>
       <Footer />
