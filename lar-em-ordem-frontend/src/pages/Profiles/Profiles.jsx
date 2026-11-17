@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { House } from "lucide-react";
 import { ProfileCard } from "../../components/ui/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
@@ -14,9 +13,7 @@ function Shell({ onLogout, children }) {
     <div className="flex min-h-dvh flex-col bg-card lg:h-dvh">
       <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
         <div className="flex items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-navy text-white">
-            <House size={18} aria-hidden="true" />
-          </span>
+          <img src="/logo.svg" alt="" className="size-9" />
           <span className="font-display text-xl text-navy">Lar em Ordem</span>
         </div>
         <button
