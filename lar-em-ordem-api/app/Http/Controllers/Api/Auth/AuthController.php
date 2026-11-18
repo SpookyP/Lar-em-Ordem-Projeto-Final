@@ -71,7 +71,7 @@ class AuthController extends Controller
         $this->profileService->create($user, $role, $validated);
 
         return response()->json([
-            'message' => "Profile '{$role}' added successfully.",
+            'message' => 'Perfil adicionado.',
             'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']),
         ], 201);
     }
@@ -93,7 +93,7 @@ class AuthController extends Controller
        $this->profileService->delete($user, $role);
 
         return response()->json([
-            'message' => "Profile '{$role}' removed successfully.",
+            'message' => 'Perfil removido.',
             'user'    => $user->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']),
         ]);
     }
@@ -111,6 +111,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(['message' => 'Account deleted successfully.']);
+        return response()->json(['message' => 'Conta eliminada.']);
     }
 }

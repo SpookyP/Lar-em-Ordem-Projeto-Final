@@ -32,7 +32,7 @@ class UserProfileTest extends TestCase
             ]);
 
         $response->assertStatus(201)
-            ->assertJsonPath('message', "Profile 'resident' added successfully.");
+            ->assertJsonPath('message', 'Perfil adicionado.');
 
         $this->assertDatabaseHas('residents', [
             'user_id' => $user->id,
