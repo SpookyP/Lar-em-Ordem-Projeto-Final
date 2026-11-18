@@ -7,6 +7,7 @@ import {
 import { useHouses } from "../../hooks/useHouses";
 import { ZoneSelect } from "./ZoneSelect";
 import { TextInput, SearchSelect, DatePicker, StepProgress } from "../form";
+import { todayISO } from "../../utils/date";
 
 const EMPTY_FORM = {
   property_type_id: "",
@@ -88,6 +89,23 @@ export function PropertyForm({
 
   function setField(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  const tenantTypeId =
+    options?.residentTypes.find((t) => /arrenda|inquil/i.test(t.label))?.id ??
+    null;
+  const isTenant =
+    tenantTypeId != null && String(tenantTypeId) === form.resident_type_id;
+
+  function changeBond(v) {
+    const tenant = tenantTypeId != null && String(tenantTypeId) === v;
+    setForm((prev) => ({
+      ...prev,
+      resident_type_id: v,
+      //só o arrendatário indica datas. o proprietário fica com a data de hoje
+      start_date: tenant ? "" : todayISO(),
+      end_date: "",
+    }));
   }
 
   function isMissing(fields) {
@@ -248,62 +266,75 @@ export function PropertyForm({
 
       {stepIndex === 0 ? (
         <>
-          <SearchSelect
-            label="Tipo de imóvel"
-            required
-            options={options.propertyTypes.map((t) => ({
-              value: String(t.id),
-              label: t.label,
-            }))}
-            value={form.property_type_id}
-            onChange={(v) => setField("property_type_id", v)}
-          />
-
-          <SearchSelect
-            label="Tipologia"
-            required
-            options={options.typologies.map((t) => ({
-              value: String(t.id),
-              label: t.label,
-            }))}
-            value={form.property_typology_id}
-            onChange={(v) => setField("property_typology_id", v)}
-          />
-
-          <SearchSelect
-            label="Vínculo"
-            required
-            options={options.residentTypes.map((t) => ({
-              value: String(t.id),
-              label: t.label,
-            }))}
-            value={form.resident_type_id}
-            onChange={(v) => setField("resident_type_id", v)}
-          />
-
-          <TextInput
-            label="Área (m²)"
-            type="number"
-            required
-            value={form.area}
-            onChange={(v) => setField("area", v)}
-            onWheel={(e) => e.currentTarget.blur()}
-            placeholder="ex: 100"
-          />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DatePicker
-              label="Data de início"
+            <SearchSelect
+              label="Tipo de imóvel"
               required
-              value={form.start_date}
-              onChange={(v) => setField("start_date", v)}
+              options={options.propertyTypes.map((t) => ({
+                value: String(t.id),
+                label: t.label,
+              }))}
+              value={form.property_type_id}
+              onChange={(v) => setField("property_type_id", v)}
             />
-            <DatePicker
-              label="Data de fim"
-              value={form.end_date}
-              onChange={(v) => setField("end_date", v)}
-              min={form.start_date || undefined}
+
+            <SearchSelect
+              label="Tipologia"
+              required
+              options={options.typologies.map((t) => ({
+                value: String(t.id),
+                label: t.label,
+              }))}
+              value={form.property_typology_id}
+              onChange={(v) => setField("property_typology_id", v)}
             />
           </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <SearchSelect
+              label="Vínculo"
+              required
+              options={options.residentTypes.map((t) => ({
+                value: String(t.id),
+                label: t.label,
+              }))}
+              value={form.resident_type_id}
+              onChange={changeBond}
+            />
+
+            <TextInput
+              label="Área (m²)"
+              type="number"
+              required
+              value={form.area}
+              onChange={(v) => setField("area", v)}
+              onWheel={(e) => e.currentTarget.blur()}
+              placeholder="ex: 100"
+            />
+          </div>
+          {isTenant && (
+            <div className="flex flex-col gap-2">
+              <p className="rounded-xl bg-surface px-4 py-3 text-sm text-muted">
+                As datas referem-se ao período de arrendamento.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <DatePicker
+                  label="Início do arrendamento"
+                  required
+                  value={form.start_date}
+                  onChange={(v) => setField("start_date", v)}
+                  hint="Data de início do contrato."
+                />
+                <DatePicker
+                  label="Fim do arrendamento"
+                  value={form.end_date}
+                  onChange={(v) => setField("end_date", v)}
+                  min={form.start_date || undefined}
+                  hint="Vazio se for por tempo indeterminado."
+                />
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <>
