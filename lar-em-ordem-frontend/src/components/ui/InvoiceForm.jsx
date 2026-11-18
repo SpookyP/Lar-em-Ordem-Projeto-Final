@@ -55,7 +55,6 @@ const itemCategoryOptions = [
 
 // Componente principal responsável pelo registo de novas faturas.
 export default function InvoiceForm({ onInvoiceSaved }) {
-
   // Guarda os tipos de consumo disponíveis.
   const [consumptionTypes, setConsumptionTypes] = useState([
     { id: 1, name: 'Eletricidade', unit_of_measure: 'kWh' },
@@ -428,7 +427,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
   // Apresenta a estrutura visual e os campos principais do formulário.
   return (
     <section className="space-y-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-
       {/* Cabeçalho e descrição do formulário. */}
       <header
         className="relative -mx-6 -mt-6 mb-8 flex flex-col gap-2 overflow-hidden rounded-t-2xl p-6 text-white"
@@ -438,8 +436,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         <div className="pointer-events-none absolute -bottom-16 right-1/3 h-32 w-32 rounded-full bg-black/10" />
 
         <div className="relative z-10">
-          <h2 className="text-lg font-bold">Registar Nova Fatura</h2>
-          <p className="mt-1 text-xs text-white/80">
+          <h2 className="text-xl font-bold">Registar Nova Fatura</h2>
+          <p className="mt-1 text-sm text-white/80">
             Carrega o PDF para preencher automaticamente ou introduz os dados manualmente.
           </p>
         </div>
@@ -462,7 +460,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
       {/* Confirmação de que o documento foi carregado. */}
       {uploadSuccess && (
-        <div className="-mt-6 flex items-center gap-2 text-xs font-medium text-emerald-700">
+        <div className="-mt-6 flex items-center gap-2 text-sm font-medium text-emerald-700">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           Documento associado à fatura.
         </div>
@@ -470,7 +468,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
       {/* Formulário com os dados principais da fatura. */}
       <form onSubmit={handleSubmit} className="space-y-6 border-t border-slate-100 pt-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
+        <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
           Dados principais da fatura
         </h3>
 
@@ -478,7 +476,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         {formMessage && (
           <div
             role={formMessage.type === 'error' ? 'alert' : 'status'}
-            className={`flex items-center gap-2 rounded-xl border p-3 text-xs font-semibold ${
+            className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold ${
               formMessage.type === 'success'
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                 : 'border-red-200 bg-red-50 text-red-700'
@@ -543,14 +541,13 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           />
         </div>
 
-
         {/* Seleção dos tipos de consumo incluídos na fatura. */}
         <div className="space-y-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
+          <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
             Consumos da fatura
           </h3>
 
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-slate-500">
             Seleciona todos os tipos de consumo incluídos nesta fatura.
           </p>
 
@@ -590,10 +587,10 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                 >
                   {/* Identificação do consumo e respetiva unidade. */}
                   <div className="flex items-center justify-between">
-                    <strong className="text-sm font-semibold text-[#1C3557]">
+                    <strong className="text-base font-semibold text-[#1C3557]">
                       {type.name}
                     </strong>
-                    <span className="rounded-md bg-[#1C3557]/10 px-2 py-1 text-[10px] font-medium text-[#1C3557]">
+                    <span className="rounded-md bg-[#1C3557]/10 px-2 py-1 text-xs font-medium text-[#1C3557]">
                       {type.unit_of_measure}
                     </span>
                   </div>
@@ -636,7 +633,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                   {showItems[id] && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#1C3557]">
+                        <h4 className="text-sm font-bold uppercase tracking-wider text-[#1C3557]">
                           Itens da fatura
                         </h4>
 
@@ -644,7 +641,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                         <button
                           type="button"
                           onClick={() => addItem(id)}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1C3557] hover:opacity-80"
+                          className="inline-flex items-center gap-1 text-sm font-semibold text-[#1C3557] hover:opacity-80"
                         >
                           <Plus className="h-4 w-4" />
                           Adicionar linha
@@ -653,7 +650,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
                       {/* Informa quando ainda não existem itens adicionados. */}
                       {items.length === 0 && (
-                        <p className="rounded-lg border border-dashed border-[#1C3557]/30 bg-[#1C3557]/5 p-3 text-xs text-slate-500">
+                        <p className="rounded-lg border border-dashed border-[#1C3557]/30 bg-[#1C3557]/5 p-3 text-sm text-slate-500">
                           Sem itens. Adiciona uma linha ou carrega um PDF com detalhe.
                         </p>
                       )}
@@ -665,7 +662,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                           className="space-y-3 rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3"
                         >
                           <div className="flex items-center justify-between">
-                            <strong className="text-xs font-semibold text-[#1C3557]">
+                            <strong className="text-sm font-semibold text-[#1C3557]">
                               Linha {index + 1}
                             </strong>
 
@@ -739,7 +736,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         <button
           type="submit"
           disabled={submitting || uploading}
-          className="w-full rounded-xl bg-teal-700 py-3.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:opacity-50"
+          className="w-full rounded-xl bg-teal-700 py-3.5 text-base font-semibold text-white transition hover:bg-teal-800 disabled:opacity-50"
         >
           {submitting
             ? 'A guardar fatura...'
