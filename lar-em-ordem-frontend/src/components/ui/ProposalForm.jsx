@@ -41,6 +41,11 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
       return;
     }
 
+    if (form.validity > form.availableDate) {
+      setError("A validade da proposta não pode ser depois da data de disponibilidade.");
+      return;
+    }
+
     setSaving(true);
     setError("");
     try {
@@ -78,8 +83,10 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
         />
         <DatePicker
           label="Proposta válida até"
+          hint="Até à data disponível."
           required
           min={today}
+          max={form.availableDate || undefined}
           value={form.validity}
           onChange={(v) => setField("validity", v)}
         />
