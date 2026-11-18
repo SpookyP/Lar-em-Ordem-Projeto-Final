@@ -9,16 +9,16 @@ use App\Models\Vault\Notification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class NotificationController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(Request $request, Property $property)
+    public function index(Request $request, Property $property): AnonymousResourceCollection
     {
         $this->authorize('view', $property);
 
-        // Validar o per_page enviado pelo frontend (limite 1 a 15)
         $validated = $request->validate([
             'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
         ]);
@@ -31,7 +31,6 @@ class NotificationController extends Controller
             $query->whereNull('read_at');
         }
 
-        // Aplica o per_page dinâmico e preserva a query string na paginação
         return NotificationResource::collection($query->paginate($perPage)->withQueryString());
     }
 
@@ -55,17 +54,16 @@ class NotificationController extends Controller
         return new NotificationResource($notification);
     }
 
-    public function markAsUnread(\App\Models\Vault\Notification $notification): \Illuminate\Http\JsonResponse
+    public function markAsUnread(Notification $notification): JsonResponse
     {
-        // Verifica autorização se tiveres
         $this->authorize('update', $notification->property);
 
         $notification->update([
-            'read_at' => null
+            'read_at' => null,
         ]);
 
         return response()->json([
-            'message' => 'Notificação marcada como não lida.'
+            'message' => 'Notificação marcada como não lida.',
         ]);
     }
 
