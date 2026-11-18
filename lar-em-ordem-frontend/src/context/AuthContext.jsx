@@ -145,6 +145,11 @@ export function AuthProvider({ children }) {
     localStorage.setItem("activeHouse", JSON.stringify(house));
   }
 
+  function clearActiveHouse() {
+    setActiveHouse(null);
+    localStorage.removeItem("activeHouse");
+  }
+
   function hasRole(roleName) {
     if (!user?.roles) return false;
     return user.roles.includes(roleName);
@@ -164,6 +169,7 @@ export function AuthProvider({ children }) {
     activeHouse,
     activeProfile,
     selectProfile,
+    clearActiveHouse,
     activeCondominium,
     refreshCondominium,
   };
