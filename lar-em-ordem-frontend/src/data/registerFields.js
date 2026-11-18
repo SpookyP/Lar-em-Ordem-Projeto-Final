@@ -22,7 +22,7 @@ export const ADMIN_TYPES = [
 export const accountTypes = [
   {
     role: ROLES.RESIDENT,
-    label: "Morador",
+    label: "Gestor de casas",
     description: "Giro a minha casa e os meus consumos.",
     icon: House,
   },
@@ -49,7 +49,12 @@ export const accountTypes = [
 // profile fields per role (also used by "Os meus dados")
 export const roleFields = {
   [ROLES.RESIDENT]: [
-    { name: "nif", label: "NIF", type: "text", hint: "9 dígitos, sem espaços." },
+    {
+      name: "nif",
+      label: "NIF",
+      type: "text",
+      hint: "9 dígitos, sem espaços.",
+    },
   ],
   [ROLES.SERVICE_PROVIDER]: [
     { name: "company_name", label: "Nome da Empresa", type: "text" },
@@ -118,7 +123,7 @@ export const detailSteps = {
     {
       id: "resident",
       title: "Dados fiscais",
-      description: "O NIF fica associado ao seu perfil de morador.",
+      description: "O NIF fica associado ao seu perfil de gestor de casas.",
       fields: ["nif"],
     },
   ],

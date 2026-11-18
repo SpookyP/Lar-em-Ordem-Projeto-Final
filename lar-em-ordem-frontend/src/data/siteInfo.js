@@ -29,7 +29,7 @@ export const SITE_PAGES = {
         icon: Users,
         title: "Para quem",
         list: [
-          "Moradores, que gerem as suas casas e os seus consumos.",
+          "Gestores de casas, que gerem as suas casas e os seus consumos.",
           "Prestadores de serviços, que respondem a pedidos de assistência.",
           "Parceiros, que publicam ofertas.",
           "Administradores de condomínio, que publicam avisos e documentos.",
