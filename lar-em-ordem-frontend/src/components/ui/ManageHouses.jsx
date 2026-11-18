@@ -9,6 +9,7 @@ import { PropertyForm } from "./PropertyForm";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { Pager } from "./Pager";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export function ManageHouses() {
   const { refreshHouses } = useHouses();
@@ -26,8 +27,8 @@ export function ManageHouses() {
   const [editing, setEditing] = useState(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [error, setError] = useState("");
-  const [confirmingId, setConfirmingId] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
+  const [deletingHouse, setDeletingHouse] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { activeHouse } = useAuth();
   const navigate = useNavigate();
@@ -45,9 +46,11 @@ export function ManageHouses() {
     }
   }
 
-  async function handleDelete(id) {
+  async function confirmDelete() {
+    if (!deletingHouse) return;
+    const { id } = deletingHouse;
     setError("");
-    setDeletingId(id);
+    setDeleting(true);
     try {
       await deleteProperty(id);
       await refreshHouses();
@@ -57,7 +60,7 @@ export function ManageHouses() {
         return;
       }
 
-      setConfirmingId(null);
+      setDeletingHouse(null);
 
       if (houses.length === 1 && page > 1) {
         setPage(page - 1);
@@ -67,7 +70,7 @@ export function ManageHouses() {
     } catch {
       setError("Não foi possível eliminar a habitação.");
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   }
 
@@ -120,44 +123,37 @@ export function ManageHouses() {
               </p>
             </div>
 
-            {confirmingId === h.id ? (
-              <div className="flex shrink-0 flex-wrap items-center gap-2">
-                <span className="text-sm text-muted">Tens a certeza?</span>
-                <button
-                  onClick={() => handleDelete(h.id)}
-                  disabled={deletingId === h.id}
-                  className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition disabled:opacity-60"
-                >
-                  {deletingId === h.id ? "A eliminar..." : "Sim, eliminar"}
-                </button>
-                <button
-                  onClick={() => setConfirmingId(null)}
-                  className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-text hover:bg-surface transition"
-                >
-                  Cancelar
-                </button>
-              </div>
-            ) : (
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  onClick={() => handleEdit(h.id)}
-                  disabled={loadingEdit}
-                  className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-navy hover:bg-surface transition disabled:opacity-60"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => setConfirmingId(h.id)}
-                  className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition"
-                >
-                  Eliminar
-                </button>
-              </div>
-            )}
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={() => handleEdit(h.id)}
+                disabled={loadingEdit}
+                className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-navy hover:bg-surface transition disabled:opacity-60"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => setDeletingHouse(h)}
+                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+              >
+                Eliminar
+              </button>
+            </div>
           </li>
         ))}
       </ul>
       <Pager page={page} totalPages={totalPages} onChange={setPage} />
+      {deletingHouse && (
+        <ConfirmDialog
+          title="Eliminar habitação"
+          message={`Quer mesmo eliminar esta habitação? Esta ação não pode ser desfeita. Irá perder os dados da habitação.`}
+          confirmLabel="Eliminar"
+          loadingLabel="A eliminar…"
+          danger
+          loading={deleting}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeletingHouse(null)}
+        />
+      )}
     </div>
   );
 }

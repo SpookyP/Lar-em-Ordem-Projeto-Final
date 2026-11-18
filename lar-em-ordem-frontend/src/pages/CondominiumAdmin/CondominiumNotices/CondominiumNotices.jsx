@@ -8,8 +8,9 @@ import { Pager } from "../../../components/ui/Pager";
 import { isNoticeCurrent, priorityInfo } from "../../../data/condominiumInfo";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 
-function NoticeItem({ notice, busy, confirming, onEdit, onAskDelete, onDelete, onCancelDelete }) {
+function NoticeItem({ notice, onEdit, onAskDelete }) {
   const priority = priorityInfo(notice.priority);
   const current = isNoticeCurrent(notice);
 
@@ -17,7 +18,9 @@ function NoticeItem({ notice, busy, confirming, onEdit, onAskDelete, onDelete, o
     <article className="flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="font-display text-lg text-navy">{notice.title}</h2>
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${priority.className}`}>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${priority.className}`}
+        >
           {priority.label}
         </span>
         <span
@@ -48,43 +51,20 @@ function NoticeItem({ notice, busy, confirming, onEdit, onAskDelete, onDelete, o
       </div>
 
       <div className="flex items-center gap-4 border-t border-border pt-3 text-sm">
-        {confirming ? (
-          <>
-            <span className="text-muted">Apagar este aviso?</span>
-            <button
-              type="button"
-              onClick={onDelete}
-              disabled={busy}
-              className="ml-auto rounded-full bg-red px-3 py-1 text-white transition hover:opacity-90 disabled:opacity-60"
-            >
-              {busy ? "A apagar..." : "Sim, apagar"}
-            </button>
-            <button
-              type="button"
-              onClick={onCancelDelete}
-              className="text-muted underline hover:text-navy"
-            >
-              Cancelar
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={onEdit}
-              className="flex items-center gap-1.5 text-muted hover:text-navy"
-            >
-              <Pencil size={15} /> Editar
-            </button>
-            <button
-              type="button"
-              onClick={onAskDelete}
-              className="ml-auto flex items-center gap-1.5 text-red hover:opacity-80"
-            >
-              <Trash2 size={15} /> Apagar
-            </button>
-          </>
-        )}
+        <button
+          type="button"
+          onClick={onEdit}
+          className="flex items-center gap-1.5 text-muted hover:text-navy"
+        >
+          <Pencil size={15} /> Editar
+        </button>
+        <button
+          type="button"
+          onClick={onAskDelete}
+          className="ml-auto flex items-center gap-1.5 text-red hover:opacity-80"
+        >
+          <Trash2 size={15} /> Apagar
+        </button>
       </div>
     </article>
   );
@@ -97,7 +77,7 @@ export default function CondominiumNotices() {
 
   // "new" for the publish form, a notice for the edit form, null when closed
   const [editing, setEditing] = useState(null);
-  const [confirmingId, setConfirmingId] = useState(null);
+  const [deletingNotice, setDeletingNotice] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [actionError, setActionError] = useState("");
   const [message, setMessage] = useState("");
@@ -126,7 +106,7 @@ export default function CondominiumNotices() {
     setMessage("");
     try {
       await deleteNotice(notice.id);
-      setConfirmingId(null);
+      setDeletingNotice(null);
       if (notices.length === 1 && page > 1) setPage(page - 1);
       else reload();
     } catch (err) {
@@ -169,7 +149,10 @@ export default function CondominiumNotices() {
       </div>
 
       {message && (
-        <p role="status" className="rounded-lg bg-green-light px-3 py-2 text-sm text-green">
+        <p
+          role="status"
+          className="rounded-lg bg-green-light px-3 py-2 text-sm text-green"
+        >
           {message}
         </p>
       )}
@@ -200,7 +183,9 @@ export default function CondominiumNotices() {
       ) : isEmpty ? (
         editing === null && (
           <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
-            <p className="text-sm text-muted">Ainda não publicaste nenhum aviso.</p>
+            <p className="text-sm text-muted">
+              Ainda não publicaste nenhum aviso.
+            </p>
           </div>
         )
       ) : (
@@ -210,21 +195,29 @@ export default function CondominiumNotices() {
               <NoticeItem
                 key={notice.id}
                 notice={notice}
-                busy={busyId === notice.id}
-                confirming={confirmingId === notice.id}
                 onEdit={() => {
                   setMessage("");
                   setEditing(notice);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                onAskDelete={() => setConfirmingId(notice.id)}
-                onDelete={() => handleDelete(notice)}
-                onCancelDelete={() => setConfirmingId(null)}
+                onAskDelete={() => setDeletingNotice(notice)}
               />
             ))}
           </div>
           <Pager page={page} totalPages={totalPages} onChange={setPage} />
         </>
+      )}
+      {deletingNotice && (
+        <ConfirmDialog
+          title="Apagar aviso"
+          message={`Tem a certeza que pretende apagar o aviso "${deletingNotice.title}"? Esta ação não pode ser desfeita.`}
+          confirmLabel="Apagar"
+          loadingLabel="A apagar…"
+          danger
+          loading={busyId === deletingNotice.id}
+          onConfirm={() => handleDelete(deletingNotice)}
+          onCancel={() => setDeletingNotice(null)}
+        />
       )}
     </div>
   );

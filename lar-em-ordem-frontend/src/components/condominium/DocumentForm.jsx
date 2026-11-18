@@ -1,6 +1,15 @@
 import { useState } from "react";
-import { DatePicker, FileInput, SearchSelect, TextArea, TextInput } from "../form";
-import { updateDocument, uploadDocument } from "../../services/api/condominiumService";
+import {
+  DatePicker,
+  FileInput,
+  SearchSelect,
+  TextArea,
+  TextInput,
+} from "../form";
+import {
+  updateDocument,
+  uploadDocument,
+} from "../../services/api/condominiumService";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import { todayISO } from "../../utils/date";
 
@@ -13,21 +22,31 @@ function validate(form, isEdit) {
 
   if (!isEdit) {
     if (!form.file) errors.file = "Escolhe o ficheiro do documento.";
-    else if (!ALLOWED.includes(form.file.type)) errors.file = "O documento tem de ser PDF, JPG ou PNG.";
-    else if (form.file.size > MAX_BYTES) errors.file = "O documento não pode ter mais de 15 MB.";
+    else if (!ALLOWED.includes(form.file.type))
+      errors.file = "O documento tem de ser PDF, JPG ou PNG.";
+    else if (form.file.size > MAX_BYTES)
+      errors.file = "O documento não pode ter mais de 15 MB.";
   }
   if (!form.title.trim()) errors.title = "Indica o título do documento.";
   if (!form.document_date) errors.document_date = "Indica a data do documento.";
   else if (form.document_date > todayISO()) {
     errors.document_date = "A data do documento não pode ser no futuro.";
   }
-  if (!form.category_id) errors.condominium_document_category_id = "Escolhe a categoria do documento.";
+  if (!form.category_id)
+    errors.condominium_document_category_id =
+      "Escolhe a categoria do documento.";
 
   return errors;
 }
 
 /** Upload a document to the condominium, or correct its details (the file itself never changes). */
-export function DocumentForm({ condominiumId, doc = null, categories, onSaved, onCancel }) {
+export function DocumentForm({
+  condominiumId,
+  doc = null,
+  categories,
+  onSaved,
+  onCancel,
+}) {
   const isEdit = Boolean(doc);
   const [form, setForm] = useState({
     file: null,
@@ -69,28 +88,35 @@ export function DocumentForm({ condominiumId, doc = null, categories, onSaved, o
       onSaved(saved);
     } catch (err) {
       setErrors(getFieldErrors(err));
-      setFormError(getErrorMessage(err, "Não foi possível guardar o documento."));
+      setFormError(
+        getErrorMessage(err, "Não foi possível guardar o documento."),
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }));
+  const categoryOptions = categories.map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       {formError && (
-        <p role="alert" className="rounded-lg bg-red-light px-3 py-2 text-sm text-red">
+        <p
+          role="alert"
+          className="rounded-lg bg-red-light px-3 py-2 text-sm text-red"
+        >
           {formError}
         </p>
       )}
 
-      {isEdit ? (
-        <p className="rounded-xl bg-surface px-4 py-3 text-sm text-muted">
-          Ficheiro: <span className="font-medium text-text">{doc.file?.name}</span>. Para
-          trocar o ficheiro, apaga este documento e carrega um novo.
-        </p>
-      ) : (
+      <p className="text-xs text-muted">
+        <span className="text-red">*</span> Campos de preenchimento obrigatório
+      </p>
+
+      {!isEdit && (
         <FileInput
           label="Ficheiro"
           required
@@ -117,7 +143,9 @@ export function DocumentForm({ condominiumId, doc = null, categories, onSaved, o
           required
           options={categoryOptions}
           value={form.category_id}
-          onChange={(value) => set("category_id", value, "condominium_document_category_id")}
+          onChange={(value) =>
+            set("category_id", value, "condominium_document_category_id")
+          }
           error={errors.condominium_document_category_id}
           placeholder="Escolher categoria..."
         />
@@ -137,8 +165,15 @@ export function DocumentForm({ condominiumId, doc = null, categories, onSaved, o
         error={errors.description}
         maxLength={1000}
         rows={3}
-        hint="Opcional."
       />
+
+      {isEdit && (
+        <p className="rounded-xl bg-surface px-4 py-3 text-sm text-muted">
+          Ficheiro:{" "}
+          <span className="font-medium text-text">{doc.file?.name}</span>. Para
+          trocar o ficheiro, apaga este documento e carrega um novo.
+        </p>
+      )}
 
       <div className="flex items-center justify-end gap-3">
         <button
@@ -153,7 +188,11 @@ export function DocumentForm({ condominiumId, doc = null, categories, onSaved, o
           disabled={saving}
           className="rounded-xl bg-navy px-5 py-2.5 font-bold text-white transition hover:bg-navy-light disabled:opacity-60"
         >
-          {saving ? "A guardar..." : isEdit ? "Guardar alterações" : "Carregar documento"}
+          {saving
+            ? "A guardar..."
+            : isEdit
+              ? "Guardar alterações"
+              : "Carregar documento"}
         </button>
       </div>
     </form>

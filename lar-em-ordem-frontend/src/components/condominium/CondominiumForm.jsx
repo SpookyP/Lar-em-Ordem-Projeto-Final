@@ -38,10 +38,12 @@ const REQUIRED = {
 };
 
 const toOptions = (names, current = "") =>
-  (current && !names.includes(current) ? [current, ...names] : names).map((name) => ({
-    value: name,
-    label: name,
-  }));
+  (current && !names.includes(current) ? [current, ...names] : names).map(
+    (name) => ({
+      value: name,
+      label: name,
+    }),
+  );
 
 function initialForm(condominium) {
   const address = condominium?.address ?? {};
@@ -62,7 +64,8 @@ function validate(form, fields) {
 
   fields.forEach((key) => {
     const value = form[key.replace("address.", "")];
-    if (REQUIRED[key] && !String(value ?? "").trim()) errors[key] = REQUIRED[key];
+    if (REQUIRED[key] && !String(value ?? "").trim())
+      errors[key] = REQUIRED[key];
   });
 
   if (
@@ -89,7 +92,8 @@ function toPayload(form) {
     },
   };
 
-  if (form.reserve_fund !== "") payload.reserve_fund = Number(form.reserve_fund);
+  if (form.reserve_fund !== "")
+    payload.reserve_fund = Number(form.reserve_fund);
 
   return payload;
 }
@@ -108,7 +112,9 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
     let active = true;
     getZones()
       .then((data) => active && setZones(data))
-      .catch(() => active && setFormError("Não foi possível carregar os distritos."));
+      .catch(
+        () => active && setFormError("Não foi possível carregar os distritos."),
+      );
     return () => {
       active = false;
     };
@@ -146,10 +152,14 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
       onSaved(saved);
     } catch (err) {
       const fieldErrors = getFieldErrors(err);
-      const firstStep = STEPS.findIndex((s) => s.fields.some((field) => fieldErrors[field]));
+      const firstStep = STEPS.findIndex((s) =>
+        s.fields.some((field) => fieldErrors[field]),
+      );
       setErrors(fieldErrors);
       if (firstStep >= 0) setStep(firstStep);
-      setFormError(getErrorMessage(err, "Não foi possível guardar o condomínio."));
+      setFormError(
+        getErrorMessage(err, "Não foi possível guardar o condomínio."),
+      );
     } finally {
       setSaving(false);
     }
@@ -157,10 +167,15 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
 
   const districts = zones ? toOptions(getDistricts(zones), form.district) : [];
   const counties =
-    zones && form.district ? toOptions(getCounties(zones, form.district), form.county) : [];
+    zones && form.district
+      ? toOptions(getCounties(zones, form.district), form.county)
+      : [];
   const locations =
     zones && form.district && form.county
-      ? toOptions(getLocations(zones, form.district, form.county), form.location)
+      ? toOptions(
+          getLocations(zones, form.district, form.county),
+          form.location,
+        )
       : [];
 
   const isLast = step === STEPS.length - 1;
@@ -187,10 +202,15 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
         <div className="flex flex-col gap-4 p-7 pb-0">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 id="condominium-form-title" className="font-display text-2xl text-navy">
+              <h2
+                id="condominium-form-title"
+                className="font-display text-2xl text-navy"
+              >
                 {isEdit ? "Editar condomínio" : "Novo condomínio"}
               </h2>
-              <p className="mt-1 text-sm text-muted">{STEPS[step].description}</p>
+              <p className="mt-1 text-sm text-muted">
+                {STEPS[step].description}
+              </p>
             </div>
             <button
               type="button"
@@ -205,8 +225,15 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
         </div>
 
         <div className="flex flex-col gap-4 overflow-y-auto p-7">
+          <p className="text-xs text-muted">
+            <span className="text-red">*</span> Campos de preenchimento
+            obrigatório
+          </p>
           {formError && (
-            <p role="alert" className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red"
+            >
               {formError}
             </p>
           )}
@@ -233,7 +260,6 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
                 value={form.reserve_fund}
                 onChange={(value) => set("reserve_fund", value)}
                 error={errors.reserve_fund}
-                hint="Opcional. Valor atual do fundo, em euros."
               />
             </>
           )}
@@ -299,7 +325,11 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
                   set("location", "");
                 }}
                 error={errors["address.county"]}
-                placeholder={form.district ? "Escolher concelho..." : "Escolhe primeiro o distrito"}
+                placeholder={
+                  form.district
+                    ? "Escolher concelho..."
+                    : "Escolhe primeiro o distrito"
+                }
                 disabled={!form.district}
               />
               <SearchSelect
@@ -309,9 +339,12 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
                 value={form.location}
                 onChange={(value) => set("location", value)}
                 error={errors["address.location"]}
-                placeholder={form.county ? "Escolher localidade..." : "Escolhe primeiro o concelho"}
+                placeholder={
+                  form.county
+                    ? "Escolher localidade..."
+                    : "Escolhe primeiro o concelho"
+                }
                 disabled={!form.county}
-                hint="Freguesia onde fica o prédio."
               />
             </>
           )}

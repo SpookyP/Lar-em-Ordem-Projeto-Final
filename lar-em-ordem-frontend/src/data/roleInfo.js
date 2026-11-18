@@ -3,12 +3,16 @@
 export const ROLE_INFO = {
   resident: { label: "Gestor de casas", hasHouses: true, home: "/dashboard" },
   service_provider: {
-    label: "Prestador de Serviços",
+    label: "Prestador de serviços",
     hasHouses: false,
     home: "/provider/requests",
   },
   partner: { label: "Parceiro", hasHouses: false, home: "/partner/offers" },
-  condominium_admin: { label: "Administrador de Condomínio", hasHouses: false, home: "/admin/condominiums", },
+  condominium_admin: {
+    label: "Administrador de condomínio",
+    hasHouses: false,
+    home: "/admin/condominiums",
+  },
 };
 
 export const homePath = (profileName) =>

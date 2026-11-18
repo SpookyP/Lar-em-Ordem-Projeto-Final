@@ -2,13 +2,27 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { deleteAccount } from "../../services/api/accountService";
+import { accountTypes } from "../../data/registerFields";
+import { ConfirmDialog } from "./ConfirmDialog";
+
+function describeAccount(roles) {
+  if (roles.length === 1) {
+    const label =
+      accountTypes.find((t) => t.role === roles[0])?.label.toLowerCase() ??
+      "perfil";
+    return `a conta de ${label}`;
+  }
+
+  return "a conta e todos os perfis";
+}
 
 export function DeleteAccount() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState("");
+  const roles = user?.roles ?? [];
 
   async function handleDelete() {
     setError("");
@@ -23,6 +37,7 @@ export function DeleteAccount() {
       navigate("/login");
     } catch (err) {
       setStatus(null);
+      setConfirming(false);
       setError(
         err.response?.data?.message ?? "Não foi possível apagar a conta.",
       );
@@ -34,55 +49,49 @@ export function DeleteAccount() {
       <h2 className="font-medium text-red-600">Apagar conta</h2>
       <div className="flex flex-col gap-2 text-sm text-muted">
         <p>
-          Esta ação remove a tua conta e termina a sessão. Não vais conseguir
+          Esta ação remove a sua conta e termina a sessão. Não vai conseguir
           voltar a entrar e não é possível recuperar os dados. Vamos apagar:
         </p>
         <ul className="list-disc pl-5 flex flex-col gap-1">
-          <li>Os teus dados pessoais (nome, email, NIF e contactos).</li>
+          <li>Os seus dados pessoais (nome, email, NIF e contactos).</li>
           <li>
-            As tuas casas, com as faturas, os consumos e os documentos do cofre,
+            As suas casas, com as faturas, os consumos e os documentos do cofre,
             incluindo os ficheiros.
           </li>
           <li>
-            Os teus pedidos de assistência e as respetivas fotos. Pedidos com
-            uma proposta aceite ficam no histórico do prestador, mas sem o teu
-            nome nem a tua descrição.
+            Os seus pedidos de assistência e as respetivas fotografias. Pedidos
+            com uma proposta aceite ficam no histórico do prestador, mas sem o
+            seu nome e a sua descrição.
           </li>
           <li>
-            Os teus perfis de prestador ou parceiro e os dados da empresa.
+            Os seus perfis de prestador ou parceiro e os dados da empresa.
           </li>
         </ul>
         <p>
-          Se administras condomínios, tens de os transferir antes de apagar a
+          Se administra condomínios, tem de os transferir antes de apagar a
           conta.
         </p>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {confirming ? (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted">Tens mesmo a certeza?</span>
-          <button
-            onClick={handleDelete}
-            disabled={status === "deleting"}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 transition"
-          >
-            {status === "deleting" ? "A apagar..." : "Sim, apagar conta"}
-          </button>
-          <button
-            onClick={() => setConfirming(false)}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text hover:bg-surface transition"
-          >
-            Cancelar
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setConfirming(true)}
-          className="self-start rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
-        >
-          Apagar conta
-        </button>
+      <button
+        onClick={() => setConfirming(true)}
+        className="self-start rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+      >
+        Apagar conta
+      </button>
+
+      {confirming && (
+        <ConfirmDialog
+          title="Apagar conta"
+          message={`Tem mesmo a certeza que pretende eliminar ${describeAccount(roles)}? Esta ação não pode ser desfeita.`}
+          confirmLabel="Apagar conta"
+          loadingLabel="A apagar…"
+          danger
+          loading={status === "deleting"}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirming(false)}
+        />
       )}
     </div>
   );
