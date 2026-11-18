@@ -27,8 +27,8 @@ class AssistanceRequestSeeder extends Seeder
         $address = Address::create([
             'street'      => 'Rua Brito Capelo',
             'postal_code' => '4450-073',
-            'door'        => '2º Esq',
-            'fraction'    => 'B',
+            'door'        => 'Nº 153',
+            'fraction'    => '2º Esq',
             'county'      => 'Matosinhos',
             'location'    => 'Matosinhos',
             'district'    => 'Porto',
