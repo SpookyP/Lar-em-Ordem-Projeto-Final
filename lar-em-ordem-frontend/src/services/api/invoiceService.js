@@ -89,3 +89,65 @@ export async function fetchMonthlyCostBenchmarks(propertyId) {
   // A API devolve diretamente uma lista de benchmarks.
   return Array.isArray(body) ? body : [];
 }
+
+/**
+ * Envia o PDF/imagem para extração dos dados; devolve o corpo da resposta.
+ */
+export async function uploadInvoiceFile(formData) {
+  // O browser define o Content-Type e o boundary do multipart.
+  const response = await axiosClient.post("/api/v1/invoices/upload", formData);
+
+  return getResponseBody(response);
+}
+
+/**
+ * Cria a fatura com os respetivos consumos e itens de detalhe.
+ */
+export async function createInvoice(payload) {
+  const response = await axiosClient.post("/api/v1/invoices", payload);
+
+  return getResponseBody(response);
+}
+
+/**
+ * Obtém o detalhe de uma fatura (consumos e itens incluídos).
+ */
+export async function getInvoice(id) {
+  const response = await axiosClient.get(`/api/v1/invoices/${id}`);
+
+  return getResponseBody(response);
+}
+
+/**
+ * Obtém o corpo com o URL assinado do PDF associado à fatura.
+ */
+export async function getInvoiceFile(id) {
+  const response = await axiosClient.get(`/api/v1/invoices/${id}/file`);
+
+  return getResponseBody(response);
+}
+
+/**
+ * Elimina uma fatura.
+ */
+export async function deleteInvoice(id) {
+  await axiosClient.delete(`/api/v1/invoices/${id}`);
+}
+
+
+/**
+ * Obtém a série anual de custos da habitação e dos benchmarks.
+ */
+export async function fetchAnnualBenchmarks(propertyId) {
+  // Evita pedidos à API quando não existe uma propriedade selecionada.
+  if (!propertyId) return null;
+
+  const response = await axiosClient.get("/api/v1/benchmarks/annual/series", {
+    params: {
+      property_id: propertyId,
+      service: "all",
+    },
+  });
+
+  return getResponseBody(response);
+}

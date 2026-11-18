@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('consumption_benchmarks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('consumption_type_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('consumption_type_id')->constrained()->restrictOnDelete();
             $table->foreignId('property_type_id')->constrained()->cascadeOnDelete();
             $table->foreignId('typology_id')->constrained('property_typologies')->cascadeOnDelete();
             $table->string('region', 100);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Bar,
@@ -20,7 +20,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
-import axiosClient from "../../services/api/axiosClient";
+import { fetchAnnualBenchmarks } from "../../services/api/invoiceService";
 
 // Cor fixa dos cabeçalhos.
 const HEADER_COLOR = "#1C3557";
@@ -71,6 +71,7 @@ function getErrorMessage(err) {
 function getServiceTheme(option) {
   const value = String(option?.value ?? "").toLowerCase();
   const label = String(option?.label ?? "").toLowerCase();
+
   const raw = `${value} ${label}`
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
@@ -139,21 +140,14 @@ function isGeneralService(option) {
 
 // Informação sobre os valores estimados, apresentada numa janela flutuante.
 function EstimateInfo({ entries, general = false }) {
-  const [clickedOpen, setClickedOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState(null);
 
   const buttonRef = useRef(null);
   const popupRef = useRef(null);
 
-  const isOpen = clickedOpen || hovered;
-
-  // Atualiza a posição da janela quando abre ou quando a página se desloca.
   useEffect(() => {
-    if (!isOpen) {
-      setPosition(null);
-      return undefined;
-    }
+    if (!isOpen) return undefined;
 
     const updatePosition = () => {
       const anchor = buttonRef.current?.getBoundingClientRect();
@@ -165,24 +159,61 @@ function EstimateInfo({ entries, general = false }) {
 
       const left = Math.max(
         12,
-        Math.min(anchor.left, window.innerWidth - popupWidth - 12)
+        Math.min(
+          anchor.left,
+          window.innerWidth - popupWidth - 12
+        )
       );
 
-      const below = anchor.bottom + 6;
+      const below = anchor.bottom + 8;
+
       const top =
         below + popupHeight <= window.innerHeight - 12
           ? below
-          : Math.max(12, anchor.top - popupHeight - 6);
+          : Math.max(12, anchor.top - popupHeight - 8);
 
-      setPosition({ top, left, width: popupWidth });
+      setPosition({
+        top,
+        left,
+        width: popupWidth,
+      });
     };
 
-    updatePosition();
+    const frame = window.requestAnimationFrame(updatePosition);
+
+    // Fecha quando se toca fora do botão ou da janela.
+    const handleOutsideClick = (event) => {
+      const target = event.target;
+
+      if (
+        buttonRef.current?.contains(target) ||
+        popupRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setIsOpen(false);
+    };
+
+    // Fecha com Escape.
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
 
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
 
     return () => {
+      window.cancelAnimationFrame(frame);
+
+      document.removeEventListener("pointerdown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
@@ -190,14 +221,13 @@ function EstimateInfo({ entries, general = false }) {
 
   if (!entries?.length) return null;
 
-  // Cria a janela fora da tabela para evitar problemas de posicionamento.
   const popup =
     isOpen && typeof document !== "undefined"
       ? createPortal(
           <div
             ref={popupRef}
             role="tooltip"
-            className="fixed z-[1000] rounded-lg border border-slate-200 bg-white p-3 text-left shadow-lg"
+            className="fixed z-[1000] max-h-[70vh] overflow-y-auto rounded-lg border border-slate-200 bg-white p-3 text-left shadow-lg"
             style={{
               top: position?.top ?? -1000,
               left: position?.left ?? -1000,
@@ -205,8 +235,10 @@ function EstimateInfo({ entries, general = false }) {
               visibility: position ? "visible" : "hidden",
             }}
           >
-            <p className="text-sm font-semibold text-slate-800">
-              {general ? "Serviços com estimativas" : "Estimativas"}
+            <p className="text-base font-semibold text-slate-800">
+              {general
+                ? "Serviços com estimativas"
+                : "Estimativas"}
             </p>
 
             {general ? (
@@ -215,18 +247,20 @@ function EstimateInfo({ entries, general = false }) {
                   const theme = getServiceTheme(
                     entry.option ?? { label: entry.label }
                   );
+
                   const Icon = theme.Icon;
 
                   return (
                     <div
                       key={`${entry.label}-${index}`}
-                      className="flex items-center gap-2 text-sm font-medium text-slate-700"
+                      className="flex items-center gap-2 text-base font-medium text-slate-700"
                     >
                       <Icon
-                        size={16}
+                        size={18}
                         className={theme.iconClass}
                         aria-hidden="true"
                       />
+
                       <span>{entry.label}</span>
                     </div>
                   );
@@ -238,7 +272,7 @@ function EstimateInfo({ entries, general = false }) {
                   entry.details.map((detail, detailIndex) => (
                     <p
                       key={`${entry.label ?? "estimate"}-${entryIndex}-${detailIndex}`}
-                      className="whitespace-nowrap text-sm leading-snug text-slate-600"
+                      className="text-base leading-snug text-slate-600"
                     >
                       <strong className="font-semibold text-slate-800">
                         {detail.label}:
@@ -249,32 +283,30 @@ function EstimateInfo({ entries, general = false }) {
                 )}
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="mt-3 w-full rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200"
+            >
+              Fechar
+            </button>
           </div>,
           document.body
         )
       : null;
 
   return (
-    <div
-      className="inline-flex"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div className="inline-flex">
       <button
         ref={buttonRef}
         type="button"
         aria-label="Informação sobre estimativas"
         aria-expanded={isOpen}
-        onClick={() => setClickedOpen((current) => !current)}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            setClickedOpen(false);
-            setHovered(false);
-          }
-        }}
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
+        onClick={() => setIsOpen((current) => !current)}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
       >
-        <Info size={15} strokeWidth={2} aria-hidden="true" />
+        <Info size={19} strokeWidth={2} aria-hidden="true" />
       </button>
 
       {popup}
@@ -287,6 +319,7 @@ function AnnualChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
 
   const row = payload[0]?.payload;
+
   if (!row) return null;
 
   const estimated =
@@ -295,12 +328,15 @@ function AnnualChartTooltip({ active, payload, label }) {
     (row.estimated_services ?? []).length > 0;
 
   return (
-    <div className="min-w-[190px] rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
-      <p className="mb-2 text-sm font-semibold text-slate-900">{label}</p>
+    <div className="min-w-47.5 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+      <p className="mb-2 text-base font-semibold text-slate-900">
+        {label}
+      </p>
 
-      <div className="space-y-1.5 text-xs">
+      <div className="space-y-1.5 text-sm">
         <div className="flex items-center justify-between gap-4">
           <span className="text-slate-500">Gasto da habitação</span>
+
           <strong className="tabular-nums text-slate-800">
             {money.format(Number(row.user_total))}
           </strong>
@@ -308,6 +344,7 @@ function AnnualChartTooltip({ active, payload, label }) {
 
         <div className="flex items-center justify-between gap-4">
           <span className="text-slate-500">Benchmark médio</span>
+
           <strong className="tabular-nums text-slate-800">
             {money.format(Number(row.benchmark_total))}
           </strong>
@@ -315,7 +352,7 @@ function AnnualChartTooltip({ active, payload, label }) {
       </div>
 
       {estimated && (
-        <p className="mt-2 border-t border-slate-100 pt-2 text-[10px] text-amber-700">
+        <p className="mt-2 border-t border-slate-100 pt-2 text-xs text-amber-700">
           Inclui valores estimados.
         </p>
       )}
@@ -350,14 +387,17 @@ function AnnualCostsChart({ rows, service }) {
 
   const userBarColor = getUserBarColor(service);
   const latest = chartRows[chartRows.length - 1];
-  const previous = chartRows.length > 1
-    ? chartRows[chartRows.length - 2]
-    : null;
+
+  const previous =
+    chartRows.length > 1
+      ? chartRows[chartRows.length - 2]
+      : null;
 
   // Calcula a variação percentual em relação ao ano anterior.
   const trendPercentage =
     previous && Number(previous.user_total) > 0
-      ? ((latest.user_total - previous.user_total) / previous.user_total) * 100
+      ? ((latest.user_total - previous.user_total) / previous.user_total) *
+        100
       : null;
 
   const increased = trendPercentage !== null && trendPercentage > 0;
@@ -378,17 +418,18 @@ function AnnualCostsChart({ rows, service }) {
         <div className="pointer-events-none absolute right-1/4 top-4 h-12 w-12 rounded-full border border-white/10" />
 
         <div className="relative z-10">
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="text-base font-semibold text-white">
             Evolução anual dos custos
           </h3>
-          <p className="mt-1 text-xs text-white/75">
+
+          <p className="mt-1 text-sm text-white/75">
             Gastos da habitação comparados com o benchmark médio.
           </p>
         </div>
 
         {trendPercentage !== null && (
           <div
-            className={`relative z-10 inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+            className={`relative z-10 inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold ${
               increased
                 ? "bg-red-50 text-red-700"
                 : decreased
@@ -397,10 +438,11 @@ function AnnualCostsChart({ rows, service }) {
             }`}
           >
             {increased ? (
-              <TrendingUp size={14} aria-hidden="true" />
+              <TrendingUp size={17} aria-hidden="true" />
             ) : decreased ? (
-              <TrendingDown size={14} aria-hidden="true" />
+              <TrendingDown size={17} aria-hidden="true" />
             ) : null}
+
             {increased
               ? `Aumento de ${signedPercent.format(trendPercentage)}% face a ${previous.year}`
               : decreased
@@ -411,7 +453,7 @@ function AnnualCostsChart({ rows, service }) {
       </div>
 
       {/* Representação dos custos anuais em barras. */}
-      <div className="h-[260px] w-full">
+      <div className="h-65 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartRows}
@@ -424,33 +466,40 @@ function AnnualCostsChart({ rows, service }) {
               strokeDasharray="3 3"
               vertical={false}
             />
+
             <XAxis
               dataKey="year"
-              tick={{ fill: "#64748b", fontSize: 11 }}
+              tick={{ fill: "#64748b", fontSize: 14 }}
               tickLine={false}
               axisLine={{ stroke: "#e2e8f0" }}
             />
+
             <YAxis
-              width={66}
+              width={76}
               tickFormatter={(value) => `${compactMoney.format(value)} €`}
-              tick={{ fill: "#64748b", fontSize: 10 }}
+              tick={{ fill: "#64748b", fontSize: 12 }}
               tickLine={false}
               axisLine={false}
               allowDecimals={false}
             />
+
             <Tooltip
               content={<AnnualChartTooltip />}
               cursor={{ fill: "#f8fafc" }}
             />
+
             <Legend
               verticalAlign="bottom"
-              height={30}
+              height={36}
               iconType="circle"
-              iconSize={8}
+              iconSize={9}
               formatter={(value) => (
-                <span className="text-xs text-slate-600">{value}</span>
+                <span className="text-sm text-slate-600">
+                  {value}
+                </span>
               )}
             />
+
             <Bar
               dataKey="user_total"
               name="Gasto da habitação"
@@ -464,6 +513,7 @@ function AnnualCostsChart({ rows, service }) {
                 />
               ))}
             </Bar>
+
             <Bar
               dataKey="benchmark_total"
               name="Benchmark médio"
@@ -476,6 +526,87 @@ function AnnualCostsChart({ rows, service }) {
       </div>
     </section>
   );
+}
+
+// Prepara os valores e a informação de estimativas de cada ano.
+function getAnnualRowPresentation(row, isGeneralView, options) {
+  const userEstimated = Number(row.estimated_months_count) > 0;
+  const benchmarkEstimated = row.benchmark_estimated === true;
+  const difference = Number(row.difference ?? 0);
+
+  const differenceStyle =
+    difference < 0
+      ? "text-emerald-700"
+      : difference > 0
+        ? "text-red-700"
+        : "text-slate-600";
+
+  const differencePillStyle =
+    difference < 0
+      ? "bg-emerald-50 text-emerald-700"
+      : difference > 0
+        ? "bg-red-50 text-red-700"
+        : "bg-slate-100 text-slate-600";
+
+  const estimatedServices = isGeneralView
+    ? row.estimated_services ?? []
+    : [];
+
+  const hasRowEstimate = isGeneralView
+    ? estimatedServices.length > 0
+    : userEstimated || benchmarkEstimated;
+
+  const estimateEntries = isGeneralView
+    ? estimatedServices.map((detail) => {
+        const option = options.find(
+          (item) =>
+            String(item.value) === String(detail.consumption_type_id)
+        ) ?? {
+          value: String(detail.consumption_type_id),
+          label: detail.consumption_type ?? "Serviço",
+        };
+
+        return {
+          label: option.label,
+          option,
+          details: [],
+        };
+      })
+    : [
+        {
+          label: null,
+          details: [
+            ...(userEstimated
+              ? [
+                  {
+                    label: "Consumo",
+                    text: `${row.estimated_months_count} meses estimados`,
+                  },
+                ]
+              : []),
+            ...(benchmarkEstimated
+              ? [
+                  {
+                    label: "Benchmark",
+                    text: `projetado${
+                      Number(row.benchmark_estimated_months_count) > 0
+                        ? ` (${row.benchmark_estimated_months_count} meses)`
+                        : ""
+                    }`,
+                  },
+                ]
+              : []),
+          ],
+        },
+      ];
+
+  return {
+    difference,
+    differenceStyle,
+    differencePillStyle,
+    hasRowEstimate,
+    estimateEntries,
+  };
 }
 
 // Tabela principal de comparação anual por habitação e serviço.
@@ -491,55 +622,49 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
       ? serviceSelection.value
       : "all";
 
-  // Estado dos dados, carregamento e erros da API.
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // Resultado do último pedido, identificado pela habitação e pela atualização.
+  const [fetched, setFetched] = useState({
+    key: null,
+    data: null,
+    error: "",
+  });
+
+  const requestKey = `${propertyId ?? ""}-${refreshKey ?? 0}`;
+
+  const current =
+    propertyId && fetched.key === requestKey ? fetched : null;
+
+  // Valores derivados: sem setState síncrono dentro do efeito.
+  const result = current?.data ?? null;
+  const error = current?.error ?? "";
+  const loading = Boolean(propertyId) && current === null;
 
   // Carrega os dados anuais sempre que a habitação ou a chave de atualização muda.
   useEffect(() => {
-    if (!propertyId) {
-      setResult(null);
-      setLoading(false);
-      setError("");
-      return undefined;
-    }
+    if (!propertyId) return undefined;
 
-    // Evita atualizar o estado se o pedido anterior já não for válido.
     let cancelled = false;
 
-    setResult(null);
-    setLoading(true);
-    setError("");
-
-    axiosClient
-      .get("/api/v1/benchmarks/annual/series", {
-        params: {
-          property_id: propertyId,
-          service: "all",
-        },
-      })
-      .then((response) => {
+    fetchAnnualBenchmarks(propertyId)
+      .then((data) => {
         if (!cancelled) {
-          setResult(response.data);
+          setFetched({ key: requestKey, data, error: "" });
         }
       })
       .catch((err) => {
         if (!cancelled) {
-          setResult(null);
-          setError(getErrorMessage(err));
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
+          setFetched({
+            key: requestKey,
+            data: null,
+            error: getErrorMessage(err),
+          });
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [propertyId, refreshKey]);
+  }, [propertyId, requestKey]);
 
   // Prepara as opções de serviço e verifica a disponibilidade do filtro.
   const options = result?.service_options ?? [];
@@ -594,11 +719,11 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight text-white">
+            <h2 className="text-xl font-semibold tracking-tight text-white">
               Comparação anual com benchmarks
             </h2>
 
-            <p className="mt-1 text-sm text-white/75">
+            <p className="mt-1 text-base text-white/75">
               Comparação dos gastos anuais da habitação com a média anual de
               habitações similares.
             </p>
@@ -610,6 +735,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
               {options.map((option) => {
                 const selected =
                   String(activeService) === String(option.value);
+
                 const theme = getServiceTheme(option);
                 const Icon = theme.Icon;
 
@@ -619,7 +745,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                     type="button"
                     onClick={() => selectService(option.value)}
                     aria-pressed={selected}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-base font-medium transition ${
                       selected
                         ? theme.selectedClass
                         : "border-white/40 bg-white/10 text-white hover:bg-white/20"
@@ -631,10 +757,11 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                     }
                   >
                     <Icon
-                      size={16}
+                      size={18}
                       strokeWidth={2}
                       aria-hidden="true"
                     />
+
                     <span>{option.label}</span>
                   </button>
                 );
@@ -647,7 +774,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
       {/* Mensagem de erro devolvida pela API. */}
       {error && (
         <div className="px-5 pt-4 sm:px-6">
-          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-base text-amber-800">
             {error}
           </p>
         </div>
@@ -655,14 +782,14 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
       {/* Mensagem apresentada quando não existe uma habitação selecionada. */}
       {!propertyId && !error && (
-        <div className="px-5 py-12 text-center text-sm text-slate-500 sm:px-6">
+        <div className="px-5 py-12 text-center text-base text-slate-500 sm:px-6">
           Seleciona uma casa para ver a comparação anual.
         </div>
       )}
 
       {/* Indicador de carregamento dos dados. */}
       {propertyId && loading && rows.length === 0 && (
-        <div className="flex items-center justify-center gap-2 px-5 py-12 text-sm text-slate-500 sm:px-6">
+        <div className="flex items-center justify-center gap-2 px-5 py-12 text-base text-slate-500 sm:px-6">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-slate-600" />
           A carregar comparação anual...
         </div>
@@ -671,9 +798,99 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
       {/* Tabela e gráfico apresentados quando existem dados. */}
       {rows.length > 0 && (
         <>
-          {/* Tabela de comparação dos valores anuais. */}
-          <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[620px] border-collapse text-sm">
+          {/* Cartões de comparação para telemóveis e tablets. */}
+          <div className="space-y-3 px-4 py-4 lg:hidden">
+            {rows.map((row) => {
+              const {
+                difference,
+                differenceStyle,
+                differencePillStyle,
+                hasRowEstimate,
+                estimateEntries,
+              } = getAnnualRowPresentation(row, isGeneralView, options);
+
+              return (
+                <article
+                  key={`mobile-${row.year}`}
+                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="rounded-lg bg-[#1C3557]/10 px-3 py-1.5 text-base font-bold tabular-nums text-[#1C3557]">
+                        {row.year}
+                      </span>
+
+                      {hasRowEstimate && (
+                        <EstimateInfo
+                          entries={estimateEntries}
+                          general={isGeneralView}
+                        />
+                      )}
+                    </div>
+
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      Comparação anual
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="min-w-0 rounded-lg bg-slate-50 p-3">
+                      <p className="text-xs font-semibold uppercase leading-4 tracking-wide text-slate-500">
+                        Gasto utilizador
+                      </p>
+
+                      <p className="mt-1 break-words text-base font-bold tabular-nums text-slate-900">
+                        {money.format(Number(row.user_total))}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0 rounded-lg bg-slate-50 p-3">
+                      <p className="text-xs font-semibold uppercase leading-4 tracking-wide text-slate-500">
+                        Benchmark médio
+                      </p>
+
+                      <p className="mt-1 break-words text-base font-bold tabular-nums text-slate-800">
+                        {money.format(Number(row.benchmark_total))}
+                      </p>
+
+                      {row.sample_size != null && (
+                        <p className="mt-1 text-xs leading-4 text-slate-400">
+                          Amostra de {row.sample_size} habitações
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <span className="text-sm font-semibold text-slate-500">
+                      Diferença
+                    </span>
+
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <span className={`text-base font-bold tabular-nums ${differenceStyle}`}>
+                        {signedMoney.format(difference)}
+                      </span>
+
+                      {row.difference_percentage != null && (
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums ${differencePillStyle}`}
+                        >
+                          {signedPercent.format(
+                            Number(row.difference_percentage)
+                          )}
+                          %
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* Tabela tradicional para ecrãs maiores. */}
+          <div className="hidden w-full overflow-x-auto lg:block">
+            <table className="w-full min-w-155 border-collapse text-base">
               <thead
                 className="text-white"
                 style={{
@@ -684,14 +901,19 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                   `,
                 }}
               >
-                <tr className="text-[11px] font-semibold uppercase tracking-wide text-white">
-                  <th className="px-5 py-4 text-left sm:px-6">Ano</th>
+                <tr className="text-xs font-semibold uppercase tracking-wide text-white">
+                  <th className="px-5 py-4 text-left sm:px-6">
+                    Ano
+                  </th>
+
                   <th className="px-4 py-4 text-right">
                     Gasto utilizador (€)
                   </th>
+
                   <th className="px-4 py-4 text-right">
                     Benchmark médio (€)
                   </th>
+
                   <th className="px-5 py-4 text-right sm:px-6">
                     Diferença (€)
                   </th>
@@ -700,84 +922,13 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
               <tbody>
                 {rows.map((row) => {
-                  // Identifica os valores estimados e calcula a diferença anual.
-                  const userEstimated =
-                    Number(row.estimated_months_count) > 0;
-                  const benchmarkEstimated =
-                    row.benchmark_estimated === true;
-                  const difference = Number(row.difference ?? 0);
-
-                  // Define as cores da diferença consoante o resultado.
-                  const differenceStyle =
-                    difference < 0
-                      ? "text-emerald-700"
-                      : difference > 0
-                        ? "text-red-700"
-                        : "text-slate-600";
-
-                  const differencePillStyle =
-                    difference < 0
-                      ? "bg-emerald-50 text-emerald-700"
-                      : difference > 0
-                        ? "bg-red-50 text-red-700"
-                        : "bg-slate-100 text-slate-600";
-
-                  // Obtém os serviços com estimativas na visão geral.
-                  const estimatedServices = isGeneralView
-                    ? row.estimated_services ?? []
-                    : [];
-
-                  const hasRowEstimate = isGeneralView
-                    ? estimatedServices.length > 0
-                    : userEstimated || benchmarkEstimated;
-
-                  // Prepara os detalhes que serão apresentados no ícone de informação.
-                  const estimateEntries = isGeneralView
-                    ? estimatedServices.map((detail) => {
-                        const option = options.find(
-                          (item) =>
-                            String(item.value) ===
-                            String(detail.consumption_type_id)
-                        ) ?? {
-                          value: String(detail.consumption_type_id),
-                          label: detail.consumption_type ?? "Serviço",
-                        };
-
-                        return {
-                          label: option.label,
-                          option,
-                          details: [],
-                        };
-                      })
-                    : [
-                        {
-                          label: null,
-                          details: [
-                            ...(userEstimated
-                              ? [
-                                  {
-                                    label: "Consumo",
-                                    text: `${row.estimated_months_count} meses estimados`,
-                                  },
-                                ]
-                              : []),
-                            ...(benchmarkEstimated
-                              ? [
-                                  {
-                                    label: "Benchmark",
-                                    text: `projetado${
-                                      Number(
-                                        row.benchmark_estimated_months_count
-                                      ) > 0
-                                        ? ` (${row.benchmark_estimated_months_count} meses)`
-                                        : ""
-                                    }`,
-                                  },
-                                ]
-                              : []),
-                          ],
-                        },
-                      ];
+                  const {
+                    difference,
+                    differenceStyle,
+                    differencePillStyle,
+                    hasRowEstimate,
+                    estimateEntries,
+                  } = getAnnualRowPresentation(row, isGeneralView, options);
 
                   return (
                     <tr
@@ -807,7 +958,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         {money.format(Number(row.benchmark_total))}
 
                         {row.sample_size != null && (
-                          <p className="mt-1 text-[11px] font-normal text-slate-400">
+                          <p className="mt-1 text-sm font-normal text-slate-400">
                             Amostra de {row.sample_size} habitações
                           </p>
                         )}
@@ -823,7 +974,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         {row.difference_percentage != null && (
                           <div className="mt-1.5">
                             <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums ${differencePillStyle}`}
+                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums ${differencePillStyle}`}
                             >
                               {signedPercent.format(
                                 Number(row.difference_percentage)
@@ -845,7 +996,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
           {/* Notas explicativas e aviso sobre os valores apresentados. */}
           <footer className="border-t border-slate-100 px-5 py-4 sm:px-6">
-            <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
+            <p className="mb-3 text-sm leading-relaxed text-slate-500">
               Uma diferença negativa significa que a habitação gastou menos
               do que o benchmark. Uma diferença positiva significa que
               gastou mais.
@@ -853,12 +1004,12 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
             <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
               <Info
-                size={16}
+                size={19}
                 className="mt-0.5 shrink-0 text-slate-500"
                 aria-hidden="true"
               />
 
-              <p className="text-[11px] leading-relaxed text-slate-600">
+              <p className="text-sm leading-relaxed text-slate-600">
                 <span className="font-semibold text-slate-700">
                   Valores indicativos.
                 </span>{" "}

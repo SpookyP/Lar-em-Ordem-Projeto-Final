@@ -15,7 +15,7 @@ return new class extends Migration
             $table->ulid('id')->primary();
             $table->foreignUlid('property_id')->constrained()->cascadeOnDelete();
             $table->foreignUlid('invoice_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('consumption_type_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('consumption_type_id')->constrained()->restrictOnDelete();
             $table->date('period_start');
             $table->date('period_end');
             $table->decimal('amount', 10, 3);

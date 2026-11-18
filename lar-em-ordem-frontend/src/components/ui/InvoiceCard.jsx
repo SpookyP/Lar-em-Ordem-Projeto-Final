@@ -1,13 +1,14 @@
-
 import { useMemo } from "react";
 import { Wallet, Zap, Droplets, Flame } from "lucide-react";
 
+// Associa cada tipo de consumo ao respetivo serviço.
 const SERVICE_TYPES = {
   1: "electricity",
   2: "water",
   3: "gas",
 };
 
+// Define as cores mais escuras dos cartões.
 const DARKER_COLORS = {
   "#583D69": "#402C4D",
   "#1C3557": "#142840",
@@ -15,8 +16,10 @@ const DARKER_COLORS = {
   "#EA580C": "#B84508",
 };
 
+// Converte valores recebidos para números.
 function toNumber(value) {
   if (value === null || value === undefined || value === "") return 0;
+
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
   }
@@ -31,6 +34,7 @@ function toNumber(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
+// Identifica o tipo de serviço associado ao consumo.
 function getTypeId(consumption) {
   const id =
     consumption?.consumption_type_id ??
@@ -51,6 +55,7 @@ function getTypeId(consumption) {
   return null;
 }
 
+// Obtém a lista de itens associados ao consumo.
 function getConsumptionItems(consumption) {
   const possibleItems = [
     consumption?.items,
@@ -69,6 +74,7 @@ function getConsumptionItems(consumption) {
   );
 }
 
+// Calcula o custo total de um consumo.
 function getConsumptionCost(consumption) {
   const directCost =
     consumption?.cost ??
@@ -81,6 +87,7 @@ function getConsumptionCost(consumption) {
 
   const items = getConsumptionItems(consumption);
 
+  // Soma os custos dos itens quando não existe um total direto.
   if (items.length > 0) {
     return items.reduce((total, item) => {
       return (
@@ -99,6 +106,7 @@ function getConsumptionCost(consumption) {
   return 0;
 }
 
+// Formata os valores monetários em euros.
 function formatCurrency(value) {
   return new Intl.NumberFormat("pt-PT", {
     style: "currency",
@@ -106,11 +114,13 @@ function formatCurrency(value) {
   }).format(value);
 }
 
+// Componente responsável por apresentar os cartões de despesas.
 export default function InvoiceCard({
   invoices = [],
   loading = false,
   error = "",
 }) {
+  // Calcula os totais gerais e por tipo de serviço.
   const totals = useMemo(() => {
     const result = {
       total: 0,
@@ -119,6 +129,7 @@ export default function InvoiceCard({
       gas: 0,
     };
 
+    // Percorre as faturas para calcular os valores acumulados.
     invoices.forEach((invoice) => {
       result.total += toNumber(invoice?.total_amount);
 
@@ -126,6 +137,7 @@ export default function InvoiceCard({
         ? invoice.consumptions
         : [];
 
+      // Soma os custos de cada tipo de consumo.
       consumptions.forEach((consumption) => {
         const typeId = getTypeId(consumption);
         const service = SERVICE_TYPES[typeId];
@@ -139,6 +151,7 @@ export default function InvoiceCard({
     return result;
   }, [invoices]);
 
+  // Define os dados e os ícones dos cartões.
   const cards = [
     {
       title: "Despesa Total",
@@ -166,20 +179,24 @@ export default function InvoiceCard({
     },
   ];
 
+  // Renderiza os cartões com os totais das despesas.
   return (
     <div>
+      {/* Apresenta uma mensagem quando ocorre um erro. */}
       {error && (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </p>
       )}
 
+      {/* Organiza os cartões numa grelha responsiva. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
           const darkerColor = DARKER_COLORS[card.color];
 
           return (
+            // Cartão individual de cada tipo de despesa.
             <div
               key={card.title}
               className="group relative overflow-hidden rounded-2xl border border-white/10 p-5 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -187,6 +204,7 @@ export default function InvoiceCard({
                 backgroundColor: card.color,
               }}
             >
+              {/* Apresenta o título e o ícone do cartão. */}
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold tracking-wide text-white/85">
                   {card.title}
@@ -202,6 +220,7 @@ export default function InvoiceCard({
                 </div>
               </div>
 
+              {/* Apresenta o valor acumulado da despesa. */}
               <div className="mt-5">
                 <p className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   {loading
@@ -222,7 +241,7 @@ export default function InvoiceCard({
                 </div>
               </div>
 
-              {/* Círculo decorativo mais escuro */}
+              {/* Adiciona um círculo decorativo ao cartão. */}
               <div
                 className="pointer-events-none absolute -bottom-8 -right-6 h-24 w-24 rounded-full opacity-40 transition-transform duration-500 group-hover:scale-125"
                 style={{ backgroundColor: darkerColor }}
