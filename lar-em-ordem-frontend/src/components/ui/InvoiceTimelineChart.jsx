@@ -23,8 +23,8 @@ const MONTHS_SHORT = [
 ];
 
 // Configurações de dimensões e apresentação do gráfico.
-const MIN_MONTH_WIDTH = 88;
-const Y_AXIS_WIDTH = 48;
+const MIN_MONTH_WIDTH = 96;
+const Y_AXIS_WIDTH = 56;
 const CHART_HEIGHT = 240;
 const MAX_MONTH_DISTANCE = 24;
 const ACCENT = "#1C3557";
@@ -440,11 +440,11 @@ function TimelineTooltip({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
-      <p className="text-sm font-semibold text-slate-800">
+      <p className="text-base font-semibold text-slate-800">
         {monthLongLabel(row.key)}
       </p>
 
-      <p className="mt-2 flex items-center gap-2 text-sm text-slate-700">
+      <p className="mt-2 flex items-center gap-2 text-base text-slate-700">
         <span
           className="h-2 w-2 rounded-full"
           style={{ backgroundColor: color }}
@@ -456,7 +456,7 @@ function TimelineTooltip({
       </p>
 
       {row.benchmark != null && (
-        <p className="mt-1 flex items-center gap-2 text-sm text-slate-700">
+        <p className="mt-1 flex items-center gap-2 text-base text-slate-700">
           <span
             className="h-0.5 w-3"
             style={{ backgroundColor: benchmarkColor }}
@@ -586,11 +586,11 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
           </span>
 
           <div className="min-w-0">
-            <label className="block text-sm font-semibold text-slate-800">
+            <label className="block text-base font-semibold text-slate-800">
               {label}
             </label>
 
-            <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
+            <span className="mt-0.5 flex items-center gap-1.5 text-[13px] text-slate-400">
               <span className={`h-1.5 w-1.5 rounded-full ${palette.dot}`} />
               {monthLongLabel(draft[field])}
             </span>
@@ -599,7 +599,7 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
 
         <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div>
-            <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-[0.08em] text-slate-400">
               Mês
             </span>
 
@@ -609,7 +609,7 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
                 updateDate(field, "month", event.target.value)
               }
               aria-label={`${label}: mês`}
-              className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-sm font-medium text-slate-700 outline-none transition hover:border-slate-300 hover:bg-white focus:bg-white focus:ring-4 ${palette.focus}`}
+              className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-base font-medium text-slate-700 outline-none transition hover:border-slate-300 hover:bg-white focus:bg-white focus:ring-4 ${palette.focus}`}
             >
               {availableMonths.map(({ value, label: monthName }) => (
                 <option key={value} value={value}>
@@ -620,7 +620,7 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
           </div>
 
           <div>
-            <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-[0.08em] text-slate-400">
               Ano
             </span>
 
@@ -630,7 +630,7 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
                 updateDate(field, "year", event.target.value)
               }
               aria-label={`${label}: ano`}
-              className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-sm font-medium text-slate-700 outline-none transition hover:border-slate-300 hover:bg-white focus:bg-white focus:ring-4 ${palette.focus}`}
+              className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-base font-medium text-slate-700 outline-none transition hover:border-slate-300 hover:bg-white focus:bg-white focus:ring-4 ${palette.focus}`}
             >
               {years.map((yearOption) => (
                 <option key={yearOption} value={yearOption}>
@@ -656,7 +656,7 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
       {error && (
         <div
           role="alert"
-          className="mt-3 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs leading-relaxed text-rose-700"
+          className="mt-3 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm leading-relaxed text-rose-700"
         >
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-rose-100">
             <svg
@@ -1010,11 +1010,11 @@ export default function InvoiceTimelineChart({
   if (mine.size === 0 || monthCount === 0 || !range || !chartRange) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-6 text-center">
-        <p className="font-medium text-slate-700">
+        <p className="text-lg font-medium text-slate-700">
           Ainda não existem dados para a evolução.
         </p>
 
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-base text-slate-500">
           Guarda uma fatura com período de faturação para ver a linha temporal.
         </p>
       </section>
@@ -1093,13 +1093,13 @@ export default function InvoiceTimelineChart({
 
         <div className="relative flex flex-wrap items-center gap-3">
           <div>
-            <h2 className="text-base font-bold text-white">
+            <h2 className="text-lg font-bold text-white">
               {benchmarkMap.size > 0
                 ? "Evolução vs. habitações similares"
                 : "Evolução mensal"}
             </h2>
 
-            <p className="mt-1 text-xs text-white/75">
+            <p className="mt-1 text-sm text-white/75">
               Acompanha a evolução dos custos ao longo do tempo.
             </p>
           </div>
@@ -1107,7 +1107,7 @@ export default function InvoiceTimelineChart({
           {/* Indicador da diferença entre a habitação e a média. */}
           {comparison != null && (
             <span
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+              className={`rounded-full px-2.5 py-1 text-sm font-semibold ${
                 comparison.difference <= 0
                   ? "bg-emerald-100 text-emerald-800"
                   : "bg-red-100 text-red-800"
@@ -1129,27 +1129,33 @@ export default function InvoiceTimelineChart({
         </div>
 
         {/* Legenda das linhas apresentadas no gráfico. */}
-        <div className="relative flex flex-wrap items-center gap-4 text-xs text-white/90">
-          <span className="flex items-center gap-2">
-            <span
-              className="h-0.5 w-5 rounded bg-white"
-              style={{ height: 3 }}
-            />
-            {style.label} · a minha casa
+        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/90">
+
+          {/* Serviço selecionado */}
+          <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-2.5 py-1 font-semibold text-white">
+            {style.label}
           </span>
 
+          {/* Linha contínua: a minha casa */}
+          <span className="inline-flex items-center gap-2 whitespace-nowrap">
+            <span className="h-[3px] w-6 rounded-full bg-white" />
+            A minha casa
+          </span>
+
+          {/* Linha tracejada: média similar */}
           {benchmarkMap.size > 0 && (
-            <span className="flex items-center gap-2">
-              <span className="w-5 border-t-2 border-dashed border-white/80" />
+            <span className="inline-flex items-center gap-2 whitespace-nowrap">
+              <span className="w-6 border-t-2 border-dashed border-white/80" />
               Média similar
             </span>
           )}
+
         </div>
       </div>
 
       {/* Intervalo ativo e opções de seleção rápida. */}
       <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <p className="text-sm text-slate-500">
+        <p className="text-base text-slate-500">
           <span
             className="mr-2 border-l-2 pl-2"
             style={{ borderColor: ACCENT }}
@@ -1172,7 +1178,7 @@ export default function InvoiceTimelineChart({
                   updateRange(presetRange(monthKeys, preset.months))
                 }
                 aria-pressed={activePreset?.label === preset.label}
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   activePreset?.label === preset.label
                     ? "border-[#1C3557] bg-[#1C3557] text-white"
                     : "border-slate-200 text-slate-600 hover:border-[#1C3557]/40 hover:bg-[#1C3557]/5"
@@ -1202,7 +1208,7 @@ export default function InvoiceTimelineChart({
             {yearGroups.map((group, index) => (
               <div
                 key={group.year}
-                className={`flex h-full items-center justify-center text-xs font-bold text-slate-500 ${
+                className={`flex h-full items-center justify-center text-sm font-bold text-slate-500 ${
                   index > 0 ? "border-l border-slate-300" : ""
                 }`}
                 style={{
@@ -1238,7 +1244,7 @@ export default function InvoiceTimelineChart({
               }}
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 12, fill: "#94a3b8" }}
+              tick={{ fontSize: 14, fill: "#94a3b8" }}
             />
 
             <YAxis
@@ -1248,7 +1254,7 @@ export default function InvoiceTimelineChart({
               tickFormatter={(value) => `€${value}`}
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 13, fill: "#94a3b8" }}
             />
 
             {/* Destaca visualmente o intervalo temporal selecionado. */}
@@ -1409,12 +1415,12 @@ export default function InvoiceTimelineChart({
 
           <span className="min-w-0 flex-1">
             <span className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-bold text-slate-800">
+              <span className="text-base font-bold text-slate-800">
                 Filtro avançado de período
               </span>
 
               <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                className={`rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${
                   advancedEnabled
                     ? "bg-[#1C3557]/10 text-[#1C3557]"
                     : "bg-slate-100 text-slate-500"
@@ -1424,7 +1430,7 @@ export default function InvoiceTimelineChart({
               </span>
             </span>
 
-            <span className="mt-1 block text-xs leading-relaxed text-slate-500">
+            <span className="mt-1 block text-sm leading-relaxed text-slate-500">
               Define um intervalo personalizado para explorar a evolução dos teus consumos.
             </span>
           </span>
@@ -1471,17 +1477,17 @@ export default function InvoiceTimelineChart({
                   </span>
 
                   <div>
-                    <p className="text-sm font-bold text-slate-800">
+                    <p className="text-base font-bold text-slate-800">
                       Período personalizado
                     </p>
 
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 text-sm text-slate-500">
                       Escolhe as datas que queres comparar.
                     </p>
                   </div>
                 </div>
 
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#1C3557]/15 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-[#1C3557] shadow-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#1C3557]/15 bg-white/90 px-3 py-1.5 text-[13px] font-bold text-[#1C3557] shadow-sm">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -1522,7 +1528,7 @@ export default function InvoiceTimelineChart({
                   </svg>
                 </span>
 
-                <p className="text-[11px] leading-relaxed text-slate-600">
+                <p className="text-[13px] leading-relaxed text-slate-600">
                   Podes selecionar qualquer mês e ano desde 1900 até ao mês atual. O intervalo máximo é de{" "}
                   <strong className="font-semibold text-slate-800">
                     25 meses de calendário, contando o mês inicial e o final

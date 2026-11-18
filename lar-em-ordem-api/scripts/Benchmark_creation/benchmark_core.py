@@ -26,10 +26,11 @@ from sqlalchemy.engine import URL
 BASE_DIR = Path(__file__).resolve().parents[2]
 load_dotenv(BASE_DIR / ".env")
 
-# Defaults baixos para testes:
+# Valores recomendados em produção (definir no .env):
 #   BENCHMARK_MIN_SAMPLE=5
-#   BENCHMARK_MIN_COVERAGE_MONTHLY=0.9
+#   BENCHMARK_MIN_COVERAGE_MONTHLY=0.90
 #   BENCHMARK_MIN_COVERAGE_ANNUAL=0.75
+# Para testes com poucos dados, baixar estes valores no .env local.
 
 # Mínimo de propriedades por grupo para o benchmark ser gravado.
 MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "3"))
@@ -37,7 +38,7 @@ MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "3"))
 # Percentagem mínima do período que tem de estar coberta por faturas.
 MIN_COVERAGE = {
     "monthly": float(os.getenv("BENCHMARK_MIN_COVERAGE_MONTHLY", "0.90")),
-    "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.275")),
+    "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.75")),
 }
 
 REGION_COLUMN = os.getenv("BENCHMARK_REGION_COLUMN", "district")
@@ -94,6 +95,8 @@ FETCH = text(f"""
       AND c.period_start < :window_end
       AND p.deleted_at IS NULL
       AND a.{REGION_COLUMN} IS NOT NULL
+      AND p.property_type_id IS NOT NULL
+      AND p.property_typology_id IS NOT NULL
       AND EXISTS (
           SELECT 1
           FROM property_contracts pc

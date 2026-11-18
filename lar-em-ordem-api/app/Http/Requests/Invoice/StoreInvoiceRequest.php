@@ -79,6 +79,7 @@ class StoreInvoiceRequest extends FormRequest
             'consumptions.*.consumption_type_id' => [
                 'required',
                 'integer',
+                'distinct',
                 'exists:consumption_types,id',
             ],
             'consumptions.*.amount' => [
@@ -165,6 +166,7 @@ class StoreInvoiceRequest extends FormRequest
             'consumptions.max' => 'Cada fatura pode ter no máximo 10 consumos.',
 
             'consumptions.*.consumption_type_id.exists' => 'O tipo de consumo selecionado não existe.',
+            'consumptions.*.consumption_type_id.distinct' => 'Cada tipo de consumo só pode aparecer uma vez por fatura.',
             'consumptions.*.items.max' => 'Cada consumo pode ter no máximo 30 itens.',
             'consumptions.*.items.*.category.in' => 'A categoria do item é inválida.',
         ];

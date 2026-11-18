@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  Camera,
-  CheckCircle2,
-  AlertCircle,
-  Plus,
-  Trash2
-} from 'lucide-react';
-import axiosClient from '../../services/api/axiosClient';
+import { useState, useEffect, useRef } from 'react';
+import { CheckCircle2, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { uploadInvoiceFile, createInvoice } from '../../services/api/invoiceService';
+import { getConsumptionTypes } from '../../services/api/consumptionService';
+import { Checkbox } from '../form/Checkbox';
+import { DatePicker } from '../form/DatePicker';
+import { FileInput } from '../form/FileInput';
+import { SearchSelect } from '../form/SearchSelect';
+import { TextArea } from '../form/TextArea';
+import { TextInput } from '../form/TextInput';
 
-// Cria uma linha vazia para os detalhes da fatura.
+// Define a estrutura inicial dos itens e as opções disponíveis.
 const emptyItem = () => ({
   name: '',
   category: 'consumption',
@@ -17,45 +18,71 @@ const emptyItem = () => ({
   cost: ''
 });
 
-// Converte valores para números válidos.
-const numberValue = (v) =>
+const numberValue = v =>
   v === '' || v == null
     ? 0
-    : (Number.isFinite(Number(v)) ? Number(v) : 0);
+    : Number.isFinite(Number(v)) ? Number(v) : 0;
 
+// Obtém o identificador da habitação ativa através do localStorage.
+const readActiveHouseId = () => {
+  if (typeof window === 'undefined') return '';
+
+  try {
+    const stored = window.localStorage.getItem('activeHouse');
+    if (!stored) return '';
+
+    try {
+      const parsed = JSON.parse(stored);
+      if (typeof parsed === 'string') return parsed;
+      if (parsed && typeof parsed === 'object') return parsed.id ?? '';
+      return '';
+    } catch {
+      return stored;
+    }
+  } catch {
+    return '';
+  }
+};
+
+// Define as categorias disponíveis para os itens da fatura.
+const itemCategoryOptions = [
+  { value: 'consumption', label: 'Consumo' },
+  { value: 'fixed_fee', label: 'Tarifa fixa' },
+  { value: 'tax', label: 'Imposto / taxa' },
+  { value: 'discount', label: 'Desconto' },
+  { value: 'other', label: 'Outro' }
+];
+
+// Componente principal responsável pelo registo de novas faturas.
 export default function InvoiceForm({ onInvoiceSaved }) {
-  // Tipos de consumo disponíveis.
+  // Guarda os tipos de consumo disponíveis.
   const [consumptionTypes, setConsumptionTypes] = useState([
     { id: 1, name: 'Eletricidade', unit_of_measure: 'kWh' },
     { id: 2, name: 'Água', unit_of_measure: 'm³' },
     { id: 3, name: 'Gás', unit_of_measure: 'kWh' }
   ]);
 
-  // Estrutura do estado dos consumos
+  // Guarda os consumos selecionados e os respetivos detalhes.
   const [selectedTypeIds, setSelectedTypeIds] = useState([]);
   const [consumptionsData, setConsumptionsData] = useState({});
   const [showItems, setShowItems] = useState({});
   const [itemsData, setItemsData] = useState({});
+
+  // Controla o carregamento do ficheiro e o envio da fatura.
   const [uploading, setUploading] = useState(false);
-
-  // Bloqueios síncronos para evitar operações duplicadas ou simultâneas.
-  const uploadLock = useRef(false);
-  const submitLock = useRef(false);
-
+  const [selectedFile, setSelectedFile] = useState(null);
   const [fileId, setFileId] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formMessage, setFormMessage] = useState(null);
 
-  // Inicializa os dados principais da fatura.
+  // Impede carregamentos e submissões duplicadas.
+  const uploadLock = useRef(false);
+  const submitLock = useRef(false);
+
+  // Guarda os dados principais da fatura.
   const [formData, setFormData] = useState({
-    property_id: (() => {
-      try {
-        return JSON.parse(localStorage.getItem('activeHouse'))?.id || '';
-      } catch {
-        return '';
-      }
-    })(),
+    property_id: readActiveHouseId(),
     supplier: '',
     invoice_number: '',
     issue_date: '',
@@ -64,38 +91,48 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     total_amount: ''
   });
 
-  // Carrega os tipos de consumo disponíveis na API.
-  useEffect(() => {
-    axiosClient.get('/api/v1/consumption-types')
-      .then(res => {
-        const data = res.data?.data || res.data;
+  // Atualiza um campo específico dos dados da fatura.
+  const updateFormField = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
+  // Carrega os tipos de consumo disponíveis através da API.
+  useEffect(() => {
+    getConsumptionTypes()
+      .then(data => {
         if (Array.isArray(data) && data.length) {
-          setConsumptionTypes(
-            data.map(t => ({
-              ...t,
-              id: Number(t.id),
-              unit_of_measure: Number(t.id) === 3
-                ? 'kWh'
-                : t.unit_of_measure
-            }))
-          );
+          setConsumptionTypes(data.map(t => ({
+            ...t,
+            id: Number(t.id),
+            unit_of_measure: Number(t.id) === 3
+              ? 'kWh'
+              : t.unit_of_measure
+          })));
         }
       })
-      .catch(err =>
-        console.log('A usar tipos predefinidos locais:', err)
-      );
+      .catch(() => {
+        // Mantém os tipos predefinidos locais.
+      });
   }, []);
 
-  // Carrega o PDF ou imagem, envia para a API e preenche o formulário com os
-  // dados reconhecidos (campos principais + consumos + itens de detalhe).
-  const handleFileUpload = async (e) => {
-    const input = e.currentTarget;
-    const file = input.files?.[0];
+  // Carrega o PDF e preenche automaticamente os dados extraídos.
+  const handleFileUpload = async file => {
+    if (!file) {
+      if (uploadLock.current || submitLock.current) return;
 
-    // Impede uploads duplicados ou durante a gravação.
-    if (!file || uploadLock.current || submitLock.current) return;
+      setSelectedFile(null);
+      setFileId(null);
+      setUploadSuccess(false);
+      setFormMessage(null);
+      return;
+    }
 
+    if (uploadLock.current || submitLock.current) return;
+
+    setSelectedFile(file);
     uploadLock.current = true;
     setUploading(true);
     setUploadSuccess(false);
@@ -106,23 +143,17 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       const data = new FormData();
       data.append('file', file);
 
-      // Deixa o Axios/browser definir o Content-Type e o boundary do multipart.
-      const res = await axiosClient.post(
-        '/api/v1/invoices/upload',
-        data
-      );
-
-      const result = res.data?.data || res.data;
+      const body = await uploadInvoiceFile(data);
+      const result = body?.data || body;
 
       if (!result?.file_id) {
         throw new Error('A API não devolveu file_id.');
       }
 
-      // O file_id é enviado depois com a fatura para associar o PDF ao registo.
       setFileId(result.file_id);
       setUploadSuccess(true);
 
-      // A API pode devolver os dados extraídos em 'extracted' ou 'invoice_data'.
+      // Preenche os dados principais com a informação extraída do PDF.
       const extracted = result.extracted || result.invoice_data;
 
       if (extracted) {
@@ -136,7 +167,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           total_amount: extracted.total_amount ?? prev.total_amount
         }));
 
-        // Converte a lista de consumos extraída para o formato interno do estado.
+        // Preenche os consumos e os respetivos itens extraídos.
         if (Array.isArray(extracted.consumptions)) {
           const selected = [];
           const consumptionValues = {};
@@ -145,7 +176,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
           extracted.consumptions.forEach(c => {
             const id = Number(c.consumption_type_id);
-
             selected.push(id);
 
             consumptionValues[id] = {
@@ -167,7 +197,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                 }))
               : [];
 
-            // Abre automaticamente os detalhes quando existem itens extraídos.
             detailsVisible[id] = details[id].length > 0;
           });
 
@@ -183,71 +212,65 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         });
       }
     } catch (err) {
-      console.error('Erro no upload:', err);
-
-      if (err.response?.status === 429) {
-        setFormMessage({
-          type: 'error',
-          text: 'Foram feitos demasiados pedidos. Aguarda um pouco antes de tentares novamente.'
-        });
-      } else {
-        setFormMessage({
-          type: 'error',
-          text:
-            err.response?.data?.message ||
-            err.message ||
-            'Erro ao carregar o ficheiro.'
-        });
-      }
+      // Apresenta uma mensagem caso ocorra um erro no carregamento.
+      setFormMessage({
+        type: 'error',
+        text: err.response?.status === 429
+          ? 'Foram feitos demasiados pedidos. Aguarda um pouco antes de tentares novamente.'
+          : err.response?.data?.message || err.message || 'Erro ao carregar o ficheiro.'
+      });
     } finally {
       uploadLock.current = false;
       setUploading(false);
-      input.value = '';
     }
   };
 
-  // Adiciona ou remove um tipo de consumo da fatura.
-  const toggleType = (rawId) => {
+  // Seleciona ou remove um tipo de consumo e os respetivos dados.
+  const toggleType = (rawId, checked) => {
     const id = Number(rawId);
 
-    if (selectedTypeIds.includes(id)) {
-      setSelectedTypeIds(prev => prev.filter(v => v !== id));
-
-      setConsumptionsData(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-
-      setShowItems(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-
-      setItemsData(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    } else {
-      setSelectedTypeIds(prev => [...prev, id]);
+    if (checked) {
+      setSelectedTypeIds(prev =>
+        prev.includes(id) ? prev : [...prev, id]
+      );
 
       setConsumptionsData(prev => ({
         ...prev,
-        [id]: { amount: '', cost: '' }
+        [id]: prev[id] || { amount: '', cost: '' }
       }));
 
       setShowItems(prev => ({
         ...prev,
-        [id]: false
+        [id]: prev[id] ?? false
       }));
 
       setItemsData(prev => ({
         ...prev,
-        [id]: []
+        [id]: prev[id] || []
       }));
+
+      return;
     }
+
+    setSelectedTypeIds(prev => prev.filter(v => v !== id));
+
+    setConsumptionsData(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+
+    setShowItems(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+
+    setItemsData(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   // Atualiza a quantidade ou o custo de um consumo.
@@ -260,7 +283,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       }
     }));
 
-  // Atualiza um campo de uma linha de detalhe.
+  // Atualiza um campo de um item individual da fatura.
   const changeItem = (id, index, field, value) =>
     setItemsData(prev => {
       const list = [...(prev[id] || [])];
@@ -270,31 +293,27 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         [field]: value
       };
 
-      return {
-        ...prev,
-        [id]: list
-      };
+      return { ...prev, [id]: list };
     });
 
-  // Adiciona uma nova linha de detalhe.
+  // Adiciona uma nova linha de detalhe ao consumo selecionado.
   const addItem = id =>
     setItemsData(prev => ({
       ...prev,
       [id]: [...(prev[id] || []), emptyItem()]
     }));
 
-  // Remove uma linha de detalhe.
+  // Remove um item individual da lista de consumos.
   const removeItem = (id, index) =>
     setItemsData(prev => ({
       ...prev,
       [id]: (prev[id] || []).filter((_, i) => i !== index)
     }));
 
-  // Valida, prepara e envia a fatura para a API.
-  const handleSubmit = async (e) => {
+  // Valida os dados e envia a fatura e os consumos para a API.
+  const handleSubmit = async e => {
     e.preventDefault();
 
-    // Impede submissões duplicadas ou durante um upload.
     if (submitLock.current || uploadLock.current) return;
 
     submitLock.current = true;
@@ -302,16 +321,31 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     setFormMessage(null);
 
     try {
-      let propertyId = formData.property_id;
+      // Verifica se existe uma habitação selecionada.
+      const propertyId = readActiveHouseId() || formData.property_id;
 
-      try {
-        propertyId =
-          JSON.parse(localStorage.getItem('activeHouse'))?.id ||
-          propertyId;
-      } catch {}
+      if (!propertyId) {
+        setFormMessage({
+          type: 'error',
+          text: 'Seleciona uma habitação antes de guardar a fatura.'
+        });
+        return;
+      }
 
-      // Monta a lista de consumos; os itens de detalhe só são enviados se o
-      // utilizador ativou a opção e a linha tiver descrição.
+      // Valida o preenchimento das datas obrigatórias.
+      if (
+        !formData.issue_date ||
+        !formData.period_start ||
+        !formData.period_end
+      ) {
+        setFormMessage({
+          type: 'error',
+          text: 'Preenche a data de emissão, o início e o fim do período.'
+        });
+        return;
+      }
+
+      // Prepara os consumos e os respetivos itens para envio.
       const consumptions = selectedTypeIds.map(id => {
         const entry = {
           consumption_type_id: id,
@@ -334,7 +368,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         return entry;
       });
 
-      // Corpo do pedido enviado para a API (valores numéricos já normalizados).
+      // Constrói o objeto com todos os dados da fatura.
       const payload = {
         property_id: propertyId,
         invoice_number: formData.invoice_number,
@@ -347,9 +381,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         consumptions
       };
 
-      await axiosClient.post('/api/v1/invoices', payload);
-
-      // Avisa a página para atualizar o gráfico.
+      // Regista a fatura e apresenta uma mensagem de sucesso.
+      await createInvoice(payload);
       onInvoiceSaved?.();
 
       setFormMessage({
@@ -357,7 +390,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         text: 'Fatura e consumos registados com sucesso!'
       });
 
-      // Limpa os campos depois de guardar a fatura.
+      // Limpa os campos após o registo bem-sucedido.
       setFormData(prev => ({
         ...prev,
         supplier: '',
@@ -372,22 +405,18 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       setConsumptionsData({});
       setShowItems({});
       setItemsData({});
+      setSelectedFile(null);
       setFileId(null);
       setUploadSuccess(false);
     } catch (err) {
+      // Apresenta os erros devolvidos pela API.
       const errors = err.response?.data?.errors;
-
-      // Mostra os erros de validação da API (se existirem) numa só mensagem.
-      const message = errors
-        ? Object.values(errors).flat().join(' ')
-        : (
-            err.response?.data?.message ||
-            'Erro ao guardar a fatura.'
-          );
 
       setFormMessage({
         type: 'error',
-        text: message
+        text: errors
+          ? Object.values(errors).flat().join(' ')
+          : err.response?.data?.message || 'Erro ao guardar a fatura.'
       });
     } finally {
       submitLock.current = false;
@@ -395,189 +424,158 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     }
   };
 
-  // Classes Tailwind reutilizadas nos campos do formulário.
-  const inputClass =
-    'w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-teal-600';
-
-  const labelClass =
-    'text-[11px] text-slate-500 block mb-1';
-
+  // Apresenta a estrutura visual e os campos principais do formulário.
   return (
-    <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-8">
-      {/* Cabeçalho do formulário. */}
-      <div
+    <section className="space-y-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+      {/* Cabeçalho e descrição do formulário. */}
+      <header
         className="relative -mx-6 -mt-6 mb-8 flex flex-col gap-2 overflow-hidden rounded-t-2xl p-6 text-white"
-        style={{ backgroundColor: "#0F766E" }}
+        style={{ backgroundColor: '#0F766E' }}
       >
         <div className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-16 right-1/3 h-32 w-32 rounded-full bg-black/10" />
 
         <div className="relative z-10">
-          <h2 className="text-lg font-bold text-white">
-            Registar Nova Fatura
-          </h2>
-
-          <p className="mt-1 text-xs text-white/80">
+          <h2 className="text-xl font-bold">Registar Nova Fatura</h2>
+          <p className="mt-1 text-sm text-white/80">
             Carrega o PDF para preencher automaticamente ou introduz os dados manualmente.
           </p>
         </div>
-      </div>
+      </header>
 
-      {/* Área de carregamento do documento. */}
-      <label className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer ${uploadSuccess ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:border-teal-600 bg-slate-50/50'}`}>
-        <input
-          type="file"
-          accept="application/pdf,image/*"
-          className="hidden"
-          onChange={handleFileUpload}
-          disabled={uploading || submitting}
-        />
-
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${uploadSuccess ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-          {uploadSuccess
-            ? <CheckCircle2 className="w-6 h-6" />
-            : <Camera className="w-6 h-6" />
-          }
-        </div>
-
-        <p className="font-semibold text-slate-800 text-sm">
-          {uploading
+      {/* Campo para anexar o documento PDF. */}
+      <FileInput
+        label="Documento da fatura"
+        hint={
+          uploading
             ? 'A carregar PDF...'
             : uploadSuccess
               ? 'Fatura carregada com sucesso!'
-              : 'Carregar fatura (PDF / imagem)'
-          }
-        </p>
+              : 'Opcional: anexa o documento original.'
+        }
+        value={selectedFile}
+        onChange={handleFileUpload}
+        accept="application/pdf,.pdf"
+      />
 
-        <p className="text-xs text-slate-400 mt-1">
-          Opcional: anexa o documento original.
-        </p>
-      </label>
+      {/* Confirmação de que o documento foi carregado. */}
+      {uploadSuccess && (
+        <div className="-mt-6 flex items-center gap-2 text-sm font-medium text-emerald-700">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          Documento associado à fatura.
+        </div>
+      )}
 
-      {/* Dados principais da fatura. */}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6 pt-4 border-t border-slate-100"
-      >
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+      {/* Formulário com os dados principais da fatura. */}
+      <form onSubmit={handleSubmit} className="space-y-6 border-t border-slate-100 pt-4">
+        <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
           Dados principais da fatura
         </h3>
 
+        {/* Apresenta mensagens de sucesso ou erro. */}
         {formMessage && (
-          <div className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${formMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div
+            role={formMessage.type === 'error' ? 'alert' : 'status'}
+            className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold ${
+              formMessage.type === 'success'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-red-200 bg-red-50 text-red-700'
+            }`}
+          >
+            {formMessage.type === 'success'
+              ? <CheckCircle2 className="h-4 w-4 shrink-0" />
+              : <AlertCircle className="h-4 w-4 shrink-0" />
+            }
             {formMessage.text}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className={labelClass}>Fornecedor</label>
-            <input
-              required
-              value={formData.supplier}
-              onChange={e =>
-                setFormData({
-                  ...formData,
-                  supplier: e.target.value
-                })
-              }
-              placeholder="Ex.: Endesa, EPAL"
-              className={inputClass}
-            />
-          </div>
+        {/* Campos das datas de emissão e faturação. */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <DatePicker
+            label="Data de emissão"
+            required
+            value={formData.issue_date}
+            onChange={value => updateFormField('issue_date', value)}
+          />
 
-          <div>
-            <label className={labelClass}>Número da fatura</label>
-            <input
-              required
-              value={formData.invoice_number}
-              onChange={e =>
-                setFormData({
-                  ...formData,
-                  invoice_number: e.target.value
-                })
-              }
-              className={inputClass}
-            />
-          </div>
+          <DatePicker
+            label="Início do período"
+            required
+            value={formData.period_start}
+            onChange={value => updateFormField('period_start', value)}
+          />
 
-          <div>
-            <label className={labelClass}>Valor total (€)</label>
-            <input
-              required
-              type="number"
-              step="0.01"
-              value={formData.total_amount}
-              onChange={e =>
-                setFormData({
-                  ...formData,
-                  total_amount: e.target.value
-                })
-              }
-              className={inputClass}
-            />
-          </div>
+          <DatePicker
+            label="Fim do período"
+            required
+            value={formData.period_end}
+            onChange={value => updateFormField('period_end', value)}
+          />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            ['issue_date', 'Data de emissão'],
-            ['period_start', 'Início do período'],
-            ['period_end', 'Fim do período']
-          ].map(([key, title]) => (
-            <div key={key}>
-              <label className={labelClass}>{title}</label>
-              <input
-                required
-                type="date"
-                value={formData[key]}
-                onChange={e =>
-                  setFormData({
-                    ...formData,
-                    [key]: e.target.value
-                  })
-                }
-                className={inputClass}
-              />
-            </div>
-          ))}
+        {/* Campos de identificação e valor da fatura. */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <TextInput
+            label="Fornecedor"
+            required
+            value={formData.supplier}
+            onChange={value => updateFormField('supplier', value)}
+            placeholder="Ex.: Endesa, EPAL"
+          />
+
+          <TextInput
+            label="Número da fatura"
+            required
+            value={formData.invoice_number}
+            onChange={value => updateFormField('invoice_number', value)}
+          />
+
+          <TextInput
+            label="Valor total (€)"
+            required
+            type="number"
+            step="0.01"
+            value={formData.total_amount}
+            onChange={value => updateFormField('total_amount', value)}
+          />
         </div>
 
-        {/* Seleção dos tipos de consumo. */}
+        {/* Seleção dos tipos de consumo incluídos na fatura. */}
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+          <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
             Consumos da fatura
           </h3>
 
-          <div className="flex flex-wrap gap-2">
+          <p className="text-sm text-slate-500">
+            Seleciona todos os tipos de consumo incluídos nesta fatura.
+          </p>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             {consumptionTypes.map(type => {
               const id = Number(type.id);
-              const selected = selectedTypeIds.includes(id);
 
               return (
-                <button
+                <div
                   key={id}
-                  type="button"
-                  onClick={() => toggleType(id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold border ${selected ? 'bg-teal-700 text-white border-teal-700' : 'bg-slate-50 text-slate-700 border-slate-200'}`}
+                  className="rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3"
                 >
-                  {selected ? '✓ ' : '+ '}
-                  {type.name} ({type.unit_of_measure})
-                </button>
+                  <Checkbox
+                    checked={selectedTypeIds.includes(id)}
+                    onChange={checked => toggleType(id, checked)}
+                    label={`${type.name} (${type.unit_of_measure})`}
+                  />
+                </div>
               );
             })}
           </div>
         </div>
 
-        {/* Quantidades, custos e detalhes dos consumos selecionados. */}
+        {/* Apresenta os campos dos consumos selecionados. */}
         {selectedTypeIds.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {selectedTypeIds.map(id => {
-              const type = consumptionTypes.find(
-                t => Number(t.id) === id
-              );
-
+              const type = consumptionTypes.find(t => Number(t.id) === id);
               if (!type) return null;
 
               const items = itemsData[id] || [];
@@ -585,194 +583,144 @@ export default function InvoiceForm({ onInvoiceSaved }) {
               return (
                 <section
                   key={id}
-                  className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4"
+                  className="space-y-4 rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-4"
                 >
-                  <div className="flex justify-between items-center">
-                    <strong className="text-sm text-slate-800">
+                  {/* Identificação do consumo e respetiva unidade. */}
+                  <div className="flex items-center justify-between">
+                    <strong className="text-base font-semibold text-[#1C3557]">
                       {type.name}
                     </strong>
-                    <span className="text-[10px] bg-slate-200 px-2 py-1 rounded">
+                    <span className="rounded-md bg-[#1C3557]/10 px-2 py-1 text-xs font-medium text-[#1C3557]">
                       {type.unit_of_measure}
                     </span>
                   </div>
 
+                  {/* Campos da quantidade consumida e do custo total. */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className={labelClass}>
-                        Quantidade ({type.unit_of_measure})
-                      </label>
-                      <input
-                        required
-                        type="number"
-                        step="any"
-                        value={consumptionsData[id]?.amount ?? ''}
-                        onChange={e =>
-                          changeConsumption(id, 'amount', e.target.value)
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>
-                        Custo total (€)
-                      </label>
-                      <input
-                        required
-                        type="number"
-                        step="0.01"
-                        value={consumptionsData[id]?.cost ?? ''}
-                        onChange={e =>
-                          changeConsumption(id, 'cost', e.target.value)
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Opção para adicionar detalhes da fatura. */}
-                  <label className="flex items-start gap-2 cursor-pointer text-sm text-slate-700 border-t border-slate-200 pt-3">
-                    <input
-                      type="checkbox"
-                      className="mt-1 accent-teal-700"
-                      checked={Boolean(showItems[id])}
-                      onChange={e =>
-                        setShowItems(prev => ({
-                          ...prev,
-                          [id]: e.target.checked
-                        }))
-                      }
+                    <TextInput
+                      label={`Quantidade (${type.unit_of_measure})`}
+                      required
+                      type="number"
+                      step="any"
+                      value={consumptionsData[id]?.amount ?? ''}
+                      onChange={value => changeConsumption(id, 'amount', value)}
                     />
 
-                    <span>
-                      Adicionar informação adicional
-                      <span className="block text-xs text-slate-400 mt-1">
-                        Descrição, categoria, quantidade, unidade e custo de cada linha.
-                      </span>
-                    </span>
-                  </label>
+                    <TextInput
+                      label="Custo total (€)"
+                      required
+                      type="number"
+                      step="0.01"
+                      value={consumptionsData[id]?.cost ?? ''}
+                      onChange={value => changeConsumption(id, 'cost', value)}
+                    />
+                  </div>
 
+                  {/* Ativa a introdução de informação adicional. */}
+                  <div className="rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3">
+                    <Checkbox
+                      checked={Boolean(showItems[id])}
+                      onChange={checked => setShowItems(prev => ({
+                        ...prev,
+                        [id]: checked
+                      }))}
+                      label="Adicionar informação adicional"
+                      hint="Descrição, categoria, quantidade, unidade e custo de cada linha."
+                    />
+                  </div>
+
+                  {/* Permite gerir os itens individuais de cada consumo. */}
                   {showItems[id] && (
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-bold uppercase tracking-wider text-[#1C3557]">
                           Itens da fatura
                         </h4>
 
+                        {/* Adiciona uma nova linha de detalhe. */}
                         <button
                           type="button"
                           onClick={() => addItem(id)}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700"
+                          className="inline-flex items-center gap-1 text-sm font-semibold text-[#1C3557] hover:opacity-80"
                         >
-                          <Plus className="w-4 h-4" />
+                          <Plus className="h-4 w-4" />
                           Adicionar linha
                         </button>
                       </div>
 
+                      {/* Informa quando ainda não existem itens adicionados. */}
                       {items.length === 0 && (
-                        <p className="text-xs text-slate-500 bg-white rounded-lg p-3 border border-dashed border-slate-300">
+                        <p className="rounded-lg border border-dashed border-[#1C3557]/30 bg-[#1C3557]/5 p-3 text-sm text-slate-500">
                           Sem itens. Adiciona uma linha ou carrega um PDF com detalhe.
                         </p>
                       )}
 
+                      {/* Lista os itens e permite editar ou remover cada linha. */}
                       {items.map((item, index) => (
                         <div
                           key={`${id}-${index}`}
-                          className="bg-white border border-slate-200 rounded-xl p-3 space-y-3"
+                          className="space-y-3 rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3"
                         >
-                          <div className="flex justify-between items-center">
-                            <strong className="text-xs text-slate-600">
+                          <div className="flex items-center justify-between">
+                            <strong className="text-sm font-semibold text-[#1C3557]">
                               Linha {index + 1}
                             </strong>
 
+                            {/* Remove a linha selecionada. */}
                             <button
                               type="button"
-                              aria-label="Remover linha"
+                              aria-label={`Remover linha ${index + 1}`}
                               onClick={() => removeItem(id, index)}
-                              className="text-slate-400 hover:text-red-600"
+                              className="text-slate-400 transition hover:text-red-600"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
 
-                          <div>
-                            <label className={labelClass}>
-                              Descrição
-                            </label>
-                            <input
-                              value={item.name}
-                              onChange={e =>
-                                changeItem(id, index, 'name', e.target.value)
-                              }
-                              placeholder="Ex.: Termo de Energia, IVA 6%"
-                              className={inputClass}
+                          {/* Campo para descrever o item da fatura. */}
+                          <TextArea
+                            label="Descrição"
+                            value={item.name}
+                            onChange={value => changeItem(id, index, 'name', value)}
+                            placeholder="Ex.: Termo de Energia, IVA 6%"
+                            rows={2}
+                          />
+
+                          {/* Campos da categoria e unidade do item. */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <SearchSelect
+                              label="Categoria"
+                              options={itemCategoryOptions}
+                              value={item.category}
+                              onChange={value => changeItem(id, index, 'category', value)}
+                              placeholder="Escolher categoria..."
+                            />
+
+                            <TextInput
+                              label="Unidade"
+                              value={item.unit}
+                              onChange={value => changeItem(id, index, 'unit', value)}
+                              placeholder="kWh, dias, meses..."
                             />
                           </div>
 
+                          {/* Campos da quantidade e custo do item. */}
                           <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className={labelClass}>
-                                Categoria
-                              </label>
-                              <select
-                                value={item.category}
-                                onChange={e =>
-                                  changeItem(id, index, 'category', e.target.value)
-                                }
-                                className={inputClass}
-                              >
-                                <option value="consumption">Consumo</option>
-                                <option value="fixed_fee">Tarifa fixa</option>
-                                <option value="tax">Imposto / taxa</option>
-                                <option value="other">Outro</option>
-                              </select>
-                            </div>
+                            <TextInput
+                              label="Quantidade"
+                              type="number"
+                              step="any"
+                              value={item.amount}
+                              onChange={value => changeItem(id, index, 'amount', value)}
+                            />
 
-                            <div>
-                              <label className={labelClass}>
-                                Unidade
-                              </label>
-                              <input
-                                value={item.unit}
-                                onChange={e =>
-                                  changeItem(id, index, 'unit', e.target.value)
-                                }
-                                placeholder="kWh, dias, meses..."
-                                className={inputClass}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className={labelClass}>
-                                Quantidade
-                              </label>
-                              <input
-                                type="number"
-                                step="any"
-                                value={item.amount}
-                                onChange={e =>
-                                  changeItem(id, index, 'amount', e.target.value)
-                                }
-                                className={inputClass}
-                              />
-                            </div>
-
-                            <div>
-                              <label className={labelClass}>
-                                Custo (€)
-                              </label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={item.cost}
-                                onChange={e =>
-                                  changeItem(id, index, 'cost', e.target.value)
-                                }
-                                className={inputClass}
-                              />
-                            </div>
+                            <TextInput
+                              label="Custo (€)"
+                              type="number"
+                              step="0.01"
+                              value={item.cost}
+                              onChange={value => changeItem(id, index, 'cost', value)}
+                            />
                           </div>
                         </div>
                       ))}
@@ -784,11 +732,11 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           </div>
         )}
 
-        {/* Botão de submissão da fatura. */}
+        {/* Botão para guardar a fatura e os respetivos consumos. */}
         <button
           type="submit"
           disabled={submitting || uploading}
-          className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3.5 rounded-xl text-sm disabled:opacity-50"
+          className="w-full rounded-xl bg-teal-700 py-3.5 text-base font-semibold text-white transition hover:bg-teal-800 disabled:opacity-50"
         >
           {submitting
             ? 'A guardar fatura...'

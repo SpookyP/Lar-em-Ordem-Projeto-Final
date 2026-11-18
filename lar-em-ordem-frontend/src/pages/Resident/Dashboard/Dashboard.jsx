@@ -115,7 +115,7 @@ export default function Dashboard() {
             onClick={handleAddInvoice}
             className="group flex w-full items-center gap-4 rounded-2xl bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#1C3557] text-white">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-navy text-white">
               <Zap size={22} />
             </div>
 
@@ -131,7 +131,7 @@ export default function Dashboard() {
 
             <ChevronRight
               size={20}
-              className="shrink-0 text-muted transition group-hover:translate-x-1 group-hover:text-[#1C3557]"
+              className="shrink-0 text-muted transition group-hover:translate-x-1 group-hover:text-navy"
             />
           </button>
         </div>

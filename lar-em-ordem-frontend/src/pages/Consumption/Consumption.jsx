@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -58,12 +57,11 @@ export default function Consumptions() {
 
   const [serviceFilter, setServiceFilter] = useState("all");
 
-  // Permite atualizar a tabela anual depois de guardar uma fatura.
   const [annualRefreshKey, setAnnualRefreshKey] = useState(0);
 
   const handleInvoiceSaved = () => {
     refresh();
-    setAnnualRefreshKey((current) => current + 1);
+    setAnnualRefreshKey(current => current + 1);
   };
 
   const visibleInvoices = useMemo(
@@ -109,9 +107,10 @@ export default function Consumptions() {
   ]);
 
   return (
-    <div className="w-full min-w-0 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 space-y-6 sm:space-y-8 pb-12 overflow-x-hidden">
+    <div className="w-full max-w-none min-w-0 px-3 sm:px-4 lg:px-6 space-y-6 sm:space-y-8 pb-12">
 
-      <div className="min-w-0">
+      {/* Cabeçalho */}
+      <div className="w-full min-w-0">
         <h1 className="font-display text-3xl text-slate-900 break-words">
           Consumos Inteligentes
         </h1>
@@ -125,11 +124,12 @@ export default function Consumptions() {
       </div>
 
       {error && (
-        <p className="min-w-0 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 break-words">
+        <p className="w-full min-w-0 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 break-words">
           {error}
         </p>
       )}
 
+      {/* Gráficos */}
       {loading ? (
         <p className="py-10 text-center text-sm text-slate-500">
           A carregar consumos...
@@ -159,7 +159,7 @@ export default function Consumptions() {
         </div>
       )}
 
-      {/* Comparação dos custos anuais com os benchmarks */}
+      {/* Comparação anual */}
       <div className="w-full min-w-0">
         <AnnualBenchmarkTable
           propertyId={propertyId}
@@ -167,7 +167,7 @@ export default function Consumptions() {
         />
       </div>
 
-      {/* Formulário para adicionar novas faturas */}
+      {/* Formulário de novas faturas */}
       <div
         id="invoice-form"
         className="w-full min-w-0 scroll-mt-6"
