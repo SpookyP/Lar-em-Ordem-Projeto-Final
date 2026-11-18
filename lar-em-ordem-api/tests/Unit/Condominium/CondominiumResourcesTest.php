@@ -109,7 +109,7 @@ class CondominiumResourcesTest extends TestCase
 
     public function test_as_fracoes_so_aparecem_a_quem_gere_e_se_foram_carregadas(): void
     {
-        $morada = new Address(['door' => '2º Esq', 'fraction' => 'B']);
+        $morada = new Address(['door' => 'Nº 153', 'fraction' => '2º Esq']);
         $casa = new Property();
         $casa->id = 'casa-1';
         $casa->setRelation('address', $morada);
@@ -122,8 +122,8 @@ class CondominiumResourcesTest extends TestCase
         $condominio->setRelation('properties', collect([$casa]));
 
         $fracoes = $this->dados($condominio, $this->utilizador('admin-1'))['properties'];
-        $this->assertSame([['id' => 'casa-1', 'door' => '2º Esq', 'fraction' => 'B']], $fracoes->all());
-
+        $this->assertSame([['id' => 'casa-1', 'door' => 'Nº 153', 'fraction' => '2º Esq']], $fracoes->all());
+        
         // o residente nunca as vê
         $this->assertArrayNotHasKey('properties', $this->dados($condominio, $this->utilizador()));
     }

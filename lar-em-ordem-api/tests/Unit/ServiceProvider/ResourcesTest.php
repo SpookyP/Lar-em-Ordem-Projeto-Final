@@ -55,7 +55,7 @@ class ResourcesTest extends TestCase
         $morada = new Address([
             'street'      => 'Rua Brito Capelo',
             'postal_code' => '4450-073',
-            'fraction'    => 'B',
+            'fraction'    => '2º Esq',
             'location' => 'Matosinhos',
             'county'   => 'Matosinhos',
             'district' => 'Porto',
