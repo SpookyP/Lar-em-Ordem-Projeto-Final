@@ -8,6 +8,7 @@ import { DocumentForm } from "../../../components/condominium/DocumentForm";
 import { CategoryFilter } from "../../../components/condominium/CategoryFilter";
 import { Pager } from "../../../components/ui/Pager";
 import { getErrorMessage } from "../../../utils/apiError";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 
 export default function CondominiumDocuments() {
   const { id } = useParams();
@@ -17,7 +18,7 @@ export default function CondominiumDocuments() {
   const [categoryId, setCategoryId] = useState("");
   // "new" for the upload form, a document for the edit form, null when closed
   const [editing, setEditing] = useState(null);
-  const [confirmingId, setConfirmingId] = useState(null);
+  const [deletingDoc, setDeletingDoc] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [actionError, setActionError] = useState("");
   const [message, setMessage] = useState("");
@@ -37,7 +38,9 @@ export default function CondominiumDocuments() {
   const categories = extra?.categories ?? [];
 
   function handleSaved() {
-    setMessage(editing === "new" ? "Documento carregado." : "Documento atualizado.");
+    setMessage(
+      editing === "new" ? "Documento carregado." : "Documento atualizado.",
+    );
     setEditing(null);
     if (page !== 1) setPage(1);
     else reload();
@@ -49,11 +52,13 @@ export default function CondominiumDocuments() {
     setMessage("");
     try {
       await deleteDocument(doc.id);
-      setConfirmingId(null);
+      setDeletingDoc(null);
       if (documents.length === 1 && page > 1) setPage(page - 1);
       else reload();
     } catch (err) {
-      setActionError(getErrorMessage(err, "Não foi possível apagar o documento."));
+      setActionError(
+        getErrorMessage(err, "Não foi possível apagar o documento."),
+      );
     } finally {
       setBusyId(null);
     }
@@ -93,7 +98,10 @@ export default function CondominiumDocuments() {
       </div>
 
       {message && (
-        <p role="status" className="rounded-lg bg-green-light px-3 py-2 text-sm text-green">
+        <p
+          role="status"
+          className="rounded-lg bg-green-light px-3 py-2 text-sm text-green"
+        >
           {message}
         </p>
       )}
@@ -121,7 +129,11 @@ export default function CondominiumDocuments() {
       )}
 
       {categories.length > 0 && (
-        <CategoryFilter categories={categories} value={categoryId} onChange={setCategoryId} />
+        <CategoryFilter
+          categories={categories}
+          value={categoryId}
+          onChange={setCategoryId}
+        />
       )}
 
       {loading && documents.length === 0 ? (
@@ -129,7 +141,9 @@ export default function CondominiumDocuments() {
       ) : isEmpty ? (
         <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
           <p className="text-sm text-muted">
-            {categoryId ? "Não há documentos nesta categoria." : "Ainda não carregaste nenhum documento."}
+            {categoryId
+              ? "Não há documentos nesta categoria."
+              : "Ainda não carregaste nenhum documento."}
           </p>
         </div>
       ) : (
@@ -138,53 +152,42 @@ export default function CondominiumDocuments() {
             {documents.map((doc) => (
               <DocumentCard key={doc.id} doc={doc}>
                 <div className="flex items-center gap-4 border-t border-border pt-3 text-sm">
-                  {confirmingId === doc.id ? (
-                    <>
-                      <span className="text-muted">Apagar o documento e o ficheiro?</span>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(doc)}
-                        disabled={busyId === doc.id}
-                        className="ml-auto rounded-full bg-red px-3 py-1 text-white transition hover:opacity-90 disabled:opacity-60"
-                      >
-                        {busyId === doc.id ? "A apagar..." : "Sim, apagar"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmingId(null)}
-                        className="text-muted underline hover:text-navy"
-                      >
-                        Cancelar
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMessage("");
-                          setEditing(doc);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className="flex items-center gap-1.5 text-muted hover:text-navy"
-                      >
-                        <Pencil size={15} /> Editar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmingId(doc.id)}
-                        className="ml-auto flex items-center gap-1.5 text-red hover:opacity-80"
-                      >
-                        <Trash2 size={15} /> Apagar
-                      </button>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMessage("");
+                      setEditing(doc);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="flex items-center gap-1.5 text-muted hover:text-navy"
+                  >
+                    <Pencil size={15} /> Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeletingDoc(doc)}
+                    className="ml-auto flex items-center gap-1.5 text-red hover:opacity-80"
+                  >
+                    <Trash2 size={15} /> Apagar
+                  </button>
                 </div>
               </DocumentCard>
             ))}
           </div>
           <Pager page={page} totalPages={totalPages} onChange={setPage} />
         </>
+      )}
+      {deletingDoc && (
+        <ConfirmDialog
+          title="Apagar documento"
+          message={`Tem a certeza que pretende apagar "${deletingDoc.title}" e o respetivo ficheiro? Esta ação não pode ser desfeita.`}
+          confirmLabel="Apagar"
+          loadingLabel="A apagar…"
+          danger
+          loading={busyId === deletingDoc.id}
+          onConfirm={() => handleDelete(deletingDoc)}
+          onCancel={() => setDeletingDoc(null)}
+        />
       )}
     </div>
   );
