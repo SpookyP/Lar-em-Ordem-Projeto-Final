@@ -43,6 +43,7 @@ class CondominiumSeeder extends Seeder
             'address_id'           => Address::create([
                 'street'      => 'Rua Brito Capelo',
                 'postal_code' => '4450-073',
+                'door'        => 'Nº 153',
                 'county'      => 'Matosinhos',
                 'location'    => 'Matosinhos',
                 'district'    => 'Porto',
