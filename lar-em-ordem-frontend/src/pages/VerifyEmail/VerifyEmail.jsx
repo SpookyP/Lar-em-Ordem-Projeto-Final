@@ -20,25 +20,27 @@ export default function VerifyEmail() {
   } = useAuth();
 
   const token = searchParams.get("token");
+  const linkValid = Boolean(
+    token ||
+    (searchParams.get("id") &&
+      searchParams.get("hash") &&
+      searchParams.get("expires") &&
+      searchParams.get("signature")),
+  );
 
-  const [status, setStatus] = useState("verifying");
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState(linkValid ? "verifying" : "error");
+  const [error, setError] = useState(linkValid ? "" : "Link inválido.");
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
+    if (!linkValid) return;
 
     const id = searchParams.get("id");
     const hash = searchParams.get("hash");
     const expires = searchParams.get("expires");
     const signature = searchParams.get("signature");
-
-    if (!token && (!id || !hash || !expires || !signature)) {
-      setStatus("error");
-      setError("Link inválido.");
-      return;
-    }
 
     let cancelled = false;
 
@@ -48,7 +50,8 @@ export default function VerifyEmail() {
           if (isAuthenticated) await refreshUser().catch(() => {});
         });
 
-    request.then(() => {
+    request
+      .then(() => {
         if (!cancelled) setStatus("success");
       })
       .catch((requestError) => {
@@ -68,7 +71,7 @@ export default function VerifyEmail() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams.toString(), authLoading]);
+  }, [searchParams.toString(), authLoading, linkValid]);
 
   async function handleResend() {
     setResending(true);
