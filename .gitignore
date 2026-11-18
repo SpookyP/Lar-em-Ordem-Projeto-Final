@@ -1,0 +1,5 @@
+# each developer's IDE and system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

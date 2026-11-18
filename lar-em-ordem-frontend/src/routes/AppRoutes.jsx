@@ -105,6 +105,7 @@ function AppRoutesInner() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
+          <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
         {/* Rota publica: qualquer um pode aceder */}
         <Route path="/reset-password" element={<ResetPassword />} />
