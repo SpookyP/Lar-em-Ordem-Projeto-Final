@@ -8,12 +8,9 @@ export function formatMoney(value) {
   return Number.isFinite(amount) ? euro.format(amount) : "";
 }
 
-//a rua e a fracao so chegam da API ao dono do pedido e ao prestador aceite
 export function formatAddress(address) {
-  const line = [address.street, address.postal_code, address.location, address.county]
-    .filter(Boolean)
-    .join(", ");
-  return line || "Morada removida";
+  const parts = [address.street, address.postal_code, address.location, address.county].filter(Boolean);
+  return [...new Set(parts)].join(", ") || "Morada removida";
 }
 
 // a building's address on one line: "Rua Brito Capelo, Nº 100, 4450-073, Matosinhos"
