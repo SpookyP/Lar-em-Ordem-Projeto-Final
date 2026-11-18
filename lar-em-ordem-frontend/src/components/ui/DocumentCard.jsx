@@ -15,7 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { formatDate } from "../../utils/date";
-import { useState } from "react";
+import { useState, createElement } from "react";
 
 const STATUS = {
   valid: {
@@ -82,7 +82,7 @@ function pickIcon(categoryName) {
 export function DocumentCard({ doc, onEdit, onDelete, onOpen }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const st = STATUS[doc.status] ?? STATUS.valid;
-  const Icon = pickIcon(doc.category?.name);
+  const icon = pickIcon(doc.category?.name);
   const dateLabel = formatDate(doc.expirationDate);
 
   return (
@@ -93,7 +93,7 @@ export function DocumentCard({ doc, onEdit, onDelete, onOpen }) {
         <div
           className={`flex h-11 w-11 items-center justify-center rounded-xl ${st.tile}`}
         >
-          <Icon size={20} className="text-text" />
+          {createElement(icon, { size: 20, className: "text-text" })}
         </div>
 
         <div className="relative">
