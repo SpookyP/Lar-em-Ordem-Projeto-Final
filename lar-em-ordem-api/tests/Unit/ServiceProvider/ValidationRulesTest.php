@@ -29,8 +29,8 @@ class ValidationRulesTest extends TestCase
         return $extra + [
             'estimated_value' => 80,
             'description'     => 'Substituição do sifão.',
-            'validity'        => now()->addDays(10)->toDateString(),
-            'available_date'  => now()->addDays(2)->toDateString(),
+            'validity'        => now()->addDays(2)->toDateString(),
+            'available_date'  => now()->addDays(10)->toDateString(),
             'available_from'  => '09:00',
             'available_until' => '12:00',
         ];

@@ -28,8 +28,8 @@ class AssistanceRequestResource extends JsonResource
             'attachments'       => RequestAttachmentResource::collection($this->whenLoaded('attachments')),
             'property'          => $this->whenLoaded('property', fn () => [
                 'id'       => $canSeeAddress ? $this->property->id : null,
-                'fraction' => $canSeeAddress ? $this->property->address?->fraction : null,
-                'street'   => $canSeeAddress ? $this->property->address?->street : null,
+                'street'      => $canSeeAddress ? $this->property->address?->street : null,
+                'postal_code' => $canSeeAddress ? $this->property->address?->postal_code : null,
                 'location' => $this->property->address?->location,
                 'county'   => $this->property->address?->county,
                 'district' => $this->property->address?->district,

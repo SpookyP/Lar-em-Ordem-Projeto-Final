@@ -3,14 +3,18 @@
 namespace App\Notifications\Condominium;
 
 use App\Models\Condominium\CondominiumNotice;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Email aos residentes do prédio quando o administrador publica um aviso ou o atualiza.
  */
-class CondominiumNoticePublished extends Notification
+class CondominiumNoticePublished extends Notification implements ShouldQueue
 {
+    use Queueable;
+    
     public function __construct(
         private CondominiumNotice $notice,
         private bool $updated = false,

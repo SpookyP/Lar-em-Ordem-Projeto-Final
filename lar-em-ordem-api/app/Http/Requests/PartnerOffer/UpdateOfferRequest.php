@@ -20,13 +20,18 @@ class UpdateOfferRequest extends FormRequest
         // Se não vier start_date no pedido, compara com o da oferta guardada
         $startDate = $this->input('start_date')
             ?? $this->route('offer')->start_date->toDateString();
+        
+        // Se não vier end_date no pedido, compara com o da oferta guardada (sem fim: sem limite)
+        $endDate = $this->exists('end_date')
+            ? $this->input('end_date')
+            : $this->route('offer')->end_date?->toDateString();
 
         return [
             'title'       => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string|max:2000',
             'offer_category_id' => 'sometimes|required|integer|exists:offer_categories,id',
             'url'         => 'nullable|url|max:255',
-            'start_date'  => 'sometimes|required|date',
+            'start_date'  => 'sometimes|required|date' . ($endDate ? '|before_or_equal:' . $endDate : ''),
             'end_date'    => 'nullable|date|after_or_equal:' . $startDate,
             'active'      => 'sometimes|boolean',
         ];
@@ -36,6 +41,7 @@ class UpdateOfferRequest extends FormRequest
     {
         return [
             'description.max' => 'A descrição não pode ter mais de 2000 caracteres.',
+             'start_date.before_or_equal' => 'A data de início não pode ser depois da data de fim.',
             'end_date.after_or_equal'    => 'A data de fim não pode ser anterior à data de início.',
             'offer_category_id.required' => 'Escolha o tipo de oferta.',
             'offer_category_id.exists'   => 'O tipo de oferta indicado não existe.',

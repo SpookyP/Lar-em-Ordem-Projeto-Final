@@ -111,8 +111,8 @@ class AssistanceRequestSeeder extends Seeder
             'service_provider_id'   => $servicos->id,
             'estimated_value'       => 120,
             'description'           => 'Limpeza do esquentador e substituição da membrana.',
-            'validity'              => now()->subMonth()->addDays(10)->toDateString(),
-            'available_date'        => now()->subMonth()->addDays(3)->toDateString(),
+            'validity'              => now()->subMonth()->addDays(3)->toDateString(),
+            'available_date'        => now()->subMonth()->addDays(10)->toDateString(),
         ]);
     
         Proposal::factory()->withdrawn()->create([
