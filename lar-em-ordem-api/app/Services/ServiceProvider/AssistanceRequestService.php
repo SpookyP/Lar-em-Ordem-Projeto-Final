@@ -13,6 +13,7 @@ use App\Models\User\ServiceProvider as ServiceProviderModel;
 use Illuminate\Support\Arr;
 use App\Models\User\Resident;
 use App\Services\Privacy\PersonalDataEraser;
+use App\Support\Search;
 
 class AssistanceRequestService
 {
@@ -62,12 +63,12 @@ class AssistanceRequestService
 
         return AssistanceRequest::availableFor($provider)
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
-                ->where('title', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")))
+                ->where('title', 'like', Search::contains($search))
+                ->orWhere('description', 'like', Search::contains($search))))
             ->when($location !== '', fn ($q) => $q->whereHas('property.address', fn ($a) => $a
-                ->where('location', 'like', "%{$location}%")
-                ->orWhere('county', 'like', "%{$location}%")
-                ->orWhere('district', 'like', "%{$location}%")))
+                ->where('location', 'like', Search::contains($location))
+                ->orWhere('county', 'like', Search::contains($location))
+                ->orWhere('district', 'like', Search::contains($location))))
             ->with(['property.address', 'problemCategory'])
             ->orderByDesc('created_at')
             ->orderByDesc('id')

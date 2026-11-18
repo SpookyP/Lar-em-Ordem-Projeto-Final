@@ -9,6 +9,7 @@ use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Support\Search;
 
 class PartnerService
 {
@@ -52,8 +53,8 @@ class PartnerService
 
         return Partner::withCount(['offers as current_offers_count' => fn ($q) => $q->current()])
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
-                ->where('company_name', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")))
+                ->where('company_name', 'like', Search::contains($search))
+                ->orWhere('description', 'like', Search::contains($search))))
             ->orderBy('company_name')
             ->orderBy('id')
             ->paginate($perPage)

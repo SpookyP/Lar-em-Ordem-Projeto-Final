@@ -561,6 +561,15 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
+    public function test_available_o_percento_da_pesquisa_e_procurado_como_texto(): void
+    {
+        // sem escapar, o "%" valia "qualquer texto" e mostrava a "Fuga"
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?search=%25')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
     public function test_available_filtra_pela_localizacao_da_casa(): void
     {
         // casa em Matosinhos (distrito do Porto)

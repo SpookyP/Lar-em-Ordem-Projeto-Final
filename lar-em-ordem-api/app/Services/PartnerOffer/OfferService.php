@@ -7,6 +7,7 @@ use App\Models\Offer\OfferCategory;
 use App\Models\User\Partner;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use App\Support\Search;
 
 class OfferService
 {
@@ -96,9 +97,9 @@ class OfferService
         return Offer::current()
             ->with(['partner', 'category'])
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
-                ->where('title', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")
-                ->orWhereHas('partner', fn ($p) => $p->where('company_name', 'like', "%{$search}%"))))
+                ->where('title', 'like', Search::contains($search))
+                ->orWhere('description', 'like', Search::contains($search))
+                ->orWhereHas('partner', fn ($p) => $p->where('company_name', 'like', Search::contains($search)))))
             ->when($categoryId, fn ($q) => $q->where('offer_category_id', $categoryId))
             ->orderByDesc('start_date')
             ->orderByDesc('id')
