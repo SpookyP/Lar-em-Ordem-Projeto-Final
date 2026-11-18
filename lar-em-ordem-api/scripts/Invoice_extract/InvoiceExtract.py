@@ -525,7 +525,12 @@ def parse_epal(pages, text, types_map):
         text,
         re.IGNORECASE,
     )
-    water_amount = parse_number(usage_match.group(1)) if usage_match else None
+    # A EPAL indica litros; a base de dados e os benchmarks usam m³.
+    water_amount = (
+        round(parse_number(usage_match.group(1)) / 1000, 3)
+        if usage_match
+        else None
+    )
 
     consumptions = []
 
@@ -536,7 +541,7 @@ def parse_epal(pages, text, types_map):
                 types_map.get("água", 2),
             ),
             "amount": water_amount,
-            "unit": "litros",
+            "unit": "m³",
             "cost": total,
             "consumption_items": items,
         })
@@ -604,8 +609,18 @@ def main():
     try:
         types_map = json.loads(args.types_map)
 
+        # O Laravel envia o mapa por stdin (evita problemas de aspas no Windows).
+        if not types_map and not sys.stdin.isatty():
+            raw = sys.stdin.read().strip()
+
+            if raw:
+                types_map = json.loads(raw)
+
         if not isinstance(types_map, dict):
-            raise ValueError("--types-map deve ser um objeto JSON")
+            raise ValueError("O mapa de tipos deve ser um objeto JSON")
+
+        # Normaliza as chaves (sem acentos, minúsculas): "Água" -> "agua".
+        types_map = {norm(key): value for key, value in types_map.items()}
 
         result = extract(args.pdf_path, types_map)
         print(json.dumps(result, ensure_ascii=False, indent=2))

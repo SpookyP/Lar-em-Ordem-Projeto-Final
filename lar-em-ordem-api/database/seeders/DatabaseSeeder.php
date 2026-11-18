@@ -105,8 +105,6 @@ class DatabaseSeeder extends Seeder
             CondominiumSeeder::class,
             OfferSeeder::class,
         ]);
-
-        $this->call(ResidenteConsumptionSeeder::class);
     
         // after every seeder that creates users: everyone accepts the policy and shares data
         $this->call(UserConsentSeeder::class);
@@ -114,5 +112,7 @@ class DatabaseSeeder extends Seeder
         // last: benchmarks only count homes whose resident shares data, so the consents must exist first
         Artisan::call('benchmarks:backfill');
         $this->command->info(Artisan::output());
+
+        $this->call(ResidenteConsumptionSeeder::class);
     }
 }
