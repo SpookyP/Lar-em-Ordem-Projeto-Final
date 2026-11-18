@@ -372,4 +372,38 @@ class PropertyTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['end_date']);
     }
+
+    public function test_fails_when_the_new_end_date_is_before_the_saved_start_date(): void
+    {
+        $user = $this->createResidentUser();
+        $property = $this->createPropertyForUser($user);
+
+        $this->actingAs($user, 'sanctum')
+            ->putJson("/api/v1/properties/{$property->id}", ['end_date' => '2000-01-01'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['end_date']);
+    }
+
+    public function test_fails_when_the_county_is_not_in_the_district(): void
+    {
+        $user = $this->createResidentUser();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/properties', [
+                'property_type_id'     => 1,
+                'property_typology_id' => 1,
+                'resident_type_id'     => 1,
+                'start_date'           => '2026-10-01',
+                'area'                 => 100,
+                'address'              => [
+                    'street'      => 'Rua Teste',
+                    'postal_code' => '4000-000',
+                    'county'      => 'Matosinhos',
+                    'location'    => 'Senhora da Hora',
+                    'district'    => 'Lisboa',
+                ],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['address.county']);
+    }
 }

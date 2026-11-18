@@ -262,6 +262,17 @@ class ProfileTest extends TestCase
         $this->actingAs($servicos)->deleteJson('/api/v1/resident/profile')->assertNotFound();
     }
 
+    public function test_o_residente_nao_muda_o_proprio_is_active(): void
+    {
+        $morador = User::where('email', 'morador@example.com')->firstOrFail();
+
+        $this->actingAs($morador)
+            ->putJson('/api/v1/resident/profile', ['is_active' => false])
+            ->assertOk();
+
+        $this->assertTrue($morador->resident->fresh()->is_active);
+    }
+
       // --------------------------------------------------- apagar a conta
 
     public function test_apagar_a_conta_de_parceiro_apaga_o_perfil_e_as_ofertas(): void

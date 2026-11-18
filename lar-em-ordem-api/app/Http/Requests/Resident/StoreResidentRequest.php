@@ -4,7 +4,6 @@ namespace App\Http\Requests\Resident;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreResidentRequest extends FormRequest
 {
@@ -25,6 +24,14 @@ class StoreResidentRequest extends FormRequest
     {
         return [
             'nif' => ['required', 'string', 'digits:9'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nif.required' => 'Indique o NIF.',
+            'nif.digits'   => 'O NIF tem de ter 9 dígitos.',
         ];
     }
 }

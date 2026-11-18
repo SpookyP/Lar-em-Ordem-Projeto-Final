@@ -4,7 +4,6 @@ namespace App\Http\Requests\Resident;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateResidentRequest extends FormRequest
 {
@@ -23,10 +22,15 @@ class UpdateResidentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $residentId = $this->user()->resident?->id;
         return [
-            'nif'       => ['sometimes', 'string', 'digits:9'],
-            'is_active' => ['sometimes', 'boolean'],
+            'nif' => ['sometimes', 'string', 'digits:9'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nif.digits' => 'O NIF tem de ter 9 dígitos.',
         ];
     }
 }
