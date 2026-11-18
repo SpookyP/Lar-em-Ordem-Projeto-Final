@@ -2,10 +2,12 @@
 
 namespace App\Models\Vault;
 
+use Database\Factories\Vault\DocumentCategoryFactory;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Database\Factories\Vault\DocumentCategoryFactory;
 
+#[UseFactory(DocumentCategoryFactory::class)]
 class DocumentCategory extends Model
 {
     use HasFactory;
@@ -14,6 +16,6 @@ class DocumentCategory extends Model
 
     protected $fillable = [
         'name',
-        'description'
+        'description',
     ];
 }

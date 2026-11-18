@@ -1,107 +1,174 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { ChevronLeft, MapPin, Calendar } from "lucide-react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { ArrowLeft, CalendarDays, MapPin, Pencil, Send } from "lucide-react";
 import { useAssistanceRequest } from "../../../hooks/useAssistanceRequest";
-import { createProposal } from "../../../services/api/proposalService";
-import { categoryInfo } from "../../../data/assistanceInfo";
-import { ProposalForm } from "../../../components/ui/ProposalForm";
+import { categoryInfo, proposalStatus, providerRequestLabel } from "../../../data/assistanceInfo";
 import { AttachmentGallery } from "../../../components/ui/AttachmentGallery";
-import { formatAddress } from "../../../utils/format";
-import { formatDate } from "../../../utils/date";
+import { formatAddress, formatMoney } from "../../../utils/format";
+import { formatDate, formatDay } from "../../../utils/date";
+
+function Tile({ icon: Icon, label, value }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-xl bg-surface px-4 py-3">
+      <Icon size={17} className="shrink-0 text-muted" aria-hidden="true" />
+      <div className="min-w-0">
+        <p className="text-xs text-muted">{label}</p>
+        <p className="truncate text-sm font-semibold text-text">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-border py-3 text-sm last:border-b-0">
+      <span className="text-muted">{label}</span>
+      <span className="text-right font-medium text-text">{value}</span>
+    </div>
+  );
+}
+
+function MyProposal({ proposal }) {
+  const status = proposalStatus(proposal.status, proposal.isExpired);
+
+  return (
+    <section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-7 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="font-display text-2xl text-navy">A sua proposta</h2>
+        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${status.style}`}>
+          {status.label}
+        </span>
+      </div>
+
+      <p className="font-display text-4xl text-navy">{formatMoney(proposal.value)}</p>
+
+      <div>
+        <Row
+          label="Disponibilidade"
+          value={`${formatDay(proposal.availableDate)} · ${proposal.availableFrom}–${proposal.availableUntil}`}
+        />
+        <Row label="Válida até" value={formatDay(proposal.validity)} />
+        <Row label="Enviada a" value={formatDate(proposal.createdAt)} />
+      </div>
+
+      {proposal.description && (
+        <p className="whitespace-pre-line rounded-xl bg-surface px-4 py-3 text-sm leading-relaxed text-text">
+          {proposal.description}
+        </p>
+      )}
+
+      {proposal.status === "pending" && (
+        <Link
+          to={`/provider/requests/${proposal.request.id}/proposal`}
+          state={{ proposal }}
+          className="flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3.5 font-semibold text-white transition hover:bg-navy-light"
+        >
+          <Pencil size={17} aria-hidden="true" />
+          Editar proposta
+        </Link>
+      )}
+    </section>
+  );
+}
+
+function NoProposal({ request }) {
+  const open = request.status === "open";
+
+  return (
+    <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-7 shadow-sm">
+      <h2 className="font-display text-2xl text-navy">A sua proposta</h2>
+      <p className="text-sm text-muted">
+        {open
+          ? "Ainda não enviou proposta para este pedido. Indique o preço, quando pode ir e uma nota para o cliente."
+          : "Este pedido já não aceita propostas."}
+      </p>
+      {open && (
+        <Link
+          to={`/provider/requests/${request.id}/proposal`}
+          className="flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3.5 font-semibold text-white transition hover:bg-navy-light"
+        >
+          <Send size={17} aria-hidden="true" />
+          Fazer proposta
+        </Link>
+      )}
+    </section>
+  );
+}
 
 export default function Offer() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const { state } = useLocation();
   const { request, loading, error } = useAssistanceRequest(id);
-
-  async function handleSubmit(data) {
-    await createProposal(id, data);
-    navigate("/provider/proposals");
-  }
-
   const { icon: Icon, color } = categoryInfo(request?.category.slug);
 
+  // the list of proposals sends the proposal along when it opens its request
+  const proposal = state?.proposal?.request?.id === id ? state.proposal : null;
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-6">
-      <div className="flex shrink-0 items-center gap-4">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <div className="flex items-center gap-4">
         <Link
           to="/provider/requests"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card shadow-sm text-muted transition hover:text-navy"
-          aria-label="Voltar"
+          aria-label="Voltar aos pedidos"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card text-muted shadow-sm transition hover:text-navy"
         >
-          <ChevronLeft size={20} />
+          <ArrowLeft size={20} />
         </Link>
-        <div>
-          <h1 className="font-display text-2xl text-navy">Detalhe do Pedido</h1>
+        <div className="min-w-0">
           {request && (
             <p className="text-sm text-muted">
-              #{request.id.slice(-6).toUpperCase()} · Publicado a{" "}
-              {formatDate(request.createdAt)}
+              #{request.id.slice(-6).toUpperCase()} · Publicado a {formatDate(request.createdAt)}
             </p>
           )}
+          <h1 className="font-display text-3xl text-navy">Detalhe do pedido</h1>
         </div>
       </div>
 
       {loading ? (
         <p className="text-sm text-muted">A carregar...</p>
       ) : error && !request ? (
-        <p className="text-sm text-red">{error}</p>
+        <p role="alert" className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+          {error}
+        </p>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-2 pb-6">
-          {/* Banner com Categoria */}
-          <div className="relative flex shrink-0 items-end justify-between overflow-hidden rounded-2xl bg-navy p-8 text-white min-h-35 shadow-sm">
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-10">
-              <Icon size={120} />
-            </div>
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${color}`}
-            >
-              <Icon size={14} />
-              {request.category.name}
-            </span>
-          </div>
-
-          {/* Detalhes do Pedido */}
-          <div className="rounded-2xl bg-card p-8 shadow-sm flex flex-col gap-6 shrink-0">
-            <div className="flex flex-col gap-2">
-              <h2 className="font-display text-xl text-navy">
-                {request.title}
-              </h2>
-
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
-                <span className="flex items-center gap-1.5">
-                  <MapPin size={16} />
-                  {formatAddress(request.address)}
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+          <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:col-span-2">
+            <header className="flex flex-col gap-4 bg-navy px-8 py-7 text-white">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${color}`}>
+                  <Icon size={14} aria-hidden="true" />
+                  {request.category.name}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar size={16} />
-                  Publicado a {formatDate(request.createdAt)}
+                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
+                  {providerRequestLabel(request.status)}
                 </span>
               </div>
+              <h2 className="font-display text-3xl">{request.title}</h2>
+            </header>
+
+            <div className="grid grid-cols-1 gap-3 border-b border-border p-6 sm:grid-cols-2">
+              <Tile icon={MapPin} label="Localização" value={formatAddress(request.address)} />
+              <Tile icon={CalendarDays} label="Publicado" value={formatDate(request.createdAt)} />
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-surface pt-4">
-              <h3 className="text-sm font-semibold text-muted">Descrição</h3>
-              <p className="text-sm text-navy leading-relaxed whitespace-pre-line wrap-break-word">
-                {request.description}
-              </p>
+            <div className="flex flex-col gap-4 p-8">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  Descrição
+                </h3>
+                <p className="whitespace-pre-line wrap-break-word leading-relaxed text-text">
+                  {request.description || "A descrição deste pedido foi removida."}
+                </p>
+              </div>
+
+              <AttachmentGallery attachments={request.attachments} />
             </div>
+          </article>
 
-            <AttachmentGallery attachments={request.attachments} />
-          </div>
-
-          {/* Formulário para Enviar Proposta */}
-          <div className="rounded-2xl bg-card p-8 shadow-sm flex flex-col gap-6 shrink-0">
-            <h2 className="font-display text-xl text-navy">Enviar Proposta</h2>
-
-            {request.status === "open" ? (
-              <ProposalForm
-                submitLabel="Submeter Proposta"
-                onSubmit={handleSubmit}
-              />
+          <div className="min-w-0">
+            {proposal ? (
+              <MyProposal proposal={proposal} />
             ) : (
-              <p className="text-sm text-muted">
-                Este pedido já não aceita propostas.
-              </p>
+              <NoProposal request={request} />
             )}
           </div>
         </div>

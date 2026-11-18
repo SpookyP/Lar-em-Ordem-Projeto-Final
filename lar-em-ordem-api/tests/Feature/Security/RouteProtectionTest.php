@@ -40,6 +40,7 @@ class RouteProtectionTest extends TestCase
     private const PUBLIC_V1 = [
         'api/v1/service-zones',
         'api/v1/problem-categories',
+        'api/v1/health',
     ];
 
     public function test_every_v1_route_requires_authentication(): void
@@ -114,7 +115,7 @@ class RouteProtectionTest extends TestCase
 
     public function test_email_verification_link_must_be_signed(): void
     {
-        $this->assertContains('signed', $this->middlewareOf($this->find('POST', 'api/email/verify/{id}/{hash}')));
+        $this->assertContains('signed:relative', $this->middlewareOf($this->find('POST', 'api/email/verify/{id}/{hash}')));
     }
 
     public function test_oauth_routes_only_accept_known_providers(): void

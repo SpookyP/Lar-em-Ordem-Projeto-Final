@@ -1,14 +1,18 @@
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { PasswordInput } from "../../components/ui/PasswordInput";
 import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
 import { socialErrorMessage } from "../../utils/socialErrors";
+import { TextInput, PasswordField } from "../../components/form";
+import { AuthSplit } from "../../components/layout/AuthSplit";
+import { ServiceStatus } from "../../components/ui/ServiceStatus";
+import { InstallButton } from "../../components/ui/InstallButton";
 
 export default function Login() {
-  const { login, isAuthenticated, logout } = useAuth();
+  const { login, refreshUser } = useAuth();
   const navigate = useNavigate();
-  
+
   const [searchParams] = useSearchParams();
   const errorSocial = socialErrorMessage(searchParams.get("erro"));
 
@@ -32,6 +36,9 @@ export default function Login() {
         message = "Email ou password incorretos.";
       } else if (status === 429) {
         message = "Demasiadas tentativas. Aguarde um pouco e tente novamente.";
+      } else if (status === 409) {
+        const current = await refreshUser().catch(() => null);
+        if (current) return;
       }
       setError(message);
     } finally {
@@ -39,98 +46,69 @@ export default function Login() {
     }
   }
 
-  async function handleLogout() {
-    await logout();
-  }
-
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface px-4">
-        <div className="w-full max-w-sm rounded-2xl bg-card p-8 shadow-lg text-center">
-          <h1 className="font-display text-2xl text-navy">
-            Já existe uma sessão iniciada
-          </h1>
-          <p className="mt-2 text-sm text-muted">
-            Clique em continuar para aceder à aplicação ou termine sessão.
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
-            <button
-              onClick={() => navigate("/profiles")}
-              className="rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
-            >
-              Continuar
-            </button>
-            <button
-              onClick={handleLogout}
-              className="rounded-xl border border-border px-5 py-3 font-medium text-text transition hover:bg-surface"
-            >
-              Terminar sessão
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-card p-8 shadow-lg">
-        <h1 className="font-display text-3xl text-center text-navy">Login</h1>
-        <p className="mt-1 mb-6 text-sm text-center text-muted">
-          Inicie sessão para continuar
+    <AuthSplit>
+      <div className="w-full">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+          Bem-vindo de volta
+        </p>
+        <h1 className="mt-2 font-display text-4xl text-navy">Iniciar sessão</h1>
+        <p className="mt-2 mb-5 text-sm text-muted">
+          Aceda à sua casa, aos seus documentos e aos seus pedidos.
         </p>
 
         {(error || errorSocial) && (
-          <div className="mb-4 rounded-lg bg-red-light px-3 py-2 text-sm text-red">
+          <div role="alert" className="mb-5 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
             {error || errorSocial}
           </div>
         )}
 
         <SocialLoginButtons />
 
-        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-          <label className=" flex flex-col gap-4">
-            <span className="text-sm font-medium text-text mr-4">Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-navy"
-            />
-          </label>
-          <label className=" flex flex-col gap-4">
-            <span className="text-sm font-medium text-text mr-2">Password</span>
-            <PasswordInput
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-navy"
-            />
-          </label>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <TextInput
+            label="Email"
+            type="email"
+            required
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+            placeholder="nome@exemplo.pt"
+          />
+          <PasswordField
+            label="Password"
+            required
+            value={password}
+            onChange={setPassword}
+            autoComplete="current-password"
+          />
+          <Link
+            to="/forgot-password"
+            className="-mt-1 self-end text-sm font-medium text-teal hover:underline"
+          >
+            Esqueceu-se da password?
+          </Link>
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-xl bg-navy px-5 py-3 font-bold text-white transition hover:bg-navy-light"
+            className="flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3 font-semibold text-white shadow-lg shadow-navy/20 transition hover:bg-navy-light disabled:opacity-60"
           >
             {submitting ? "A entrar..." : "Entrar"}
+            {!submitting && <ArrowRight size={18} aria-hidden="true" />}
           </button>
-          <div className="mt-3 text-center">
-            <Link
-              to="/forgot-password"
-              className="text-sm font-medium text-navy hover:underline"
-            >
-              Esqueceu-se da password?
-            </Link>
-          </div>
-          <p className="-mt-3 text-center text-sm text-muted">
-            Não tem conta?{" "}
-            <Link to="/register" className="font-medium text-navy">
+          <p className="text-center text-sm text-muted">
+            Ainda não tem conta?{" "}
+            <Link to="/register" className="font-semibold text-navy hover:underline">
               Criar conta
             </Link>
           </p>
         </form>
+
+        <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5">
+          <InstallButton />
+          <ServiceStatus />
+        </div>
       </div>
-    </div>
+    </AuthSplit>
   );
 }

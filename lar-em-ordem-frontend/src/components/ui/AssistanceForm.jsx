@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import { getCategories } from "../../services/api/assistanceService";
+import { TextInput, SearchSelect, TextArea } from "../form";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -57,22 +58,25 @@ export default function AssistanceForm({ onSubmit }) {
       e.target.value = "";
       return;
     }
-
     if (file.size > MAX_PHOTO_SIZE) {
       setPhotoError("A imagem é muito grande. O limite máximo é 5MiB.");
       setPhoto(null);
       e.target.value = "";
       return;
     }
-
     setPhotoError("");
     setPhoto(file);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const form = e.currentTarget;
 
+    if (!title.trim() || !category || !description.trim()) {
+      setError("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    const form = e.currentTarget;
     setSubmitting(true);
     setError("");
     try {
@@ -82,6 +86,7 @@ export default function AssistanceForm({ onSubmit }) {
       setCategory("");
       setDescription("");
       setPhoto(null);
+      setPhotoError("");
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -89,95 +94,75 @@ export default function AssistanceForm({ onSubmit }) {
     }
   };
 
+  const categoryOptions = categories.map((c) => ({
+    value: String(c.id),
+    label: c.label,
+  }));
+
   return (
     <div className="rounded-2xl bg-card p-8 shadow-sm">
-      {/* Cabeçalho do cartão */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="mb-6">
         <h2 className="font-display text-xl text-navy">
           Novo Pedido de Assistência
         </h2>
-        <p className="text-sm text-muted">
+        <p className="mt-1 text-sm text-muted">
           <span className="text-red">*</span> Campos de preenchimento
           obrigatório
         </p>
       </div>
-
-      {/* Formulário */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-navy">
-            Resumo do problema <span className="text-red">*</span>
-          </label>
-          <input
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextInput
+            label="Resumo do problema"
+            required
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-orange/50"
-            placeholder="Exemplo: Avaria na maquina de lavar louça"
+            onChange={setTitle}
             maxLength={255}
-            required
+            placeholder="Exemplo: Avaria na máquina de lavar louça"
           />
-        </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-navy">
-            Categoria da avaria <span className="text-red">*</span>
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-orange/50"
-            required
-          >
-            <option value="" disabled>
-              Selecionar tipo de avaria...
-            </option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-          {categoriesError && (
-            <span className="text-xs text-red font-medium">
-              {categoriesError}
-            </span>
-          )}
+          <div>
+            <SearchSelect
+              label="Categoria da avaria"
+              required
+              options={categoryOptions}
+              value={category}
+              onChange={setCategory}
+              placeholder="Selecionar tipo de avaria..."
+            />
+            {categoriesError && (
+              <span className="mt-1 block text-xs font-medium text-red">
+                {categoriesError}
+              </span>
+            )}
+          </div>
         </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-navy">
-            Descreva o problema <span className="text-red">*</span>
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Descreva detalhadamente a avaria: onde na casa, quando começou, o que já tentou fazer..."
-            rows={4}
-            maxLength={5000}
-            className="w-full rounded-xl border border-border bg-background p-4 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-orange/50 resize-none"
-            required
-          />
-          <span className="text-xs text-muted">
-            Não inclua moradas nem contactos: o pedido é visível para
-            prestadores da sua zona.
-          </span>
-        </div>
+        <TextArea
+          label="Descreva o problema"
+          required
+          value={description}
+          onChange={setDescription}
+          rows={4}
+          maxLength={5000}
+          placeholder="Descreva detalhadamente a avaria: onde, quando começou, o que já tentou fazer..."
+          hint="Nota: Não inclua moradas nem contactos: o pedido é visível para prestadores da sua zona."
+        />
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-navy">
             Fotografia da avaria
           </label>
-          <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-6 cursor-pointer hover:border-orange/50 transition-colors bg-background/50">
-            <div className="w-12 h-12 rounded-full bg-orange-light flex items-center justify-center text-orange mb-3">
-              <Camera className="w-6 h-6" />
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-background/50 p-6 transition-colors hover:border-orange/50">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-light text-orange">
+              <Camera className="h-6 w-6" />
             </div>
             <span className="text-sm font-medium text-navy">
               {photo ? photo.name : "Adicionar Fotografia"}
             </span>
-            <span className="text-xs text-muted mt-1">
+            <span className="mt-1 text-xs text-muted">
               Opcional — tire uma foto ou escolha da galeria
             </span>
-            <span className="text-xs text-muted mt-0.5">
+            <span className="mt-0.5 text-xs text-muted">
               PNG, JPG ou WebP (Máx. 5MiB)
             </span>
             <input
@@ -188,12 +173,12 @@ export default function AssistanceForm({ onSubmit }) {
             />
           </label>
           {photoError && (
-            <span className="text-xs text-red font-medium">{photoError}</span>
+            <span className="text-xs font-medium text-red">{photoError}</span>
           )}
         </div>
 
         {error && <p className="text-sm text-red font-medium">{error}</p>}
-        
+
         <button
           type="submit"
           disabled={submitting}

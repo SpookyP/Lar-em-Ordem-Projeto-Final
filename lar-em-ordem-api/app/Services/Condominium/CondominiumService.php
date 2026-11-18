@@ -76,7 +76,7 @@ class CondominiumService
 
     /**
      * Atualiza o condomínio, a morada do prédio (se vier), gera novo código de convite (se pedido)
-     * e muda de administrador (só o SU envia condominium_admin_id — validado no request).
+     * e muda de administrador.
      *
      * @param Condominium $condominium Condomínio a atualizar.
      * @param array $data Dados validados.
@@ -89,16 +89,12 @@ class CondominiumService
                 $condominium->address->update($data['address']);
             }
 
-            if (isset($data['condominium_admin_id'])) {
-                $this->changeAdmin($condominium, CondominiumAdmin::findOrFail($data['condominium_admin_id']));
-            }
-
             // o código antigo deixa de funcionar (quem já entrou não é afetado)
             if (! empty($data['regenerate_invite_code'])) {
                 $condominium->invite_code = $this->newInviteCode();
             }
 
-            $condominium->fill(Arr::except($data, ['address', 'regenerate_invite_code', 'condominium_admin_id']))->save();
+            $condominium->fill(Arr::except($data, ['address', 'regenerate_invite_code']))->save();
         });
 
         return $this->loadFull($condominium, withProperties: true);
@@ -195,7 +191,7 @@ class CondominiumService
         $property = Property::where('condominium_id', $condominium->id)->find($propertyId);
 
         $allowed = $property && (
-            Gate::forUser($user)->allows('update', $condominium)   // administrador (ou SU)
+            Gate::forUser($user)->allows('update', $condominium)   // administrador
             || Gate::forUser($user)->allows('view', $property)     // residente com contrato ativo
         );
 

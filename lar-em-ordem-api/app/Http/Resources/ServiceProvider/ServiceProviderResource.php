@@ -11,8 +11,8 @@ class ServiceProviderResource extends JsonResource
     {
         $user = $request->user();
 
-        // O NIF só é mostrado ao próprio prestador (e ao SU)
-        $canSeeNif = $user && ($user->id === $this->user_id || $user->hasRole('SU'));
+        // O NIF só é mostrado ao próprio prestador
+        $canSeeNif = $user?->id === $this->user_id;
 
         return [
             'id'             => $this->id,

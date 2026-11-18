@@ -157,7 +157,7 @@ class ProfileService
      */
     private function assertExclusiveRole(User $user, string $role): void
     {
-        // só conta perfis (ignora roles sem perfil, como o SU)
+        // only counts profiles (ignores roles that aren't profiles)
         $profiles = $user->getRoleNames()->intersect(self::ROLES);
 
         if ($role === self::EXCLUSIVE_ROLE && $profiles->isNotEmpty()) {

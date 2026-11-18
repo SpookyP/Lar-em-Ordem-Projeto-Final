@@ -10,3 +10,6 @@ export const ROLE_INFO = {
   partner: { label: "Parceiro", hasHouses: false, home: "/partner/offers" },
   condominium_admin: { label: "Administrador de Condomínio", hasHouses: false, home: "/admin/condominiums", },
 };
+
+export const homePath = (profileName) =>
+  ROLE_INFO[profileName]?.home ?? "/profiles";

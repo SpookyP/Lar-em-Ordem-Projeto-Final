@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 
 const LINKS = [
-  { label: "Sobre", to: null },
-  { label: "Ajuda", to: null },
+  { label: "Sobre", to: "/about" },
+  { label: "Ajuda", to: "/help" },
   { label: "Privacidade", to: "/privacy" },
-  { label: "Termos", to: null },
+  { label: "Termos", to: "/terms" },
 ];
 
 export function Footer() {
@@ -15,17 +15,11 @@ export function Footer() {
         <span className="font-display text-navy">Lar em Ordem</span>
 
         <nav className="flex gap-5">
-          {LINKS.map(({ label, to }) =>
-            to ? (
-              <Link key={label} to={to} className="text-sm text-muted transition hover:text-navy">
-                {label}
-              </Link>
-            ) : (
-              <a key={label} href="#" className="text-sm text-muted transition hover:text-navy">
-                {label}
-              </a>
-            ),
-          )}
+          {LINKS.map(({ label, to }) => (
+            <Link key={label} to={to} className="text-sm text-muted transition hover:text-navy">
+              {label}
+            </Link>
+          ))}
         </nav>
 
         <span className="text-sm text-muted">© {year} Lar em Ordem</span>

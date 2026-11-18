@@ -74,7 +74,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $signed = URL::temporarySignedRoute('verification.verify', now()->addMinutes($minutes), [
             'id' => $id,
             'hash' => $hash,
-        ]);
+        ], absolute: false);
         parse_str((string) parse_url($signed, PHP_URL_QUERY), $query);
 
         $url = config('oauth.frontend_url') . '/verify-email?' . http_build_query([

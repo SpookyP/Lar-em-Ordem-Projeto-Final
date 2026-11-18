@@ -13,3 +13,4 @@ export { Toggle } from "./Toggle";
 export { FileInput } from "./FileInput";
 export { SegmentedControl } from "./SegmentedControl";
 export { DatePicker } from "./DatePicker";
+export { TimePicker } from "./TimePicker";

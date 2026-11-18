@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { PasswordInput } from "../../components/ui/PasswordInput";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
 import { isPasswordValid } from "../../utils/passwordValidation";
 import { resetPassword } from "../../services/api/authService";
+import { PasswordField } from "../../components/form";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -15,11 +15,6 @@ export default function ResetPassword() {
   const [form, setForm] = useState({ password: "", password_confirmation: "" });
   const [status, setStatus] = useState(null);
   const [error, setError] = useState("");
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -106,31 +101,27 @@ export default function ResetPassword() {
         )}
 
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-text">Nova password</span>
-            <PasswordInput
-              name="password"
-              required
-              value={form.password}
-              onChange={handleChange}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-navy"
-            />
-          </label>
+          <PasswordField
+            label="Nova password"
+            name="password"
+            required
+            value={form.password}
+            onChange={(v) => setForm((prev) => ({ ...prev, password: v }))}
+            autoComplete="new-password"
+          />
 
           {form.password && <PasswordRequirements password={form.password} />}
 
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-text">
-              Confirmar nova password
-            </span>
-            <PasswordInput
-              name="password_confirmation"
-              required
-              value={form.password_confirmation}
-              onChange={handleChange}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-navy"
-            />
-          </label>
+          <PasswordField
+            label="Confirmar nova password"
+            name="password_confirmation"
+            required
+            value={form.password_confirmation}
+            onChange={(v) =>
+              setForm((prev) => ({ ...prev, password_confirmation: v }))
+            }
+            autoComplete="new-password"
+          />
 
           {form.password_confirmation &&
             form.password !== form.password_confirmation && (

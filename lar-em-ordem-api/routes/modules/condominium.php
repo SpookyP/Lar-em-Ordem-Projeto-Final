@@ -43,7 +43,7 @@ Route::get('condominiums/{condominium}/documents', [CondominiumDocumentControlle
     ->whereUlid('condominium');
 Route::post('condominiums/{condominium}/documents', [CondominiumDocumentController::class, 'store'])
     ->whereUlid('condominium');
-Route::get('condominium-documents/{condominium_document}/download', [CondominiumDocumentController::class, 'download'])
+Route::get('condominium-documents/{condominium_document}/content', [CondominiumDocumentController::class, 'content'])
     ->whereUlid('condominium_document');
 Route::patch('condominium-documents/{condominium_document}', [CondominiumDocumentController::class, 'update'])
     ->whereUlid('condominium_document');

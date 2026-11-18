@@ -33,7 +33,7 @@ class AssistanceRequestService
             ->where('property_id', $propertyId)
             ->when($status, fn ($q) => $q->where('status', $status))
             ->with(['property.address', 'problemCategory'])
-            ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->where('status', 'pending')])
+            ->withCount(['proposals as pending_proposals_count' => fn ($q) => $q->stillValid()])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate($perPage)
@@ -158,25 +158,42 @@ class AssistanceRequestService
         return $this->loadFull($assistanceRequest);
     }
 
-     /**
-     * Carrega o pedido para o ecrã de detalhe. Se quem vê for o dono,
-     * junta também as propostas recebidas (com o prestador), da mais recente para a mais antiga.
+    /**
+     * Carrega o pedido para o ecrã de detalhe. Se quem vê for o dono, junta também as propostas
+     * recebidas (com o prestador), da mais recente para a mais antiga, paginadas: a página fica na
+     * relação 'proposals' (o resource mostra-a em data.proposals) e o paginador é devolvido para o meta.
      *
      * @param AssistanceRequest $assistanceRequest Instância do pedido.
      * @param User $viewer Utilizador que está a ver o pedido.
-     * @return AssistanceRequest
+     * @param int $perPage Número de propostas por página.
+     * @return LengthAwarePaginator|null Paginador das propostas, ou null se quem vê não pode vê-las.
      */
-    public function loadForShow(AssistanceRequest $assistanceRequest, User $viewer): AssistanceRequest
+    public function loadForShow(AssistanceRequest $assistanceRequest, User $viewer, int $perPage = 5): ?LengthAwarePaginator
     {
         $this->loadFull($assistanceRequest);
 
-        if (Gate::forUser($viewer)->allows('viewProposals', $assistanceRequest)) {
-            $assistanceRequest->load([
-                'proposals' => fn ($q) => $q->with('serviceProvider')->orderByDesc('created_at'),
-            ]);
+        // o prestador recebe a sua proposta neste pedido (ou null);
+        $provider = $viewer->service_provider;
+        if ($provider && ! $assistanceRequest->isOwnedBy($viewer)) {
+            $assistanceRequest->setRelation('myProposal', $assistanceRequest->proposals()
+                ->where('service_provider_id', $provider->id)
+                ->first());
         }
 
-        return $assistanceRequest;
+        if (! Gate::forUser($viewer)->allows('viewProposals', $assistanceRequest)) {
+            return null;
+        }
+
+        $proposals = $assistanceRequest->proposals()
+            ->with('serviceProvider')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $assistanceRequest->setRelation('proposals', $proposals->getCollection());
+
+        return $proposals;
     }
     
      /**

@@ -1,3 +1,6 @@
 node_modules
 .env
 vendor
+bootstrap/cache/*.php
+storage/logs/*
+.venv

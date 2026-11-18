@@ -31,8 +31,6 @@ export default function OfferDetail() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setError(null);
 
     getOffer(id)
       .then((data) => {

@@ -3,6 +3,7 @@
 namespace App\Models\ServiceProvider;
 
 use App\Models\User\ServiceProvider as ServiceProviderModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -55,5 +56,27 @@ class Proposal extends Model
     public function isPending(): bool
     {
         return $this->status === 'pending';
+    }
+
+    /**
+     * Pendente mas já fora da validade. É calculado: na base de dados continua 'pending',
+     * por isso volta a ser válida se o prestador prolongar a validade.
+     *
+     * @return bool
+     */
+    public function isExpired(): bool
+    {
+        return $this->isPending() && $this->validity !== null && $this->validity->lt(today());
+    }
+
+    /**
+     * Propostas pendentes ainda dentro da validade.
+     *
+     * @param Builder $query Query a que se aplica o filtro.
+     * @return Builder
+     */
+    public function scopeStillValid(Builder $query): Builder
+    {
+        return $query->where('status', 'pending')->whereDate('validity', '>=', today());
     }
 }

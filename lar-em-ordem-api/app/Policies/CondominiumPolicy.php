@@ -7,10 +7,7 @@ use App\Models\User\User;
 
 class CondominiumPolicy
 {
-    public function before(User $user, string $ability): ?bool
-    {
-        return $user->hasRole('SU') ? true : null;
-    }
+
 
     /** A listagem já filtra pelo que o utilizador pode ver (scopeVisibleTo). */
     public function viewAny(User $user): bool

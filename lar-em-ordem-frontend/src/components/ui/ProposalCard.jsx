@@ -6,7 +6,8 @@ import { formatMoney } from "../../utils/format";
 //proposta vista pelo morador
 export function ProposalCard({ proposal, canRespond, busy, onAccept, onReject }) {
   const [confirming, setConfirming] = useState(false);
-  const status = proposalStatus(proposal.status);
+  const expired = proposal.isExpired;
+  const status = proposalStatus(proposal.status, expired);
   const pending = proposal.status === "pending";
   const provider = proposal.provider;
 
@@ -15,7 +16,7 @@ export function ProposalCard({ proposal, canRespond, busy, onAccept, onReject })
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-col">
           <h3 className="font-display text-base text-navy">
-            {provider?.companyName ?? "Prestador"}
+            {provider?.companyName ?? "Prestador removido"}
           </h3>
           <span className="text-lg font-semibold text-navy">
             {formatMoney(proposal.value)}
@@ -37,7 +38,9 @@ export function ProposalCard({ proposal, canRespond, busy, onAccept, onReject })
           Disponível a {formatDay(proposal.availableDate)}, das{" "}
           {proposal.availableFrom} às {proposal.availableUntil}
         </span>
-        <span>Válida até {formatDay(proposal.validity)}</span>
+        <span>
+          {expired ? "Expirou a" : "Válida até"} {formatDay(proposal.validity)}
+        </span>
       </div>
 
       {/* contactos so depois de aceitar */}
@@ -71,13 +74,15 @@ export function ProposalCard({ proposal, canRespond, busy, onAccept, onReject })
             </>
           ) : (
             <>
-              <button
-                onClick={() => setConfirming(true)}
-                disabled={busy}
-                className="rounded-full bg-navy px-3.5 py-1.5 text-white transition hover:opacity-90 disabled:opacity-60"
-              >
-                Aceitar
-              </button>
+              {!expired && (
+                <button
+                  onClick={() => setConfirming(true)}
+                  disabled={busy}
+                  className="rounded-full bg-navy px-3.5 py-1.5 text-white transition hover:opacity-90 disabled:opacity-60"
+                >
+                  Aceitar
+                </button>
+              )}
               <button
                 onClick={() => onReject(proposal)}
                 disabled={busy}

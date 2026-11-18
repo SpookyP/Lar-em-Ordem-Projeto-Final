@@ -2,7 +2,9 @@
 
 namespace App\Services\Vault;
 
+use App\Models\File\File;
 use App\Models\Vault\Document;
+use App\Models\Vault\Notification;
 use App\Services\FileStorage\FileStorageService;
 use Illuminate\Http\UploadedFile;
 
@@ -14,7 +16,7 @@ class DocumentService
         protected DocumentExpiryService $documentExpiryService
     ) {}
 
-    public function processAndSaveDocument(array $validatedData, ?\Illuminate\Http\UploadedFile $file = null): Document
+    public function processAndSaveDocument(array $validatedData, ?UploadedFile $file = null): Document
     {
         $extractedData = [];
         $fileRecordId = null;
@@ -22,35 +24,27 @@ class DocumentService
         $fileHash = null;
 
         if ($file) {
-            $extractedData = $this->pdfExtractionService->extractInfo($file->getRealPath());
-
-            // Calcula o hash para guardar na BD
-            $fileHash = hash_file('sha256', $file->getRealPath());
-
-            $user = auth()->user();
-            $fileRecord = $this->fileStorageService->uploadUserFile(
-                $user, $file, 'vault_documents', $validatedData['name'] ?? null
+            [$fileRecordId, $fileHash, $extractedData] = $this->handleFileUpload(
+                $file,
+                $validatedData['name'] ?? null
             );
-
-            $fileRecordId = $fileRecord->id;
             $originalFileName = $file->getClientOriginalName();
         }
 
         // Hierarquia de datas: Input manual > Detetado pelo Python > Fallback
         $issueDate = $validatedData['issue_date']
-            ?? ($extractedData['issue_date'] ?? $extractedData['dados']['data_emissao'] ?? null)
+            ?? ($extractedData['issue_date'] ?? null)
             ?? now()->toDateString();
 
         $expirationDate = $validatedData['expiration_date']
-            ?? ($extractedData['expiration_date'] ?? $extractedData['dados']['data_validade'] ?? null);
+            ?? ($extractedData['expiration_date'] ?? null);
 
         // Nome inteligente: Input manual > Python > Nome original do ficheiro > Fallback de segurança
         $documentName = $validatedData['name']
-            ?? ($extractedData['suggested_title'] ?? $extractedData['dados']['tipo_documento'] ?? null)
+            ?? ($extractedData['suggested_title'] ?? null)
             ?? $originalFileName
             ?? 'Documento ' . now()->format('Y-m-d');
 
-        // Criação do documento na base de dados
         $document = Document::create([
             'property_id' => $validatedData['property_id'],
             'document_category_id' => $validatedData['document_category_id'],
@@ -68,66 +62,32 @@ class DocumentService
         return $document;
     }
 
-    public function deleteDocument(\App\Models\Vault\Document $document): void
-    {
-        // Apagar o ficheiro físico e o seu registo
-        if ($document->file_id) {
-            $fileRecord = \App\Models\File\File::find($document->file_id);
-
-            if ($fileRecord) {
-                $this->fileStorageService->deleteFile($fileRecord);
-            }
-        }
-
-        // Apagar notificações associadas
-        \App\Models\Vault\Notification::where('document_id', $document->id)->delete();
-
-        // Apagar o próprio documento
-        $document->delete();
-    }
-
-    public function updateDocument(\App\Models\Vault\Document $document, array $validatedData, ?\Illuminate\Http\UploadedFile $file = null): \App\Models\Vault\Document
+    public function updateDocument(Document $document, array $validatedData, ?UploadedFile $file = null): Document
     {
         $extractedData = $document->extracted_data ?? [];
         $fileRecordId = $document->file_id;
         $fileHash = $document->file_hash;
-
         $documentName = $validatedData['name'] ?? $document->name;
 
-        // Se o utilizador enviou um ficheiro novo para substituir o antigo
         if ($file) {
-            // Extrai a info do novo PDF (se existir)
-            $newExtractedData = $this->pdfExtractionService->extractInfo($file->getRealPath());
+            [$newFileRecordId, $fileHash, $newExtractedData] = $this->handleFileUpload($file, $documentName);
             $extractedData = !empty($newExtractedData) ? $newExtractedData : $extractedData;
 
-            // O novo Hash já foi validado no FormRequest (não é duplicado noutro doc)
-            $fileHash = hash_file('sha256', $file->getRealPath());
-
-            // Guarda o novo ficheiro
-            $user = auth()->user();
-            $newFileRecord = $this->fileStorageService->uploadUserFile(
-                $user, $file, 'vault_documents', $documentName
-            );
-
-            // Apaga o ficheiro antigo
             if ($document->file_id) {
-                $oldFileRecord = \App\Models\File\File::find($document->file_id);
+                $oldFileRecord = File::find($document->file_id);
                 if ($oldFileRecord) {
                     $this->fileStorageService->deleteFile($oldFileRecord);
                 }
             }
 
-            $fileRecordId = $newFileRecord->id;
+            $fileRecordId = $newFileRecordId;
         }
 
-        // Lógica de Datas (Se enviou manuais, usa essas. Senão, tenta as do PDF extraído. Senão, mantém as antigas)
         $issueDate = $validatedData['issue_date'] ?? $extractedData['issue_date'] ?? $document->issue_date;
         $expirationDate = $validatedData['expiration_date'] ?? $extractedData['expiration_date'] ?? $document->expiration_date;
 
-        // Limpa todas as notificações associadas ao documento antigo pelo ID
-        \App\Models\Vault\Notification::where('document_id', $document->id)->delete();
+        Notification::where('document_id', $document->id)->delete();
 
-        // Atualiza o documento na Base de Dados
         $document->update([
             'document_category_id' => $validatedData['document_category_id'] ?? $document->document_category_id,
             'name' => $documentName,
@@ -139,9 +99,48 @@ class DocumentService
             'extracted_data' => $extractedData,
         ]);
 
-        // Se a nova data de validade estiver próxima, regenera a notificação
         $this->documentExpiryService->checkSingleDocument($document);
 
         return $document;
+    }
+
+    public function deleteDocument(Document $document): void
+    {
+        if ($document->file_id) {
+            $fileRecord = File::find($document->file_id);
+            if ($fileRecord) {
+                $this->fileStorageService->deleteFile($fileRecord);
+            }
+        }
+
+        Notification::where('document_id', $document->id)->delete();
+
+        $document->delete();
+    }
+
+    /**
+     * Extrai metadados (apenas se for PDF), calcula o hash SHA-256 e guarda o ficheiro.
+     *
+     * @return array{0: string, 1: string, 2: array}
+     */
+    private function handleFileUpload(UploadedFile $file, ?string $customName = null): array
+    {
+        $isPdf = $file->getMimeType() === 'application/pdf'
+            || strtolower($file->getClientOriginalExtension()) === 'pdf';
+
+        $extractedData = $isPdf
+            ? $this->pdfExtractionService->extractInfo($file->getRealPath())
+            : [];
+
+        $fileHash = hash_file('sha256', $file->getRealPath());
+
+        $fileRecord = $this->fileStorageService->uploadUserFile(
+            auth()->user(),
+            $file,
+            'vault_documents',
+            $customName
+        );
+
+        return [$fileRecord->id, $fileHash, $extractedData];
     }
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { updatePassword } from "../../services/api/accountService";
-import { PasswordInput } from "./PasswordInput";
+import { PasswordField } from "../form";
 import { isPasswordValid } from "../../utils/passwordValidation";
 import { PasswordRequirements } from "./PasswordRequirements";
 
@@ -13,11 +13,6 @@ export function PasswordForm() {
 
   const [status, setStatus] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -47,56 +42,40 @@ export function PasswordForm() {
     }
   }
 
-  const inputClass =
-    "rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-navy";
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <h2 className="font-medium text-text">Mudar password</h2>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="current_password" className="text-sm text-muted">
-          Password atual
-        </label>
-        <PasswordInput
-          id="current_password"
-          name="current_password"
-          value={form.current_password}
-          onChange={handleChange}
-          required
-          className={inputClass}
-        />
-      </div>
+      <PasswordField
+        label="Password atual"
+        name="current_password"
+        required
+        value={form.current_password}
+        onChange={(v) => setForm((prev) => ({ ...prev, current_password: v }))}
+        autoComplete="current-password"
+      />
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="password" className="text-sm text-muted">
-          Nova password
-        </label>
-        <PasswordInput
-          id="password"
-          name="password"
-          value={form.password}
-          onChange={handleChange}
-          required
-          className={inputClass}
-        />
-      </div>
+      <PasswordField
+        label="Nova password"
+        name="password"
+        required
+        value={form.password}
+        onChange={(v) => setForm((prev) => ({ ...prev, password: v }))}
+        autoComplete="new-password"
+      />
 
       {form.password && <PasswordRequirements password={form.password} />}
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="password_confirmation" className="text-sm text-muted">
-          Confirmar nova password
-        </label>
-        <PasswordInput
-          id="password_confirmation"
-          name="password_confirmation"
-          value={form.password_confirmation}
-          onChange={handleChange}
-          required
-          className={inputClass}
-        />
-      </div>
+      <PasswordField
+        label="Confirmar nova password"
+        name="password_confirmation"
+        required
+        value={form.password_confirmation}
+        onChange={(v) =>
+          setForm((prev) => ({ ...prev, password_confirmation: v }))
+        }
+        autoComplete="new-password"
+      />
 
       {form.password_confirmation &&
         form.password !== form.password_confirmation && (

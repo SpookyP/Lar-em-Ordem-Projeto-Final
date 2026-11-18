@@ -7,18 +7,6 @@ use App\Models\User\User;
 
 class AssistanceRequestPolicy
 {
-    /**
-     * O SU tem acesso a tudo; para os restantes segue para o método da ação.
-     *
-     * @param User $user Utilizador autenticado.
-     * @param string $ability Ação a autorizar.
-     * @return bool|null true para o SU; null para continuar a verificação.
-     */
-    public function before(User $user, string $ability): ?bool
-    {
-        return $user->hasRole('SU') ? true : null;
-    }
-
      /**
      * Pode ver o pedido: o dono; um prestador que já enviou proposta;
      * ou um prestador para quem o pedido está disponível.

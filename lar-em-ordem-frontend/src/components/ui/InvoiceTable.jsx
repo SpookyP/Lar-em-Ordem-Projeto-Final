@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  getInvoice,
-  getInvoiceFile,
-  deleteInvoice as deleteInvoiceRequest,
-} from "../../services/api/invoiceService";
+import axiosClient from "../../services/api/axiosClient";
 import {
   Search,
   FileText,
@@ -23,9 +19,11 @@ import {
 const PAGE_SIZE = 10;
 const NO_INVOICES = [];
 
+// Cor fixa dos cabeçalhos e dos elementos principais dos modais.
 const HEADER_COLOR = "#1C3557";
 const HEADER_DARK_COLOR = "#142840";
 
+// Tipos de serviço apresentados nas etiquetas e nos filtros.
 const SERVICE_TYPES = {
   1: {
     name: "Eletricidade",
@@ -235,22 +233,6 @@ function matchesDateSearch(invoice, query) {
   return false;
 }
 
-// Extrai o URL do PDF a partir dos formatos de resposta mais comuns.
-function getFileUrl(response) {
-  const body = response?.data ?? response;
-  if (typeof body === "string") return body;
-
-  return (
-    body?.url ??
-    body?.file_url ??
-    body?.signed_url ??
-    body?.data?.url ??
-    body?.data?.file_url ??
-    body?.data?.signed_url ??
-    null
-  );
-}
-
 // Mostra os serviços associados à fatura.
 function InvoiceTypeBadge({ invoice }) {
   const types = getInvoiceTypes(invoice);
@@ -289,7 +271,13 @@ function InvoiceTypeBadge({ invoice }) {
 }
 
 // Reutiliza os botões de ação nos cartões e na tabela.
-function InvoiceActions({ invoice, onDetails, onDownload, onDelete, disabled }) {
+function InvoiceActions({
+  invoice,
+  onDetails,
+  onDownload,
+  onDelete,
+  disabled,
+}) {
   return (
     <div className="flex shrink-0 items-center gap-1.5">
       <button
@@ -348,7 +336,9 @@ function DeleteConfirmationModal({
               <AlertTriangle size={23} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Eliminar fatura</h3>
+              <h3 className="text-lg font-bold text-slate-900">
+                Eliminar fatura
+              </h3>
               <p className="mt-1 text-sm text-slate-500">
                 Confirma que pretendes continuar.
               </p>
@@ -434,7 +424,7 @@ function InvoiceDetailsModal({ invoice, onClose }) {
         className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* Cabeçalho do modal. */}
+        {/* Cabeçalho do modal, sempre com o azul principal. */}
         <div
           className="relative overflow-hidden p-6"
           style={{ backgroundColor: HEADER_COLOR }}
@@ -469,6 +459,7 @@ function InvoiceDetailsModal({ invoice, onClose }) {
               </div>
             </div>
 
+            {/* O X é o único botão para fechar o modal. */}
             <button
               type="button"
               onClick={onClose}
@@ -520,13 +511,17 @@ function InvoiceDetailsModal({ invoice, onClose }) {
                 </p>
               </div>
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-500">Número da fatura</p>
+                <p className="text-xs font-medium text-slate-500">
+                  Número da fatura
+                </p>
                 <p className="mt-1 break-words font-semibold text-slate-900">
                   {invoice.invoice_number || "—"}
                 </p>
               </div>
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-500">Data de emissão</p>
+                <p className="text-xs font-medium text-slate-500">
+                  Data de emissão
+                </p>
                 <p className="mt-1 font-semibold text-slate-900">
                   {formatDate(invoice.issue_date)}
                 </p>
@@ -551,13 +546,17 @@ function InvoiceDetailsModal({ invoice, onClose }) {
                 Consumos associados
               </h4>
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-                {consumptions.length} {consumptions.length === 1 ? "consumo" : "consumos"}
+                {consumptions.length}{" "}
+                {consumptions.length === 1 ? "consumo" : "consumos"}
               </span>
             </div>
 
             {consumptions.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-200 p-5 text-center">
-                <FileText className="mx-auto mb-2 text-slate-300" size={24} />
+                <FileText
+                  className="mx-auto mb-2 text-slate-300"
+                  size={24}
+                />
                 <p className="text-sm text-slate-500">
                   Não existem consumos associados a esta fatura.
                 </p>
@@ -569,7 +568,8 @@ function InvoiceDetailsModal({ invoice, onClose }) {
                   const service = SERVICE_TYPES[typeId];
                   const Icon = service?.icon || FileText;
                   const serviceColor = service?.color || "#64748B";
-                  const darkerColor = DARKER_SERVICE_COLORS[typeId] || "#475569";
+                  const darkerColor =
+                    DARKER_SERVICE_COLORS[typeId] || "#475569";
                   const items = getConsumptionItems(consumption);
 
                   return (
@@ -658,7 +658,6 @@ function InvoiceDetailsModal({ invoice, onClose }) {
               {formatCurrency(invoice.total_amount)}
             </p>
           </div>
-
         </div>
       </div>
     </div>
@@ -704,7 +703,12 @@ export default function InvoiceTable({
     });
   }, [invoiceList, search, filter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredInvoices.length / PAGE_SIZE)
+  );
+
+  // Garante que a página apresentada nunca ultrapassa o total disponível.
   const page = Math.min(currentPage, totalPages);
 
   // Obtém apenas as faturas da página atual.
@@ -736,21 +740,27 @@ export default function InvoiceTable({
     {
       label: "Eletricidade",
       value: "1",
-      count: invoiceList.filter((invoice) => getInvoiceTypes(invoice).includes(1)).length,
+      count: invoiceList.filter((invoice) =>
+        getInvoiceTypes(invoice).includes(1)
+      ).length,
       icon: Zap,
       color: FILTER_COLORS[1],
     },
     {
       label: "Água",
       value: "2",
-      count: invoiceList.filter((invoice) => getInvoiceTypes(invoice).includes(2)).length,
+      count: invoiceList.filter((invoice) =>
+        getInvoiceTypes(invoice).includes(2)
+      ).length,
       icon: Droplets,
       color: FILTER_COLORS[2],
     },
     {
       label: "Gás",
       value: "3",
-      count: invoiceList.filter((invoice) => getInvoiceTypes(invoice).includes(3)).length,
+      count: invoiceList.filter((invoice) =>
+        getInvoiceTypes(invoice).includes(3)
+      ).length,
       icon: Flame,
       color: FILTER_COLORS[3],
     },
@@ -761,9 +771,13 @@ export default function InvoiceTable({
     setActionLoading(`details-${invoice.id}`);
 
     try {
-      const data = await getInvoice(invoice.id);
-      setSelectedInvoice(data?.data ?? data);
+      const response = await axiosClient.get(
+        `/api/v1/invoices/${invoice.id}`
+      );
+      const body = response?.data?.data ?? response?.data ?? response;
+      setSelectedInvoice(body);
     } catch (err) {
+      console.error("Erro ao consultar fatura:", err);
       alert(
         err?.response?.data?.message ||
           "Não foi possível carregar os detalhes da fatura."
@@ -773,7 +787,7 @@ export default function InvoiceTable({
     }
   };
 
-  // Obtém e abre o PDF associado à fatura.
+  // Obtém o PDF como Blob e abre-o numa nova janela.
   const handleDownload = async (invoice) => {
     if (!invoice?.has_file) {
       alert("Esta fatura não tem nenhum PDF associado.");
@@ -783,15 +797,18 @@ export default function InvoiceTable({
     setActionLoading(`file-${invoice.id}`);
 
     try {
-      const response = await getInvoiceFile(invoice.id);
-      const url = getFileUrl(response);
-
-      if (!url) {
-        throw new Error("O servidor não devolveu o URL do ficheiro.");
-      }
+      const response = await axiosClient.get(
+        `/api/v1/invoices/${invoice.id}/file/content`,
+        { responseType: "blob" }
+      );
+      const url = URL.createObjectURL(response.data);
 
       window.open(url, "_blank", "noopener,noreferrer");
+
+      // Liberta o URL temporário depois de dar tempo para abrir o documento.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
+      console.error("Erro ao obter PDF:", err);
       alert(
         err?.response?.data?.message ||
           err.message ||
@@ -822,7 +839,7 @@ export default function InvoiceTable({
     setActionLoading("delete");
 
     try {
-      await deleteInvoiceRequest(deleteInvoice.id);
+      await axiosClient.delete(`/api/v1/invoices/${deleteInvoice.id}`);
 
       if (String(selectedInvoice?.id) === String(deleteInvoice.id)) {
         setSelectedInvoice(null);
@@ -837,8 +854,10 @@ export default function InvoiceTable({
         window.dispatchEvent(new Event("invoicesUpdated"));
       }
     } catch (err) {
+      console.error("Erro ao eliminar fatura:", err);
       alert(
-        err?.response?.data?.message || "Não foi possível eliminar a fatura."
+        err?.response?.data?.message ||
+          "Não foi possível eliminar a fatura."
       );
     } finally {
       setActionLoading("");
@@ -915,7 +934,7 @@ export default function InvoiceTable({
               type="text"
               value={search}
               onChange={(event) => changeSearch(event.target.value)}
-              placeholder="Pesquisar por fornecedor, n.º ou data..."
+              placeholder="Pesquisar por fornecedor, n.º da fatura ou data (ex.: 2026 ou 10/2025)..."
               className="block w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#583D69]/50 focus:bg-white focus:ring-2 focus:ring-[#583D69]/10"
             />
           </div>
@@ -932,7 +951,10 @@ export default function InvoiceTable({
         <div className="px-3 pb-3 xl:hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-              <RefreshCw size={22} className="mb-2 animate-spin text-[#1C3557]" />
+              <RefreshCw
+                size={22}
+                className="mb-2 animate-spin text-[#1C3557]"
+              />
               A carregar faturas...
             </div>
           ) : paginatedInvoices.length === 0 ? (
@@ -1036,7 +1058,10 @@ export default function InvoiceTable({
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="px-5 py-14 text-center text-slate-500">
+                  <td
+                    colSpan="6"
+                    className="px-5 py-14 text-center text-slate-500"
+                  >
                     <RefreshCw
                       size={20}
                       className="mx-auto mb-2 animate-spin text-[#1C3557]"
@@ -1049,7 +1074,10 @@ export default function InvoiceTable({
                   <td colSpan="6" className="px-5 py-14 text-center">
                     <div className="flex flex-col items-center">
                       <div className="mb-3 rounded-full bg-[#1C3557]/10 p-4">
-                        <FileText size={25} className="text-[#1C3557]" />
+                        <FileText
+                          size={25}
+                          className="text-[#1C3557]"
+                        />
                       </div>
                       <p className="font-semibold text-slate-700">
                         Nenhuma fatura encontrada
@@ -1137,7 +1165,9 @@ export default function InvoiceTable({
               </span>
               <button
                 type="button"
-                onClick={() => setCurrentPage(Math.min(totalPages, page + 1))}
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, page + 1))
+                }
                 disabled={page === totalPages}
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-[#583D69]/30 hover:bg-[#583D69]/5 hover:text-[#583D69] disabled:cursor-not-allowed disabled:opacity-40"
               >

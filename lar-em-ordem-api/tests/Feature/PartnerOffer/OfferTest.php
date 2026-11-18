@@ -414,4 +414,20 @@ class OfferTest extends TestCase
             ->assertJsonPath('data.0.name', 'Seguros')
             ->assertJsonStructure(['data' => [['id', 'name']]]);
     }
+
+    public function test_editar_so_a_data_de_inicio_nao_pode_passar_a_data_de_fim(): void
+    {
+        $oferta = Offer::where('partner_id', $this->parceiro->partner->id)->whereNotNull('end_date')->firstOrFail();
+        $depoisDoFim = $oferta->end_date->copy()->addDay()->toDateString();
+
+        $this->actingAs($this->parceiro)
+            ->patchJson("/api/v1/offers/{$oferta->id}", ['start_date' => $depoisDoFim])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('start_date');
+
+        // a enviar também o novo fim, já é aceite
+        $this->actingAs($this->parceiro)
+            ->patchJson("/api/v1/offers/{$oferta->id}", ['start_date' => $depoisDoFim, 'end_date' => null])
+            ->assertOk();
+    }
 }

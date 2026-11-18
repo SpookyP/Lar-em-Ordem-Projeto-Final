@@ -17,9 +17,6 @@ export function StepProgress({ current, total, totalKnown = true }) {
       <p className="text-xs font-medium text-muted">
         {totalKnown
           ? `Passo ${current + 1} de ${total}`
-          : `Passo ${current + 1}`}{" "}
-        {totalKnown
-          ? `Passo ${current + 1} de ${total}`
           : `Passo ${current + 1}`}
       </p>
     </div>

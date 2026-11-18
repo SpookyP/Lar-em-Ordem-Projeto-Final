@@ -17,7 +17,7 @@ class PartnerResource extends JsonResource
         $user = $request->user();
 
         // O NIF só é mostrado ao próprio parceiro
-        $canSeeNif = $user && ($user->id === $this->user_id || $user->hasRole('SU'));
+        $canSeeNif = $user?->id === $this->user_id;
 
         return [
             'id'          => $this->id,

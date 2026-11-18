@@ -1,7 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
+import { FileText } from 'lucide-react';
 import axiosClient from '../services/api/axiosClient.js';
 import { useAuth } from './useAuth';
 import { echo } from '../services/echo.js';
+
+const SNOOZE_STORAGE_KEY = 'snoozed_notifs';
+
+function getSnoozedMap() {
+    try {
+        return JSON.parse(localStorage.getItem(SNOOZE_STORAGE_KEY) || '{}');
+    } catch {
+        return {};
+    }
+}
+
+function saveSnoozedMap(data) {
+    localStorage.setItem(SNOOZE_STORAGE_KEY, JSON.stringify(data));
+}
 
 export function timeAgo(dateString) {
     if (!dateString) return 'agora mesmo';
@@ -20,21 +35,18 @@ export function useNotifications() {
     const [notifications, setNotifications] = useState([]);
     const [error, setError] = useState(null);
 
-    const clearError = () => setError(null);
+    const clearError = useCallback(() => setError(null), []);
 
-    const unreadCount = notifications.filter(n => !n.read && !n.snoozed).length;
+    const unreadCount = notifications.filter((n) => !n.read && !n.snoozed).length;
 
-    // Formata uma notificação vinda da API ou do WebSocket
     const formatSingleNotification = useCallback((n, snoozedData, now) => {
-        let accent = '#EA580C';
-        let bg = '#FFF7ED';
-        if (n.type === 'expired' || (n.title && n.title.toLowerCase().includes('expirad'))) {
-            accent = '#DC2626';
-            bg = '#FEE2E2';
-        }
+        const isExpired = n.type === 'expired' || n.title?.toLowerCase().includes('expirad');
+        const accent = isExpired ? '#DC2626' : '#EA580C';
+        const bg = isExpired ? '#FEE2E2' : '#FFF7ED';
 
         let isSnoozed = false;
         let expiredSnooze = false;
+
         if (snoozedData[n.id]) {
             if (now < snoozedData[n.id]) {
                 isSnoozed = true;
@@ -54,14 +66,10 @@ export function useNotifications() {
                 snoozed: isSnoozed,
                 accent,
                 bg,
-                icon: (
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                ),
-                action: { label: 'Ver no Cofre Digital' }
+                icon: <FileText size={16} />,
+                action: { label: 'Ver no Cofre Digital', to: '/vault' },
             },
-            expiredSnooze
+            expiredSnooze,
         };
     }, []);
 
@@ -69,12 +77,15 @@ export function useNotifications() {
         let isMounted = true;
 
         const loadNotifications = async () => {
-            if (!propertyId) return;
+            if (!propertyId) {
+                if (isMounted) setNotifications([]);
+                return;
+            }
             try {
-                setError(null);
+                if (isMounted) setError(null);
                 const listRes = await axiosClient.get(`/api/v1/properties/${propertyId}/notifications`);
-                const snoozedData = JSON.parse(localStorage.getItem('snoozed_notifs') || '{}');
-                const now = new Date().getTime();
+                const snoozedData = getSnoozedMap();
+                const now = Date.now();
                 let updatedSnoozes = false;
 
                 const formattedNotifs = (listRes.data.data || []).map((n) => {
@@ -83,17 +94,15 @@ export function useNotifications() {
                     return formatted;
                 });
 
-                if (updatedSnoozes) localStorage.setItem('snoozed_notifs', JSON.stringify(snoozedData));
+                if (updatedSnoozes) saveSnoozedMap(snoozedData);
                 if (isMounted) setNotifications(formattedNotifs);
-            } catch (err) {
-                console.error("Erro ao carregar notificações:", err);
-                if (isMounted) setError("Não foi possível carregar as notificações.");
+            } catch {
+                if (isMounted) setError('Não foi possível carregar as notificações.');
             }
         };
 
-        loadNotifications().catch(console.error);
+        loadNotifications();
 
-        // --- SUBSCRIÇÃO WEBSOCKET (Laravel Reverb / Echo) ---
         let channel = null;
 
         if (echo && propertyId) {
@@ -101,11 +110,10 @@ export function useNotifications() {
 
             channel.listen('.vault.notification', (payload) => {
                 if (!isMounted) return;
-                const snoozedData = JSON.parse(localStorage.getItem('snoozed_notifs') || '{}');
-                const { formatted } = formatSingleNotification(payload, snoozedData, new Date().getTime());
+                const snoozedData = getSnoozedMap();
+                const { formatted } = formatSingleNotification(payload, snoozedData, Date.now());
 
                 setNotifications((prev) => {
-                    // Evita duplicar caso a notificação já esteja na lista; senão adiciona no topo
                     const exists = prev.some((item) => item.id === formatted.id);
                     if (exists) {
                         return prev.map((item) => (item.id === formatted.id ? formatted : item));
@@ -116,13 +124,13 @@ export function useNotifications() {
         }
 
         const interval = setInterval(() => {
-            const snoozedData = JSON.parse(localStorage.getItem('snoozed_notifs') || '{}');
-            const now = new Date().getTime();
+            const snoozedData = getSnoozedMap();
+            const now = Date.now();
             let updated = false;
 
-            setNotifications(prev => {
+            setNotifications((prev) => {
                 let changed = false;
-                const newNotifs = prev.map(n => {
+                const newNotifs = prev.map((n) => {
                     if (n.snoozed && snoozedData[n.id] && now >= snoozedData[n.id]) {
                         delete snoozedData[n.id];
                         updated = true;
@@ -134,7 +142,7 @@ export function useNotifications() {
                 return changed ? newNotifs : prev;
             });
 
-            if (updated) localStorage.setItem('snoozed_notifs', JSON.stringify(snoozedData));
+            if (updated) saveSnoozedMap(snoozedData);
         }, 15000);
 
         return () => {
@@ -146,69 +154,66 @@ export function useNotifications() {
         };
     }, [propertyId, formatSingleNotification]);
 
-    const markAsRead = async (id) => {
+    // Função genérica para evitar repetição nas chamadas otimistas à API
+    const runOptimistic = async (updater, apiCall, errorMessage) => {
         setError(null);
-        const previousNotifs = [...notifications];
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+        const previousNotifs = notifications;
+        setNotifications(updater);
         try {
-            await axiosClient.patch(`/api/v1/notifications/${id}/read`);
-        } catch (error) {
-            console.error("Erro na API:", error);
+            await apiCall();
+        } catch {
             setNotifications(previousNotifs);
-            setError("Erro ao marcar notificação como lida.");
+            setError(errorMessage);
         }
     };
 
-    const markAsUnread = async (id) => {
-        setError(null);
-        const previousNotifs = [...notifications];
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: false } : n));
-        try {
-            await axiosClient.patch(`/api/v1/notifications/${id}/unread`);
-        } catch (error) {
-            console.error("Erro na API:", error);
-            setNotifications(previousNotifs);
-            setError("Erro ao reverter estado da notificação.");
-        }
+    const markAsRead = (id) =>
+        runOptimistic(
+            (prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+            () => axiosClient.patch(`/api/v1/notifications/${id}/read`),
+            'Erro ao marcar notificação como lida.'
+        );
+
+    const markAsUnread = (id) =>
+        runOptimistic(
+            (prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)),
+            () => axiosClient.patch(`/api/v1/notifications/${id}/unread`),
+            'Erro ao reverter estado da notificação.'
+        );
+
+    const markAllAsRead = () => {
+        if (!propertyId) return;
+        return runOptimistic(
+            (prev) => prev.map((n) => ({ ...n, read: true })),
+            () => axiosClient.patch(`/api/v1/properties/${propertyId}/notifications/read-all`),
+            'Erro ao marcar todas as notificações como lidas.'
+        );
     };
 
-    const markAllAsRead = async () => {
-        setError(null);
-        const previousNotifs = [...notifications];
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        try {
-            await axiosClient.patch(`/api/v1/properties/${propertyId}/notifications/read-all`);
-        } catch (error) {
-            console.error("Erro na API:", error);
-            setNotifications(previousNotifs);
-            setError("Erro ao marcar todas as notificações como lidas.");
-        }
-    };
+    const deleteNotification = (id) =>
+        runOptimistic(
+            (prev) => prev.filter((n) => n.id !== id),
+            () => axiosClient.delete(`/api/v1/notifications/${id}`),
+            'Erro ao eliminar a notificação.'
+        );
 
     const snoozeNotification = (id, minutes) => {
-        const snoozeUntil = new Date().getTime() + (minutes * 60 * 1000);
-        const snoozedData = JSON.parse(localStorage.getItem('snoozed_notifs') || '{}');
+        const snoozeUntil = Date.now() + minutes * 60 * 1000;
+        const snoozedData = getSnoozedMap();
         snoozedData[id] = snoozeUntil;
-        localStorage.setItem('snoozed_notifs', JSON.stringify(snoozedData));
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, snoozed: true } : n));
+        saveSnoozedMap(snoozedData);
+        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, snoozed: true } : n)));
     };
 
-    const deleteNotification = async (id) => {
-        setError(null);
-        const previousNotifs = [...notifications];
-        setNotifications(prev => prev.filter(n => n.id !== id));
-        try {
-            await axiosClient.delete(`/api/v1/notifications/${id}`);
-        } catch (error) {
-            console.error("Erro na API:", error);
-            setNotifications(previousNotifs);
-            setError("Erro ao eliminar a notificação.");
-        }
-    };
-
-    // Exporta o error e clearError para a UI poder consumi-los
     return {
-        notifications, unreadCount, error, clearError,
-        markAsRead, markAsUnread, markAllAsRead, snoozeNotification, deleteNotification
+        notifications,
+        unreadCount,
+        error,
+        clearError,
+        markAsRead,
+        markAsUnread,
+        markAllAsRead,
+        snoozeNotification,
+        deleteNotification,
     };
 }

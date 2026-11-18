@@ -140,6 +140,13 @@ class AssistanceRequestTest extends TestCase
 
         $this->assertSame(2, $contagens['Tomada da sala sem corrente']);
         $this->assertSame(0, $contagens['Fuga de água debaixo do lava-loiça']);
+        // uma proposta pendente fora da validade deixa de contar
+        $this->pedido('Tomada da sala sem corrente')->proposals()->where('status', 'pending')->first()
+            ->update(['validity' => now()->subDay()->toDateString()]);
+        $contagens = collect($this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests?property_id={$this->casa}&status=open")
+            ->json('data'))->pluck('pending_proposals_count', 'title');
+        $this->assertSame(1, $contagens['Tomada da sala sem corrente']);
 
         $this->actingAs($this->morador)
             ->getJson("/api/v1/assistance-requests?property_id={$this->casa}&status=xpto")
@@ -191,14 +198,21 @@ class AssistanceRequestTest extends TestCase
 
     public function test_o_morador_abre_um_pedido_com_duas_imagens(): void
     {
-        $this->multipart($this->morador, '/api/v1/assistance-requests', $this->dadosNovoPedido([
+        $resposta = $this->multipart($this->morador, '/api/v1/assistance-requests', $this->dadosNovoPedido([
             'images' => [$this->imagem('a.jpg'), $this->imagem('b.png')],
         ]))
             ->assertCreated()
             ->assertJsonCount(2, 'data.attachments')
-            ->assertJsonStructure(['data' => ['attachments' => [['id', 'original_name', 'url']]]]);
+            ->assertJsonStructure(['data' => ['attachments' => [['id', 'original_name']]]])
+            // no link to the bucket: the photo is only read through the API
+            ->assertJsonMissingPath('data.attachments.0.url');
 
         $this->assertCount(2, Storage::disk('r2')->allFiles());
+
+        $foto = "/api/v1/assistance-attachments/{$resposta->json('data.attachments.0.id')}/content";
+
+        $this->actingAs($this->morador)->get($foto)->assertOk();
+        $this->actingAs(User::factory()->create())->getJson($foto)->assertForbidden();
     }
 
     public function test_nao_e_possivel_enviar_mais_de_duas_imagens(): void
@@ -273,7 +287,33 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonMissingPath('data.proposals')
             ->assertJsonPath('data.property.id', null)
             ->assertJsonPath('data.property.street', null)
-            ->assertJsonPath('data.property.county', 'Matosinhos');
+            ->assertJsonPath('data.property.postal_code', null)
+            ->assertJsonPath('data.property.county', 'Matosinhos')
+            ->assertJsonPath('data.my_proposal.status', 'pending')
+            ->assertJsonPath('data.my_proposal.estimated_value', '45.00');
+    }
+
+    public function test_o_prestador_sem_proposta_recebe_my_proposal_a_null(): void
+    {
+        $fuga = $this->pedido('Fuga de água debaixo do lava-loiça');
+
+        $dados = $this->actingAs($this->servicos)
+            ->getJson("/api/v1/assistance-requests/{$fuga->id}")
+            ->assertOk()
+            ->json('data');
+
+        $this->assertArrayHasKey('my_proposal', $dados);
+        $this->assertNull($dados['my_proposal']);
+    }
+
+    public function test_o_dono_nao_recebe_my_proposal(): void
+    {
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}")
+            ->assertOk()
+            ->assertJsonMissingPath('data.my_proposal');
     }
 
     public function test_o_prestador_com_a_proposta_aceite_ve_a_morada(): void
@@ -284,6 +324,7 @@ class AssistanceRequestTest extends TestCase
             ->getJson("/api/v1/assistance-requests/{$sanita->id}")
             ->assertOk()
             ->assertJsonPath('data.property.street', 'Rua Brito Capelo')
+            ->assertJsonPath('data.property.postal_code', $sanita->property->address->postal_code)
             ->assertJsonPath('data.accepted_proposal.status', 'accepted');
     }
 
@@ -616,5 +657,41 @@ class AssistanceRequestTest extends TestCase
             ->getJson('/api/v1/assistance-requests/available?per_page=15')
             ->json('data'))->pluck('title');
         $this->assertFalse($titulos->contains(fn ($t) => str_starts_with($t, 'Fuga')));
+    }
+
+    public function test_as_propostas_recebidas_sao_paginadas_no_detalhe_do_pedido(): void
+    {
+        // "Tomada da sala": 3 propostas (2 pendentes e 1 rejeitada)
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}?per_page=2")
+            ->assertOk()
+            ->assertJsonCount(2, 'data.proposals')
+            ->assertJsonPath('proposals_meta.total', 3)
+            ->assertJsonPath('proposals_meta.last_page', 2)
+            ->assertJsonPath('proposals_meta.per_page', 2);
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}?per_page=2&page=2")
+            ->assertOk()
+            ->assertJsonCount(1, 'data.proposals')
+            ->assertJsonPath('proposals_meta.current_page', 2);
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}?per_page=0")
+            ->assertStatus(422);
+    }
+
+    public function test_quem_nao_ve_as_propostas_nao_recebe_a_paginacao_delas(): void
+    {
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+
+        // o prestador com proposta vê o pedido, mas não as propostas dos outros
+        $this->actingAs($this->servicos)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}")
+            ->assertOk()
+            ->assertJsonMissingPath('data.proposals')
+            ->assertJsonMissingPath('proposals_meta');
     }
 }

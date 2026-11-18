@@ -21,12 +21,20 @@ export function InviteCode({ code, onRegenerate }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-surface px-4 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs text-muted">Código de convite</p>
-          <p className="font-mono text-lg tracking-widest text-navy">{code}</p>
-        </div>
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted">Código de convite</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p aria-label={code} className="flex flex-wrap gap-1">
+          {code.split("").map((char, index) => (
+            <span
+              key={index}
+              aria-hidden="true"
+              className="flex h-9 w-8 items-center justify-center rounded-lg border border-border bg-card font-mono text-sm font-medium text-navy"
+            >
+              {char}
+            </span>
+          ))}
+        </p>
         <div className="flex items-center gap-2">
           <CopyButton text={code} />
           {onRegenerate && !confirming && (

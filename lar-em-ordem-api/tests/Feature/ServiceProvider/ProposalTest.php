@@ -57,8 +57,8 @@ class ProposalTest extends TestCase
         return $extra + [
             'estimated_value' => 80,
             'description'     => 'Substituição do sifão e vedação.',
-            'validity'        => now()->addDays(10)->toDateString(),
-            'available_date'  => now()->addDays(2)->toDateString(),
+            'validity'        => now()->addDays(2)->toDateString(),
+            'available_date'  => now()->addDays(10)->toDateString(),
             'available_from'  => '09:00',
             'available_until' => '12:00',
         ];
@@ -409,5 +409,108 @@ class ProposalTest extends TestCase
         $this->actingAs($this->servicos)
             ->patchJson("/api/v1/proposals/{$proposta->id}/reject")
             ->assertForbidden();
+    }
+
+    public function test_uma_proposta_pendente_fora_da_validade_aparece_como_expirada(): void
+    {
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+        $expirada = $this->proposta($this->servicos, 'Tomada da sala sem corrente');
+        $expirada->update(['validity' => now()->subDay()->toDateString()]);
+        $valida = $this->proposta($this->servicinhos, 'Tomada da sala sem corrente');
+
+        // o morador vê-a como expirada; a outra continua válida
+        $propostas = collect($this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}")
+            ->assertOk()
+            ->json('data.proposals'))->keyBy('id');
+
+        $this->assertSame('pending', $propostas[$expirada->id]['status']);
+        $this->assertTrue($propostas[$expirada->id]['is_expired']);
+        $this->assertFalse($propostas[$valida->id]['is_expired']);
+
+        // o prestador também
+        $minhas = collect($this->actingAs($this->servicos)->getJson('/api/v1/proposals/mine?per_page=15')->json('data'))->keyBy('id');
+        $this->assertTrue($minhas[$expirada->id]['is_expired']);
+    }
+
+    public function test_uma_proposta_aceite_nunca_aparece_como_expirada(): void
+    {
+        $aceite = $this->proposta($this->servicos, 'Sanita entupida');
+        $aceite->update(['validity' => now()->subMonth()->toDateString()]);
+
+        $minhas = collect($this->actingAs($this->servicos)->getJson('/api/v1/proposals/mine?per_page=15')->json('data'))->keyBy('id');
+
+        $this->assertSame('accepted', $minhas[$aceite->id]['status']);
+        $this->assertFalse($minhas[$aceite->id]['is_expired']);
+    }
+
+    public function test_prolongar_a_validade_volta_a_tornar_a_proposta_valida(): void
+    {
+        $proposta = $this->proposta($this->servicos, 'Tomada da sala sem corrente');
+        $proposta->update(['validity' => now()->subDay()->toDateString()]);
+
+        $this->actingAs($this->servicos)
+            ->patchJson("/api/v1/proposals/{$proposta->id}", ['validity' => $proposta->available_date->toDateString()])
+            ->assertOk()
+            ->assertJsonPath('data.is_expired', false);
+
+        $this->actingAs($this->morador)
+            ->patchJson("/api/v1/proposals/{$proposta->id}/accept")
+            ->assertOk();
+    }
+    
+    public function test_editar_so_a_hora_de_inicio_nao_pode_passar_a_hora_de_fim(): void
+    {
+        $proposal = Proposal::where('status', 'pending')->first();
+        $until = substr($proposal->available_until, 0, 5);
+
+        $this->actingAs($proposal->serviceProvider->user)
+            ->patchJson("/api/v1/proposals/{$proposal->id}", ['available_from' => '23:59'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('available_from');
+
+        $this->assertSame($until, substr($proposal->fresh()->available_until, 0, 5));
+    }
+
+     public function test_a_validade_nao_pode_passar_a_data_de_disponibilidade(): void
+    {
+        $fuga = $this->pedido('Fuga de água debaixo do lava-loiça');
+
+        $this->actingAs($this->servicos)
+            ->postJson("/api/v1/assistance-requests/{$fuga->id}/proposals", $this->dadosProposta([
+                'validity'       => now()->addDays(5)->toDateString(),
+                'available_date' => now()->addDays(3)->toDateString(),
+            ]))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['validity' => 'A validade da proposta não pode ser depois da data de disponibilidade.']);
+    }
+
+    public function test_na_edicao_a_validade_e_a_disponibilidade_comparam_com_o_valor_guardado(): void
+    {
+        $proposta = $this->proposta($this->servicos, 'Tomada da sala sem corrente');
+        $proposta->update([
+            'validity'       => now()->addDays(3)->toDateString(),
+            'available_date' => now()->addDays(5)->toDateString(),
+        ]);
+
+        // só a validade, depois da disponibilidade guardada
+        $this->actingAs($this->servicos)
+            ->patchJson("/api/v1/proposals/{$proposta->id}", ['validity' => now()->addDays(6)->toDateString()])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('validity');
+
+        // só a disponibilidade, antes da validade guardada
+        $this->actingAs($this->servicos)
+            ->patchJson("/api/v1/proposals/{$proposta->id}", ['available_date' => now()->addDays(2)->toDateString()])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('available_date');
+
+        // as duas juntas e coerentes
+        $this->actingAs($this->servicos)
+            ->patchJson("/api/v1/proposals/{$proposta->id}", [
+                'validity'       => now()->addDays(7)->toDateString(),
+                'available_date' => now()->addDays(7)->toDateString(),
+            ])
+            ->assertOk();
     }
 }

@@ -16,7 +16,7 @@ class StoreProposalRequest extends FormRequest
         return [
             'estimated_value' => 'required|numeric|min:0.01|max:9999999999.99',
             'description'     => 'required|string|max:5000',
-            'validity'        => 'required|date|after_or_equal:today',
+            'validity'        => 'required|date|after_or_equal:today|before_or_equal:available_date',
             'available_date'  => 'required|date|after_or_equal:today',
             'available_from'  => 'required|date_format:H:i',
             'available_until' => 'required|date_format:H:i|after:available_from',
@@ -26,6 +26,7 @@ class StoreProposalRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'validity.before_or_equal'      => 'A validade da proposta não pode ser depois da data de disponibilidade.',
             'validity.after_or_equal'       => 'A validade da proposta não pode ser uma data passada.',
             'available_date.after_or_equal' => 'A data de disponibilidade não pode ser uma data passada.',
             'available_from.date_format'    => 'A hora de início tem de estar no formato HH:MM (ex: 10:00).',

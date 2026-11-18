@@ -20,14 +20,16 @@ export function ConfirmDialog({
         {message && <p className="mt-2 text-sm text-muted">{message}</p>}
 
         <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-navy transition hover:bg-surface disabled:opacity-60"
-          >
-            {cancelLabel}
-          </button>
+          {cancelLabel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={loading}
+              className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-navy transition hover:bg-surface disabled:opacity-60"
+            >
+              {cancelLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={onConfirm}

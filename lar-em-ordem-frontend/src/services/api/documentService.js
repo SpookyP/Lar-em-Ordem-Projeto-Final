@@ -99,8 +99,10 @@ export async function updateDocument(
 }
 
 export async function getDocumentDownloadUrl(id) {
-  const response = await axiosClient.get(`/api/v1/documents/${id}/download`);
-  return response.data?.url ?? response.data?.data?.url ?? response.data;
+  const response = await axiosClient.get(`/api/v1/documents/${id}/content`, {
+    responseType: "blob",
+  });
+  return URL.createObjectURL(response.data);
 }
 
 export async function deleteDocument(id) {

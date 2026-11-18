@@ -25,11 +25,14 @@ class AssistanceRequestResource extends JsonResource
             'pending_proposals_count' => $this->whenCounted('pending_proposals'),
             'category'          => new ProblemCategoryResource($this->whenLoaded('problemCategory')),
             'accepted_proposal' => new ProposalResource($this->whenLoaded('acceptedProposal')),
+            'my_proposal'       => $this->when($this->relationLoaded('myProposal'), fn () => $this->myProposal
+                ? new ProposalResource($this->myProposal)
+                : null),
             'attachments'       => RequestAttachmentResource::collection($this->whenLoaded('attachments')),
             'property'          => $this->whenLoaded('property', fn () => [
                 'id'       => $canSeeAddress ? $this->property->id : null,
-                'fraction' => $canSeeAddress ? $this->property->address?->fraction : null,
-                'street'   => $canSeeAddress ? $this->property->address?->street : null,
+                'street'      => $canSeeAddress ? $this->property->address?->street : null,
+                'postal_code' => $canSeeAddress ? $this->property->address?->postal_code : null,
                 'location' => $this->property->address?->location,
                 'county'   => $this->property->address?->county,
                 'district' => $this->property->address?->district,

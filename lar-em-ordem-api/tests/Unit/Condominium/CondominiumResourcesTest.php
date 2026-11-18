@@ -20,7 +20,7 @@ use Tests\TestCase;
 
 /**
  * O que os resources do condomínio mostram a cada utilizador, sem base de dados.
- * O código de convite, as frações e a transferência só aparecem a quem gere o condomínio (ou ao SU).
+ * O código de convite, as frações e a transferência só aparecem a quem gere o condomínio.
  */
 class CondominiumResourcesTest extends TestCase
 {
@@ -103,14 +103,6 @@ class CondominiumResourcesTest extends TestCase
 
         $this->assertFalse($dados['can_manage']);
         $this->assertArrayNotHasKey('invite_code', $dados);
-    }
-
-    public function test_o_su_ve_os_dados_de_gestao(): void
-    {
-        $dados = $this->dados($this->condominio(), $this->utilizador(null, ['SU']));
-
-        $this->assertTrue($dados['can_manage']);
-        $this->assertSame('CAPELA23', $dados['invite_code']);
     }
 
     // ------------------------------------------------------------- frações

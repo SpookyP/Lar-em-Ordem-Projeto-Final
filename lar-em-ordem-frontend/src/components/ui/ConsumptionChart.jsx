@@ -1,10 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  PieChart,
-  Pie,
-  ResponsiveContainer,
-  Sector,
-} from "recharts";
+import { useMemo, useState } from "react";
+import { PieChart, Pie, ResponsiveContainer, Sector } from "recharts";
 import { ChevronRight } from "lucide-react";
 
 // Mapeamento visual das utilidades domésticas.
@@ -38,10 +33,7 @@ function asNumber(value) {
 
   if (value == null || value === "") return 0;
 
-  let text = String(value)
-    .trim()
-    .replace(/\s/g, "")
-    .replace(/[€]/g, "");
+  let text = String(value).trim().replace(/\s/g, "").replace(/[€]/g, "");
 
   // Converte números no formato português, por exemplo 1.234,56.
   if (text.includes(",")) {
@@ -63,14 +55,10 @@ function getConsumptions(invoice) {
 // Obtém os itens de um consumo, dando prioridade à primeira lista
 // que contenha efetivamente elementos.
 function getConsumptionItems(consumption) {
-  const possibleItems = ITEM_KEYS.map(
-    (key) => consumption?.[key]
-  );
+  const possibleItems = ITEM_KEYS.map((key) => consumption?.[key]);
 
   return (
-    possibleItems.find(
-      (items) => Array.isArray(items) && items.length > 0
-    ) ??
+    possibleItems.find((items) => Array.isArray(items) && items.length > 0) ??
     possibleItems.find(Array.isArray) ??
     []
   );
@@ -93,10 +81,10 @@ function getTypeId(consumption) {
   // Quando não existe um ID reconhecido, tenta identificar pelo nome.
   const name = String(
     consumption?.consumption_type?.name ??
-    consumption?.consumptionType?.name ??
-    consumption?.type?.name ??
-    consumption?.name ??
-    ""
+      consumption?.consumptionType?.name ??
+      consumption?.type?.name ??
+      consumption?.name ??
+      "",
   ).toLowerCase();
 
   if (name.includes("eletric") || name.includes("electric")) return 1;
@@ -118,11 +106,11 @@ function getTypeId(consumption) {
 function getItemCost(item) {
   return asNumber(
     item?.cost ??
-    item?.total_cost ??
-    item?.totalCost ??
-    item?.amount_cost ??
-    item?.price ??
-    0
+      item?.total_cost ??
+      item?.totalCost ??
+      item?.amount_cost ??
+      item?.price ??
+      0,
   );
 }
 
@@ -145,10 +133,7 @@ function getConsumptionCost(consumption) {
   const items = getConsumptionItems(consumption);
 
   if (items.length > 0) {
-    return items.reduce(
-      (sum, item) => sum + getItemCost(item),
-      0
-    );
+    return items.reduce((sum, item) => sum + getItemCost(item), 0);
   }
 
   return 0;
@@ -192,11 +177,7 @@ function parseDate(value) {
     if (match) {
       const [, year, month, day] = match;
 
-      const date = new Date(
-        Number(year),
-        Number(month) - 1,
-        Number(day)
-      );
+      const date = new Date(Number(year), Number(month) - 1, Number(day));
 
       return Number.isNaN(date.getTime()) ? null : date;
     }
@@ -225,16 +206,9 @@ function getPeriodStart(period) {
   const now = new Date();
   const months = Number(period);
 
-  const validMonths =
-    Number.isFinite(months) && months > 0
-      ? months
-      : 1;
+  const validMonths = Number.isFinite(months) && months > 0 ? months : 1;
 
-  return new Date(
-    now.getFullYear(),
-    now.getMonth() - validMonths,
-    1
-  );
+  return new Date(now.getFullYear(), now.getMonth() - validMonths, 1);
 }
 
 export default function ConsumptionChart({
@@ -251,9 +225,7 @@ export default function ConsumptionChart({
     const startDate = getPeriodStart(period);
     const endDate = new Date();
 
-    const invoiceList = Array.isArray(invoices)
-      ? invoices
-      : [];
+    const invoiceList = Array.isArray(invoices) ? invoices : [];
 
     return invoiceList.filter((invoice) => {
       const date = parseDate(getInvoiceDate(invoice));
@@ -265,18 +237,17 @@ export default function ConsumptionChart({
   // Preparação dos valores para o gráfico circular.
   const data = useMemo(
     () => normalizeInvoices(filteredInvoices),
-    [filteredInvoices]
+    [filteredInvoices],
   );
 
   // Calcula o total dos custos apresentados.
   const total = useMemo(
     () => data.reduce((sum, item) => sum + item.value, 0),
-    [data]
+    [data],
   );
 
   // Obtém a categoria atualmente destacada.
-  const focusedItem =
-    data.find((item) => item.id === focusedId) ?? null;
+  const focusedItem = data.find((item) => item.id === focusedId) ?? null;
 
   // Conteúdo apresentado no centro do gráfico.
   const center = focusedItem
@@ -291,28 +262,15 @@ export default function ConsumptionChart({
 
   // Identifica a categoria com o maior custo.
   const biggest = data.reduce(
-    (max, item) =>
-      !max || item.value > max.value ? item : max,
-    null
+    (max, item) => (!max || item.value > max.value ? item : max),
+    null,
   );
-
-  // Remove o destaque se a categoria deixar de existir nos dados.
-  useEffect(() => {
-    if (
-      focusedId !== null &&
-      !data.some((item) => item.id === focusedId)
-    ) {
-      setFocusedId(null);
-    }
-  }, [data, focusedId]);
 
   // Estado de carregamento.
   if (loading) {
     return (
       <div className="flex min-h-40 items-center justify-center">
-        <p className="text-sm text-slate-500">
-          A carregar consumos...
-        </p>
+        <p className="text-sm text-slate-500">A carregar consumos...</p>
       </div>
     );
   }
@@ -344,12 +302,8 @@ export default function ConsumptionChart({
   // Renderização do gráfico Recharts e da lista interativa.
   return (
     <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
-
       {/* Gráfico circular com o total ou a categoria selecionada. */}
-      <div
-        className="relative shrink-0"
-        style={{ width: 260, height: 260 }}
-      >
+      <div className="relative shrink-0" style={{ width: 260, height: 260 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -365,24 +319,18 @@ export default function ConsumptionChart({
               paddingAngle={2}
               stroke="none"
               isAnimationActive={false}
-              onMouseEnter={(_, index) =>
-                setFocusedId(data[index]?.id ?? null)
-              }
+              onMouseEnter={(_, index) => setFocusedId(data[index]?.id ?? null)}
               onMouseLeave={() => setFocusedId(null)}
               shape={(props) => {
                 const { index } = props;
                 const item = data[index];
-                const isFocused = focusedId === item?.id;
+                const isFocused = focusedItem?.id === item?.id;
 
                 return (
                   <Sector
                     {...props}
                     fill={item?.color}
-                    opacity={
-                      focusedId === null || isFocused
-                        ? 1
-                        : 0.3
-                    }
+                    opacity={!focusedItem || isFocused ? 1 : 0.3}
                     style={{ transition: "opacity 0.18s" }}
                   />
                 );
@@ -405,13 +353,10 @@ export default function ConsumptionChart({
 
       {/* Lista de categorias, percentagens e respetivos custos. */}
       <div className="w-full min-w-0 flex-1">
-
         {/* Maior gasto do período. */}
         {biggest && (
           <>
-            <p className="text-sm text-slate-500">
-              Maior gasto do período
-            </p>
+            <p className="text-sm text-slate-500">Maior gasto do período</p>
 
             <p className="mb-5 mt-1 text-2xl font-bold text-slate-900">
               {biggest.name} · {money.format(biggest.value)}
@@ -422,11 +367,9 @@ export default function ConsumptionChart({
         <ul className="flex flex-col gap-3">
           {data.map((item) => {
             const percentage =
-              total !== 0
-                ? Math.round((item.value / total) * 100)
-                : 0;
+              total !== 0 ? Math.round((item.value / total) * 100) : 0;
 
-            const isFocused = focusedId === item.id;
+            const isFocused = focusedItem?.id === item.id;
 
             return (
               <li
@@ -460,19 +403,14 @@ export default function ConsumptionChart({
                   {item.name}
                 </span>
 
-                <span className="text-sm text-slate-500">
-                  {percentage}%
-                </span>
+                <span className="text-sm text-slate-500">{percentage}%</span>
 
                 <span className="w-24 text-right text-sm font-semibold text-slate-900">
                   {money.format(item.value)}
                 </span>
 
                 {onCategoryClick && (
-                  <ChevronRight
-                    size={16}
-                    className="shrink-0 text-slate-400"
-                  />
+                  <ChevronRight size={16} className="shrink-0 text-slate-400" />
                 )}
               </li>
             );

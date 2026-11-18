@@ -18,10 +18,8 @@ export function HouseDetails() {
   useEffect(() => {
     let active = true;
     if (!activeHouse) {
-      setLoading(false);
       return;
     }
-    setLoading(true);
     getProperty(activeHouse.id)
       .then((data) => {
         if (active) setHouse(data);

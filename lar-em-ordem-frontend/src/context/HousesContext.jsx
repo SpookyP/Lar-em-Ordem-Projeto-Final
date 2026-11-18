@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { HousesContext } from "./housesContextObject";
 import { useAuth } from "../hooks/useAuth";
-import { getProperties } from "../services/api/propertyService";
+import { getPropertiesPage } from "../services/api/propertyService";
 import { ROLE_INFO } from "../data/roleInfo";
 
 export function HousesProvider({ children }) {
@@ -12,12 +12,12 @@ export function HousesProvider({ children }) {
     let active = true;
     const hasHouses = (user?.roles ?? []).some((r) => ROLE_INFO[r]?.hasHouses);
 
-    if (!user || !hasHouses) {
-      setCount(0);
-      return;
-    }
+    const request =
+      !user || !hasHouses
+        ? Promise.resolve({ total: 0 })
+        : getPropertiesPage({ page: 1 });
 
-    getProperties(1)
+    request
       .then((data) => {
         if (active) setCount(data.total);
       })
@@ -31,7 +31,7 @@ export function HousesProvider({ children }) {
   }, [user]);
 
   async function refreshHouses() {
-    const data = await getProperties(1);
+    const data = await getPropertiesPage({ page: 1 });
     setCount(data.total);
   }
 

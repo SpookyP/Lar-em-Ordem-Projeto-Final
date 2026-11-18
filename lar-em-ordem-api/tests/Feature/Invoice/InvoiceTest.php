@@ -41,9 +41,9 @@ class InvoiceTest extends TestCase
 
         Storage::fake('r2');
 
-        Storage::disk('r2')->buildTemporaryUrlsUsing(
-            fn (string $path) => "https://r2.test/{$path}"
-        );
+        // the seeder writes demo benchmarks for a random home; when that home happens to match
+        // this test's (Porto, first type and typology) they leak into the results
+        DB::table('consumption_benchmarks')->delete();
 
         $user = $this->signIn();
 
@@ -516,9 +516,10 @@ class InvoiceTest extends TestCase
 
         $invoiceId = $invoiceResponse->json('data.id');
 
-        $this->getJson("/api/v1/invoices/{$invoiceId}/file")
-            ->assertOk()
-            ->assertJsonPath('data.url', "https://r2.test/{$file->path}");
+        // the PDF is read through the API: no link to the bucket is ever handed out
+        $content = $this->get("/api/v1/invoices/{$invoiceId}/file/content")->assertOk();
+
+        $this->assertSame(Storage::disk('r2')->get($file->path), $content->streamedContent());
     }
 
     public function test_an_invoice_cannot_use_a_file_uploaded_by_someone_else(): void
@@ -570,12 +571,12 @@ class InvoiceTest extends TestCase
         );
     }
 
-    public function test_an_invoice_without_a_pdf_has_no_file_url(): void
+    public function test_an_invoice_without_a_pdf_has_no_file_content(): void
     {
         $invoiceId = $this->postJson('/api/v1/invoices', $this->payload($this->property))
             ->assertCreated()
             ->json('data.id');
 
-        $this->getJson("/api/v1/invoices/{$invoiceId}/file")->assertNotFound();
+        $this->getJson("/api/v1/invoices/{$invoiceId}/file/content")->assertNotFound();
     }
 }

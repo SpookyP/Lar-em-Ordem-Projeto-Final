@@ -10,9 +10,10 @@ export function formatMoney(value) {
 
 //a rua e a fracao so chegam da API ao dono do pedido e ao prestador aceite
 export function formatAddress(address) {
-  return [address.street, address.fraction, address.location, address.county]
+  const line = [address.street, address.postal_code, address.location, address.county]
     .filter(Boolean)
     .join(", ");
+  return line || "Morada removida";
 }
 
 // a building's address on one line: "Rua Brito Capelo, Nº 100, 4450-073, Matosinhos"

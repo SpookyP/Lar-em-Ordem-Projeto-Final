@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Requests\ServiceProvider\IndexAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\AvailableAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\StoreAssistanceRequestRequest;
 use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
 use App\Models\ServiceProvider\AssistanceRequest;
+use App\Models\ServiceProvider\RequestAttachment;
+use App\Services\FileStorage\FileStorageService;
 use App\Services\ServiceProvider\AssistanceRequestService;
 use App\Services\ServiceProvider\ServiceProviderService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class AssistanceRequestController extends Controller
@@ -59,19 +61,26 @@ class AssistanceRequestController extends Controller
 
     /**
      * Devolve os detalhes de um pedido de assistência, incluindo a casa e a categoria.
-     * Se for o dono a ver, inclui também as propostas recebidas.
+     * Se for o dono a ver, inclui também as propostas recebidas, paginadas (?page=&per_page=),
+     * com a paginação em proposals_meta.
      *
-     * @param Request $request O pedido HTTP.
+     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
      * @param AssistanceRequest $assistanceRequest Instância do pedido.
      * @return AssistanceRequestResource
      */
-    public function show(Request $request, AssistanceRequest $assistanceRequest)
+    public function show(PerPageRequest $request, AssistanceRequest $assistanceRequest)
     {
         Gate::authorize('view', $assistanceRequest);
 
-        return new AssistanceRequestResource(
-            $this->service->loadForShow($assistanceRequest, $request->user())
-        );
+        $proposals = $this->service->loadForShow($assistanceRequest, $request->user(), $request->integer('per_page', 5));
+        $resource = new AssistanceRequestResource($assistanceRequest);
+
+        return $proposals ? $resource->additional(['proposals_meta' => [
+            'current_page' => $proposals->currentPage(),
+            'last_page'    => $proposals->lastPage(),
+            'per_page'     => $proposals->perPage(),
+            'total'        => $proposals->total(),
+        ]]) : $resource;
     }
     
     /**
@@ -125,5 +134,17 @@ class AssistanceRequestController extends Controller
                 $request->validated('location'),
             )
         );
+    }
+    
+    /**
+     * A photo or file attached to a request: whoever may see the request may see its attachments.
+     */
+    public function attachmentContent(RequestAttachment $requestAttachment, FileStorageService $files)
+    {
+        abort_if($requestAttachment->assistanceRequest === null, 404);
+
+        Gate::authorize('view', $requestAttachment->assistanceRequest);
+
+        return $files->contentResponse($requestAttachment->file);
     }
 }
