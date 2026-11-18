@@ -13,10 +13,12 @@ import { AttachmentGallery } from "../../../components/ui/AttachmentGallery";
 import { formatAddress } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
+import { Pager } from "../../../components/ui/Pager";
 
 export default function AssistanceDetail() {
   const { id } = useParams();
-  const { request, loading, error, reload } = useAssistanceRequest(id);
+  const { request, loading, error, reload, page, setPage } =
+    useAssistanceRequest(id);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
   const [confirmingCancel, setConfirmingCancel] = useState(false);
@@ -162,7 +164,7 @@ export default function AssistanceDetail() {
                 Propostas recebidas
               </h2>
               <span className="text-xs text-muted">
-                Total: {request.proposals.length}
+                Total: {request.proposalsTotal}
               </span>
             </div>
 
@@ -177,18 +179,27 @@ export default function AssistanceDetail() {
                 Ainda não recebeu propostas para este pedido.
               </p>
             ) : (
-              <div className="flex flex-col gap-3">
-                {request.proposals.map((proposal) => (
-                  <ProposalCard
-                    key={proposal.id}
-                    proposal={proposal}
-                    canRespond={open}
-                    busy={busy}
-                    onAccept={handleAccept}
-                    onReject={handleReject}
+              <>
+                <div className="flex flex-col gap-3">
+                  {request.proposals.map((proposal) => (
+                    <ProposalCard
+                      key={proposal.id}
+                      proposal={proposal}
+                      canRespond={open}
+                      busy={busy}
+                      onAccept={handleAccept}
+                      onReject={handleReject}
+                    />
+                  ))}
+                </div>
+                {request.proposalsLastPage > 1 && (
+                  <Pager
+                    page={page}
+                    totalPages={request.proposalsLastPage}
+                    onChange={setPage}
                   />
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
         </div>
