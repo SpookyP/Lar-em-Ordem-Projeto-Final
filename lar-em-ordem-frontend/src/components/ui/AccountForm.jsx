@@ -5,7 +5,7 @@ import { displayValue, roleFields } from "../../data/registerFields";
 import { updateProfileInformation } from "../../services/api/accountService";
 import { getMyProviderCoverage } from "../../services/api/catalogService";
 import { DataRow } from "./DataRow";
-import { TextInput } from "../form";
+import { PasswordField, TextInput } from "../form";
 import { ROLES } from "../../utils/roles";
 import { EditableSection } from "../profile/EditableSection";
 import { ProfileFieldInput } from "../profile/ProfileFieldInput";
@@ -33,7 +33,7 @@ function spanClass(field) {
 
 function PersonalSection({ user, role, onSaved }) {
   const socialProvider = user?.social_provider ?? null;
-  const [draft, setDraft] = useState({ name: "", email: "" });
+  const [draft, setDraft] = useState({ name: "", email: "", currentPassword: ""});
   const emailChanged =
     !socialProvider && draft.email.trim() !== (user?.email ?? "");
 
@@ -41,10 +41,11 @@ function PersonalSection({ user, role, onSaved }) {
     <EditableSection
       title="Dados pessoais"
       description="O seu nome e o email com que entra na conta."
-      onEdit={() => setDraft({ name: user?.name ?? "", email: user?.email ?? "" })}
+      onEdit={() => setDraft({ name: user?.name ?? "", email: user?.email ?? "", currentPassword: "" })}
       onSave={async () => {
         const payload = { role, name: draft.name.trim() };
         if (!socialProvider) payload.email = draft.email.trim();
+        if (emailChanged) payload.current_password = draft.currentPassword;
         await updateProfileInformation(payload);
         await onSaved();
       }}
@@ -90,6 +91,18 @@ function PersonalSection({ user, role, onSaved }) {
                   ? "Vai receber um email para confirmar o novo endereço."
                   : undefined
               }
+            />
+          )}
+          {emailChanged && (
+            <PasswordField
+              label="Password atual"
+              name="current_password"
+              value={draft.currentPassword}
+              onChange={(currentPassword) => setDraft((d) => ({ ...d, currentPassword }))}
+              error={errors.current_password}
+              autoComplete="current-password"
+              required
+              hint="Por segurança, confirme a password para mudar o email."
             />
           )}
         </>
