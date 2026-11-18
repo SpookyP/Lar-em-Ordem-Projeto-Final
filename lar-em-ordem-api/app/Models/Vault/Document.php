@@ -3,9 +3,9 @@
 namespace App\Models\Vault;
 
 use App\Models\Property\Property;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Document extends Model
 {
@@ -23,7 +23,6 @@ class Document extends Model
         'issue_date',
         'expiration_date',
         'extracted_data',
-        'ficheiro_path',
     ];
 
     protected $casts = [
@@ -39,6 +38,6 @@ class Document extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Vault\DocumentCategory::class, 'document_category_id');
+        return $this->belongsTo(DocumentCategory::class, 'document_category_id');
     }
 }
