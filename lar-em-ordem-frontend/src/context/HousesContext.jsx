@@ -7,15 +7,24 @@ import { ROLE_INFO } from "../data/roleInfo";
 export function HousesProvider({ children }) {
   const { user } = useAuth();
   const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+
+    //se a sessao ainda esta a validar (sem user): continua a carregar para o RequireHouse n redirecionar com dados antigos
+    if (!user) {
+      return () => {
+        active = false;
+      };
+    }
+
     const hasHouses = (user?.roles ?? []).some((r) => ROLE_INFO[r]?.hasHouses);
 
-    const request =
-      !user || !hasHouses
-        ? Promise.resolve({ total: 0 })
-        : getPropertiesPage({ page: 1 });
+    const request = hasHouses
+      ? getPropertiesPage({ page: 1 })
+      : Promise.resolve({ total: 0 });
 
     request
       .then((data) => {
@@ -23,6 +32,9 @@ export function HousesProvider({ children }) {
       })
       .catch(() => {
         if (active) setCount(0);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
 
     return () => {
@@ -35,7 +47,7 @@ export function HousesProvider({ children }) {
     setCount(data.total);
   }
 
-  const value = { count, refreshHouses };
+  const value = { count, loading, refreshHouses };
 
   return (
     <HousesContext.Provider value={value}>{children}</HousesContext.Provider>
