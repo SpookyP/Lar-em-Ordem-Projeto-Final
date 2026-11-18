@@ -10,12 +10,12 @@ import { ROLES } from "../../utils/roles";
 import { EditableSection } from "../profile/EditableSection";
 import { ProfileFieldInput } from "../profile/ProfileFieldInput";
 import {
-  EMPTY_COVERAGE,
   SpecialtyCoverageField,
   SpecialtySummary,
   ZoneCoverageField,
   ZoneSummary,
 } from "./ProviderCoverageFields";
+import { EMPTY_COVERAGE } from "./coverage";
 
 const PROVIDER_LABELS = { google: "o Google", microsoft: "a Microsoft" };
 
@@ -28,12 +28,18 @@ const DETAILS_TITLES = {
 
 // the description and the choice cards take the full width on larger screens
 function spanClass(field) {
-  return field.type === "textarea" || field.type === "choice" ? "sm:col-span-2" : "";
+  return field.type === "textarea" || field.type === "choice"
+    ? "sm:col-span-2"
+    : "";
 }
 
 function PersonalSection({ user, role, onSaved }) {
   const socialProvider = user?.social_provider ?? null;
-  const [draft, setDraft] = useState({ name: "", email: "", currentPassword: ""});
+  const [draft, setDraft] = useState({
+    name: "",
+    email: "",
+    currentPassword: "",
+  });
   const emailChanged =
     !socialProvider && draft.email.trim() !== (user?.email ?? "");
 
@@ -41,7 +47,13 @@ function PersonalSection({ user, role, onSaved }) {
     <EditableSection
       title="Dados pessoais"
       description="O seu nome e o email com que entra na conta."
-      onEdit={() => setDraft({ name: user?.name ?? "", email: user?.email ?? "", currentPassword: "" })}
+      onEdit={() =>
+        setDraft({
+          name: user?.name ?? "",
+          email: user?.email ?? "",
+          currentPassword: "",
+        })
+      }
       onSave={async () => {
         const payload = { role, name: draft.name.trim() };
         if (!socialProvider) payload.email = draft.email.trim();
@@ -98,7 +110,9 @@ function PersonalSection({ user, role, onSaved }) {
               label="Password atual"
               name="current_password"
               value={draft.currentPassword}
-              onChange={(currentPassword) => setDraft((d) => ({ ...d, currentPassword }))}
+              onChange={(currentPassword) =>
+                setDraft((d) => ({ ...d, currentPassword }))
+              }
               error={errors.current_password}
               autoComplete="current-password"
               required
@@ -122,7 +136,11 @@ function DetailsSection({ user, role, onSaved }) {
     <EditableSection
       title={DETAILS_TITLES[role] ?? "Dados do perfil"}
       onEdit={() =>
-        setDraft(Object.fromEntries(fields.map((f) => [f.name, profile[f.name] ?? ""])))
+        setDraft(
+          Object.fromEntries(
+            fields.map((f) => [f.name, profile[f.name] ?? ""]),
+          ),
+        )
       }
       onSave={async () => {
         await updateProfileInformation({ role, ...draft });
@@ -182,12 +200,17 @@ function ProviderCoverageSections() {
     );
   }
   if (!coverage) {
-    return <p className="text-sm text-muted">A carregar zonas e especialidades...</p>;
+    return (
+      <p className="text-sm text-muted">A carregar zonas e especialidades...</p>
+    );
   }
 
   // each card sends only its own keys; the API leaves the others untouched
   async function save(partial) {
-    await updateProfileInformation({ role: ROLES.SERVICE_PROVIDER, ...partial });
+    await updateProfileInformation({
+      role: ROLES.SERVICE_PROVIDER,
+      ...partial,
+    });
     setCoverage((current) => ({ ...current, ...partial }));
   }
 

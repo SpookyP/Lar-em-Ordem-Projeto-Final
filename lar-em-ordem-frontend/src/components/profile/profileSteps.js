@@ -1,5 +1,5 @@
 import { detailSteps, roleFields } from "../../data/registerFields";
-import { coverageToPayload } from "../ui/ProviderCoverageFields";
+import { coverageToPayload } from "../ui/coverage";
 import { ROLES } from "../../utils/roles";
 
 const ACCOUNT_STEP = {
@@ -44,7 +44,10 @@ const REVIEW_STEP = {
 };
 
 export function buildSteps({ withAccount, role }) {
-  const details = (detailSteps[role] ?? []).map((step) => ({ ...step, kind: "details" }));
+  const details = (detailSteps[role] ?? []).map((step) => ({
+    ...step,
+    kind: "details",
+  }));
 
   return [
     ...(withAccount ? [ACCOUNT_STEP] : []),
@@ -80,6 +83,8 @@ export function buildPayload({ withAccount, values, role, coverage }) {
 
 // first step that owns a field the API rejected; the review step if none does
 export function firstStepWithErrors(steps, errors) {
-  const index = steps.findIndex((step) => step.fields.some((name) => errors[name]));
+  const index = steps.findIndex((step) =>
+    step.fields.some((name) => errors[name]),
+  );
   return index === -1 ? steps.length - 1 : index;
 }

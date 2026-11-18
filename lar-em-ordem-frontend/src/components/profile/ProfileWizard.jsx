@@ -1,22 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Mail, User } from "lucide-react";
-import { accountTypes, displayValue, roleFields } from "../../data/registerFields";
+import {
+  accountTypes,
+  displayValue,
+  roleFields,
+} from "../../data/registerFields";
 import { PasswordRequirements } from "../ui/PasswordRequirements";
 import { DataRow } from "../ui/DataRow";
-import {
-  ChoiceCards,
-  PasswordField,
-  StepProgress,
-  TextInput,
-} from "../form";
+import { ChoiceCards, PasswordField, StepProgress, TextInput } from "../form";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import {
-  EMPTY_COVERAGE,
   SpecialtyCoverageField,
   SpecialtySummary,
   ZoneCoverageField,
   ZoneSummary,
 } from "../ui/ProviderCoverageFields";
+import { EMPTY_COVERAGE } from "../ui/coverage";
 import { ProfileFieldInput } from "./ProfileFieldInput";
 import { ConsentFields } from "./ConsentFields";
 import { buildPayload, buildSteps, firstStepWithErrors } from "./profileSteps";
@@ -67,7 +66,10 @@ export function ProfileWizard({
   const headingRef = useRef(null);
   const shownStep = useRef(stepIndex);
 
-  const steps = useMemo(() => buildSteps({ withAccount, role }), [withAccount, role]);
+  const steps = useMemo(
+    () => buildSteps({ withAccount, role }),
+    [withAccount, role],
+  );
   const step = steps[stepIndex];
   const isLast = stepIndex === steps.length - 1;
 
@@ -121,7 +123,8 @@ export function ProfileWizard({
     if (askConsent && !consent.accept_privacy) {
       setErrors((current) => ({
         ...current,
-        accept_privacy: "Tem de aceitar a Política de Privacidade para criar a conta.",
+        accept_privacy:
+          "Tem de aceitar a Política de Privacidade para criar a conta.",
       }));
       return;
     }
@@ -136,7 +139,8 @@ export function ProfileWizard({
       if (askConsent) {
         payload.accept_privacy = consent.accept_privacy;
         // only residents are asked; for other profiles the answer stays "not given"
-        if (role === ROLES.RESIDENT) payload.data_sharing = consent.data_sharing;
+        if (role === ROLES.RESIDENT)
+          payload.data_sharing = consent.data_sharing;
       }
 
       await onSubmit(payload);
@@ -153,7 +157,9 @@ export function ProfileWizard({
             : "Verifique os campos assinalados.",
         );
       } else {
-        setFormError(getErrorMessage(error, "Não foi possível concluir. Tente novamente."));
+        setFormError(
+          getErrorMessage(error, "Não foi possível concluir. Tente novamente."),
+        );
       }
     } finally {
       submittingRef.current = false;
@@ -205,7 +211,9 @@ export function ProfileWizard({
               autoComplete="new-password"
               required
             />
-            {values.password && <PasswordRequirements password={values.password} />}
+            {values.password && (
+              <PasswordRequirements password={values.password} />
+            )}
             <PasswordField
               label="Confirmar password"
               value={values.password_confirmation}
@@ -300,7 +308,11 @@ export function ProfileWizard({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-      <StepProgress current={stepIndex} total={steps.length} totalKnown={Boolean(role)} />
+      <StepProgress
+        current={stepIndex}
+        total={steps.length}
+        totalKnown={Boolean(role)}
+      />
 
       <div className="flex flex-col gap-1">
         <h2
@@ -310,13 +322,18 @@ export function ProfileWizard({
         >
           {step.title}
         </h2>
-        {step.description && <p className="text-sm text-muted">{step.description}</p>}
+        {step.description && (
+          <p className="text-sm text-muted">{step.description}</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-4">{renderStep()}</div>
 
       {formError && (
-        <p role="alert" className="rounded-lg bg-red-light px-3 py-2 text-sm text-red">
+        <p
+          role="alert"
+          className="rounded-lg bg-red-light px-3 py-2 text-sm text-red"
+        >
           {formError}
         </p>
       )}
@@ -339,7 +356,11 @@ export function ProfileWizard({
           className="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-navy px-5 py-2.5 text-sm font-medium text-white transition hover:bg-navy-dark disabled:opacity-60"
         >
           {isLast ? (
-            submitting ? submittingLabel : submitLabel
+            submitting ? (
+              submittingLabel
+            ) : (
+              submitLabel
+            )
           ) : (
             <>
               Continuar
@@ -360,7 +381,10 @@ function ReviewStep({ steps, values, role, roles, coverage, onEdit }) {
   return (
     <div className="divide-y divide-border rounded-xl border border-border">
       {steps.slice(0, -1).map((block, index) => (
-        <div key={block.id} className="flex items-start justify-between gap-4 p-4">
+        <div
+          key={block.id}
+          className="flex items-start justify-between gap-4 p-4"
+        >
           <div className="min-w-0 flex-1">
             <p className="mb-2 text-sm font-medium text-text">{block.title}</p>
             <ReviewContent
@@ -393,9 +417,12 @@ function ReviewContent({ block, values, role, roleLabel, coverage }) {
       </dl>
     );
   }
-  if (block.kind === "type") return <p className="text-sm text-text">{roleLabel}</p>;
-  if (block.kind === "zones") return <ZoneSummary zoneIds={coverage.zone_ids} />;
-  if (block.kind === "specialties") return <SpecialtySummary value={coverage} />;
+  if (block.kind === "type")
+    return <p className="text-sm text-text">{roleLabel}</p>;
+  if (block.kind === "zones")
+    return <ZoneSummary zoneIds={coverage.zone_ids} />;
+  if (block.kind === "specialties")
+    return <SpecialtySummary value={coverage} />;
 
   return (
     <dl className="flex flex-col gap-2 text-sm">
