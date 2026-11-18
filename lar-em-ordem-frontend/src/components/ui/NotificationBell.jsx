@@ -91,7 +91,7 @@ export function NotificationBell() {
                     onDelete={(id) => (condoId(id) ? condo.dismiss(condoId(id)) : deleteNotification(id))}
                     onAction={(item) => {
                         setIsOpen(false);
-                        navigate(item?.action?.to ?? '/cofre');
+                        navigate(item?.action?.to ?? '/vault');
                     }}
                 />
             )}
