@@ -24,11 +24,8 @@ class DocumentResource extends JsonResource
             'description' => $this->description,
             'file_id' => $this->file_id,
             'has_file' => !is_null($this->file_id),
-
-            // Formatação segura de datas
-            'issue_date' => $this->issue_date ? (is_string($this->issue_date) ? $this->issue_date : $this->issue_date->format('Y-m-d')) : null,
-            'expiration_date' => $this->expiration_date ? (is_string($this->expiration_date) ? $this->expiration_date : $this->expiration_date->format('Y-m-d')) : null,
-
+            'issue_date' => $this->issue_date?->format('Y-m-d'),
+            'expiration_date' => $this->expiration_date?->format('Y-m-d'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

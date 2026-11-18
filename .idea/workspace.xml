@@ -4,8 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="WebSocket Vault">
+    <list default="true" id="6dcb8102-e55f-4d7b-9d07-19b97d8be3f5" name="Changes" comment="UpdateDocumentRequest">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Controllers/Api/Vault/NotificationController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Requests/Vault/StoreDocumentRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Requests/Vault/StoreDocumentRequest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Requests/Vault/UpdateDocumentRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Requests/Vault/UpdateDocumentRequest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Resources/Vault/DocumentResource.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Http/Resources/Vault/DocumentResource.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Document.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/Document.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/DocumentCategory.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Models/Vault/DocumentCategory.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/DocumentService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/PdfExtractionService.php" beforeDir="false" afterPath="$PROJECT_DIR$/lar-em-ordem-api/app/Services/Vault/PdfExtractionService.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,61 +82,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.8545044532897763" />
-      <entry key="MS500" value="4.950199821531209" />
-      <entry key="S2" value="11.322732178668167" />
-      <entry key="S5" value="18.263854541971277" />
-      <entry key="S10" value="23.01450671387783" />
-      <entry key="S30" value="27.802773244230604" />
-      <entry key="S60" value="29.317725409982653" />
-      <entry key="M2" value="30.13656763963129" />
-      <entry key="M5" value="30.716544156501154" />
-      <entry key="M10" value="31.511558773596896" />
-      <entry key="M15" value="32.668595493404425" />
-      <entry key="M30" value="38.59780080132266" />
-      <entry key="H1" value="52.89281340366997" />
-      <entry key="H2" value="73.78026503040752" />
-      <entry key="H4" value="100.02004917347885" />
-      <entry key="D1" value="154.72894588242383" />
-      <entry key="W1" value="170.9863396276074" />
+      <entry key="MS100" value="1.0173694231212136" />
+      <entry key="MS500" value="2.2770690302959435" />
+      <entry key="S2" value="6.0112171472700355" />
+      <entry key="S5" value="9.401185462380553" />
+      <entry key="S10" value="13.031548328926046" />
+      <entry key="S30" value="20.81949483393021" />
+      <entry key="S60" value="24.691159868032333" />
+      <entry key="M2" value="27.13404262278484" />
+      <entry key="M5" value="28.79809965913316" />
+      <entry key="M10" value="29.393546514824273" />
+      <entry key="M15" value="29.675662747388" />
+      <entry key="M30" value="31.76232293629248" />
+      <entry key="H1" value="41.840432945639556" />
+      <entry key="H2" value="65.008130894501" />
+      <entry key="H4" value="98.92213522193508" />
+      <entry key="D1" value="175.42233246129817" />
+      <entry key="W1" value="199.47788625395125" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="2.4823370835470654E-32" />
-      <entry key="MS500" value="4.774986532742185E-7" />
-      <entry key="S2" value="0.026287121820332472" />
-      <entry key="S5" value="0.2332905865850709" />
-      <entry key="S10" value="0.4830016424248169" />
-      <entry key="S30" value="0.7846022258480173" />
-      <entry key="S60" value="0.8857777519491082" />
-      <entry key="M2" value="0.9411576658292213" />
-      <entry key="M5" value="0.9760341702230485" />
-      <entry key="M10" value="0.9886234612102258" />
-      <entry key="M15" value="1.0030848584082848" />
-      <entry key="M30" value="1.1787531564321299" />
-      <entry key="H1" value="1.746959646134386" />
-      <entry key="H2" value="2.643104921491991" />
-      <entry key="H4" value="3.7854776834263224" />
-      <entry key="D1" value="6.163836886489674" />
-      <entry key="W1" value="6.869279854745683" />
+      <entry key="MS100" value="1.6658682174191727E-24" />
+      <entry key="MS500" value="1.755206136094062E-5" />
+      <entry key="S2" value="0.06473509369066892" />
+      <entry key="S5" value="0.34394602308006217" />
+      <entry key="S10" value="0.6754293362271263" />
+      <entry key="S30" value="1.292721309419648" />
+      <entry key="S60" value="1.5906817164574116" />
+      <entry key="M2" value="1.778742497459337" />
+      <entry key="M5" value="1.9071082484431747" />
+      <entry key="M10" value="1.952916953354296" />
+      <entry key="M15" value="1.9709582656804512" />
+      <entry key="M30" value="2.0441910042249307" />
+      <entry key="H1" value="2.3864978855060146" />
+      <entry key="H2" value="3.251987027147272" />
+      <entry key="H4" value="4.607488283863889" />
+      <entry key="D1" value="7.792933690475137" />
+      <entry key="W1" value="8.808655701890878" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.766177639477429" />
-      <entry key="MS500" value="4.898187308194365" />
-      <entry key="S2" value="11.307170832431876" />
-      <entry key="S5" value="18.425012380686628" />
-      <entry key="S10" value="23.42523514520405" />
-      <entry key="S30" value="28.54767295239471" />
-      <entry key="S60" value="30.180932851283732" />
-      <entry key="M2" value="31.065685266077022" />
-      <entry key="M5" value="31.68747630557271" />
-      <entry key="M10" value="32.49735952288389" />
-      <entry key="M15" value="33.669598223701584" />
-      <entry key="M30" value="39.77516846787233" />
-      <entry key="H1" value="54.63875964792196" />
-      <entry key="H2" value="76.42264495880775" />
-      <entry key="H4" value="103.80501789820511" />
-      <entry key="D1" value="160.89264183520163" />
-      <entry key="W1" value="177.85559685413583" />
+      <entry key="MS100" value="0.969101651607849" />
+      <entry key="MS500" value="2.2538652246515265" />
+      <entry key="S2" value="5.999716067877549" />
+      <entry key="S5" value="9.500538549041673" />
+      <entry key="S10" value="13.431951531063724" />
+      <entry key="S30" value="21.94599926842648" />
+      <entry key="S60" value="26.184295277222795" />
+      <entry key="M2" value="28.859824074607047" />
+      <entry key="M5" value="30.68293216266056" />
+      <entry key="M10" value="31.335135559232196" />
+      <entry key="M15" value="31.639021164291865" />
+      <entry key="M30" value="33.80262455344671" />
+      <entry key="H1" value="44.22478721659901" />
+      <entry key="H2" value="68.25881466428785" />
+      <entry key="H4" value="103.52879294664568" />
+      <entry key="D1" value="183.21505369167843" />
+      <entry key="W1" value="208.28650809754112" />
     </decayedShown>
   </component>
   <component name="PackageJsonUpdateNotifier">
@@ -305,7 +313,7 @@
     &quot;RunOnceActivity.laravel_idea.move_run_console_settings&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;hotfix/Novas__Categorias__Documentos&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;hotfix/LimpezaGeral&quot;,
     &quot;last_opened_file_path&quot;: &quot;/home/hyper/ginasio&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
@@ -364,6 +372,12 @@
       <workItem from="1794330109195" duration="5816000" />
       <workItem from="1794343881951" duration="7937000" />
       <workItem from="1794426043208" duration="1409000" />
+      <workItem from="1794600780691" duration="26000" />
+      <workItem from="1794607780441" duration="2699000" />
+      <workItem from="1794850409857" duration="4425000" />
+      <workItem from="1794944079986" duration="26000" />
+      <workItem from="1794952496395" duration="1860000" />
+      <workItem from="1795014002027" duration="1117000" />
     </task>
     <task id="LOCAL-00001" summary="pdfPlumber">
       <option name="closed" value="true" />
@@ -509,7 +523,15 @@
       <option name="project" value="LOCAL" />
       <updated>1794333397462</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="UpdateDocumentRequest">
+      <option name="closed" value="true" />
+      <created>1794436114048</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1794436114048</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -541,7 +563,8 @@
     <MESSAGE value="Apagar Notificações pelo Id do Documento" />
     <MESSAGE value="EndPoint Listar Categorias de Documentos" />
     <MESSAGE value="Melhoria do Script de leitura de Documentos" />
-    <option name="LAST_COMMIT_MESSAGE" value="Melhoria do Script de leitura de Documentos" />
+    <MESSAGE value="UpdateDocumentRequest" />
+    <option name="LAST_COMMIT_MESSAGE" value="UpdateDocumentRequest" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
