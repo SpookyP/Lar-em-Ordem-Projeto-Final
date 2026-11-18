@@ -287,6 +287,7 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonMissingPath('data.proposals')
             ->assertJsonPath('data.property.id', null)
             ->assertJsonPath('data.property.street', null)
+            ->assertJsonPath('data.property.postal_code', null)
             ->assertJsonPath('data.property.county', 'Matosinhos');
     }
 
@@ -298,6 +299,7 @@ class AssistanceRequestTest extends TestCase
             ->getJson("/api/v1/assistance-requests/{$sanita->id}")
             ->assertOk()
             ->assertJsonPath('data.property.street', 'Rua Brito Capelo')
+            ->assertJsonPath('data.property.postal_code', $sanita->property->address->postal_code)
             ->assertJsonPath('data.accepted_proposal.status', 'accepted');
     }
 

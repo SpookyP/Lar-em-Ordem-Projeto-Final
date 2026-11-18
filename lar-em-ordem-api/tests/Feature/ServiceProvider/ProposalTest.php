@@ -458,4 +458,17 @@ class ProposalTest extends TestCase
             ->patchJson("/api/v1/proposals/{$proposta->id}/accept")
             ->assertOk();
     }
+    
+    public function test_editar_so_a_hora_de_inicio_nao_pode_passar_a_hora_de_fim(): void
+    {
+        $proposal = Proposal::where('status', 'pending')->first();
+        $until = substr($proposal->available_until, 0, 5);
+
+        $this->actingAs($proposal->serviceProvider->user)
+            ->patchJson("/api/v1/proposals/{$proposal->id}", ['available_from' => '23:59'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('available_from');
+
+        $this->assertSame($until, substr($proposal->fresh()->available_until, 0, 5));
+    }
 }
