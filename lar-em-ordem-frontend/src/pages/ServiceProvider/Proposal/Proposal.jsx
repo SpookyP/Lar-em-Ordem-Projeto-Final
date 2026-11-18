@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMyProposals } from "../../../hooks/useMyProposals";
+import { useProposalCounts } from "../../../hooks/useProposalCounts";
 import { withdrawProposal } from "../../../services/api/proposalService";
 import { PROPOSAL_STATUS } from "../../../data/assistanceInfo";
 import { ProviderProposalCard } from "../../../components/ui/ProviderProposalCard";
@@ -14,7 +15,7 @@ const FILTERS = [
 
 // the header and every row share these columns, so they line up like a table
 const COLUMNS =
-  "lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_5.5rem]";
+  "lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_7rem]";
 
 const HEADINGS = ["Pedido", "Valor", "Disponibilidade", "Validade", "Estado", "Ações"];
 
@@ -23,11 +24,12 @@ export default function Proposals() {
   const [withdrawing, setWithdrawing] = useState(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [countsVersion, setCountsVersion] = useState(0);
+  const counts = useProposalCounts(countsVersion);
   const {
     items: proposals,
     page,
     totalPages,
-    total,
     loading,
     error,
     setPage,
@@ -40,6 +42,7 @@ export default function Proposals() {
     try {
       await withdrawProposal(withdrawing.id);
       reload();
+      setCountsVersion((v) => v + 1);
     } catch (err) {
       setActionError(getErrorMessage(err, "Não foi possível retirar a proposta."));
     } finally {
@@ -56,25 +59,32 @@ export default function Proposals() {
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 p-6">
-          <div className="flex flex-wrap gap-2">
-            {FILTERS.map((f) => (
+        <div className="flex flex-wrap gap-2 p-6">
+          {FILTERS.map((f) => {
+            const active = filter === f.id;
+            return (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => setFilter(f.id)}
-                aria-pressed={filter === f.id}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                  filter === f.id ? "bg-navy text-white" : "bg-surface text-muted hover:text-navy"
+                aria-pressed={active}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                  active ? "bg-navy text-white" : "bg-surface text-muted hover:text-navy"
                 }`}
               >
                 {f.label}
+                {counts && (
+                  <span
+                    className={`min-w-5 rounded-full px-1.5 text-center text-xs font-semibold ${
+                      active ? "bg-white/20 text-white" : "bg-card text-text"
+                    }`}
+                  >
+                    {counts[f.id]}
+                  </span>
+                )}
               </button>
-            ))}
-          </div>
-          <span className="text-sm text-muted">
-            Total: {total} {total === 1 ? "proposta" : "propostas"}
-          </span>
+            );
+          })}
         </div>
 
         {actionError && (
@@ -87,7 +97,7 @@ export default function Proposals() {
           className={`hidden gap-4 border-y border-border bg-surface px-6 py-3 text-xs font-semibold uppercase tracking-wider text-muted lg:grid ${COLUMNS}`}
         >
           {HEADINGS.map((heading) => (
-            <span key={heading} className={heading === "Ações" ? "text-right" : heading === "Pedido" ? "pl-15" : ""}>
+            <span key={heading} className={heading === "Ações" ? "text-center" : heading === "Pedido" ? "pl-15" : ""}>
               {heading}
             </span>
           ))}

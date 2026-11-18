@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Pencil, Undo2 } from "lucide-react";
+import { MapPin, Pencil, Trash2 } from "lucide-react";
 import { categoryInfo, proposalStatus } from "../../data/assistanceInfo";
 import { formatDate, formatDay } from "../../utils/date";
 import { formatAddress, formatMoney } from "../../utils/format";
@@ -7,8 +7,6 @@ import { formatAddress, formatMoney } from "../../utils/format";
 const ICON_BUTTON =
   "flex size-10 items-center justify-center rounded-xl transition disabled:cursor-not-allowed disabled:opacity-40";
 
-// one proposal in the provider's list: a table row on large screens (columns come from the page),
-// a stacked card on small ones
 export function ProviderProposalCard({ proposal, columns, busy, onWithdraw }) {
   const status = proposalStatus(proposal.status, proposal.isExpired);
   const pending = proposal.status === "pending";
@@ -64,7 +62,7 @@ export function ProviderProposalCard({ proposal, columns, busy, onWithdraw }) {
         {status.label}
       </span>
 
-      <div className="flex gap-2 lg:justify-end">
+      <div className="flex gap-2 lg:justify-center">
         <button
           type="button"
           onClick={() => onWithdraw(proposal)}
@@ -73,7 +71,7 @@ export function ProviderProposalCard({ proposal, columns, busy, onWithdraw }) {
           title="Retirar proposta"
           className={`${ICON_BUTTON} border border-border text-red enabled:hover:bg-red-light disabled:text-muted`}
         >
-          <Undo2 size={18} />
+          <Trash2 size={17} />
         </button>
         {pending && request ? (
           <Link
