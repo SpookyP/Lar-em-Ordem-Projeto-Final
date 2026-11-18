@@ -88,7 +88,7 @@ class PropertyController extends Controller
     public function destroy(Property $property)
     {
         $this->service->deleteResidentProperty($property);
-        return response()->json(['message' => 'Casa excluída.']);
+        return response()->json(['message' => 'Casa eliminada.']);
     }
 
     /**
