@@ -24,6 +24,7 @@ function toAssistanceDetail(a) {
     address: a.property ?? {},
     attachments: (a.attachments ?? []).map((f) => ({ id: f.id })),
     proposals: (a.proposals ?? []).map(toProposal),
+    myProposal: a.my_proposal ? toProposal(a.my_proposal) : null,
   };
 }
 

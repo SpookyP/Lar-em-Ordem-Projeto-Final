@@ -25,7 +25,6 @@ export function ProviderProposalCard({ proposal, columns, busy, onWithdraw }) {
           {request ? (
             <Link
               to={`/provider/requests/${request.id}`}
-              state={{ proposal }}
               className="block truncate font-semibold text-text hover:underline"
             >
               {request.title}
@@ -72,14 +71,13 @@ export function ProviderProposalCard({ proposal, columns, busy, onWithdraw }) {
           disabled={!pending || busy}
           aria-label="Retirar proposta"
           title="Retirar proposta"
-          className={`${ICON_BUTTON} border border-border text-red enabled:hover:bg-red-light`}
+          className={`${ICON_BUTTON} border border-border text-red enabled:hover:bg-red-light disabled:text-muted`}
         >
           <Undo2 size={18} />
         </button>
         {pending && request ? (
           <Link
             to={`/provider/requests/${request.id}/proposal`}
-            state={{ proposal }}
             aria-label="Editar proposta"
             title="Editar proposta"
             className={`${ICON_BUTTON} bg-navy text-white hover:bg-navy-light`}
@@ -92,7 +90,7 @@ export function ProviderProposalCard({ proposal, columns, busy, onWithdraw }) {
             disabled
             aria-label="Editar proposta"
             title="Esta proposta já não pode ser editada"
-            className={`${ICON_BUTTON} bg-navy text-white`}
+            className={`${ICON_BUTTON} border border-border text-muted`}
           >
             <Pencil size={17} />
           </button>
