@@ -53,7 +53,7 @@ export default function Offers() {
         </p>
       </div>
 
-      <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="flex flex-col gap-3 border-b border-border p-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search
