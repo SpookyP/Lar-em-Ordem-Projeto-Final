@@ -631,4 +631,40 @@ class AssistanceRequestTest extends TestCase
             ->json('data'))->pluck('title');
         $this->assertFalse($titulos->contains(fn ($t) => str_starts_with($t, 'Fuga')));
     }
+
+    public function test_as_propostas_recebidas_sao_paginadas_no_detalhe_do_pedido(): void
+    {
+        // "Tomada da sala": 3 propostas (2 pendentes e 1 rejeitada)
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}?per_page=2")
+            ->assertOk()
+            ->assertJsonCount(2, 'data.proposals')
+            ->assertJsonPath('proposals_meta.total', 3)
+            ->assertJsonPath('proposals_meta.last_page', 2)
+            ->assertJsonPath('proposals_meta.per_page', 2);
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}?per_page=2&page=2")
+            ->assertOk()
+            ->assertJsonCount(1, 'data.proposals')
+            ->assertJsonPath('proposals_meta.current_page', 2);
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}?per_page=0")
+            ->assertStatus(422);
+    }
+
+    public function test_quem_nao_ve_as_propostas_nao_recebe_a_paginacao_delas(): void
+    {
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+
+        // o prestador com proposta vê o pedido, mas não as propostas dos outros
+        $this->actingAs($this->servicos)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}")
+            ->assertOk()
+            ->assertJsonMissingPath('data.proposals')
+            ->assertJsonMissingPath('proposals_meta');
+    }
 }
