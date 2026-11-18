@@ -9,6 +9,7 @@ import { formatDate } from "../../../utils/date";
 import { getOfferStatus } from "../../../utils/offerStatus";
 import { Pager } from "../../../components/ui/Pager";
 import { useMyOffersPage } from "../../../hooks/useMyOffersPage";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 
 const FILTERS = [
   { value: "", label: "Todas" },
@@ -20,7 +21,7 @@ const FILTERS = [
 
 export default function MyOffers() {
   const [busyId, setBusyId] = useState(null);
-  const [confirmingId, setConfirmingId] = useState(null);
+  const [deletingOffer, setDeletingOffer] = useState(null);
   const [status, setStatus] = useState("");
   const [actionError, setActionError] = useState("");
 
@@ -48,12 +49,14 @@ export default function MyOffers() {
     }
   }
 
-  async function handleDelete(offer) {
+  async function confirmDelete() {
+    if (!deletingOffer) return;
+    const offer = deletingOffer;
     setBusyId(offer.id);
     setActionError("");
     try {
       await deleteOffer(offer.id);
-      setConfirmingId(null);
+      setDeletingOffer(null);
       if (offers.length === 1 && page > 1) {
         setPage(page - 1);
       } else {
@@ -153,56 +156,33 @@ export default function MyOffers() {
                   </p>
 
                   <div className="mt-auto flex items-center gap-4 border-t border-border pt-3 text-sm">
-                    {confirmingId === offer.id ? (
-                      <>
-                        <span className="text-muted">
-                          Eliminar esta oferta?
-                        </span>
-                        <button
-                          onClick={() => handleDelete(offer)}
-                          disabled={busyId === offer.id}
-                          className="ml-auto rounded-full bg-red px-3 py-1 text-white transition hover:opacity-90 disabled:opacity-60"
-                        >
-                          Sim, eliminar
-                        </button>
-                        <button
-                          onClick={() => setConfirmingId(null)}
-                          className="text-muted underline hover:text-navy"
-                        >
-                          Cancelar
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <Link
-                          to={`/partner/offers/${offer.id}/edit`}
-                          className="flex items-center gap-1.5 text-muted hover:text-navy"
-                        >
-                          <Pencil size={15} /> Editar
-                        </Link>
-                        <button
-                          onClick={() => handleToggle(offer)}
-                          disabled={busyId === offer.id}
-                          className="flex items-center gap-1.5 text-muted hover:text-navy disabled:opacity-50"
-                        >
-                          {offer.active ? (
-                            <>
-                              <Eye size={15} /> Inativar
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff size={15} /> Ativar
-                            </>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setConfirmingId(offer.id)}
-                          className="ml-auto flex items-center gap-1.5 text-red hover:opacity-80"
-                        >
-                          <Trash2 size={15} /> Eliminar
-                        </button>
-                      </>
-                    )}
+                    <Link
+                      to={`/partner/offers/${offer.id}/edit`}
+                      className="flex items-center gap-1.5 text-muted hover:text-navy"
+                    >
+                      <Pencil size={15} /> Editar
+                    </Link>
+                    <button
+                      onClick={() => handleToggle(offer)}
+                      disabled={busyId === offer.id}
+                      className="flex items-center gap-1.5 text-muted hover:text-navy disabled:opacity-50"
+                    >
+                      {offer.active ? (
+                        <>
+                          <Eye size={15} /> Inativar
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff size={15} /> Ativar
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setDeletingOffer(offer)}
+                      className="ml-auto flex items-center gap-1.5 text-red hover:opacity-80"
+                    >
+                      <Trash2 size={15} /> Eliminar
+                    </button>
                   </div>
                 </div>
               );
@@ -213,6 +193,18 @@ export default function MyOffers() {
             <Pager page={page} totalPages={totalPages} onChange={setPage} />
           )}
         </>
+      )}
+      {deletingOffer && (
+        <ConfirmDialog
+          title="Eliminar oferta"
+          message="Quer mesmo eliminar esta oferta? Esta ação não pode ser desfeita."
+          confirmLabel="Eliminar"
+          loadingLabel="A eliminar…"
+          danger
+          loading={busyId === deletingOffer.id}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeletingOffer(null)}
+        />
       )}
     </div>
   );

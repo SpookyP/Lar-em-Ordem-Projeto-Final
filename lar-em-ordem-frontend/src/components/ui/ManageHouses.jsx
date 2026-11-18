@@ -145,7 +145,7 @@ export function ManageHouses() {
       {deletingHouse && (
         <ConfirmDialog
           title="Eliminar habitação"
-          message={`Quer mesmo eliminar "${deletingHouse.label}"? Esta ação não pode ser desfeita. Irá perder os dados relativos a esta habitação.`}
+          message={`Quer mesmo eliminar esta habitação? Esta ação não pode ser desfeita. Irá perder os dados da habitação.`}
           confirmLabel="Eliminar"
           loadingLabel="A eliminar…"
           danger
