@@ -33,6 +33,14 @@ export const STATUS_LABELS = Object.fromEntries(
   Object.entries(STATUS_INFO).map(([key, info]) => [key, info.label]),
 );
 
+const PROVIDER_REQUEST_LABELS = {
+  open: "Aberto a propostas",
+  closed: "Fechado",
+  cancelled: "Cancelado",
+};
+
+export const providerRequestLabel = (status) => PROVIDER_REQUEST_LABELS[status] ?? status;
+
 export const statusInfo = (status) =>
   STATUS_INFO[status] ?? { label: status, style: "bg-surface text-muted" };
 

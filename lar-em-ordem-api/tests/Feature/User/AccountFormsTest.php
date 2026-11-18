@@ -3,6 +3,7 @@
 namespace Tests\Feature\User;
 
 use App\Models\User\User;
+use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Http;
@@ -51,6 +52,21 @@ class AccountFormsTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['password'])
             ->assertJsonMissingValidationErrors(['email']);
+    }
+
+    public function test_a_leaked_password_is_explained_in_portuguese(): void
+    {
+        // pretend the password shows up in the leaked-passwords list
+        $this->app->instance(UncompromisedVerifier::class, new class implements UncompromisedVerifier {
+            public function verify($data)
+            {
+                return false;
+            }
+        });
+
+        $this->postJson('/api/auth/register', $this->signUpAsResident('nova.conta@example.com', 'Lar-em-Ordem-2026!'))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['password' => 'Esta password apareceu numa fuga de dados. Por segurança, escolha outra.']);
     }
 
     public function test_the_existing_password_adds_the_profile_even_if_it_predates_the_strength_rules(): void
