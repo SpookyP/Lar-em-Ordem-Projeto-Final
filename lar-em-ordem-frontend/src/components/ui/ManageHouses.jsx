@@ -30,7 +30,7 @@ export function ManageHouses() {
   const [deletingHouse, setDeletingHouse] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { activeHouse } = useAuth();
+  const { activeHouse, clearActiveHouse } = useAuth();
   const navigate = useNavigate();
 
   async function handleEdit(id) {
@@ -56,6 +56,7 @@ export function ManageHouses() {
       await refreshHouses();
 
       if (activeHouse?.id === id) {
+        clearActiveHouse();
         navigate("/profiles");
         return;
       }
