@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useAssistanceRequest } from "../../../hooks/useAssistanceRequest";
 import { createProposal, updateProposal } from "../../../services/api/proposalService";
@@ -54,7 +54,6 @@ function RequestSummary({ request, proposal }) {
 
       <Link
         to={`/provider/requests/${request.id}`}
-        state={proposal ? { proposal } : undefined}
         className="flex items-center justify-center gap-2 rounded-xl border border-border px-5 py-3 font-semibold text-navy transition hover:bg-surface"
       >
         <ArrowLeft size={17} aria-hidden="true" />
@@ -67,12 +66,10 @@ function RequestSummary({ request, proposal }) {
 export default function ProposalFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { state } = useLocation();
   const { request, loading, error } = useAssistanceRequest(id);
 
-  // editing starts from the list of proposals, which sends the proposal along;
-  // without it the page offers a new proposal (the API refuses a second one)
-  const proposal = state?.proposal?.request?.id === id ? state.proposal : null;
+  // the API sends the provider's own proposal with the request: edit it if there is one
+  const proposal = request?.myProposal ?? null;
   const isEdit = Boolean(proposal);
   const canEdit = isEdit ? proposal.status === "pending" : request?.status === "open";
 
