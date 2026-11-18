@@ -116,23 +116,5 @@ class PropertyService
             return $property->delete();
         });
     }
-
-    public function terminateContract(Property $property, User $user): bool
-    {
-        return DB::transaction(function () use ($property, $user) {
-            $contract = $property->contracts()
-                ->where('resident_id', $user->resident->id)
-                ->where('is_active', true)
-                ->first();
-            if (!$contract) {
-                return false;
-            }
-            $contract->update([
-                'is_active' => false,
-                'end_date' => now()
-            ]);
-            return $contract->delete();
-        });
-    }
     #endregion
 }

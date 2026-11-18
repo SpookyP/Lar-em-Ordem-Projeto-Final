@@ -11,8 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /**
- * Residents don't share homes: a home has at most one active contract (enforced by the model),
- * and only the resident who lives there can end it.
+ * Residents don't share homes: a home has at most one active contract (enforced by the model).
  */
 class PropertyContractTest extends TestCase
 {
@@ -67,45 +66,5 @@ class PropertyContractTest extends TestCase
         ]);
 
         $this->assertSame(1, $property->contracts()->where('is_active', true)->count());
-    }
-
-    public function test_a_resident_can_leave_a_home(): void
-    {
-        $user = $this->user('morador@example.com');
-        $property = $this->homeOf($user);
-
-        $this->actingAs($user)
-            ->deleteJson("/api/v1/properties/{$property->id}/terminate")
-            ->assertOk()
-            ->assertJsonPath('message', 'Contrato terminado.');
-
-        $this->assertSame(0, $property->contracts()->where('resident_id', $user->resident->id)->count());
-
-        $listed = collect($this->actingAs($user)->getJson('/api/v1/properties')->assertOk()->json('data'))->pluck('id');
-        $this->assertNotContains($property->id, $listed);
-    }
-
-    public function test_someone_else_cannot_end_a_contract(): void
-    {
-        $property = $this->homeOf($this->user('morador@example.com'));
-
-        $this->actingAs($this->user('residente@example.com'))
-            ->deleteJson("/api/v1/properties/{$property->id}/terminate")
-            ->assertForbidden();
-
-        $this->assertTrue($property->contracts()->where('is_active', true)->exists());
-    }
-
-    public function test_a_contract_cannot_be_ended_twice(): void
-    {
-        $user = $this->user('morador@example.com');
-        $property = $this->homeOf($user);
-
-        $this->actingAs($user)->deleteJson("/api/v1/properties/{$property->id}/terminate")->assertOk();
-
-        // with no active contract left the policy no longer sees the user as the owner
-        $this->actingAs($user)
-            ->deleteJson("/api/v1/properties/{$property->id}/terminate")
-            ->assertForbidden();
     }
 }

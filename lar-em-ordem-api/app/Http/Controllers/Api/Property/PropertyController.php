@@ -102,24 +102,4 @@ class PropertyController extends Controller
             'data' => $this->service->getPropertyForms()
         ]);
     }
-
-    public function terminateContract(Request $request, Property $property): JsonResponse
-    {
-        $this->authorize('terminateContract', $property);
-
-        $terminated = $this->service->terminateContract(
-            property: $property,
-            user: $request->user()
-        );
-
-        if (!$terminated) {
-            return response()->json([
-                'message' => 'Não tens um contrato ativo nesta casa.'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Contrato terminado.'
-        ]);
-    }
 }
