@@ -64,7 +64,8 @@ class EmailChangeTest extends TestCase
                 && ($query['id'] ?? null) === (string) $user->id
                 && ($query['hash'] ?? null) === sha1('novo@example.com')
                 && isset($query['expires'], $query['signature'])
-                && $notification->minutes === 10;
+                && $notification->minutes === 10
+                && $notification->newAccount === false;
         });
     }
 
