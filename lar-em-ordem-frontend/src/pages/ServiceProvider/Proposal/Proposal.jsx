@@ -14,7 +14,7 @@ const FILTERS = [
 
 // the header and every row share these columns, so they line up like a table
 const COLUMNS =
-  "lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_auto]";
+  "lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_5.5rem]";
 
 const HEADINGS = ["Pedido", "Valor", "Disponibilidade", "Validade", "Estado", "Ações"];
 

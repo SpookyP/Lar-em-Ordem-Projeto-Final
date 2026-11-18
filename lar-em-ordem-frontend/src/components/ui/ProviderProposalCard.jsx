@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
-import { MapPin, Pencil } from "lucide-react";
+import { MapPin, Pencil, Undo2 } from "lucide-react";
 import { categoryInfo, proposalStatus } from "../../data/assistanceInfo";
 import { formatDate, formatDay } from "../../utils/date";
 import { formatAddress, formatMoney } from "../../utils/format";
+
+const ICON_BUTTON =
+  "flex size-10 items-center justify-center rounded-xl transition disabled:cursor-not-allowed disabled:opacity-40";
 
 // one proposal in the provider's list: a table row on large screens (columns come from the page),
 // a stacked card on small ones
@@ -63,27 +66,36 @@ export function ProviderProposalCard({ proposal, columns, busy, onWithdraw }) {
       </span>
 
       <div className="flex gap-2 lg:justify-end">
-        {pending && (
-          <>
-            <button
-              type="button"
-              onClick={() => onWithdraw(proposal)}
-              disabled={busy}
-              className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-red transition hover:bg-red-light disabled:opacity-60"
-            >
-              Retirar
-            </button>
-            {request && (
-              <Link
-                to={`/provider/requests/${request.id}/proposal`}
-                state={{ proposal }}
-                className="flex items-center gap-2 rounded-xl bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-light"
-              >
-                <Pencil size={15} aria-hidden="true" />
-                Editar
-              </Link>
-            )}
-          </>
+        <button
+          type="button"
+          onClick={() => onWithdraw(proposal)}
+          disabled={!pending || busy}
+          aria-label="Retirar proposta"
+          title="Retirar proposta"
+          className={`${ICON_BUTTON} border border-border text-red enabled:hover:bg-red-light`}
+        >
+          <Undo2 size={18} />
+        </button>
+        {pending && request ? (
+          <Link
+            to={`/provider/requests/${request.id}/proposal`}
+            state={{ proposal }}
+            aria-label="Editar proposta"
+            title="Editar proposta"
+            className={`${ICON_BUTTON} bg-navy text-white hover:bg-navy-light`}
+          >
+            <Pencil size={17} />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled
+            aria-label="Editar proposta"
+            title="Esta proposta já não pode ser editada"
+            className={`${ICON_BUTTON} bg-navy text-white`}
+          >
+            <Pencil size={17} />
+          </button>
         )}
       </div>
     </div>

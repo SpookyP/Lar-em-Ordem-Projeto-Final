@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import { useAssistanceRequest } from "../../../hooks/useAssistanceRequest";
 import { createProposal, updateProposal } from "../../../services/api/proposalService";
 import { categoryInfo, proposalStatus } from "../../../data/assistanceInfo";
@@ -54,10 +54,11 @@ function RequestSummary({ request, proposal }) {
 
       <Link
         to={`/provider/requests/${request.id}`}
+        state={proposal ? { proposal } : undefined}
         className="flex items-center justify-center gap-2 rounded-xl border border-border px-5 py-3 font-semibold text-navy transition hover:bg-surface"
       >
+        <ArrowLeft size={17} aria-hidden="true" />
         Ver pedido original
-        <ArrowRight size={17} aria-hidden="true" />
       </Link>
     </aside>
   );

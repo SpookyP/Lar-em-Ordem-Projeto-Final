@@ -70,7 +70,7 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <DatePicker
-          label="Data disponível"
+          label="Data disponibilidade"
           required
           min={today}
           value={form.availableDate}
