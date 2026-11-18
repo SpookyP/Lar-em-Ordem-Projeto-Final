@@ -13,6 +13,12 @@ use Illuminate\Support\Str;
 class FileFactory extends Factory
 {
     protected $model = File::class;
+
+    private const TITLES = [
+        'Contrato de arrendamento', 'Fatura da eletricidade', 'Fatura da água',
+        'Seguro multirriscos', 'Certificado energético', 'Caderneta predial',
+    ];
+
     /**
      * Define the model's default state.
      *
@@ -21,11 +27,12 @@ class FileFactory extends Factory
     public function definition(): array
     {
         $uuid = Str::uuid();
+        $title = $this->faker->randomElement(self::TITLES);
 
         return [
             'user_id'       => User::factory(),
-            'title'         => $this->faker->words(3, true),
-            'original_name' => $this->faker->word() . '.pdf',
+            'title'         => $title,
+            'original_name' => Str::slug($title) . '.pdf',
             'path'          => "users/1/documents/{$uuid}.pdf",
             'mime_type'     => 'application/pdf',
             'size_in_bytes' => $this->faker->numberBetween(10240, 5242880),
