@@ -51,7 +51,8 @@ class PropertyService
             ])
             ->latest() // order by latest
             ->latest('id')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     #endregion

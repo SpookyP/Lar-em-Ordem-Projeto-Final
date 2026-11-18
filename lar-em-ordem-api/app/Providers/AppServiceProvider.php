@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
                     $user = $request->user();
 
                     return response()->json([
-                        'message' => 'Operation successful.',
+                        'message' => 'Conta criada.',
                         'user' => $user ? $user->load(['roles', 'resident', 'service_provider', 'partner']) : null,
                     ], 201);
                 }

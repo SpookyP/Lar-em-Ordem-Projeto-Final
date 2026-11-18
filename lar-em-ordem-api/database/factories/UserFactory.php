@@ -18,6 +18,16 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
+    private const FIRST_NAMES = [
+        'Ana', 'Beatriz', 'Carla', 'Diogo', 'Duarte', 'Inês', 'João', 'Leonor',
+        'Mariana', 'Miguel', 'Pedro', 'Rafael', 'Rita', 'Sofia', 'Tiago',
+    ];
+
+    private const LAST_NAMES = [
+        'Almeida', 'Carvalho', 'Costa', 'Ferreira', 'Gomes', 'Lopes', 'Martins',
+        'Oliveira', 'Pereira', 'Ribeiro', 'Rodrigues', 'Santos', 'Silva', 'Sousa',
+    ];
+
     /**
      * Define the model's default state.
      *
@@ -26,7 +36,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'name' => fake()->randomElement(self::FIRST_NAMES) . ' ' . fake()->randomElement(self::LAST_NAMES),
             'email' => fake()->unique()->userName() . '.' . Str::lower(Str::random(6)) . '@example.com',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
