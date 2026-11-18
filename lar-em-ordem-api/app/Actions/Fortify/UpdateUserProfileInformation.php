@@ -31,7 +31,9 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     public function update(User $user, array $input): void
     {
-        if (isset($input['email']) && $input['email'] !== $user->email && $user->social_account()->exists()) {
+        $emailChanging = isset($input['email']) && $input['email'] !== $user->email;
+
+        if ($emailChanging && $user->social_account()->exists()) {
             throw ValidationException::withMessages([
                 'email' => ['Esta conta usa o Google ou a Microsoft e o email não pode ser alterado.'],
             ]);
@@ -47,6 +49,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
+            'current_password' => [Rule::requiredIf($emailChanging), 'nullable', 'string', 'current_password:web'],
             'role' => ['required', 'string', Rule::in(ProfileService::ROLES)]
         ];
 
@@ -83,8 +86,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         };
 
         // só os campos validados seguem para a frente (nunca o $input bruto: protege user_id, etc.)
-        $validated = Validator::make($input, array_merge($rules, $roleRequest->rules()), $roleRequest->messages())
-            ->validateWithBag('updateProfileInformation');
+        $validated = Validator::make($input, array_merge($rules, $roleRequest->rules()), array_merge($roleRequest->messages(), [
+            'current_password.required'         => 'Indique a password atual para mudar o email.',
+            'current_password.current_password' => 'A password atual não está correta.',
+        ]))->validateWithBag('updateProfileInformation');
 
         DB::transaction(function () use ($user, $input, $validated, $role) {
             $newName = $input['name'] ?? $user->name;
@@ -101,7 +106,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 ])->save();
             }
 
-            $this->profileService->update($user, $role, Arr::except($validated, ['name', 'email', 'role']));
+            $this->profileService->update($user, $role, Arr::except($validated, ['name', 'email', 'role', 'current_password']));
         });
     }
 

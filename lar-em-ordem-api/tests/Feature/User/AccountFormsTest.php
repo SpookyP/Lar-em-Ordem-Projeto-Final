@@ -3,10 +3,12 @@
 namespace Tests\Feature\User;
 
 use App\Models\User\User;
+use App\Notifications\ResetPassword;
 use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
@@ -93,5 +95,28 @@ class AccountFormsTest extends TestCase
             ->putJson('/user/profile-information', ['name' => 'Sem Perfil'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['role']);
+    }
+
+    public function test_a_rule_without_its_own_message_answers_in_portuguese(): void
+    {
+        $data = ['name' => str_repeat('a', 256)] + $this->signUpAsResident('nova.conta@example.com', 'Lar-em-Ordem-2026!');
+
+        $this->postJson('/api/auth/register', $data)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['name' => 'O campo nome não pode ter mais de 255 caracteres.']);
+    }
+
+    public function test_the_forgotten_password_email_is_in_portuguese_and_opens_the_frontend(): void
+    {
+        Notification::fake();
+        $user = User::where('email', 'morador@example.com')->firstOrFail();
+
+        $this->postJson('/forgot-password', ['email' => $user->email])->assertOk();
+
+        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
+            return str_starts_with($notification->url, config('oauth.frontend_url') . '/reset-password?token=')
+                && str_contains($notification->url, 'email=' . urlencode($user->email))
+                && $notification->toMail($user)->subject === 'Repor a password - Lar em Ordem';
+        });
     }
 }

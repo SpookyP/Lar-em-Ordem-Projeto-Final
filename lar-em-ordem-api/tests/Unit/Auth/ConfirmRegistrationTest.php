@@ -38,6 +38,14 @@ class ConfirmRegistrationTest extends TestCase
         $this->assertSame('Lar em Ordem', $mail->salutation);
     }
 
+    public function test_an_existing_account_is_not_told_to_create_one(): void
+    {
+        $mail = (new ConfirmRegistration('Ana', 'https://app.test', 10, newAccount: false))->toMail(new \stdClass());
+
+        $this->assertSame('Confirmar email', $mail->actionText);
+        $this->assertStringNotContainsString('criar a conta', implode(' ', $mail->introLines));
+    }
+    
     public function test_it_says_how_long_the_link_lasts(): void
     {
         $this->assertStringContainsString('expira em 10 minutos', implode(' ', $this->mail(10)->outroLines));
