@@ -81,8 +81,10 @@ class PersonalDataEraser
         $admin->forceFill(['contact' => 'removido'])->save();
     }
 
-    private function eraseProperty(Property $property): void
+    public function eraseProperty(Property $property): void
     {
+        $this->invoices->deleteAllForProperty($property);
+
         Document::where('property_id', $property->id)->get()
             ->each(fn (Document $document) => $this->documents->deleteDocument($document));
 
