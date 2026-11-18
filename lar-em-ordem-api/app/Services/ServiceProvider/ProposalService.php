@@ -124,7 +124,7 @@ class ProposalService
             ]);
         }
 
-        if ($proposal->validity->lt(today())) {
+        if ($proposal->isExpired()) {
             throw ValidationException::withMessages([
                 'validity' => 'Esta proposta já expirou.',
             ]);

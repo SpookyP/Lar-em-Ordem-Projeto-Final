@@ -172,6 +172,14 @@ class AssistanceRequestService
     {
         $this->loadFull($assistanceRequest);
 
+        // o prestador recebe a sua proposta neste pedido (ou null);
+        $provider = $viewer->service_provider;
+        if ($provider && ! $assistanceRequest->isOwnedBy($viewer)) {
+            $assistanceRequest->setRelation('myProposal', $assistanceRequest->proposals()
+                ->where('service_provider_id', $provider->id)
+                ->first());
+        }
+
         if (! Gate::forUser($viewer)->allows('viewProposals', $assistanceRequest)) {
             return null;
         }

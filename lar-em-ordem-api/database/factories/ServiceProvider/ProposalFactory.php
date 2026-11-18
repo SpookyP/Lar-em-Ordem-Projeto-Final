@@ -31,13 +31,16 @@ class ProposalFactory extends Factory
     {
         $hour = fake()->numberBetween(8, 15);
 
+        // a validade vai no máximo até à data de disponibilidade
+        $availableDays = fake()->numberBetween(5, 15);
+
         return [
             'assistance_request_id' => AssistanceRequest::factory(),
             'service_provider_id'   => ServiceProviderModel::factory(),
             'estimated_value'       => fake()->randomFloat(2, 30, 800),
             'description'           => fake()->randomElement(self::DESCRIPTIONS),
-            'validity'              => now()->addDays(15)->toDateString(),
-            'available_date'        => now()->addDays(fake()->numberBetween(1, 10))->toDateString(),
+            'validity'              => now()->addDays(fake()->numberBetween(1, $availableDays))->toDateString(),
+            'available_date'        => now()->addDays($availableDays)->toDateString(),
             'available_from'        => sprintf('%02d:00', $hour),
             'available_until'       => sprintf('%02d:00', $hour + 3),
             'status'                => 'pending',

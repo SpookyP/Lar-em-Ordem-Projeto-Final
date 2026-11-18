@@ -53,8 +53,9 @@ class ResourcesTest extends TestCase
     private function pedidoAssistencia(?string $aceiteDe = null): AssistanceRequest
     {
         $morada = new Address([
-            'street'   => 'Rua Brito Capelo',
-            'fraction' => 'B',
+            'street'      => 'Rua Brito Capelo',
+            'postal_code' => '4450-073',
+            'fraction'    => 'B',
             'location' => 'Matosinhos',
             'county'   => 'Matosinhos',
             'district' => 'Porto',
@@ -97,7 +98,8 @@ class ResourcesTest extends TestCase
 
         $this->assertSame('casa-1', $casa['id']);
         $this->assertSame('Rua Brito Capelo', $casa['street']);
-        $this->assertSame('B', $casa['fraction']);
+        $this->assertSame('4450-073', $casa['postal_code']);
+        $this->assertArrayNotHasKey('fraction', $casa);
     }
 
     public function test_um_prestador_qualquer_so_ve_a_localidade(): void
@@ -106,7 +108,7 @@ class ResourcesTest extends TestCase
 
         $this->assertNull($casa['id']);
         $this->assertNull($casa['street']);
-        $this->assertNull($casa['fraction']);
+        $this->assertNull($casa['postal_code']);
         $this->assertSame('Matosinhos', $casa['county']);
         $this->assertSame('Porto', $casa['district']);
     }

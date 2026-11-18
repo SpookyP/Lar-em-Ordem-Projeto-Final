@@ -287,7 +287,33 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonMissingPath('data.proposals')
             ->assertJsonPath('data.property.id', null)
             ->assertJsonPath('data.property.street', null)
-            ->assertJsonPath('data.property.county', 'Matosinhos');
+            ->assertJsonPath('data.property.postal_code', null)
+            ->assertJsonPath('data.property.county', 'Matosinhos')
+            ->assertJsonPath('data.my_proposal.status', 'pending')
+            ->assertJsonPath('data.my_proposal.estimated_value', '45.00');
+    }
+
+    public function test_o_prestador_sem_proposta_recebe_my_proposal_a_null(): void
+    {
+        $fuga = $this->pedido('Fuga de água debaixo do lava-loiça');
+
+        $dados = $this->actingAs($this->servicos)
+            ->getJson("/api/v1/assistance-requests/{$fuga->id}")
+            ->assertOk()
+            ->json('data');
+
+        $this->assertArrayHasKey('my_proposal', $dados);
+        $this->assertNull($dados['my_proposal']);
+    }
+
+    public function test_o_dono_nao_recebe_my_proposal(): void
+    {
+        $tomada = $this->pedido('Tomada da sala sem corrente');
+
+        $this->actingAs($this->morador)
+            ->getJson("/api/v1/assistance-requests/{$tomada->id}")
+            ->assertOk()
+            ->assertJsonMissingPath('data.my_proposal');
     }
 
     public function test_o_prestador_com_a_proposta_aceite_ve_a_morada(): void
@@ -298,6 +324,7 @@ class AssistanceRequestTest extends TestCase
             ->getJson("/api/v1/assistance-requests/{$sanita->id}")
             ->assertOk()
             ->assertJsonPath('data.property.street', 'Rua Brito Capelo')
+            ->assertJsonPath('data.property.postal_code', $sanita->property->address->postal_code)
             ->assertJsonPath('data.accepted_proposal.status', 'accepted');
     }
 

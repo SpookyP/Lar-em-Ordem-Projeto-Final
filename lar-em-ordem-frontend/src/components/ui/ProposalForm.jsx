@@ -24,6 +24,10 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    if (!form.availableDate || !form.validity) {
+      setError("Indique a data disponível e a validade da proposta.");
+      return;
+    }
     if (!form.availableFrom || !form.availableUntil) {
       setError("Indique a hora de início e a hora de fim.");
       return;
@@ -34,6 +38,11 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
     }
     if (form.validity < today || form.availableDate < today) {
       setError("As datas não podem estar no passado.");
+      return;
+    }
+
+    if (form.validity > form.availableDate) {
+      setError("A validade da proposta não pode ser depois da data de disponibilidade.");
       return;
     }
 
@@ -51,7 +60,7 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <TextInput
-        label="Preço estimado (€)"
+        label="Preço estimado"
         icon={Euro}
         type="number"
         inputMode="decimal"
@@ -66,27 +75,29 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <DatePicker
-          label="Proposta válida até"
-          required
-          min={today}
-          value={form.validity}
-          onChange={(v) => setField("validity", v)}
-        />
-        <DatePicker
-          label="Data de disponibilidade"
+          label="Data disponibilidade"
           required
           min={today}
           value={form.availableDate}
           onChange={(v) => setField("availableDate", v)}
         />
+        <DatePicker
+          label="Proposta válida até"
+          hint="Até à data disponível."
+          required
+          min={today}
+          max={form.availableDate || undefined}
+          value={form.validity}
+          onChange={(v) => setField("validity", v)}
+        />
         <TimePicker
-          label="Disponível a partir das"
+          label="Das"
           required
           value={form.availableFrom}
           onChange={(v) => setField("availableFrom", v)}
         />
         <TimePicker
-          label="Disponível até às"
+          label="Até às"
           required
           value={form.availableUntil}
           onChange={(v) => setField("availableUntil", v)}
@@ -108,14 +119,7 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
         </p>
       )}
 
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-light disabled:opacity-60"
-        >
-          {saving ? "A guardar..." : submitLabel}
-        </button>
+      <div className="flex flex-wrap justify-end gap-3">
         {onCancel && (
           <button
             type="button"
@@ -126,6 +130,13 @@ export function ProposalForm({ proposal, submitLabel, onSubmit, onCancel }) {
             Cancelar
           </button>
         )}
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-xl bg-navy px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-light disabled:opacity-60"
+        >
+          {saving ? "A guardar..." : submitLabel}
+        </button>
       </div>
     </form>
   );

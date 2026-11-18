@@ -54,6 +54,9 @@ const Offer = lazy(() => import("../pages/ServiceProvider/Offer/Offer"));
 const Proposals = lazy(
   () => import("../pages/ServiceProvider/Proposal/Proposal"),
 );
+const ProposalFormPage = lazy(
+  () => import("../pages/ServiceProvider/ProposalFormPage/ProposalFormPage"),
+);
 
 //Parceiro
 const MyOffers = lazy(() => import("../pages/Partner/MyOffers/MyOffers"));
@@ -142,6 +145,7 @@ function AppRoutesInner() {
               <Route path="/provider/requests" element={<JobListing />} />
               <Route path="/provider/requests/:id" element={<Offer />} />
               <Route path="/provider/proposals" element={<Proposals />} />
+              <Route path="/provider/requests/:id/proposal" element={<ProposalFormPage />} />
             </Route>
 
             <Route element={<PrivateRoute allowedRoles={[ROLES.PARTNER]} />}>
