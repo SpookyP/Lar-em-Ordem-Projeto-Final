@@ -59,7 +59,7 @@ export default function Proposals() {
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="flex flex-wrap gap-2 p-6">
+        <div className="flex flex-wrap gap-2 p-4 sm:p-6">
           {FILTERS.map((f) => {
             const active = filter === f.id;
             return (
@@ -88,7 +88,7 @@ export default function Proposals() {
         </div>
 
         {actionError && (
-          <p role="alert" className="mx-6 mb-4 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+          <p role="alert" className="mx-4 mb-4 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red sm:mx-6">
             {actionError}
           </p>
         )}
@@ -104,19 +104,19 @@ export default function Proposals() {
         </div>
 
         {loading ? (
-          <p className="p-6 text-sm text-muted">A carregar...</p>
+          <p className="p-4 text-sm text-muted sm:p-6">A carregar...</p>
         ) : error ? (
-          <p role="alert" className="p-6 text-sm text-red">
+          <p role="alert" className="p-4 text-sm text-red sm:p-6">
             {error}
           </p>
         ) : proposals.length === 0 ? (
-          <p className="p-6 text-sm text-muted">
+          <p className="p-4 text-sm text-muted sm:p-6">
             {filter === "all"
               ? "Ainda não enviou nenhuma proposta."
               : "Nenhuma proposta neste estado."}
           </p>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border border-t border-border lg:border-t-0">
             {proposals.map((proposal) => (
               <ProviderProposalCard
                 key={proposal.id}
@@ -129,7 +129,7 @@ export default function Proposals() {
           </div>
         )}
 
-        <div className="px-6 pb-6">
+        <div className="px-4 pb-4 sm:px-6 sm:pb-6">
           <Pager page={page} totalPages={totalPages} onChange={setPage} />
         </div>
       </section>
