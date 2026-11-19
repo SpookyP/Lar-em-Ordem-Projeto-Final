@@ -15,7 +15,7 @@ use Tests\Concerns\RegistersWithConfirmation;
 
 /**
  * Perfis (residente, prestador, parceiro) criados, atualizados e removidos pelo ProfileService:
- * registo, POST/DELETE /api/user/profile, PUT /user/profile-information e DELETE /api/v1/resident/profile.
+ * registo, POST/DELETE /api/user/profile e PUT /user/profile-information.
  */
 class ProfileTest extends TestCase
 {
@@ -227,50 +227,27 @@ class ProfileTest extends TestCase
             ->assertJsonValidationErrors(['role' => 'Não tem um perfil de partner associado a esta conta.']);
     }
 
-    // ------------------------------------------ DELETE /api/v1/resident/profile
-
-    public function test_apagar_o_perfil_de_residente_pelo_endpoint_do_residente(): void
-    {
-        $user = User::where('email', 'residente@example.com')->firstOrFail(); // residente + prestador
-        $id = $user->resident->id;
-
-        $this->actingAs($user)
-            ->deleteJson('/api/v1/resident/profile')
-            ->assertOk()
-            ->assertJsonPath('message', 'Perfil de morador removido.');
-
-        $this->assertSoftDeleted('residents', ['id' => $id]);
-        $this->assertFalse($user->fresh()->hasRole('resident'));
-
-        // já não tem perfil de residente
-        $this->actingAs($user)->deleteJson('/api/v1/resident/profile')->assertNotFound();
-    }
-
-    public function test_o_endpoint_do_residente_nao_apaga_o_unico_perfil(): void
-    {
-        $morador = User::where('email', 'morador@example.com')->firstOrFail();
-
-        $this->actingAs($morador)->deleteJson('/api/v1/resident/profile')->assertStatus(422);
-
-        $this->assertNotNull($morador->resident()->first());
-    }
-
-    public function test_o_endpoint_do_residente_sem_perfil_da_404(): void
-    {
-        $servicos = User::where('email', 'service@example.com')->firstOrFail();
-
-        $this->actingAs($servicos)->deleteJson('/api/v1/resident/profile')->assertNotFound();
-    }
+    // ------------------------------------------------- perfil de residente
 
     public function test_o_residente_nao_muda_o_proprio_is_active(): void
     {
         $morador = User::where('email', 'morador@example.com')->firstOrFail();
 
         $this->actingAs($morador)
-            ->putJson('/api/v1/resident/profile', ['is_active' => false])
+            ->putJson('/user/profile-information', ['role' => 'resident', 'is_active' => false])
             ->assertOk();
 
         $this->assertTrue($morador->resident->fresh()->is_active);
+    }
+
+    public function test_os_endpoints_antigos_do_residente_ja_nao_existem(): void
+    {
+        // ver, editar e apagar o perfil passou para os endpoints dos perfis
+        $morador = User::where('email', 'morador@example.com')->firstOrFail();
+
+        $this->actingAs($morador)->getJson('/api/v1/resident/profile')->assertNotFound();
+        $this->actingAs($morador)->putJson('/api/v1/resident/profile', ['nif' => '123456789'])->assertNotFound();
+        $this->actingAs($morador)->deleteJson('/api/v1/resident/profile')->assertNotFound();
     }
 
       // --------------------------------------------------- apagar a conta

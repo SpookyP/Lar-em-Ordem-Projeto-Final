@@ -8,7 +8,6 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum','throttle:2000,10,api'])->group(function () {
         require __DIR__ . '/modules/vault.php';
         require __DIR__ . '/modules/property.php';
-        require __DIR__ . '/modules/resident.php';
         require __DIR__ . '/modules/invoice.php';
         require __DIR__ . '/modules/partner.php';
         require __DIR__ . '/modules/offer.php';

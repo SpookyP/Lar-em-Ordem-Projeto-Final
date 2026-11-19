@@ -274,7 +274,9 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonCount(3, 'data.proposals')
             ->assertJsonPath('data.property.id', $tomada->property_id)
             ->assertJsonPath('data.property.street', 'Rua Brito Capelo')
-            ->assertJsonStructure(['data' => ['proposals' => [['id', 'status', 'service_provider' => ['company_name']]]]]);
+            ->assertJsonStructure(['data' => ['proposals' => [['id', 'status', 'service_provider' => ['company_name']]]]])
+            // o NIF do prestador só o próprio o vê
+            ->assertJsonMissingPath('data.proposals.0.service_provider.nif');
     }
 
     public function test_o_prestador_com_proposta_ve_o_pedido_sem_propostas_nem_morada(): void
