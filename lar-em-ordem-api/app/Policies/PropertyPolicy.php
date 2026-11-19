@@ -84,7 +84,7 @@ class PropertyPolicy
         return $property->contracts()
             ->where('resident_id', $user->resident->id)
             ->where('is_active', true)
-            ->where('resident_Type_id', 1)
+            ->whereHas('residentType', fn ($q) => $q->where('type', 'Owner'))
             ->exists();
     }
 }

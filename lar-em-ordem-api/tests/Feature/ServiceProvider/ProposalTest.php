@@ -4,6 +4,7 @@ namespace Tests\Feature\ServiceProvider;
 
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\Proposal;
+use App\Models\ServiceProvider\ServiceSpecialty;
 use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -110,7 +111,13 @@ class ProposalTest extends TestCase
 
     public function test_nao_e_possivel_propor_a_um_pedido_que_nao_esta_disponivel(): void
     {
-        // a "Fuga" é de canalização e o "Serviçinhos Lda" só faz eletricidade
+        // a "Fuga" é de canalização e aqui o "Serviçinhos Lda" só faz eletricidade
+        $specialty = ServiceSpecialty::where('name', 'Quadros elétricos')->firstOrFail();
+        $this->servicinhos->service_provider->specialties()->create([
+            'problem_category_id'  => $specialty->problem_category_id,
+            'service_specialty_id' => $specialty->id,
+        ]);
+
         $fuga = $this->pedido('Fuga de água debaixo do lava-loiça');
 
         $this->actingAs($this->servicinhos)

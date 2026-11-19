@@ -18,7 +18,7 @@ class NotificationController extends Controller
 
     public function index(PerPageRequest $request, Property $property): AnonymousResourceCollection
     {
-        $this->authorize('viewVault', $property);
+        $this->authorize('manageVault', $property);
 
         $perPage = (int) ($request->validated()['per_page'] ?? 5);
 
@@ -36,7 +36,7 @@ class NotificationController extends Controller
 
     public function unreadCount(Property $property): JsonResponse
     {
-        $this->authorize('viewVault', $property);
+        $this->authorize('manageVault', $property);
 
         $count = $property->notifications()->whereNull('read_at')->count();
 

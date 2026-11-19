@@ -25,11 +25,6 @@ class ServiceProviderSeeder extends Seeder
         $servicos->zones()->sync($matosinhos->merge($porto));
         $this->addSpecialties($servicos, ['Fugas de água', 'Desentupimentos', 'Esquentadores e termoacumuladores', 'Tomadas e iluminação']);
 
-        // "Serviçinhos Lda" (residente@example.com, que também é residente)
-        $servicinhos = User::where('email', 'residente@example.com')->firstOrFail()->service_provider;
-        $servicinhos->zones()->sync($matosinhos);
-        $this->addSpecialties($servicinhos, ['Quadros elétricos', 'Tomadas e iluminação']);
-
         // Outros prestadores, sem conta de demonstração
         ServiceProviderModel::factory(3)->create()->each(function (ServiceProviderModel $provider) use ($matosinhos) {
             $provider->user->assignRole('service_provider');
