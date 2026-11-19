@@ -7,18 +7,13 @@ import { ROLE_INFO } from "../data/roleInfo";
 export function HousesProvider({ children }) {
   const { user } = useAuth();
   const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loadedFor, setLoadedFor] = useState(null);
+
+  const loading = !user || loadedFor !== user;
 
   useEffect(() => {
+    if (!user) return;
     let active = true;
-    setLoading(true);
-
-    //se a sessao ainda esta a validar (sem user): continua a carregar para o RequireHouse n redirecionar com dados antigos
-    if (!user) {
-      return () => {
-        active = false;
-      };
-    }
 
     const hasHouses = (user?.roles ?? []).some((r) => ROLE_INFO[r]?.hasHouses);
 
@@ -34,7 +29,7 @@ export function HousesProvider({ children }) {
         if (active) setCount(0);
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) setLoadedFor(user);
       });
 
     return () => {
