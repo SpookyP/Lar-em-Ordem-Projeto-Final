@@ -71,7 +71,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
   // Controla o carregamento do ficheiro e o envio da fatura.
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileId, setFileId] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formMessage, setFormMessage] = useState(null);
@@ -124,7 +123,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       if (uploadLock.current || submitLock.current) return;
 
       setSelectedFile(null);
-      setFileId(null);
       setUploadSuccess(false);
       setFormMessage(null);
       return;
@@ -137,20 +135,15 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     setUploading(true);
     setUploadSuccess(false);
     setFormMessage(null);
-    setFileId(null);
 
     try {
       const data = new FormData();
       data.append('file', file);
 
+      // a API só lê o PDF: o ficheiro é guardado quando a fatura for registada
       const body = await uploadInvoiceFile(data);
       const result = body?.data || body;
 
-      if (!result?.file_id) {
-        throw new Error('A API não devolveu file_id.');
-      }
-
-      setFileId(result.file_id);
       setUploadSuccess(true);
 
       // Preenche os dados principais com a informação extraída do PDF.
@@ -377,12 +370,11 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         period_end: formData.period_end,
         total_amount: numberValue(formData.total_amount),
         supplier: formData.supplier,
-        file_id: fileId || null,
         consumptions
       };
 
-      // Regista a fatura e apresenta uma mensagem de sucesso.
-      await createInvoice(payload);
+      // Regista a fatura (com o PDF, se houver) e apresenta uma mensagem de sucesso.
+      await createInvoice(payload, selectedFile);
       onInvoiceSaved?.();
 
       setFormMessage({
@@ -406,7 +398,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       setShowItems({});
       setItemsData({});
       setSelectedFile(null);
-      setFileId(null);
       setUploadSuccess(false);
     } catch (err) {
       // Apresenta os erros devolvidos pela API.
@@ -450,7 +441,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           uploading
             ? 'A carregar PDF...'
             : uploadSuccess
-              ? 'Fatura carregada com sucesso!'
+              ? 'PDF lido com sucesso!'
               : 'Opcional: anexa o documento original.'
         }
         value={selectedFile}
@@ -462,7 +453,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       {uploadSuccess && (
         <div className="-mt-6 flex items-center gap-2 text-sm font-medium text-emerald-700">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
-          Documento associado à fatura.
+          O PDF é guardado quando registares a fatura.
         </div>
       )}
 

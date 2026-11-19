@@ -57,13 +57,12 @@ class InvoiceController extends Controller
         // Apenas residentes podem registar faturas (ver InvoicePolicy).
         Gate::authorize('create', Invoice::class);
 
-        $resident = $request->user()->resident;
-
-        // Criar a fatura e os respetivos consumos.
+        // Criar a fatura e os respetivos consumos (com o PDF, se vier).
         $invoice = $this->service->createInvoiceWithConsumptions(
-            residentId: $resident->id,
+            user: $request->user(),
             invoiceData: $request->invoiceData(),
-            consumptionsData: $request->consumptionsData()
+            consumptionsData: $request->consumptionsData(),
+            pdf: $request->file('file')
         );
 
         return InvoiceResource::make($invoice)
@@ -124,33 +123,22 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Carregar um ficheiro e extrair os dados da fatura.
+     * Ler o PDF de uma fatura e devolver os dados extraídos, para preencher o formulário.
+     * O ficheiro não é guardado: só vai para o R2 quando a fatura é registada (store).
      */
     public function upload(
         UploadInvoiceRequest $request,
-        InvoiceExtractionService $extraction,
-        FileStorageService $files
+        InvoiceExtractionService $extraction
     ): JsonResponse {
         Gate::authorize('create', Invoice::class);
 
-        // Guardar o ficheiro através do serviço centralizado.
-        $uploaded = $request->file('file');
-
-        $file = $files->uploadUserFile(
-            $request->user(),
-            $uploaded,
-            InvoiceService::FILE_CATEGORY
-        );
-
-        // Extrair os dados do ficheiro carregado.
-        $extracted = $extraction->extract($uploaded->getRealPath());
+        $extracted = $extraction->extract($request->file('file')->getRealPath());
 
         return response()->json([
             'data' => [
-                'file_id' => $file->id,
                 'extracted' => $extracted,
             ],
-        ], 201);
+        ]);
     }
 
     /**
