@@ -25,3 +25,11 @@ Schedule::command('benchmarks:annual')
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/benchmarks.log'))
     ->onFailure(fn () => logger()->error('O processamento anual de benchmarks falhou.'));
+
+// Limpar diariamente PDFs de faturas sem associação e com mais de 24 horas.
+Schedule::command('invoices:clean-orphaned-files')
+    ->dailyAt('08:15')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/invoices-cleanup.log'))
+    ->onFailure(fn () => logger()->error('A limpeza diária dos ficheiros órfãos de faturas falhou.'));
