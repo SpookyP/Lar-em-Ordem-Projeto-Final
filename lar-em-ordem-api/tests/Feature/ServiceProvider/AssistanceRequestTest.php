@@ -14,6 +14,7 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use App\Models\ServiceProvider\ServiceZone;
+use App\Models\ServiceProvider\ServiceSpecialty;
 
 /**
  * Pedidos de assistência (módulo 5): listagem por casa, criação e edição com imagens,
@@ -45,6 +46,17 @@ class AssistanceRequestTest extends TestCase
     }
 
     // ---------------------------------------------------------------- helpers
+
+    /** The seed leaves this provider without specialties (it sees every category); some tests need just one. */
+    private function onlyElectricity(User $user): void
+    {
+        $specialty = ServiceSpecialty::where('name', 'Quadros elétricos')->firstOrFail();
+
+        $user->service_provider->specialties()->create([
+            'problem_category_id'  => $specialty->problem_category_id,
+            'service_specialty_id' => $specialty->id,
+        ]);
+    }
 
     private function pedido(string $titulo): AssistanceRequest
     {
@@ -490,7 +502,9 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_ignora_pedidos_de_outra_categoria(): void
     {
-        // "Serviçinhos Lda": só eletricidade; a "Fuga" é de canalização e a "Tomada" já tem a sua proposta
+                // "Serviçinhos Lda" só com eletricidade; a "Fuga" é de canalização e a "Tomada" já tem a sua proposta
+        $this->onlyElectricity($this->servicinhos);
+
         $this->actingAs($this->servicinhos)
             ->getJson('/api/v1/assistance-requests/available')
             ->assertOk()

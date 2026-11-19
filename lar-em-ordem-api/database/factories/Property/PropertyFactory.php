@@ -24,7 +24,7 @@ class PropertyFactory extends Factory
             'property_typology_id' => fake()->numberBetween(1, 3),
             'address_id'           => Address::factory(),
             'condominium_id'       => null,
-            'area'                 => fake()->numberBetween(3500, 25000),
+            'area'                 => fake()->numberBetween(45, 180),
         ];
     }
 }

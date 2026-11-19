@@ -36,14 +36,30 @@ class ResidenteConsumptionSeeder extends Seeder
         11, 11, 9, 8, 8, 8,
     ];
 
+    private const WATER_SUPPLIERS = [
+        'Matosinhos'        => 'Indaqua Matosinhos',
+        'Porto'             => 'Águas e Energia do Porto',
+        'Vila Nova de Gaia' => 'Águas de Gaia',
+        'Lisboa'            => 'EPAL',
+        'Oeiras'            => 'SIMAS Oeiras e Amadora',
+        'Braga'             => 'AGERE',
+        'Aveiro'            => 'AdRA',
+        'Coimbra'           => 'Águas de Coimbra',
+    ];
+
     private array $sequence = [];
     private array $annualBenchmarkData = [];
 
-    public function run(): void
+        /**
+     * @param string $email Residente que recebe as faturas.
+     * @param bool $allHomes Todas as casas com contrato ativo; sem isto, só a primeira casa (como nos testes).
+     */
+    public function run(string $email = self::EMAIL, bool $allHomes = false): void
     {
-        mt_srand(2026);
+        // one seed per resident: always the same numbers for the same email, but two residents don't look alike
+        mt_srand(crc32($email));
 
-        $user = User::where('email', self::EMAIL)->firstOrFail();
+        $user = User::where('email', $email)->firstOrFail();
         $resident = $user->resident;
 
         if (!$resident) {
@@ -52,37 +68,44 @@ class ResidenteConsumptionSeeder extends Seeder
             );
         }
 
-        $contract = PropertyContract::where('resident_id', $resident->id)
+        $contracts = PropertyContract::where('resident_id', $resident->id)
+            ->when($allHomes, fn ($query) => $query->where('is_active', true))
             ->orderBy('id')
-            ->first();
+            ->get();
 
-        if (!$contract) {
+        if ($contracts->isEmpty()) {
             throw new \RuntimeException(
                 'O residente não tem nenhum contrato/casa associado.'
             );
         }
 
         $residentId = (string) $resident->id;
-        $propertyId = (string) $contract->property_id;
-        $property = Property::with('address')->findOrFail($propertyId);
 
-        Model::unguarded(function () use (
-            $residentId,
-            $propertyId,
-            $property
-        ): void {
-            DB::transaction(function () use (
+        foreach ($allHomes ? $contracts : $contracts->take(1) as $contract) {
+            $propertyId = (string) $contract->property_id;
+            $property = Property::with('address')->findOrFail($propertyId);
+
+            // each home gets its own annual averages
+            $this->annualBenchmarkData = [];
+
+            Model::unguarded(function () use (
                 $residentId,
                 $propertyId,
                 $property
             ): void {
-                if (self::CLEAN_EXISTING) {
-                    $this->clean($propertyId);
-                }
+                DB::transaction(function () use (
+                    $residentId,
+                    $propertyId,
+                    $property
+                ): void {
+                    if (self::CLEAN_EXISTING) {
+                        $this->clean($propertyId);
+                    }
 
-                $this->seedYear($residentId, $propertyId, $property);
+                    $this->seedYear($residentId, $propertyId, $property);
+                });
             });
-        });
+        }
     }
 
     private function seedYear(
@@ -130,7 +153,7 @@ class ResidenteConsumptionSeeder extends Seeder
                 $propertyId,
                 $property,
                 self::WATER,
-                'EPAL / CM Lisboa',
+                self::WATER_SUPPLIERS[$property->address->county] ?? 'EPAL / CM Lisboa',
                 'AGU',
                 $start,
                 $end,
