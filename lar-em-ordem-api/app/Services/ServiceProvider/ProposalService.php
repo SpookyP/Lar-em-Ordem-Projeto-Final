@@ -116,7 +116,6 @@ class ProposalService
     public function accept(Proposal $proposal): Proposal
     {
         DB::transaction(function () use ($proposal) {
-           
             $assistanceRequest = AssistanceRequest::lockForUpdate()->findOrFail($proposal->assistance_request_id);
 
             $this->ensurePending($proposal, 'Só é possível aceitar propostas pendentes.');
