@@ -25,8 +25,6 @@ Route::get('/document-categories', [DocumentCategoryController::class, 'index'])
 // Notificações
 Route::get('/properties/{property}/notifications', [NotificationController::class, 'index'])
     ->whereUlid('property');
-Route::get('/properties/{property}/notifications/unread-count', [NotificationController::class, 'unreadCount'])
-    ->whereUlid('property');
 Route::patch('/properties/{property}/notifications/read-all', [NotificationController::class, 'markAllAsRead'])
     ->whereUlid('property');
 

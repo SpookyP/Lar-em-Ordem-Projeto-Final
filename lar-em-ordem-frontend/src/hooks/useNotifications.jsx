@@ -96,7 +96,14 @@ export function useNotifications() {
 
                 if (updatedSnoozes) saveSnoozedMap(snoozedData);
                 if (isMounted) setNotifications(formattedNotifs);
-            } catch {
+            } catch (err) {
+                if (err?.response?.status === 403) {
+                    if (isMounted) {
+                        setNotifications([]);
+                        setError(null);
+                    }
+                    return;
+                }
                 if (isMounted) setError('Não foi possível carregar as notificações.');
             }
         };
