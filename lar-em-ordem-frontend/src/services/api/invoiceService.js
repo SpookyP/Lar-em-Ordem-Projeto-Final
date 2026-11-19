@@ -114,11 +114,12 @@ export async function uploadInvoiceFile(formData) {
  * Cria a fatura com os respetivos consumos e itens de detalhe.
  * Com PDF, vai tudo num só pedido multipart: o ficheiro só é guardado se a fatura for registada.
  */
-export async function createInvoice(payload) {
-  const response = await axiosClient.post(
-    "/api/v1/invoices",
-    payload
-  );
+export async function createInvoice(payload, file = null) {
+  const response = file
+    ? await axiosClient.post("/api/v1/invoices", { ...payload, file }, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+    : await axiosClient.post("/api/v1/invoices", payload);
 
   return getResponseBody(response);
 }
@@ -135,17 +136,6 @@ export async function getInvoice(id) {
 
   // Aceita a fatura diretamente ou embrulhada em "data".
   return body?.data ?? body;
-}
-
-/**
- * Obtém o corpo com o URL assinado do PDF associado à fatura.
- */
-export async function getInvoiceFile(id) {
-  const response = await axiosClient.get(
-    `/api/v1/invoices/${id}/file`
-  );
-
-  return getResponseBody(response);
 }
 
 /**
