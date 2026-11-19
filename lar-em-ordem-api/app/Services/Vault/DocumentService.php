@@ -136,8 +136,14 @@ class DocumentService
 
         $fileHash = hash_file('sha256', $file->getRealPath());
 
+        $user = auth()->user();
+
+        if (! $user instanceof \App\Models\User\User) {
+            throw new \RuntimeException('Utilizador não autenticado.');
+        }
+
         $fileRecord = $this->fileStorageService->uploadUserFile(
-            auth()->user(),
+            $user,
             $file,
             'vault_documents',
             $customName
