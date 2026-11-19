@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   LineChart,
   Line,
@@ -9,17 +10,6 @@ import {
   ReferenceLine,
   Tooltip,
 } from "recharts";
-import {
-  MONTHS,
-  asNumber,
-  buildMonthlySeries,
-  indexToKey,
-  keyToIndex,
-  monthKey,
-  monthLabel,
-  monthLongLabel,
-  monthsBetween,
-} from "./invoiceTimeline";
 
 import { buildMonthlySeries } from "./invoiceTimelineUtils";
 
