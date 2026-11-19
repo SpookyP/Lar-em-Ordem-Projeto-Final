@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Vault;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Resources\Vault\NotificationResource;
 use App\Models\Property\Property;
 use App\Models\Vault\Notification;
@@ -15,17 +16,16 @@ class NotificationController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(Request $request, Property $property): AnonymousResourceCollection
+    public function index(PerPageRequest $request, Property $property): AnonymousResourceCollection
     {
-        $this->authorize('view', $property);
+        $this->authorize('viewVault', $property);
 
-        $validated = $request->validate([
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
-        ]);
+        $perPage = (int) ($request->validated()['per_page'] ?? 5);
 
-        $perPage = $validated['per_page'] ?? 15;
-
-        $query = $property->notifications()->with('document')->latest('alert_date');
+        $query = $property->notifications()
+            ->with('document')
+            ->latest('alert_date')
+            ->orderByDesc('id');
 
         if ($request->boolean('unread')) {
             $query->whereNull('read_at');
@@ -36,7 +36,7 @@ class NotificationController extends Controller
 
     public function unreadCount(Property $property): JsonResponse
     {
-        $this->authorize('view', $property);
+        $this->authorize('viewVault', $property);
 
         $count = $property->notifications()->whereNull('read_at')->count();
 
@@ -45,7 +45,7 @@ class NotificationController extends Controller
 
     public function markAsRead(Notification $notification): NotificationResource
     {
-        $this->authorize('update', $notification->property);
+        $this->authorize('manageVault', $notification->property);
 
         if (is_null($notification->read_at)) {
             $notification->update(['read_at' => now()]);
@@ -56,7 +56,7 @@ class NotificationController extends Controller
 
     public function markAsUnread(Notification $notification): JsonResponse
     {
-        $this->authorize('update', $notification->property);
+        $this->authorize('manageVault', $notification->property);
 
         $notification->update([
             'read_at' => null,
@@ -69,7 +69,7 @@ class NotificationController extends Controller
 
     public function markAllAsRead(Property $property): JsonResponse
     {
-        $this->authorize('update', $property);
+        $this->authorize('manageVault', $property);
 
         $updated = $property->notifications()
             ->whereNull('read_at')
@@ -83,7 +83,7 @@ class NotificationController extends Controller
 
     public function destroy(Notification $notification): JsonResponse
     {
-        $this->authorize('update', $notification->property);
+        $this->authorize('manageVault', $notification->property);
 
         $notification->delete();
 

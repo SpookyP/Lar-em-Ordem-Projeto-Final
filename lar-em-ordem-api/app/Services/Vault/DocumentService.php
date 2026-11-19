@@ -91,7 +91,9 @@ class DocumentService
         $document->update([
             'document_category_id' => $validatedData['document_category_id'] ?? $document->document_category_id,
             'name' => $documentName,
-            'description' => $validatedData['description'] ?? $document->description,
+            'description' => array_key_exists('description', $validatedData)
+                ? $validatedData['description']
+                : $document->description,
             'file_id' => $fileRecordId,
             'file_hash' => $fileHash,
             'issue_date' => $issueDate,
