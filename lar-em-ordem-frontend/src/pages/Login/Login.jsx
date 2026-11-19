@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import {
+  useNavigate,
+  Link,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
 import { socialErrorMessage } from "../../utils/socialErrors";
 import { TextInput, PasswordField } from "../../components/form";
@@ -21,13 +26,16 @@ export default function Login() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const location = useLocation();
+  const from = location.state?.from?.pathname ?? "/profiles";
+
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
     setSubmitting(true);
     try {
       await login(email, password);
-      navigate("/profiles");
+      navigate(from, { replace: true });
     } catch (requestError) {
       const status = requestError.response?.status;
       let message = "Não foi possível iniciar sessão. Tente novamente.";
@@ -58,7 +66,10 @@ export default function Login() {
         </p>
 
         {(error || errorSocial) && (
-          <div role="alert" className="mb-5 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+          <div
+            role="alert"
+            className="mb-5 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red"
+          >
             {error || errorSocial}
           </div>
         )}
@@ -98,7 +109,10 @@ export default function Login() {
           </button>
           <p className="text-center text-sm text-muted">
             Ainda não tem conta?{" "}
-            <Link to="/register" className="font-semibold text-navy hover:underline">
+            <Link
+              to="/register"
+              className="font-semibold text-navy hover:underline"
+            >
               Criar conta
             </Link>
           </p>
