@@ -113,6 +113,11 @@ class RouteProtectionTest extends TestCase
         $this->assertNotEmpty($throttled, "{$method} {$uri} has no rate limit");
     }
 
+    public function test_register_shares_the_login_limit(): void
+    {
+        $this->assertContains('throttle:login', $this->middlewareOf($this->find('POST', 'api/auth/register')));
+    }
+
     public function test_email_verification_link_must_be_signed(): void
     {
         $this->assertContains('signed:relative', $this->middlewareOf($this->find('POST', 'api/email/verify/{id}/{hash}')));
