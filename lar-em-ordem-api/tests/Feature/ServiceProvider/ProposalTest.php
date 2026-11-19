@@ -33,7 +33,7 @@ class ProposalTest extends TestCase
         $this->withoutMiddleware(ThrottleRequests::class);
 
         $this->morador     = User::where('email', 'morador@example.com')->firstOrFail();
-        $this->servicos    = User::where('email', 'service@example.com')->firstOrFail();
+        $this->servicos    = User::where('email', 'prestador@example.com')->firstOrFail();
         $this->servicinhos = User::where('email', 'residente@example.com')->firstOrFail();
     }
 

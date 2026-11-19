@@ -146,7 +146,7 @@ class ProfileTest extends TestCase
 
     public function test_conta_com_outro_perfil_nao_pode_ser_parceiro(): void
     {
-        foreach (['morador@example.com', 'service@example.com'] as $email) {
+        foreach (['morador@example.com', 'prestador@example.com'] as $email) {
             $user = User::where('email', $email)->firstOrFail();
 
             $this->actingAs($user)
@@ -179,7 +179,7 @@ class ProfileTest extends TestCase
 
     public function test_atualizar_prestador_grava_zonas_e_ignora_user_id(): void
     {
-        $servicos = User::where('email', 'service@example.com')->firstOrFail();
+        $servicos = User::where('email', 'prestador@example.com')->firstOrFail();
         $morador  = User::where('email', 'morador@example.com')->firstOrFail();
 
         $this->actingAs($servicos)

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  * Prestadores de serviços (módulo 6): perfil próprio (GET /service-providers/me).
  * A criação, a edição (com zonas e especialidades num só pedido) e a remoção do perfil passam pelos
  * endpoints dos perfis (POST/DELETE /api/user/profile e PUT /user/profile-information), que usam o ServiceProviderService.
- * Usa os dados do ServiceProviderSeeder ("Serviços Lda" = service@example.com).
+ * Usa os dados do ServiceProviderSeeder ("Serviços Lda" = prestador@example.com).
  */
 class ServiceProviderTest extends TestCase
 {
@@ -38,7 +38,7 @@ class ServiceProviderTest extends TestCase
         $this->withoutMiddleware(ThrottleRequests::class);
 
         $this->morador  = User::where('email', 'morador@example.com')->firstOrFail();
-        $this->servicos = User::where('email', 'service@example.com')->firstOrFail();
+        $this->servicos = User::where('email', 'prestador@example.com')->firstOrFail();
 
         $this->canalizacao    = ProblemCategory::where('name', 'Canalização')->value('id');
         $this->zonas          = ServiceZone::where('county', 'Matosinhos')->orderBy('id')->limit(3)->pluck('id')->all();
