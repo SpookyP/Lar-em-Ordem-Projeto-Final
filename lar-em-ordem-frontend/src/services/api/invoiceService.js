@@ -91,7 +91,8 @@ export async function fetchMonthlyCostBenchmarks(propertyId) {
 }
 
 /**
- * Envia o PDF/imagem para extração dos dados; devolve o corpo da resposta.
+ * Envia o PDF para extração dos dados; devolve o corpo da resposta.
+ * A API só lê o ficheiro: não o guarda.
  */
 export async function uploadInvoiceFile(formData) {
   // O browser define o Content-Type e o boundary do multipart.
@@ -102,9 +103,14 @@ export async function uploadInvoiceFile(formData) {
 
 /**
  * Cria a fatura com os respetivos consumos e itens de detalhe.
+ * Com PDF, vai tudo num só pedido multipart: o ficheiro só é guardado se a fatura for registada.
  */
-export async function createInvoice(payload) {
-  const response = await axiosClient.post("/api/v1/invoices", payload);
+export async function createInvoice(payload, file = null) {
+  const response = file
+    ? await axiosClient.post("/api/v1/invoices", { ...payload, file }, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+    : await axiosClient.post("/api/v1/invoices", payload);
 
   return getResponseBody(response);
 }

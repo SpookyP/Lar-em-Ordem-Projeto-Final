@@ -5,7 +5,6 @@ namespace App\Services\ServiceProvider;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Models\User\User;
 use App\Services\Privacy\PersonalDataEraser;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,17 +15,6 @@ class ServiceProviderService {
     private const RELATION_KEYS = ['zone_ids', 'service_specialty_ids', 'custom_specialties'];
 
     public function __construct(private ProviderSpecialtyService $specialtyService,  private PersonalDataEraser $eraser) {}
-
-     /**
-     * Devolve todos os prestadores de serviços, com as zonas e as especialidades
-     * (os apagados ficam de fora pelo soft delete).
-     *
-     * @return Collection
-     */
-    public function list(): Collection
-    {
-        return ServiceProviderModel::with(['zones', 'specialties.category', 'specialties.specialty'])->get();
-    }
 
     /**
      * Cria o perfil de prestador de um utilizador e atribui-lhe a role 'service_provider'.

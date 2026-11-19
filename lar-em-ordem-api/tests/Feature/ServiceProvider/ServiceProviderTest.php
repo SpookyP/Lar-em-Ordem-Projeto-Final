@@ -5,7 +5,6 @@ namespace Tests\Feature\ServiceProvider;
 use App\Models\ServiceProvider\ProblemCategory;
 use App\Models\ServiceProvider\ServiceSpecialty;
 use App\Models\ServiceProvider\ServiceZone;
-use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Models\User\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -13,7 +12,7 @@ use Tests\TestCase;
 use Illuminate\Support\Facades\DB;      
 
 /**
- * Prestadores de serviços (módulo 6): listagem, perfil próprio e detalhe.
+ * Prestadores de serviços (módulo 6): perfil próprio (GET /service-providers/me).
  * A criação, a edição (com zonas e especialidades num só pedido) e a remoção do perfil passam pelos
  * endpoints dos perfis (POST/DELETE /api/user/profile e PUT /user/profile-information), que usam o ServiceProviderService.
  * Usa os dados do ServiceProviderSeeder ("Serviços Lda" = service@example.com).
@@ -77,32 +76,6 @@ class ServiceProviderTest extends TestCase
         return $this->actingAs($this->servicos)->getJson('/api/v1/service-providers/me')->assertOk();
     }
 
-    // ------------------------------------------------------------ index / me
-
-    public function test_index_lista_os_prestadores_com_zonas_e_especialidades_sem_nif(): void
-    {
-        $resposta = $this->actingAs($this->morador)
-            ->getJson('/api/v1/service-providers')
-            ->assertOk()
-            ->assertJsonCount(ServiceProviderModel::count(), 'data');
-
-        foreach ($resposta->json('data') as $prestador) {
-            $this->assertArrayHasKey('zones', $prestador);
-            $this->assertArrayHasKey('specialties', $prestador);
-            $this->assertArrayNotHasKey('nif', $prestador);
-        }
-    }
-
-    public function test_no_index_o_prestador_so_ve_o_seu_proprio_nif(): void
-    {
-        $lista = collect(
-            $this->actingAs($this->servicos)->getJson('/api/v1/service-providers')->assertOk()->json('data')
-        );
-
-        $this->assertSame('212345673', $lista->firstWhere('id', $this->idServicos())['nif']);
-        $this->assertArrayNotHasKey('nif', $lista->firstWhere('id', '!=', $this->idServicos()));
-    }
-
     public function test_me_devolve_o_perfil_do_prestador_autenticado(): void
     {
         $this->actingAs($this->servicos)
@@ -119,21 +92,6 @@ class ServiceProviderTest extends TestCase
         $this->actingAs($this->morador)
             ->getJson('/api/v1/service-providers/me')
             ->assertForbidden();
-    }
-
-    // ------------------------------------------------------------------- show
-
-    public function test_show_mostra_o_prestador_sem_nif_a_terceiros(): void
-    {
-        $this->actingAs($this->morador)
-            ->getJson('/api/v1/service-providers/' . $this->idServicos())
-            ->assertOk()
-            ->assertJsonPath('data.company_name', 'Serviços Lda')
-            ->assertJsonMissingPath('data.nif')
-            ->assertJsonStructure(['data' => [
-                'specialties' => [['id', 'display_name', 'is_custom', 'category']],
-                'zones'       => [['id', 'district', 'county', 'location']],
-            ]]);
     }
 
     public function test_o_campo_active_ja_nao_existe(): void
@@ -380,10 +338,8 @@ class ServiceProviderTest extends TestCase
         $this->assertSoftDeleted('service_providers', ['id' => $id]);
         $this->assertFalse($this->servicos->fresh()->hasRole('service_provider'));
 
-        // deixa de aparecer e deixa de existir para a API
-        $this->actingAs($this->morador)->getJson("/api/v1/service-providers/{$id}")->assertNotFound();
-        $lista = collect($this->actingAs($this->morador)->getJson('/api/v1/service-providers')->json('data'));
-        $this->assertFalse($lista->contains('id', $id));
+        // deixa de ter perfil de prestador para a API
+        $this->actingAs($this->servicos->fresh())->getJson('/api/v1/service-providers/me')->assertForbidden();
     }
 
     public function test_nao_se_apaga_o_unico_perfil_da_conta(): void
@@ -406,9 +362,13 @@ class ServiceProviderTest extends TestCase
         $this->actingAs($this->servicos)->putJson("/api/v1/service-providers/{$id}/zones", ['zone_ids' => []])->assertNotFound();
         $this->actingAs($this->servicos)->postJson("/api/v1/service-providers/{$id}/specialties", [])->assertNotFound();
 
-        // criar, editar e apagar o perfil passou para os endpoints dos perfis (o URL existe para GET: 405)
-        $this->actingAs($this->servicos)->postJson('/api/v1/service-providers', [])->assertStatus(405);
-        $this->actingAs($this->servicos)->patchJson("/api/v1/service-providers/{$id}", ['phone' => '900000000'])->assertStatus(405);
-        $this->actingAs($this->servicos)->deleteJson("/api/v1/service-providers/{$id}")->assertStatus(405);
+        // a lista e o detalhe de outros prestadores saíram: expunham os contactos de todos
+        $this->actingAs($this->morador)->getJson('/api/v1/service-providers')->assertNotFound();
+        $this->actingAs($this->morador)->getJson("/api/v1/service-providers/{$id}")->assertNotFound();
+
+        // criar, editar e apagar o perfil passou para os endpoints dos perfis
+        $this->actingAs($this->servicos)->postJson('/api/v1/service-providers', [])->assertNotFound();
+        $this->actingAs($this->servicos)->patchJson("/api/v1/service-providers/{$id}", ['phone' => '900000000'])->assertNotFound();
+        $this->actingAs($this->servicos)->deleteJson("/api/v1/service-providers/{$id}")->assertNotFound();
     }
 }
