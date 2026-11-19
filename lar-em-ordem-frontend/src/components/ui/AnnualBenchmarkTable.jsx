@@ -12,10 +12,12 @@ import {
   YAxis,
 } from "recharts";
 import {
+  AlertTriangle,
   Droplets,
   FileText,
   Flame,
   Info,
+  RefreshCw,
   TrendingDown,
   TrendingUp,
   Zap,
@@ -51,20 +53,71 @@ const percent = new Intl.NumberFormat("pt-PT", {
   maximumFractionDigits: 1,
 });
 
-// Obtém uma mensagem de erro adequada a partir da resposta da API.
-function getErrorMessage(err) {
-  const errors = err?.response?.data?.errors;
+// Identifica falhas de esquema que normalmente indicam migrations em falta.
+function isMigrationError(err) {
+  const payload = err?.response?.data ?? {};
+  const errorCode = [
+    payload?.code,
+    payload?.error_code,
+    payload?.error?.code,
+    payload?.sql_state,
+    payload?.sqlState,
+    payload?.sqlstate,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toUpperCase();
 
-  if (errors && typeof errors === "object") {
-    const messages = [...new Set(Object.values(errors).flat())];
+  const errorText = [
+    payload?.message,
+    payload?.error,
+    err?.message,
+    ...(payload?.errors && typeof payload.errors === "object"
+      ? Object.values(payload.errors).flat()
+      : []),
+  ]
+    .filter((value) => typeof value === "string")
+    .join(" ");
 
-    if (messages.length > 0) return messages.join(" ");
+  const migrationCode =
+    /MIGRATIONS?_PENDING|MIGRATION_REQUIRED|SCHEMA_NOT_UP_TO_DATE|DATABASE_SCHEMA_OUTDATED/.test(
+      errorCode
+    );
+
+  const schemaSqlCode =
+    /\b(42P01|42703|42S02|42S22|3F000|1146|1054|207|208)\b/i.test(
+      errorCode
+    ) || /SQLSTATE\[(42P01|42703|42S02|42S22|3F000)\]/i.test(errorText);
+
+  const missingSchemaObject =
+    /no such (table|column)/i.test(errorText) ||
+    /unknown column/i.test(errorText) ||
+    /undefined_(table|column)/i.test(errorText) ||
+    /(relation|table|column|schema)\s+["'`\w.]+["'`\s]*\s+(does not exist|doesn't exist|not found)/i.test(
+      errorText
+    ) ||
+    /invalid object name/i.test(errorText);
+
+  return migrationCode || schemaSqlCode || missingSchemaObject;
+}
+
+// Converte erros técnicos em mensagens adequadas para o utilizador.
+function getErrorPresentation(err) {
+  if (isMigrationError(err)) {
+    return {
+      type: "migration",
+      title: "Atualização da base de dados necessária",
+      description:
+        "A comparação anual está temporariamente indisponível porque a estrutura da base de dados precisa de ser atualizada. Contacta o administrador do sistema para concluir esta atualização.",
+    };
   }
 
-  return (
-    err?.response?.data?.message ||
-    "Não foi possível carregar a comparação anual."
-  );
+  return {
+    type: "general",
+    title: "Não foi possível carregar a comparação anual",
+    description:
+      "Ocorreu um problema ao obter os dados do benchmark. Tenta novamente dentro de alguns instantes.",
+  };
 }
 
 // Define o ícone e as cores de cada tipo de serviço.
@@ -159,10 +212,7 @@ function EstimateInfo({ entries, general = false }) {
 
       const left = Math.max(
         12,
-        Math.min(
-          anchor.left,
-          window.innerWidth - popupWidth - 12
-        )
+        Math.min(anchor.left, window.innerWidth - popupWidth - 12)
       );
 
       const below = anchor.bottom + 8;
@@ -210,10 +260,8 @@ function EstimateInfo({ entries, general = false }) {
 
     return () => {
       window.cancelAnimationFrame(frame);
-
       document.removeEventListener("pointerdown", handleOutsideClick);
       document.removeEventListener("keydown", handleKeyDown);
-
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
@@ -236,9 +284,7 @@ function EstimateInfo({ entries, general = false }) {
             }}
           >
             <p className="text-base font-semibold text-slate-800">
-              {general
-                ? "Serviços com estimativas"
-                : "Estimativas"}
+              {general ? "Serviços com estimativas" : "Estimativas"}
             </p>
 
             {general ? (
@@ -247,7 +293,6 @@ function EstimateInfo({ entries, general = false }) {
                   const theme = getServiceTheme(
                     entry.option ?? { label: entry.label }
                   );
-
                   const Icon = theme.Icon;
 
                   return (
@@ -260,7 +305,6 @@ function EstimateInfo({ entries, general = false }) {
                         className={theme.iconClass}
                         aria-hidden="true"
                       />
-
                       <span>{entry.label}</span>
                     </div>
                   );
@@ -329,14 +373,11 @@ function AnnualChartTooltip({ active, payload, label }) {
 
   return (
     <div className="min-w-47.5 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
-      <p className="mb-2 text-base font-semibold text-slate-900">
-        {label}
-      </p>
+      <p className="mb-2 text-base font-semibold text-slate-900">{label}</p>
 
       <div className="space-y-1.5 text-sm">
         <div className="flex items-center justify-between gap-4">
           <span className="text-slate-500">Gasto da habitação</span>
-
           <strong className="tabular-nums text-slate-800">
             {money.format(Number(row.user_total))}
           </strong>
@@ -344,7 +385,6 @@ function AnnualChartTooltip({ active, payload, label }) {
 
         <div className="flex items-center justify-between gap-4">
           <span className="text-slate-500">Benchmark médio</span>
-
           <strong className="tabular-nums text-slate-800">
             {money.format(Number(row.benchmark_total))}
           </strong>
@@ -369,36 +409,29 @@ function getUserBarColor(service) {
 function AnnualCostsChart({ rows, service }) {
   // Ordena os anos e prepara os valores para o gráfico.
   const chartRows = [...rows]
-    .sort((a, b) => Number(a.year) - Number(b.year))
-    .map((row, index, allRows) => {
-      const previous = index > 0 ? allRows[index - 1] : null;
-
-      return {
-        ...row,
-        user_total: Number(row.user_total) || 0,
-        benchmark_total: Number(row.benchmark_total) || 0,
-        user_increased:
-          previous !== null &&
-          Number(row.user_total) > Number(previous.user_total),
-      };
-    });
+  .sort((a, b) => Number(a.year) - Number(b.year))
+  .map((row) => ({
+    ...row,
+    user_total: Number(row.user_total) || 0,
+    benchmark_total: Number(row.benchmark_total) || 0,
+  }));
 
   if (chartRows.length === 0) return null;
 
   const userBarColor = getUserBarColor(service);
   const latest = chartRows[chartRows.length - 1];
-
-  const previous =
-    chartRows.length > 1
-      ? chartRows[chartRows.length - 2]
-      : null;
+  const previous = chartRows.length > 1 ? chartRows[chartRows.length - 2] : null;
 
   // Calcula a variação percentual em relação ao ano anterior.
   const trendPercentage =
     previous && Number(previous.user_total) > 0
-      ? ((latest.user_total - previous.user_total) / previous.user_total) *
-        100
+      ? ((latest.user_total - previous.user_total) / previous.user_total) * 100
       : null;
+
+  // O último ano pode ainda estar incompleto (valores estimados ou projetados).
+  const partialLatest =
+    Number(latest.estimated_months_count) > 0 ||
+    latest.benchmark_estimated === true;
 
   const increased = trendPercentage !== null && trendPercentage > 0;
   const decreased = trendPercentage !== null && trendPercentage < 0;
@@ -421,7 +454,6 @@ function AnnualCostsChart({ rows, service }) {
           <h3 className="text-base font-semibold text-white">
             Evolução anual dos custos
           </h3>
-
           <p className="mt-1 text-sm text-white/75">
             Gastos da habitação comparados com o benchmark médio.
           </p>
@@ -444,10 +476,14 @@ function AnnualCostsChart({ rows, service }) {
             ) : null}
 
             {increased
-              ? `Aumento de ${signedPercent.format(trendPercentage)}% face a ${previous.year}`
+              ? `Aumento de ${percent.format(trendPercentage)}% face a ${previous.year}`
               : decreased
                 ? `Redução de ${percent.format(Math.abs(trendPercentage))}% face a ${previous.year}`
                 : `Sem alteração (0%) face a ${previous.year}`}
+
+            {partialLatest && (
+              <span className="font-normal opacity-80">· ano incompleto</span>
+            )}
           </div>
         )}
       </div>
@@ -466,14 +502,12 @@ function AnnualCostsChart({ rows, service }) {
               strokeDasharray="3 3"
               vertical={false}
             />
-
             <XAxis
               dataKey="year"
               tick={{ fill: "#64748b", fontSize: 14 }}
               tickLine={false}
               axisLine={{ stroke: "#e2e8f0" }}
             />
-
             <YAxis
               width={76}
               tickFormatter={(value) => `${compactMoney.format(value)} €`}
@@ -482,24 +516,19 @@ function AnnualCostsChart({ rows, service }) {
               axisLine={false}
               allowDecimals={false}
             />
-
             <Tooltip
               content={<AnnualChartTooltip />}
               cursor={{ fill: "#f8fafc" }}
             />
-
             <Legend
               verticalAlign="bottom"
               height={36}
               iconType="circle"
               iconSize={9}
               formatter={(value) => (
-                <span className="text-sm text-slate-600">
-                  {value}
-                </span>
+                <span className="text-sm text-slate-600">{value}</span>
               )}
             />
-
             <Bar
               dataKey="user_total"
               name="Gasto da habitação"
@@ -507,13 +536,9 @@ function AnnualCostsChart({ rows, service }) {
               maxBarSize={42}
             >
               {chartRows.map((row) => (
-                <Cell
-                  key={`user-${row.year}`}
-                  fill={userBarColor}
-                />
+                <Cell key={`user-${row.year}`} fill={userBarColor} />
               ))}
             </Bar>
-
             <Bar
               dataKey="benchmark_total"
               name="Benchmark médio"
@@ -548,9 +573,7 @@ function getAnnualRowPresentation(row, isGeneralView, options) {
         ? "bg-red-50 text-red-700"
         : "bg-slate-100 text-slate-600";
 
-  const estimatedServices = isGeneralView
-    ? row.estimated_services ?? []
-    : [];
+  const estimatedServices = isGeneralView ? row.estimated_services ?? [] : [];
 
   const hasRowEstimate = isGeneralView
     ? estimatedServices.length > 0
@@ -558,13 +581,14 @@ function getAnnualRowPresentation(row, isGeneralView, options) {
 
   const estimateEntries = isGeneralView
     ? estimatedServices.map((detail) => {
-        const option = options.find(
-          (item) =>
-            String(item.value) === String(detail.consumption_type_id)
-        ) ?? {
-          value: String(detail.consumption_type_id),
-          label: detail.consumption_type ?? "Serviço",
-        };
+        const option =
+          options.find(
+            (item) =>
+              String(item.value) === String(detail.consumption_type_id)
+          ) ?? {
+            value: String(detail.consumption_type_id),
+            label: detail.consumption_type ?? "Serviço",
+          };
 
         return {
           label: option.label,
@@ -617,29 +641,34 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
     value: "all",
   });
 
-  const requestedService =
-    serviceSelection.propertyId === propertyId
-      ? serviceSelection.value
-      : "all";
+  // Permite repetir manualmente um pedido que falhou.
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Resultado do último pedido, identificado pela habitação e pela atualização.
+  const requestedService =
+    serviceSelection.propertyId === propertyId ? serviceSelection.value : "all";
+
+  // Resultado do último pedido, identificado pela habitação e atualização.
   const [fetched, setFetched] = useState({
     key: null,
+    propertyId: null,
     data: null,
-    error: "",
+    error: null,
   });
 
-  const requestKey = `${propertyId ?? ""}-${refreshKey ?? 0}`;
+  const requestKey = `${propertyId ?? ""}-${refreshKey ?? 0}-${retryCount}`;
+  const current = propertyId && fetched.key === requestKey ? fetched : null;
 
-  const current =
-    propertyId && fetched.key === requestKey ? fetched : null;
+  // Durante uma atualização da mesma habitação, mantém os dados anteriores visíveis.
+  const display =
+    current ??
+    (propertyId && fetched.propertyId === propertyId ? fetched : null);
 
   // Valores derivados: sem setState síncrono dentro do efeito.
-  const result = current?.data ?? null;
-  const error = current?.error ?? "";
+  const result = display?.data ?? null;
+  const error = current?.error ?? null;
   const loading = Boolean(propertyId) && current === null;
 
-  // Carrega os dados anuais sempre que a habitação ou a chave de atualização muda.
+  // Carrega os dados anuais quando a habitação ou a atualização muda.
   useEffect(() => {
     if (!propertyId) return undefined;
 
@@ -648,15 +677,19 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
     fetchAnnualBenchmarks(propertyId)
       .then((data) => {
         if (!cancelled) {
-          setFetched({ key: requestKey, data, error: "" });
+          setFetched({ key: requestKey, propertyId, data, error: null });
         }
       })
       .catch((err) => {
+        // Mantém o erro técnico na consola e apresenta apenas uma mensagem segura.
+        console.error("[AnnualBenchmarkTable] Erro ao carregar o benchmark:", err);
+
         if (!cancelled) {
           setFetched({
             key: requestKey,
+            propertyId,
             data: null,
-            error: getErrorMessage(err),
+            error: getErrorPresentation(err),
           });
         }
       });
@@ -697,8 +730,19 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
     });
   }
 
-  // Oculta a secção quando não existem dados para apresentar.
-  if (propertyId && !loading && !error && rows.length === 0) {
+  // Repete o pedido à API após uma falha genérica.
+  function retryRequest() {
+    setRetryCount((count) => count + 1);
+  }
+
+  // Oculta a secção só quando não há dados nem filtros para alternar.
+  if (
+    propertyId &&
+    !loading &&
+    !error &&
+    rows.length === 0 &&
+    options.length === 0
+  ) {
     return null;
   }
 
@@ -722,7 +766,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
             <h2 className="text-xl font-semibold tracking-tight text-white">
               Comparação anual com benchmarks
             </h2>
-
             <p className="mt-1 text-base text-white/75">
               Comparação dos gastos anuais da habitação com a média anual de
               habitações similares.
@@ -733,9 +776,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
           {options.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {options.map((option) => {
-                const selected =
-                  String(activeService) === String(option.value);
-
+                const selected = String(activeService) === String(option.value);
                 const theme = getServiceTheme(option);
                 const Icon = theme.Icon;
 
@@ -750,18 +791,9 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         ? theme.selectedClass
                         : "border-white/40 bg-white/10 text-white hover:bg-white/20"
                     }`}
-                    style={
-                      selected
-                        ? undefined
-                        : { color: "#FFFFFF" }
-                    }
+                    style={selected ? undefined : { color: "#FFFFFF" }}
                   >
-                    <Icon
-                      size={18}
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-
+                    <Icon size={18} strokeWidth={2} aria-hidden="true" />
                     <span>{option.label}</span>
                   </button>
                 );
@@ -771,12 +803,54 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
         </div>
       </header>
 
-      {/* Mensagem de erro devolvida pela API. */}
+      {/* Estado de erro apresentado sem expor mensagens SQL ou detalhes internos. */}
       {error && (
-        <div className="px-5 pt-4 sm:px-6">
-          <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-base text-amber-800">
-            {error}
-          </p>
+        <div className="px-5 pt-5 pb-5 sm:px-6" role="alert" aria-live="polite">
+          <div
+            className={`flex items-start gap-3 rounded-xl border p-4 ${
+              error.type === "migration"
+                ? "border-amber-200 bg-amber-50"
+                : "border-red-200 bg-red-50"
+            }`}
+          >
+            <div
+              className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                error.type === "migration"
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              <AlertTriangle size={21} aria-hidden="true" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <h3
+                className={`text-base font-semibold ${
+                  error.type === "migration" ? "text-amber-900" : "text-red-900"
+                }`}
+              >
+                {error.title}
+              </h3>
+              <p
+                className={`mt-1 text-sm leading-relaxed ${
+                  error.type === "migration" ? "text-amber-800" : "text-red-800"
+                }`}
+              >
+                {error.description}
+              </p>
+
+              {error.type !== "migration" && (
+                <button
+                  type="button"
+                  onClick={retryRequest}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-800 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-1"
+                >
+                  <RefreshCw size={15} aria-hidden="true" />
+                  Tentar novamente
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -792,6 +866,13 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
         <div className="flex items-center justify-center gap-2 px-5 py-12 text-base text-slate-500 sm:px-6">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-slate-600" />
           A carregar comparação anual...
+        </div>
+      )}
+
+      {/* Estado vazio do serviço selecionado (os filtros continuam disponíveis). */}
+      {propertyId && !loading && !error && rows.length === 0 && (
+        <div className="px-5 py-12 text-center text-base text-slate-500 sm:px-6">
+          Ainda não existem dados anuais para este serviço.
         </div>
       )}
 
@@ -819,7 +900,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                       <span className="rounded-lg bg-[#1C3557]/10 px-3 py-1.5 text-base font-bold tabular-nums text-[#1C3557]">
                         {row.year}
                       </span>
-
                       {hasRowEstimate && (
                         <EstimateInfo
                           entries={estimateEntries}
@@ -827,7 +907,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         />
                       )}
                     </div>
-
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       Comparação anual
                     </span>
@@ -836,9 +915,8 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div className="min-w-0 rounded-lg bg-slate-50 p-3">
                       <p className="text-xs font-semibold uppercase leading-4 tracking-wide text-slate-500">
-                        Gasto utilizador
+                        Gasto da habitação
                       </p>
-
                       <p className="mt-1 break-words text-base font-bold tabular-nums text-slate-900">
                         {money.format(Number(row.user_total))}
                       </p>
@@ -848,11 +926,9 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                       <p className="text-xs font-semibold uppercase leading-4 tracking-wide text-slate-500">
                         Benchmark médio
                       </p>
-
                       <p className="mt-1 break-words text-base font-bold tabular-nums text-slate-800">
                         {money.format(Number(row.benchmark_total))}
                       </p>
-
                       {row.sample_size != null && (
                         <p className="mt-1 text-xs leading-4 text-slate-400">
                           Amostra de {row.sample_size} habitações
@@ -865,12 +941,12 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                     <span className="text-sm font-semibold text-slate-500">
                       Diferença
                     </span>
-
                     <div className="flex flex-wrap items-center justify-end gap-2">
-                      <span className={`text-base font-bold tabular-nums ${differenceStyle}`}>
+                      <span
+                        className={`text-base font-bold tabular-nums ${differenceStyle}`}
+                      >
                         {signedMoney.format(difference)}
                       </span>
-
                       {row.difference_percentage != null && (
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums ${differencePillStyle}`}
@@ -902,21 +978,10 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                 }}
               >
                 <tr className="text-xs font-semibold uppercase tracking-wide text-white">
-                  <th className="px-5 py-4 text-left sm:px-6">
-                    Ano
-                  </th>
-
-                  <th className="px-4 py-4 text-right">
-                    Gasto utilizador (€)
-                  </th>
-
-                  <th className="px-4 py-4 text-right">
-                    Benchmark médio (€)
-                  </th>
-
-                  <th className="px-5 py-4 text-right sm:px-6">
-                    Diferença (€)
-                  </th>
+                  <th className="px-5 py-4 text-left sm:px-6">Ano</th>
+                  <th className="px-4 py-4 text-right">Gasto da habitação (€)</th>
+                  <th className="px-4 py-4 text-right">Benchmark médio (€)</th>
+                  <th className="px-5 py-4 text-right sm:px-6">Diferença (€)</th>
                 </tr>
               </thead>
 
@@ -940,7 +1005,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                           <span className="font-semibold tabular-nums text-slate-800">
                             {row.year}
                           </span>
-
                           {hasRowEstimate && (
                             <EstimateInfo
                               entries={estimateEntries}
@@ -956,7 +1020,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
                       <td className="px-4 py-5 text-right font-semibold tabular-nums text-slate-800">
                         {money.format(Number(row.benchmark_total))}
-
                         {row.sample_size != null && (
                           <p className="mt-1 text-sm font-normal text-slate-400">
                             Amostra de {row.sample_size} habitações
@@ -970,7 +1033,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         >
                           {signedMoney.format(difference)}
                         </span>
-
                         {row.difference_percentage != null && (
                           <div className="mt-1.5">
                             <span
@@ -997,9 +1059,9 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
           {/* Notas explicativas e aviso sobre os valores apresentados. */}
           <footer className="border-t border-slate-100 px-5 py-4 sm:px-6">
             <p className="mb-3 text-sm leading-relaxed text-slate-500">
-              Uma diferença negativa significa que a habitação gastou menos
-              do que o benchmark. Uma diferença positiva significa que
-              gastou mais.
+              Uma diferença negativa significa que a habitação gastou menos do
+              que o benchmark. Uma diferença positiva significa que gastou
+              mais.
             </p>
 
             <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
@@ -1008,16 +1070,15 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                 className="mt-0.5 shrink-0 text-slate-500"
                 aria-hidden="true"
               />
-
               <p className="text-sm leading-relaxed text-slate-600">
                 <span className="font-semibold text-slate-700">
                   Valores indicativos.
                 </span>{" "}
                 Os benchmarks são médias de habitações semelhantes e não
                 valores exatos. Os anos ainda incompletos podem incluir
-                projeções anuais, tanto nos consumos como nos benchmarks,
-                pelo que os totais podem diferir dos custos efetivamente
-                registados nas faturas.
+                projeções anuais, tanto nos consumos como nos benchmarks, pelo
+                que os totais podem diferir dos custos efetivamente registados
+                nas faturas.
               </p>
             </div>
           </footer>

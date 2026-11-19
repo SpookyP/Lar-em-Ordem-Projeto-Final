@@ -16,6 +16,9 @@ function getResponseArray(body) {
   return [];
 }
 
+const PAGE_SIZE = 15;
+const MAX_PAGES = 200; // Limite de segurança contra ciclos infinitos.
+
 /**
  * Procura e agrega todas as páginas de faturas para uma determinada propriedade.
  */
@@ -24,16 +27,14 @@ export async function fetchAllInvoices(propertyId) {
   if (!propertyId) return [];
 
   const invoices = [];
-  let currentPage = 1;
-  let lastPage = 1;
+  const seenIds = new Set();
 
-  // Percorre todas as páginas e junta as respetivas faturas.
-  do {
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
     const response = await axiosClient.get("/api/v1/invoices", {
       params: {
         property_id: propertyId,
-        per_page: 100,
-        page: currentPage,
+        per_page: PAGE_SIZE,
+        page,
       },
     });
 
@@ -41,29 +42,36 @@ export async function fetchAllInvoices(propertyId) {
     const body = getResponseBody(response);
     const pageInvoices = getResponseArray(body);
 
-    invoices.push(...pageInvoices);
+    // Página vazia: não há mais dados.
+    if (pageInvoices.length === 0) break;
 
-    // Obtém o número da última página indicado pela API.
-    const reportedLastPage = Number(
-      body?.meta?.last_page ??
-      body?.last_page ??
-      body?.data?.meta?.last_page ??
-      currentPage
+    // Se a API ignorar a paginação e repetir as mesmas faturas, termina.
+    const allRepeated = pageInvoices.every(
+      (invoice) => invoice?.id != null && seenIds.has(invoice.id)
     );
 
-    // Interrompe a paginação se os dados ou os metadados forem inválidos.
-    if (
-      !Number.isFinite(reportedLastPage) ||
-      reportedLastPage < currentPage ||
-      pageInvoices.length === 0
-    ) {
+    if (allRepeated) break;
+
+    pageInvoices.forEach((invoice) => {
+      if (invoice?.id != null) seenIds.add(invoice.id);
+    });
+
+    invoices.push(...pageInvoices);
+
+    // Número da última página indicado pela API (se existir).
+    const lastPage = Number(
+      body?.meta?.last_page ??
+        body?.last_page ??
+        body?.data?.meta?.last_page
+    );
+
+    if (Number.isFinite(lastPage) && lastPage >= 1) {
+      if (page >= lastPage) break;
+    } else if (pageInvoices.length < PAGE_SIZE) {
+      // Sem metadados: uma página incompleta é a última.
       break;
     }
-
-    lastPage = reportedLastPage;
-    currentPage += 1;
-
-  } while (currentPage <= lastPage);
+  }
 
   return invoices;
 }
@@ -84,10 +92,8 @@ export async function fetchMonthlyCostBenchmarks(propertyId) {
     }
   );
 
-  const body = getResponseBody(response);
-
-  // A API devolve diretamente uma lista de benchmarks.
-  return Array.isArray(body) ? body : [];
+  // Aceita tanto uma lista direta como a lista embrulhada em "data".
+  return getResponseArray(getResponseBody(response));
 }
 
 /**
@@ -95,7 +101,10 @@ export async function fetchMonthlyCostBenchmarks(propertyId) {
  */
 export async function uploadInvoiceFile(formData) {
   // O browser define o Content-Type e o boundary do multipart.
-  const response = await axiosClient.post("/api/v1/invoices/upload", formData);
+  const response = await axiosClient.post(
+    "/api/v1/invoices/upload",
+    formData
+  );
 
   return getResponseBody(response);
 }
@@ -104,7 +113,10 @@ export async function uploadInvoiceFile(formData) {
  * Cria a fatura com os respetivos consumos e itens de detalhe.
  */
 export async function createInvoice(payload) {
-  const response = await axiosClient.post("/api/v1/invoices", payload);
+  const response = await axiosClient.post(
+    "/api/v1/invoices",
+    payload
+  );
 
   return getResponseBody(response);
 }
@@ -113,18 +125,37 @@ export async function createInvoice(payload) {
  * Obtém o detalhe de uma fatura (consumos e itens incluídos).
  */
 export async function getInvoice(id) {
-  const response = await axiosClient.get(`/api/v1/invoices/${id}`);
+  const response = await axiosClient.get(
+    `/api/v1/invoices/${id}`
+  );
 
-  return getResponseBody(response);
+  const body = getResponseBody(response);
+
+  // Aceita a fatura diretamente ou embrulhada em "data".
+  return body?.data ?? body;
 }
 
 /**
  * Obtém o corpo com o URL assinado do PDF associado à fatura.
  */
 export async function getInvoiceFile(id) {
-  const response = await axiosClient.get(`/api/v1/invoices/${id}/file`);
+  const response = await axiosClient.get(
+    `/api/v1/invoices/${id}/file`
+  );
 
   return getResponseBody(response);
+}
+
+/**
+ * Obtém o conteúdo binário (Blob) do PDF associado à fatura.
+ */
+export async function getInvoiceFileBlob(id) {
+  const response = await axiosClient.get(
+    `/api/v1/invoices/${id}/file/content`,
+    { responseType: "blob" }
+  );
+
+  return response.data;
 }
 
 /**
@@ -134,7 +165,6 @@ export async function deleteInvoice(id) {
   await axiosClient.delete(`/api/v1/invoices/${id}`);
 }
 
-
 /**
  * Obtém a série anual de custos da habitação e dos benchmarks.
  */
@@ -142,12 +172,15 @@ export async function fetchAnnualBenchmarks(propertyId) {
   // Evita pedidos à API quando não existe uma propriedade selecionada.
   if (!propertyId) return null;
 
-  const response = await axiosClient.get("/api/v1/benchmarks/annual/series", {
-    params: {
-      property_id: propertyId,
-      service: "all",
-    },
-  });
+  const response = await axiosClient.get(
+    "/api/v1/benchmarks/annual/series",
+    {
+      params: {
+        property_id: propertyId,
+        service: "all",
+      },
+    }
+  );
 
   return getResponseBody(response);
 }

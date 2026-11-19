@@ -4,6 +4,10 @@ import {
   fetchMonthlyCostBenchmarks,
 } from "../services/api/invoiceService";
 
+// Referências estáveis para evitar novos arrays (e resets nos filhos) a cada render.
+const NO_INVOICES = [];
+const NO_BENCHMARKS = [];
+
 // Obtém o ID da propriedade atualmente selecionada.
 function getActivePropertyId() {
   if (typeof window === "undefined") return "";
@@ -18,6 +22,9 @@ function getActivePropertyId() {
 
       // Aceita o ID guardado diretamente como string.
       if (typeof parsed === "string") return parsed;
+
+      // Aceita também um ID numérico (ex.: "5" é lido como número pelo JSON.parse).
+      if (typeof parsed === "number") return String(parsed);
 
       // Aceita também um objeto com a propriedade id.
       if (parsed && typeof parsed === "object") {
@@ -138,8 +145,8 @@ export default function useInvoices() {
   // Dados e operações disponibilizados à página.
   return {
     propertyId,
-    invoices: sameProperty ? fetched.invoices : [],
-    benchmarks: sameProperty ? fetched.benchmarks : [],
+    invoices: sameProperty ? fetched.invoices : NO_INVOICES,
+    benchmarks: sameProperty ? fetched.benchmarks : NO_BENCHMARKS,
     loading,
     benchmarkLoading: loading,
     error: isCurrent ? fetched.error : "",
