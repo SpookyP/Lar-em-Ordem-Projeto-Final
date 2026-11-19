@@ -99,6 +99,7 @@ class RouteProtectionTest extends TestCase
             'oauth redirect'        => ['GET', 'auth/{provider}/redirect'],
             'oauth callback'        => ['GET', 'auth/{provider}/callback'],
             'login'                 => ['POST', 'login'],
+            'forgot password'       => ['POST', 'forgot-password'],
         ];
     }
 
@@ -111,6 +112,11 @@ class RouteProtectionTest extends TestCase
         );
 
         $this->assertNotEmpty($throttled, "{$method} {$uri} has no rate limit");
+    }
+
+    public function test_register_shares_the_login_limit(): void
+    {
+        $this->assertContains('throttle:login', $this->middlewareOf($this->find('POST', 'api/auth/register')));
     }
 
     public function test_email_verification_link_must_be_signed(): void

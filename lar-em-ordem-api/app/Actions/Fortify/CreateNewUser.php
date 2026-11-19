@@ -36,7 +36,7 @@ class CreateNewUser implements CreatesNewUsers
     {
         $role = $input['role'] ?? null;
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\pM \'’-]+$/u'],
             'email' => ['required', 'string', 'email', 'max:255'],
             'password' => $existingAccount ? ['required', 'string'] : $this->passwordRules(),
             'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
