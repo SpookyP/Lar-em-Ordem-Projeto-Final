@@ -47,7 +47,7 @@ export default function VerifyEmail() {
     const request = token
       ? confirmRegistration(token).then(() => refreshUser().catch(() => {}))
       : verifyEmail(id, hash, { expires, signature }).then(async () => {
-          if (isAuthenticated) await refreshUser().catch(() => {});
+          await refreshUser().catch(() => {});
         });
 
     request
@@ -71,7 +71,7 @@ export default function VerifyEmail() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams.toString(), authLoading, linkValid]);
+  }, [searchParams, authLoading, linkValid, refreshUser, token]);
 
   async function handleResend() {
     setResending(true);

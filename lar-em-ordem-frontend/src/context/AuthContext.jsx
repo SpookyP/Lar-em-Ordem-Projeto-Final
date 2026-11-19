@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "./authContextObject";
 import {
   login as loginService,
@@ -132,11 +132,11 @@ export function AuthProvider({ children }) {
     setUser((current) => (current ? { ...current, ...fields } : current));
   }
 
-  async function refreshUser() {
+  const refreshUser = useCallback(async () => {
     const currentUser = await getCurrentUser();
     setUser(currentUser);
     return currentUser;
-  }
+  }, []);
 
   function selectProfile(profile, house) {
     setActiveProfile(profile);
