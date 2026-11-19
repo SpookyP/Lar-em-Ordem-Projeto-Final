@@ -17,10 +17,9 @@ class StoreDocumentRequest extends FormRequest
     public function rules(): array
     {
         $property = $this->route('property');
-        $propertyId = is_object($property) ? $property->id : ($this->input('property_id') ?? $property);
+        $propertyId = is_object($property) ? $property->id : $property;
 
         return [
-            'property_id' => ['required', 'string', 'exists:properties,id'],
             'document_category_id' => ['required', 'integer', 'exists:document_categories,id'],
             'name' => [
                 'required',
@@ -58,16 +57,15 @@ class StoreDocumentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'property_id.exists' => 'A propriedade selecionada é inválida.',
             'document_category_id.exists' => 'A categoria de documento é inválida.',
             'name.required' => 'O nome do documento é obrigatório.',
             'name.unique' => 'Já existe um documento com este nome nesta habitação.',
             'file.mimes' => 'Apenas são aceites ficheiros em formato PDF, JPG, JPEG ou PNG.',
             'file.max' => 'O ficheiro não pode ultrapassar os 15MB.',
-            'expiration_date.after' => 'A data de validade tem de ser posterior à data de emissão.',
-            'issue_date.before_or_equal' => 'A data de emissão não pode ser no futuro.',
             'issue_date.date' => 'A data de emissão tem de ser uma data válida.',
+            'issue_date.before_or_equal' => 'A data de emissão não pode ser no futuro.',
             'expiration_date.date' => 'A data de validade tem de ser uma data válida.',
+            'expiration_date.after' => 'A data de validade tem de ser posterior à data de emissão.',
         ];
     }
 }

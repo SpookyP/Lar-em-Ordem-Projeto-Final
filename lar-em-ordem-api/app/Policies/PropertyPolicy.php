@@ -62,4 +62,29 @@ class PropertyPolicy
     {
         return $user->resident !== null;
     }
+
+    public function viewVault(User $user, Property $property): bool
+    {
+        if (!$user->resident) {
+            return false;
+        }
+
+        return $property->contracts()
+            ->where('resident_id', $user->resident->id)
+            ->where('is_active', true)
+            ->exists();
+    }
+
+    public function manageVault(User $user, Property $property): bool
+    {
+        if (!$user->resident) {
+            return false;
+        }
+
+        return $property->contracts()
+            ->where('resident_id', $user->resident->id)
+            ->where('is_active', true)
+            ->where('resident_Type_id', 1)
+            ->exists();
+    }
 }

@@ -91,7 +91,9 @@ class DocumentService
         $document->update([
             'document_category_id' => $validatedData['document_category_id'] ?? $document->document_category_id,
             'name' => $documentName,
-            'description' => $validatedData['description'] ?? $document->description,
+            'description' => array_key_exists('description', $validatedData)
+                ? $validatedData['description']
+                : $document->description,
             'file_id' => $fileRecordId,
             'file_hash' => $fileHash,
             'issue_date' => $issueDate,
@@ -134,8 +136,14 @@ class DocumentService
 
         $fileHash = hash_file('sha256', $file->getRealPath());
 
+        $user = auth()->user();
+
+        if (! $user instanceof \App\Models\User\User) {
+            throw new \RuntimeException('Utilizador não autenticado.');
+        }
+
         $fileRecord = $this->fileStorageService->uploadUserFile(
-            auth()->user(),
+            $user,
             $file,
             'vault_documents',
             $customName

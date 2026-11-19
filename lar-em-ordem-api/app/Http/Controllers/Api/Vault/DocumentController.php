@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Vault;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Requests\Vault\StoreDocumentRequest;
 use App\Http\Requests\Vault\UpdateDocumentRequest;
 use App\Http\Resources\Vault\DocumentResource;
@@ -21,19 +22,16 @@ class DocumentController extends Controller
         private readonly FileStorageService $fileStorageService
     ) {}
 
-    public function index(Request $request, Property $property): AnonymousResourceCollection
+    public function index(PerPageRequest $request, Property $property): AnonymousResourceCollection
     {
-        $this->authorize('view', $property);
+        $this->authorize('manageVault', $property);
 
-        $validated = $request->validate([
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:15'],
-        ]);
-
-        $perPage = $validated['per_page'] ?? 15;
+        $perPage = (int) ($request->validated()['per_page'] ?? 5);
 
         $documents = Document::where('property_id', $property->id)
             ->with('category')
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate($perPage)
             ->withQueryString();
 
@@ -42,7 +40,7 @@ class DocumentController extends Controller
 
     public function store(StoreDocumentRequest $request, Property $property): JsonResponse
     {
-        $this->authorize('update', $property);
+        $this->authorize('manageVault', $property);
 
         $validatedData = $request->validated();
         $validatedData['property_id'] = $property->id;
@@ -62,10 +60,8 @@ class DocumentController extends Controller
 
     public function show(Document $document): DocumentResource
     {
-        // Garante que só quem tem relação com a casa vê o documento
-        $this->authorize('view', $document->property);
+        $this->authorize('manageVault', $document->property);
 
-        // Carrega a relação da categoria para o frontend ter o nome
         $document->load('category');
 
         return new DocumentResource($document);
@@ -73,7 +69,7 @@ class DocumentController extends Controller
 
     public function update(UpdateDocumentRequest $request, Document $document): JsonResponse
     {
-        $this->authorize('update', $document->property);
+        $this->authorize('manageVault', $document->property);
 
         $validatedData = $request->validated();
         $file = $request->file('file');
@@ -93,7 +89,7 @@ class DocumentController extends Controller
      */
     public function content(Document $document): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $this->authorize('view', $document->property);
+        $this->authorize('manageVault', $document->property);
 
         abort_if(!$document->file_id, 404, 'Este documento não tem nenhum ficheiro anexado.');
 
@@ -104,7 +100,7 @@ class DocumentController extends Controller
 
     public function destroy(Document $document): JsonResponse
     {
-        $this->authorize('update', $document->property);
+        $this->authorize('manageVault', $document->property);
 
         $this->documentService->deleteDocument($document);
 
