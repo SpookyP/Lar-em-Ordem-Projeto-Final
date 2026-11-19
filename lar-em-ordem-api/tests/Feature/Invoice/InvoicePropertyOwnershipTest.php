@@ -5,6 +5,7 @@ namespace Tests\Feature\Invoice;
 use App\Models\Invoice\ConsumptionType;
 use App\Models\Property\Property;
 use App\Models\User\Resident;
+use App\Models\User\User;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
