@@ -106,6 +106,15 @@ class AccountFormsTest extends TestCase
             ->assertJsonValidationErrors(['name' => 'O campo nome não pode ter mais de 255 caracteres.']);
     }
 
+        public function test_a_name_with_a_link_is_refused(): void
+    {
+        $data = ['name' => 'Ana [clique aqui](https://evil.example)'] + $this->signUpAsResident('nova.conta@example.com', 'Lar-em-Ordem-2026!');
+
+        $this->postJson('/api/auth/register', $data)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['name' => 'O nome só pode ter letras, espaços, apóstrofos e hífenes.']);
+    }
+
     public function test_the_forgotten_password_email_is_in_portuguese_and_opens_the_frontend(): void
     {
         Notification::fake();

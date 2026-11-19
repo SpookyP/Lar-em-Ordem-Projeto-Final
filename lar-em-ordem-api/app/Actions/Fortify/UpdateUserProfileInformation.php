@@ -40,7 +40,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         }
 
         $rules = [
-            'name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'name' => ['sometimes', 'nullable', 'string', 'max:255', 'regex:/^[\pL\pM \'’-]+$/u'],
             'email' => [
                 'sometimes',
                 'nullable',
