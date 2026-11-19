@@ -25,7 +25,7 @@ export async function fetchAllInvoices(propertyId) {
 
   const invoices = [];
   let currentPage = 1;
-  let lastPage = 1;
+  let lastPage;
 
   // Percorre todas as páginas e junta as respetivas faturas.
   do {

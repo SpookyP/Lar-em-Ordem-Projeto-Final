@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import axiosClient from "../../services/api/axiosClient";
 import {
   Search,
@@ -681,12 +681,14 @@ export default function InvoiceTable({
   const invoiceList = Array.isArray(invoices) ? invoices : NO_INVOICES;
 
   // Repõe a paginação e fecha os modais quando a lista de faturas muda.
-  useEffect(() => {
+  const [shownList, setShownList] = useState(invoiceList);
+  if (shownList !== invoiceList) {
+    setShownList(invoiceList);
     setCurrentPage(1);
     setSelectedInvoice(null);
     setDeleteInvoice(null);
     setDeleteConfirmed(false);
-  }, [invoiceList]);
+  }
 
   // Aplica a pesquisa e o filtro de serviço.
   const filteredInvoices = useMemo(() => {

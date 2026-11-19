@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   LineChart,
@@ -484,10 +484,13 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
   );
 
   // Sincroniza os seletores sempre que o intervalo exterior muda.
-  useEffect(() => {
+  const rangeKey = `${range.start}|${range.end}`;
+  const [syncedKey, setSyncedKey] = useState(rangeKey);
+  if (syncedKey !== rangeKey) {
+    setSyncedKey(rangeKey);
     setDraft(range);
     setError("");
-  }, [range.start, range.end]);
+  }
 
   // Atualiza uma das datas e valida os limites permitidos.
   function updateDate(field, part, value) {
@@ -699,8 +702,13 @@ export default function InvoiceTimelineChart({
   const [advancedEnabled, setAdvancedEnabled] = useState(false);
 
   // Referência ao contentor do gráfico e respetiva largura.
+  const wrapRef = useRef(null);
   const [wrapElement, setWrapElement] = useState(null);
   const [wrapWidth, setWrapWidth] = useState(0);
+  const attachWrap = useCallback((element) => {
+    wrapRef.current = element;
+    setWrapElement(element);
+  }, []);
 
   // Controla o posicionamento inicial e a emissão do intervalo predefinido.
   const scrolledToEnd = useRef(false);
@@ -956,13 +964,15 @@ export default function InvoiceTimelineChart({
 
   // Desloca o gráfico para o mês mais recente na primeira apresentação.
   useEffect(() => {
+    const wrap = wrapRef.current;
+
     if (
-      wrapElement &&
+      wrap &&
       monthKeys.length > 0 &&
       !scrolledToEnd.current
     ) {
       scrolledToEnd.current = true;
-      wrapElement.scrollLeft = wrapElement.scrollWidth;
+      wrap.scrollLeft = wrap.scrollWidth;
     }
   }, [wrapElement, monthKeys.length, wrapWidth]);
 
@@ -1193,7 +1203,7 @@ export default function InvoiceTimelineChart({
 
       {/* Gráfico com deslocamento horizontal para navegar pelos meses. */}
       <div
-        ref={setWrapElement}
+        ref={attachWrap}
         className="mt-4 w-full min-w-0 max-w-full overflow-x-auto rounded-xl border border-slate-200"
         style={{ contain: "inline-size" }}
       >
