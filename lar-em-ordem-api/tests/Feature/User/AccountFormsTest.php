@@ -42,7 +42,7 @@ class AccountFormsTest extends TestCase
 
     public function test_a_taken_email_says_so_instead_of_complaining_about_the_password(): void
     {
-        $this->postJson('/api/auth/register', $this->signUpAsResident('service@example.com', 'fraca'))
+        $this->postJson('/api/auth/register', $this->signUpAsResident('prestador@example.com', 'fraca'))
             ->assertStatus(422)
             ->assertJsonValidationErrors(['email' => 'O email já está em uso, tente novamente.'])
             ->assertJsonMissingValidationErrors(['password']);
@@ -76,10 +76,10 @@ class AccountFormsTest extends TestCase
         // the seeded password ("password") would not pass the rules for new passwords;
         // signing in at the end needs the SPA session
         $this->withHeaders(['Referer' => 'http://' . config('sanctum.stateful')[0]])
-            ->postJson('/api/auth/register', $this->signUpAsResident('service@example.com', 'password'))
+            ->postJson('/api/auth/register', $this->signUpAsResident('prestador@example.com', 'password'))
             ->assertCreated();
 
-        $this->assertTrue(User::where('email', 'service@example.com')->firstOrFail()->hasRole('resident'));
+        $this->assertTrue(User::where('email', 'prestador@example.com')->firstOrFail()->hasRole('resident'));
     }
 
     public function test_a_request_without_email_or_password_is_a_validation_error(): void

@@ -40,7 +40,7 @@ class AssistanceRequestSeeder extends Seeder
             'is_active'   => true,
         ]);
 
-        $servicos    = User::where('email', 'service@example.com')->firstOrFail()->service_provider;
+        $servicos    = User::where('email', 'prestador@example.com')->firstOrFail()->service_provider;
         $servicinhos = User::where('email', 'residente@example.com')->firstOrFail()->service_provider;
         $outro       = ServiceProviderModel::whereKeyNot([$servicos->id, $servicinhos->id])->has('zones')->firstOrFail();
 

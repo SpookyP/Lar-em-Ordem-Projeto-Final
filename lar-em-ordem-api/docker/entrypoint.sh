@@ -5,7 +5,7 @@ cd /var/www/html
 rm -f /tmp/ready
 
 if [ ! -f .env ]; then
-  echo "Falta o .env em lar-em-ordem-api (corre: make init)" >&2
+  echo "Falta o .env em lar-em-ordem-api (copia o .env.example para .env)" >&2
   exit 1
 fi
 

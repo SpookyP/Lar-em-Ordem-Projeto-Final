@@ -39,7 +39,7 @@ class AssistanceRequestTest extends TestCase
         Storage::fake('r2');
 
         $this->morador     = User::where('email', 'morador@example.com')->firstOrFail();
-        $this->servicos    = User::where('email', 'service@example.com')->firstOrFail();
+        $this->servicos    = User::where('email', 'prestador@example.com')->firstOrFail();
         $this->servicinhos = User::where('email', 'residente@example.com')->firstOrFail();
         $this->casa        = $this->pedido('Sanita entupida')->property_id;
     }

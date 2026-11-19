@@ -20,8 +20,8 @@ class ServiceProviderSeeder extends Seeder
         $matosinhos = ServiceZone::where('district', 'Porto')->where('county', 'Matosinhos')->pluck('id');
         $porto      = ServiceZone::where('district', 'Porto')->where('county', 'Porto')->pluck('id');
 
-        // "Serviços Lda" (service@example.com)
-        $servicos = User::where('email', 'service@example.com')->firstOrFail()->service_provider;
+        // "Serviços Lda" (prestador@example.com)
+        $servicos = User::where('email', 'prestador@example.com')->firstOrFail()->service_provider;
         $servicos->zones()->sync($matosinhos->merge($porto));
         $this->addSpecialties($servicos, ['Fugas de água', 'Desentupimentos', 'Esquentadores e termoacumuladores', 'Tomadas e iluminação']);
 
