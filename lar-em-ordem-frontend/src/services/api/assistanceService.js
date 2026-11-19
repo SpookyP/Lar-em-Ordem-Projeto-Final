@@ -24,6 +24,7 @@ function toAssistanceDetail(a) {
     address: a.property ?? {},
     attachments: (a.attachments ?? []).map((f) => ({ id: f.id })),
     proposals: (a.proposals ?? []).map(toProposal),
+    myProposal: a.my_proposal ? toProposal(a.my_proposal) : null,
   };
 }
 
@@ -53,9 +54,18 @@ export async function getAssistanceRequests({
   return toPage(response, toAssistance);
 }
 
-export async function getAssistanceRequest(id) {
-  const response = await axiosClient.get(`/api/v1/assistance-requests/${id}`);
-  return toAssistanceDetail(response.data.data);
+export async function getAssistanceRequest(id, { page, perPage } = {}) {
+  const response = await axiosClient.get(`/api/v1/assistance-requests/${id}`, {
+    params: cleanParams({ page, per_page: perPage }),
+  });
+  const meta = response.data.proposals_meta;
+  const detail = toAssistanceDetail(response.data.data);
+  return {
+    ...detail,
+    proposalsPage: meta?.current_page ?? 1,
+    proposalsLastPage: meta?.last_page ?? 1,
+    proposalsTotal: meta?.total ?? detail.proposals.length,
+  };
 }
 
 // a request photo, read through the API with the session; the address only works in this browser

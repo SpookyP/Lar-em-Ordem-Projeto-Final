@@ -8,14 +8,18 @@ use App\Models\User\User;
 use App\Models\Property\PropertyType;
 use App\Models\Property\PropertyTypology;
 use App\Models\User\ResidentType;
-use App\Services\Resident\ResidentService;
+use App\Services\Privacy\PersonalDataEraser;
+use App\Services\ServiceProvider\AssistanceRequestService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
 class PropertyService
 {
-    public function __construct(protected ResidentService $residentService) {}
+    public function __construct(
+        private PersonalDataEraser $eraser,
+        private AssistanceRequestService $requests,
+    ) {}
 
     #region CRUD
     #region Get Types
@@ -47,7 +51,8 @@ class PropertyService
             ])
             ->latest() // order by latest
             ->latest('id')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     #endregion
@@ -103,35 +108,22 @@ class PropertyService
         });
     }
 
-    public function deleteResidentProperty(Property $property): bool
+    /**
+     * Deletes a resident's property (RGPD): the contract ends, open assistance requests are
+     * cancelled, and the eraser removes the invoices, vault documents and alerts (with their
+     * files) and anonymises the address before the soft delete.
+     */
+    public function deleteResidentProperty(Property $property): void
     {
-        return DB::transaction(function () use ($property) {
+        DB::transaction(function () use ($property) {
             $property->contracts()
                 ->where('is_active', true)
                 ->update([
                     'is_active' => false,
                     'end_date' => now()
                 ]);
-            app(\App\Services\ServiceProvider\AssistanceRequestService::class)->cancelOpenForProperty($property);
-            return $property->delete();
-        });
-    }
-
-    public function terminateContract(Property $property, User $user): bool
-    {
-        return DB::transaction(function () use ($property, $user) {
-            $contract = $property->contracts()
-                ->where('resident_id', $user->resident->id)
-                ->where('is_active', true)
-                ->first();
-            if (!$contract) {
-                return false;
-            }
-            $contract->update([
-                'is_active' => false,
-                'end_date' => now()
-            ]);
-            return $contract->delete();
+            $this->requests->cancelOpenForProperty($property);
+            $this->eraser->eraseProperty($property);
         });
     }
     #endregion

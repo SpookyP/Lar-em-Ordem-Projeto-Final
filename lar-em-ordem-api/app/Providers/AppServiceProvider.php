@@ -5,7 +5,6 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\RegisterResponse;
 use Laravel\Fortify\Contracts\PasswordUpdateResponse;
-use Illuminate\Auth\Notifications\ResetPassword;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
                     $user = $request->user();
 
                     return response()->json([
-                        'message' => 'Operation successful.',
+                        'message' => 'Conta criada.',
                         'user' => $user ? $user->load(['roles', 'resident', 'service_provider', 'partner']) : null,
                     ], 201);
                 }
@@ -43,11 +42,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        ResetPassword::createUrlUsing(function ($notifiable, string $token) {
-            $frontend = config('oauth.frontend_url');
-
-            return $frontend . '/reset-password?token=' . $token
-                . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
-        });
+        //
     }
 }

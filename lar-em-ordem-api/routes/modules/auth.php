@@ -14,7 +14,7 @@ Route::post('/user/profile', [AuthController::class, 'store'])->middleware('auth
 Route::get('/user/privacy', [PrivacyController::class, 'show'])->middleware('auth:sanctum');
 Route::put('/user/privacy', [PrivacyController::class, 'update'])->middleware('auth:sanctum');
 
-Route::post('/auth/register', [PendingRegistrationController::class, 'register'])->middleware('throttle:10,1,register');
+Route::post('/auth/register', [PendingRegistrationController::class, 'register'])->middleware(['throttle:10,1,register', 'throttle:login']);
 Route::post('/auth/register/confirm', [PendingRegistrationController::class, 'confirm'])->middleware('throttle:20,1,register-confirm');
 Route::post('/auth/register/resend', [PendingRegistrationController::class, 'resend'])->middleware('throttle:3,1,register-resend');
 

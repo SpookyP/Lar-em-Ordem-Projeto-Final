@@ -217,6 +217,39 @@ class ResidentDataErasureTest extends TestCase
         $this->assertSame(0, PropertyContract::where('resident_id', $this->resident->id)->count());
     }
 
+    public function test_deleting_a_property_erases_its_invoices_documents_and_address(): void
+    {
+        $pdf = $this->storedFile(InvoiceService::FILE_CATEGORY);
+        $invoice = Invoice::factory()->create([
+            'resident_id' => $this->resident->id,
+            'property_id' => $this->property->id,
+            'file_id'     => $pdf->id,
+        ]);
+        $file = $this->storedFile('vault_documents');
+        $document = Document::create([
+            'property_id'          => $this->property->id,
+            'document_category_id' => DocumentCategory::query()->value('id'),
+            'file_id'              => $file->id,
+            'name'                 => 'Seguro da casa',
+        ]);
+        $request = $this->request('open');
+
+        $this->actingAs($this->user)
+            ->deleteJson("/api/v1/properties/{$this->property->id}")
+            ->assertOk();
+
+        $this->assertFalse(Invoice::whereKey($invoice->id)->exists());
+        $this->assertFileGone($pdf);
+        $this->assertFalse(Document::whereKey($document->id)->exists());
+        $this->assertFileGone($file);
+        $this->assertSame('cancelled', $request->fresh()->status);
+
+        $this->assertSoftDeleted('properties', ['id' => $this->property->id]);
+        $address = Address::withTrashed()->findOrFail($this->property->address_id);
+        $this->assertSoftDeleted('addresses', ['id' => $address->id]);
+        $this->assertSame('Morada removida', $address->street);
+    }
+
     // --------------------------------------------------------------- refusal
 
     public function test_a_refused_deletion_erases_nothing_not_even_files(): void

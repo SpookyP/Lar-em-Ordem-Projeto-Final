@@ -1,66 +1,111 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Lar em Ordem: API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API em Laravel 12 que serve o frontend React. A instalação (com ou sem Docker) está no
+[README da raiz](../README.md); aqui fica o que é preciso saber para trabalhar no código.
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Autenticação
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Sanctum em modo SPA:** sessão com cookie e proteção CSRF, sem tokens no browser.
+  O frontend pede `/sanctum/csrf-cookie` antes do primeiro `POST`.
+- **Fortify:**
+  - rotas já prontas: `/login`, `/logout`, `/forgot-password`, `/reset-password`, `/user/profile-information` e `/user/password`;
+  - o registo do Fortify está desligado: usa-se `/api/auth/register`, que só cria a conta depois de o email ser confirmado;
+  - 2FA e passkeys estão desligados em `config/fortify.php`.
+- **Login social (Google e Microsoft):** `/auth/{provider}/redirect` e `/auth/{provider}/callback` em `routes/web.php`.
+  O URL de callback a registar no Google/Microsoft é `APP_URL/auth/{provider}/callback`.
+- **Perfis:** são roles do Spatie Permission (`resident`, `service_provider`, `partner`, `condominium_admin`).
+  Cada perfil tem a sua tabela com os dados próprios e uma conta pode ter vários.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Learning Laravel
+## Estrutura
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
+app/
+├── Actions/Fortify/     # registo, perfil e passwords (validação incluída)
+├── Http/
+│   ├── Controllers/     # finos: validam, autorizam e chamam um serviço
+│   ├── Requests/        # FormRequests com regras e mensagens em pt-PT
+│   └── Resources/       # o JSON devolvido ao frontend (escondem campos sensíveis)
+├── Services/            # lógica de negócio, um por módulo
+├── Policies/            # quem pode ver/alterar cada recurso
+├── Models/              # agrupados por módulo
+├── Notifications/       # emails (confirmação de registo, reset de password, avisos)
+├── Events/              # eventos em tempo real (Reverb/Pusher)
+├── Jobs/ Console/       # tarefas agendadas
+└── Support/             # utilitários pequenos (ex.: Search, para pesquisas LIKE seguras)
+routes/
+├── api.php              # /api/v1/..., inclui os módulos de routes/modules/
+├── modules/             # uma rota por módulo: auth, property, invoice, vault, condominium...
+└── web.php              # login social e /forgot-password com rate limit
+lang/pt_PT/              # todas as mensagens da API em português de Portugal
+scripts/                 # scripts Python (extração de PDFs e médias de consumo)
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**Convenções**
+- Todas as rotas de `/api/v1` exigem sessão (`auth:sanctum`), exceto o catálogo público (zonas, categorias e health).
+- Cada `throttle` tem um nome próprio (ex.: `throttle:10,1,register`). Sem nome, as rotas partilhariam o mesmo contador.
+  A `RouteProtectionTest` falha se uma rota pública ficar sem limite.
+- Ficheiros sempre através do `FileStorageService` (disco `r2`). Os ficheiros pertencem ao utilizador que os enviou.
+- Os dados pessoais são apagados ou anonimizados pelos serviços em `app/Services/Privacy` (RGPD).
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
+## Tarefas em segundo plano
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+| Processo | Comando | O que faz |
+|---|---|---|
+| Fila | `php artisan queue:work` | Envia os emails e as notificações |
+| Scheduler | `php artisan schedule:work` | Verifica validades de documentos (todos os dias às 08:00) e calcula as médias de consumo (dia 15 de cada mês e 1 de fevereiro) |
+| Reverb | `php artisan reverb:start` | WebSockets para as notificações em tempo real (só em local; em produção é o Pusher) |
 
-### Premium Partners
+No Docker, cada um tem o seu container (`queue`, `scheduler`, `reverb`).
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
 
-## Contributing
+## Scripts Python (extração de PDFs)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Usados pelo Cofre Digital (extração da data de validade), pela extração de faturas e pelo cálculo das médias de consumo.
+Requerem **Python 3** no ambiente onde o PHP corre. No Docker já vêm instalados. Sem Docker, o `composer setup`
+instala-os com o pip; se o pip recusar instalar no Python do sistema (comum em Linux), usa um venv:
 
-## Code of Conduct
+```bash
+sh scripts/setup_python.sh
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Isto cria o `.venv/` (ignorado pelo git) com as dependências de `scripts/requirements.txt`.
+No `.env`, aponta o `PYTHON_PATH` para ele: `.venv/bin/python` (no Windows: `.venv\Scripts\python.exe`).
 
-## Security Vulnerabilities
+> No Windows sem `sh`: `python -m venv .venv` e `.venv\Scripts\pip install -r scripts\requirements.txt`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Sem Python?** O upload de documentos funciona na mesma, mas as datas (`issue_date`, `expiration_date`)
+têm de ser preenchidas à mão (a API devolve `extraction.success = false`).
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Variáveis de ambiente
+
+As variáveis que é preciso preencher, e o que cada uma espera, estão no [README da raiz](../README.md#-variáveis-do-env).
+As de produção estão em `.env.render.example`. Nunca coloques valores reais no git.
+
+
+## Testes
+
+```bash
+php artisan test                                   # todos
+php artisan test --filter AccountFormsTest         # um ficheiro
+```
+
+Os testes usam a base definida no `.env`. Para não apagar os dados de demonstração, corre-os com SQLite em memória,
+como a CI:
+
+```bash
+DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test
+```
+
+- `tests/Feature/`: pedidos HTTP completos, por módulo.
+- `tests/Unit/`: regras e serviços isolados.
+- `tests/Feature/Security/`: protege a tabela de rotas (autenticação e rate limits).
+
+
+## Produção (Render)
+
+O `Dockerfile.render` cria uma imagem com nginx, PHP-FPM, a fila e o scheduler, geridos pelo supervisord
+(`docker/render/`). Ao arrancar, o `start.sh` corre as migrações e faz cache da configuração, das rotas e das views.

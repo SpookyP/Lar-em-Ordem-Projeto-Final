@@ -39,7 +39,7 @@ class AssistanceRequestTest extends TestCase
         Storage::fake('r2');
 
         $this->morador     = User::where('email', 'morador@example.com')->firstOrFail();
-        $this->servicos    = User::where('email', 'service@example.com')->firstOrFail();
+        $this->servicos    = User::where('email', 'prestador@example.com')->firstOrFail();
         $this->servicinhos = User::where('email', 'residente@example.com')->firstOrFail();
         $this->casa        = $this->pedido('Sanita entupida')->property_id;
     }
@@ -274,7 +274,9 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonCount(3, 'data.proposals')
             ->assertJsonPath('data.property.id', $tomada->property_id)
             ->assertJsonPath('data.property.street', 'Rua Brito Capelo')
-            ->assertJsonStructure(['data' => ['proposals' => [['id', 'status', 'service_provider' => ['company_name']]]]]);
+            ->assertJsonStructure(['data' => ['proposals' => [['id', 'status', 'service_provider' => ['company_name']]]]])
+            // o NIF do prestador só o próprio o vê
+            ->assertJsonMissingPath('data.proposals.0.service_provider.nif');
     }
 
     public function test_o_prestador_com_proposta_ve_o_pedido_sem_propostas_nem_morada(): void
@@ -557,6 +559,15 @@ class AssistanceRequestTest extends TestCase
 
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available?search=caldeira')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_available_o_percento_da_pesquisa_e_procurado_como_texto(): void
+    {
+        // sem escapar, o "%" valia "qualquer texto" e mostrava a "Fuga"
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/assistance-requests/available?search=%25')
             ->assertOk()
             ->assertJsonCount(0, 'data');
     }

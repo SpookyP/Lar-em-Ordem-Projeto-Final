@@ -22,6 +22,13 @@ class AddressFactory extends Factory
         ['Aveiro', 'Aveiro'],
         ['Coimbra', 'Coimbra'],
     ];
+
+    private const STREETS = [
+        'Rua de Santa Catarina', 'Rua do Almada', 'Avenida da Boavista', 'Rua Brito Capelo',
+        'Avenida da Liberdade', 'Rua Augusta', 'Rua do Souto', 'Rua Ferreira Borges',
+        'Avenida Lourenço Peixinho', 'Rua da Prata',
+    ];
+
     /**
      * Define the model's default state.
      *
@@ -31,7 +38,7 @@ class AddressFactory extends Factory
     {
         [$district, $county] = fake()->randomElement(self::LOCATIONS);
         return [
-            'street'      => fake()->streetName(),
+            'street'      => fake()->randomElement(self::STREETS),
             'postal_code' => fake()->numerify('####-###'),
             'door'        => 'Nº ' . fake()->numberBetween(1, 300),
             'fraction'    => fake()->optional()->randomElement(['1º Dto', '2º Esq', '3º Frt', 'R/C Dir']),

@@ -93,6 +93,25 @@ class CondominiumNoticeTest extends TestCase
         $this->assertFalse(collect($this->sino())->firstWhere('title', 'Pintura da fachada')['read']);
     }
 
+        public function test_o_texto_do_aviso_nao_vira_link_no_email(): void
+    {
+        Notification::fake();
+
+        $this->actingAs($this->admin)
+            ->postJson("/api/v1/condominiums/{$this->condominio->id}/notices", [
+                'title'   => 'Quota em atraso',
+                'message' => 'Pague [aqui](https://evil.example).',
+            ])
+            ->assertCreated();
+
+        Notification::assertSentTo($this->morador, CondominiumNoticePublished::class, function (CondominiumNoticePublished $notification) {
+            $html = (string) $notification->toMail($this->morador)->render();
+
+            // the text stays readable, but nothing in it is clickable
+            return str_contains($html, '[aqui](https://evil.example)') && !str_contains($html, 'href="https://evil.example"');
+        });
+    }
+
     public function test_publicar_valida_os_campos(): void
     {
         $this->actingAs($this->admin)

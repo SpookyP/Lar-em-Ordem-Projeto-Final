@@ -72,8 +72,8 @@ class DatabaseSeeder extends Seeder
         $partner->assignRole('partner');
 
         $serviceProvider = User::factory()->create([
-            'name' => 'service',
-            'email' => 'service@example.com',
+            'name' => 'prestador',
+            'email' => 'prestador@example.com',
         ]);
         $serviceProvider->service_provider()->create([
             "company_name" => "Serviços Lda",

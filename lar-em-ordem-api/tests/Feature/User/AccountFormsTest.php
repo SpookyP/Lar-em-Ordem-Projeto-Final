@@ -3,10 +3,12 @@
 namespace Tests\Feature\User;
 
 use App\Models\User\User;
+use App\Notifications\ResetPassword;
 use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
@@ -40,7 +42,7 @@ class AccountFormsTest extends TestCase
 
     public function test_a_taken_email_says_so_instead_of_complaining_about_the_password(): void
     {
-        $this->postJson('/api/auth/register', $this->signUpAsResident('service@example.com', 'fraca'))
+        $this->postJson('/api/auth/register', $this->signUpAsResident('prestador@example.com', 'fraca'))
             ->assertStatus(422)
             ->assertJsonValidationErrors(['email' => 'O email já está em uso, tente novamente.'])
             ->assertJsonMissingValidationErrors(['password']);
@@ -74,10 +76,10 @@ class AccountFormsTest extends TestCase
         // the seeded password ("password") would not pass the rules for new passwords;
         // signing in at the end needs the SPA session
         $this->withHeaders(['Referer' => 'http://' . config('sanctum.stateful')[0]])
-            ->postJson('/api/auth/register', $this->signUpAsResident('service@example.com', 'password'))
+            ->postJson('/api/auth/register', $this->signUpAsResident('prestador@example.com', 'password'))
             ->assertCreated();
 
-        $this->assertTrue(User::where('email', 'service@example.com')->firstOrFail()->hasRole('resident'));
+        $this->assertTrue(User::where('email', 'prestador@example.com')->firstOrFail()->hasRole('resident'));
     }
 
     public function test_a_request_without_email_or_password_is_a_validation_error(): void
@@ -93,5 +95,48 @@ class AccountFormsTest extends TestCase
             ->putJson('/user/profile-information', ['name' => 'Sem Perfil'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['role']);
+    }
+
+    public function test_a_rule_without_its_own_message_answers_in_portuguese(): void
+    {
+        $data = ['name' => str_repeat('a', 256)] + $this->signUpAsResident('nova.conta@example.com', 'Lar-em-Ordem-2026!');
+
+        $this->postJson('/api/auth/register', $data)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['name' => 'O campo nome não pode ter mais de 255 caracteres.']);
+    }
+
+        public function test_a_name_with_a_link_is_refused(): void
+    {
+        $data = ['name' => 'Ana [clique aqui](https://evil.example)'] + $this->signUpAsResident('nova.conta@example.com', 'Lar-em-Ordem-2026!');
+
+        $this->postJson('/api/auth/register', $data)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['name' => 'O nome só pode ter letras, espaços, apóstrofos e hífenes.']);
+    }
+
+    public function test_forgot_password_answers_the_same_whether_the_account_exists_or_not(): void
+    {
+        Notification::fake();
+
+        $sent = $this->postJson('/forgot-password', ['email' => 'morador@example.com'])->assertOk()->json();
+
+        $this->postJson('/forgot-password', ['email' => 'ninguem@example.com'])->assertOk()->assertExactJson($sent);
+        // a second link within the minute is refused by the broker, which would also give the account away
+        $this->postJson('/forgot-password', ['email' => 'morador@example.com'])->assertOk()->assertExactJson($sent);
+    }
+
+    public function test_the_forgotten_password_email_is_in_portuguese_and_opens_the_frontend(): void
+    {
+        Notification::fake();
+        $user = User::where('email', 'morador@example.com')->firstOrFail();
+
+        $this->postJson('/forgot-password', ['email' => $user->email])->assertOk();
+
+        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
+            return str_starts_with($notification->url, config('oauth.frontend_url') . '/reset-password?token=')
+                && str_contains($notification->url, 'email=' . urlencode($user->email))
+                && $notification->toMail($user)->subject === 'Repor a password - Lar em Ordem';
+        });
     }
 }

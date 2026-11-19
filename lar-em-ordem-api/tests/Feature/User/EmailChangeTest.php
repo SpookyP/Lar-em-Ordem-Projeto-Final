@@ -12,7 +12,8 @@ use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
- * Changing the email in the account settings: the new address has to be confirmed again and the old one is freed.
+ * Changing the email in the account settings: it asks for the password, the new address has to be
+ * confirmed again and the old one is freed.
  * Accounts linked to Google/Microsoft cannot change it, because the provider is what confirmed it.
  */
 class EmailChangeTest extends TestCase
@@ -31,6 +32,7 @@ class EmailChangeTest extends TestCase
         return $this->actingAs($user)->putJson('/user/profile-information', array_merge([
             'role' => 'resident',
             'nif'  => '298765432',
+            'current_password' => 'password',
         ], $extra));
     }
 
@@ -64,8 +66,27 @@ class EmailChangeTest extends TestCase
                 && ($query['id'] ?? null) === (string) $user->id
                 && ($query['hash'] ?? null) === sha1('novo@example.com')
                 && isset($query['expires'], $query['signature'])
-                && $notification->minutes === 10;
+                && $notification->minutes === 10
+                && $notification->newAccount === false;
         });
+    }
+
+    public function test_changing_the_email_needs_the_current_password(): void
+    {
+        Notification::fake();
+        $user = $this->resident();
+        $old = $user->email;
+
+        $this->update($user, ['email' => 'novo@example.com', 'current_password' => null])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password' => 'Indique a password atual para mudar o email.']);
+
+        $this->update($user, ['email' => 'novo@example.com', 'current_password' => 'errada'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password' => 'A password atual não está correta.']);
+
+        $this->assertSame($old, $user->fresh()->email);
+        Notification::assertNothingSent();
     }
 
     public function test_keeping_the_same_email_does_not_ask_for_a_new_confirmation(): void

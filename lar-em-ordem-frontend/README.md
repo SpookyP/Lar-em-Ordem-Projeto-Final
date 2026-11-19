@@ -1,16 +1,72 @@
-# React + Vite
+# Lar em Ordem: Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SPA em React 19 + Vite + Tailwind CSS 4 que consome a API Laravel. A instalação (com ou sem Docker) está no
+[README da raiz](../README.md).
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Scripts
 
-## React Compiler
+```bash
+npm run dev       # servidor de desenvolvimento em http://localhost:5173
+npm run lint      # ESLint (a CI falha se houver erros)
+npm run build     # build de produção para dist/
+npm run preview   # serve o build localmente
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+## Variáveis de ambiente
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Copia o `.env.example` para `.env`. As variáveis `VITE_*` ficam embutidas no build, por isso nunca devem ter segredos.
+
+| Variável | Para quê |
+|---|---|
+| `VITE_API_BASE_URL` | Endereço da API em desenvolvimento (`http://localhost:8000`). Em produção fica vazia: os pedidos vão para o próprio site e a Vercel reencaminha-os |
+| `VITE_REVERB_*` | Ligação ao Reverb em desenvolvimento |
+| `VITE_BROADCASTER`, `VITE_PUSHER_*` | Só em produção: `VITE_BROADCASTER=pusher` e a chave pública do Pusher |
+
+
+## Estrutura
+
+```
+src/
+├── pages/          # um ecrã por pasta, agrupados por perfil (Resident, ServiceProvider, Partner, CondominiumAdmin...)
+├── components/     # componentes reutilizáveis (ui, form, layout, profile, condominium)
+├── hooks/          # lógica dos ecrãs e pedidos à API (useHouses, useInvoices, usePagedList...)
+├── services/
+│   ├── api/        # um serviço por módulo da API, todos sobre o axiosClient
+│   └── echo.js     # notificações em tempo real (Reverb em local, Pusher em produção)
+├── context/        # sessão do utilizador (AuthContext) e casa selecionada (HousesContext)
+├── routes/         # AppRoutes e as proteções: PrivateRoute, GuestRoute, RequireHouse
+├── data/           # textos e configuração estática
+└── utils/          # formatação, datas, erros da API, roles...
+```
+
+
+## Como fala com a API
+
+- O `services/api/axiosClient.js` envia os cookies (`withCredentials`) e o token CSRF do Sanctum.
+  Antes do login pede `/sanctum/csrf-cookie`.
+- Se a sessão expira (401 ou 419), o utilizador é enviado para o login, exceto nos pedidos de autenticação.
+- As mensagens de erro da API já chegam em português; o `utils/apiError.js` transforma qualquer erro
+  (422, 403, 429, sem ligação...) numa mensagem para mostrar ao utilizador.
+- As rotas protegidas usam o `PrivateRoute`, que verifica a sessão e o perfil ativo. A API valida sempre tudo outra vez:
+  esconder um botão no frontend não é segurança.
+
+
+## Docker
+
+O `Dockerfile` tem duas etapas principais:
+- `development`: usada pelo `compose.yml`, corre o `npm run dev` com o código montado do disco (hot reload);
+- `runner`: o build de produção servido com o `serve`.
+
+
+## Produção (Vercel)
+
+O `vercel.json` define:
+- **rewrites:** `/api`, `/sanctum`, `/auth` e os pedidos do Fortify (`/login`, `/logout`, `/forgot-password`,
+  `/reset-password`, `/user/...`) vão para a API no Render; o resto vai para o `index.html` (rotas do React Router).
+  As rotas do Fortify só são reencaminhadas quando vêm do Axios (header `X-Requested-With`), porque o React usa os
+  mesmos caminhos para as suas páginas. Como tudo passa pelo mesmo domínio, o cookie de sessão é do próprio site;
+- **headers de segurança:** `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` e HSTS.
+
+As variáveis `VITE_*` de produção são definidas no painel da Vercel.

@@ -39,7 +39,7 @@ class PendingRegistrationController extends Controller
 
             return response()->json([
                 'status' => 'created',
-                'message' => 'Operation successful.',
+                'message' => 'Conta criada.',
                 'user' => $user->load(['roles', 'resident', 'service_provider', 'partner', 'condominium_admin']),
             ], 201);
         }

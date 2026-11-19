@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LineChart,
   Line,
@@ -10,6 +9,17 @@ import {
   ReferenceLine,
   Tooltip,
 } from "recharts";
+import {
+  MONTHS,
+  asNumber,
+  buildMonthlySeries,
+  indexToKey,
+  keyToIndex,
+  monthKey,
+  monthLabel,
+  monthLongLabel,
+  monthsBetween,
+} from "./invoiceTimeline";
 
 import { buildMonthlySeries } from "./invoiceTimelineUtils";
 
@@ -459,6 +469,10 @@ export default function InvoiceTimelineChart({
   // Referência ao contentor do gráfico e respetiva largura.
   const wrapRef = useRef(null);
   const [wrapWidth, setWrapWidth] = useState(0);
+  const attachWrap = useCallback((element) => {
+    wrapRef.current = element;
+    setWrapElement(element);
+  }, []);
 
   // Controla o posicionamento inicial e a emissão do intervalo predefinido.
   const scrolledToEnd = useRef(false);

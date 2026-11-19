@@ -4,10 +4,14 @@ namespace App\Services\Invoice;
 
 use App\Models\Invoice\Invoice;
 use App\Models\File\File;
+use App\Models\Property\Property;
 use App\Models\User\Resident;
+use App\Models\User\User;
 use App\Services\FileStorage\FileStorageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class InvoiceService
 {
@@ -74,16 +78,42 @@ class InvoiceService
     }
 
     /**
+     * Registar uma fatura com os consumos e, se vier, o PDF.
+     * O PDF só é guardado no R2 neste momento, quando a fatura é registada.
+     * Se o registo falhar, o PDF é apagado: não ficam ficheiros sem fatura.
+     */
+    public function createInvoiceWithConsumptions(
+        User $user,
+        array $invoiceData,
+        array $consumptionsData,
+        ?UploadedFile $pdf = null
+    ): Invoice {
+        $file = $pdf ? $this->files->uploadUserFile($user, $pdf, self::FILE_CATEGORY) : null;
+
+        try {
+            return $this->saveInvoice(
+                $user->resident->id,
+                $invoiceData + ['file_id' => $file?->id],
+                $consumptionsData
+            );
+        } catch (Throwable $e) {
+            if ($file) {
+                $this->files->deleteFile($file);
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
      * Criar uma fatura e os respetivos consumos
      * dentro de uma transação.
      */
-    public function createInvoiceWithConsumptions(
+    private function saveInvoice(
         string $residentId,
         array $invoiceData,
         array $consumptionsData
     ): Invoice {
-        // O ficheiro já foi guardado e validado.
-        // Aqui apenas associamos o seu ID à fatura.
         return DB::transaction(function () use (
             $residentId,
             $invoiceData,
@@ -190,6 +220,27 @@ class InvoiceService
             ->where('user_id', $resident->user_id)
             ->where('category', self::FILE_CATEGORY)
             ->whereDoesntHave('invoice')
+            ->get()
+            ->each(fn (File $file) => $this->files->deleteFile($file));
+    }
+    
+    /**
+     * Apagar todas as faturas de uma propriedade (os consumos vão em cascata)
+     * e os respetivos ficheiros.
+     */
+    public function deleteAllForProperty(Property $property): void
+    {
+        $fileIds = Invoice::query()
+            ->where('property_id', $property->id)
+            ->whereNotNull('file_id')
+            ->pluck('file_id');
+
+        Invoice::query()
+            ->where('property_id', $property->id)
+            ->delete();
+
+        File::query()
+            ->whereIn('id', $fileIds)
             ->get()
             ->each(fn (File $file) => $this->files->deleteFile($file));
     }

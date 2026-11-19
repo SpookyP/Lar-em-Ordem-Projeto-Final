@@ -6,21 +6,6 @@ import { getCounties, getDistricts, zoneIdsFor } from "../../utils/zones";
 import { MultiSearchSelect, SearchSelect, TextInput } from "../form";
 import { chipClass } from "../form/styles";
 
-export const EMPTY_COVERAGE = {
-  zone_ids: [],
-  service_specialty_ids: [],
-  custom_specialties: [],
-};
-
-/** The three coverage keys the API expects, ready to merge into a request payload. */
-export function coverageToPayload(coverage) {
-  return {
-    zone_ids: coverage.zone_ids,
-    service_specialty_ids: coverage.service_specialty_ids,
-    custom_specialties: coverage.custom_specialties ?? [],
-  };
-}
-
 const DISTRICT_PREFIX = "district:";
 
 function useCatalog(load) {
@@ -61,7 +46,11 @@ function useCountyIndex(zones) {
 
       getCounties(zones, district).forEach((county) => {
         const key = `${district}|${county}`;
-        counties.set(key, { district, county, ids: zoneIdsFor(zones, district, county) });
+        counties.set(key, {
+          district,
+          county,
+          ids: zoneIdsFor(zones, district, county),
+        });
         options.push({ value: key, label: county, description: district });
       });
     });
@@ -75,7 +64,9 @@ function useCountyIndex(zones) {
 }
 
 function selectedCountyKeys(index, zoneIds) {
-  return [...new Set(zoneIds.map((id) => index.keyByZoneId.get(id)).filter(Boolean))];
+  return [
+    ...new Set(zoneIds.map((id) => index.keyByZoneId.get(id)).filter(Boolean)),
+  ];
 }
 
 function CatalogMessage({ failed, what }) {
@@ -213,7 +204,10 @@ function CustomSpecialtyEditor({ categories, value, onChange, error }) {
       {value.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {value.map((c, index) => (
-            <span key={`${c.problem_category_id}|${c.name}`} className={chipClass}>
+            <span
+              key={`${c.problem_category_id}|${c.name}`}
+              className={chipClass}
+            >
               {c.name} · {categoryName(c.problem_category_id)}
               <button
                 type="button"
@@ -297,12 +291,17 @@ export function SpecialtyCoverageField({ value, onChange, errors = {} }) {
   const options = useMemo(
     () =>
       (categories ?? []).flatMap((c) =>
-        c.specialties.map((s) => ({ value: s.id, label: s.name, description: c.label })),
+        c.specialties.map((s) => ({
+          value: s.id,
+          label: s.name,
+          description: c.label,
+        })),
       ),
     [categories],
   );
 
-  if (!categories) return <CatalogMessage failed={failed} what="as especialidades" />;
+  if (!categories)
+    return <CatalogMessage failed={failed} what="as especialidades" />;
 
   return (
     <div className="flex flex-col gap-3">
@@ -329,13 +328,16 @@ export function SpecialtyCoverageField({ value, onChange, errors = {} }) {
 export function SpecialtySummary({ value }) {
   const { data: categories, failed } = useCatalog(getCategories);
 
-  if (!categories) return <CatalogMessage failed={failed} what="as especialidades" />;
+  if (!categories)
+    return <CatalogMessage failed={failed} what="as especialidades" />;
 
   const catalogNames = new Map(
     categories.flatMap((c) => c.specialties.map((s) => [s.id, s.name])),
   );
   const names = [
-    ...value.service_specialty_ids.map((id) => catalogNames.get(id)).filter(Boolean),
+    ...value.service_specialty_ids
+      .map((id) => catalogNames.get(id))
+      .filter(Boolean),
     ...(value.custom_specialties ?? []).map((c) => c.name),
   ];
 

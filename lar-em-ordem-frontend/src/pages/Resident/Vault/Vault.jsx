@@ -28,7 +28,6 @@ export default function Vault() {
   const propertyId = isOwner ? (activeHouse?.id ?? null) : null;
 
   const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -38,26 +37,33 @@ export default function Vault() {
   const [editingDoc, setEditingDoc] = useState(null);
   const [deletingDoc, setDeletingDoc] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [loadedKey, setLoadedKey] = useState(null);
+
+  //loading derivado: estamos a carregar enquanto o resultado que temos não for o do pedido atual
+  const requestKey = propertyId ? `${propertyId}|${refreshKey}` : null;
+  const loading = Boolean(propertyId) && loadedKey !== requestKey;
 
   useEffect(() => {
     if (!propertyId) return;
     let active = true;
-    setLoading(true);
-    setError("");
     getPropertyDocuments({ propertyId, perPage: 15 })
       .then((res) => {
-        if (active) setDocs(res.items);
+        if (active) {
+          setDocs(res.items);
+          setError("");
+          setLoadedKey(requestKey);
+        }
       })
       .catch(() => {
-        if (active) setError("Não foi possível carregar os documentos.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
+        if (active) {
+          setError("Não foi possível carregar os documentos.");
+          setLoadedKey(requestKey);
+        }
       });
     return () => {
       active = false;
     };
-  }, [propertyId, refreshKey]);
+  }, [propertyId, refreshKey, requestKey]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

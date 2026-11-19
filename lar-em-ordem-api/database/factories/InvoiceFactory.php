@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class InvoiceFactory extends Factory
 {
     protected $model = Invoice::class;
+    
+    private const SUPPLIERS = ['EDP Comercial', 'Galp', 'Endesa', 'Goldenergy', 'Águas do Porto', 'EPAL'];
 
     /**
      * Define the model's default state.
@@ -28,7 +30,7 @@ class InvoiceFactory extends Factory
             'period_start'      =>      $start->toDateString(),
             'period_end'        =>      $start->copy()->endOfMonth()->toDateString(),
             'total_amount'      =>      $this->faker->randomFloat(2, 20, 500),
-            'supplier'          =>      $this->faker->company(),
+            'supplier'          =>      $this->faker->randomElement(self::SUPPLIERS),
             'file_id'           =>      null,
         ];
     }

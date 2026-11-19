@@ -108,10 +108,10 @@ export function ZoneSelect({ district, county, location, onChange }) {
       />
       <Select
         id="location"
-        label="Localidade"
+        label="Freguesia"
         value={location}
         options={locations}
-        placeholder="Escolher localidade..."
+        placeholder="Escolher freguesia..."
         disabled={!county}
         required
         onChange={(value) => onChange({ district, county, location: value })}

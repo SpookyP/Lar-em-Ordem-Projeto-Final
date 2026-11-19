@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Invoice;
 
-use App\Services\Invoice\InvoiceService;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -61,18 +60,8 @@ class StoreInvoiceRequest extends FormRequest
             'total_amount' => ['required', 'numeric', 'min:0'],
             'supplier' => ['required', 'string', 'max:255'],
 
-            // Validar o ficheiro na tabela files.
-            // O ficheiro tem de pertencer ao utilizador e à categoria das faturas.
-            // Também não pode estar associado a outra fatura.
-            'file_id' => [
-                'bail',
-                'nullable',
-                'ulid',
-                Rule::exists('files', 'id')
-                    ->where('user_id', $this->user()->id)
-                    ->where('category', InvoiceService::FILE_CATEGORY),
-                Rule::unique('invoices', 'file_id'),
-            ],
+            // PDF da fatura, opcional. Só é guardado quando a fatura é registada.
+            'file' => ['nullable', 'file', 'mimes:pdf', 'mimetypes:application/pdf', 'max:10240'],
 
             // Consumos principais (no máximo 10 por fatura).
             'consumptions' => ['required', 'array', 'max:10'],
@@ -136,7 +125,6 @@ class StoreInvoiceRequest extends FormRequest
             'period_end',
             'total_amount',
             'supplier',
-            'file_id',
         ]);
     }
 
@@ -158,9 +146,11 @@ class StoreInvoiceRequest extends FormRequest
             'period_end.after_or_equal' => 'A data de fim do período deve ser igual ou posterior à data de início.',
             'total_amount.min' => 'O valor total não pode ser negativo.',
 
-            'file_id.ulid' => 'O identificador do ficheiro é inválido.',
-            'file_id.exists' => 'O ficheiro da fatura é inválido ou já expirou.',
-            'file_id.unique' => 'Este ficheiro já está associado a outra fatura.',
+            'file.file' => 'O ficheiro enviado é inválido.',
+            'file.mimes' => 'A fatura tem de ser um ficheiro PDF.',
+            'file.mimetypes' => 'A fatura tem de ser um ficheiro PDF.',
+            'file.max' => 'O ficheiro não pode ter mais de 10 MB.',
+            'file.uploaded' => 'Não foi possível carregar o ficheiro. Tente novamente.',
 
             'consumptions.required' => 'Indique pelo menos um consumo.',
             'consumptions.max' => 'Cada fatura pode ter no máximo 10 consumos.',
@@ -185,7 +175,7 @@ class StoreInvoiceRequest extends FormRequest
             'period_end' => 'fim do período',
             'total_amount' => 'valor total',
             'supplier' => 'fornecedor',
-            'file_id' => 'ficheiro',
+            'file' => 'ficheiro',
 
             'consumptions' => 'consumos',
             'consumptions.*.consumption_type_id' => 'tipo de consumo',

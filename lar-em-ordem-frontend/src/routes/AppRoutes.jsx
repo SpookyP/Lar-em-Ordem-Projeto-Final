@@ -6,6 +6,7 @@ import { SiteLayout } from "../components/layout/SiteLayout";
 import { SessionTimeout } from "../components/layout/SessionTimeout";
 import { ROLES } from "../utils/roles";
 import { lazy, Suspense } from "react";
+import { RequireHouse } from "./RequireHouse";
 
 //Login fica eager: é a página de entrada, evita loading no arranque
 import Login from "../pages/Login/Login";
@@ -104,17 +105,19 @@ function AppRoutesInner() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
+          <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
         {/* Rota publica: qualquer um pode aceder */}
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-      
+
         {/* Rota publica, mas com a sidebar para quem tem sessao */}
         <Route element={<SiteLayout />}>
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/about" element={<SitePage page="about" />} />
           <Route path="/help" element={<SitePage page="help" />} />
-          <Route path="/terms" element={<SitePage page="terms" />} /></Route>
+          <Route path="/terms" element={<SitePage page="terms" />} />
+        </Route>
 
         {/* Rotas protegidas: so quem tem login */}
         <Route element={<PrivateRoute />}>
@@ -127,16 +130,18 @@ function AppRoutesInner() {
             <Route path="/settings" element={<Settings />} />
 
             <Route element={<PrivateRoute allowedRoles={[ROLES.RESIDENT]} />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/assistance" element={<Assistance />} />
-              <Route path="/assistance/:id" element={<AssistanceDetail />} />
-              <Route path="/condominio" element={<ResidentCondominium />} />
-              <Route path="/consumos" element={<Consumption />} />
-              <Route path="/partners" element={<Partners />} />
-              <Route path="/offers" element={<Offers />} />
-              <Route path="/offers/:id" element={<OfferDetail />} />
-              <Route path="/faturas" element={<Invoice />} />
-              <Route path="/vault" element={<Vault />} />
+              <Route element={<RequireHouse />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/assistance" element={<Assistance />} />
+                <Route path="/assistance/:id" element={<AssistanceDetail />} />
+                <Route path="/condominio" element={<ResidentCondominium />} />
+                <Route path="/consumos" element={<Consumption />} />
+                <Route path="/partners" element={<Partners />} />
+                <Route path="/offers" element={<Offers />} />
+                <Route path="/offers/:id" element={<OfferDetail />} />
+                <Route path="/faturas" element={<Invoice />} />
+                <Route path="/vault" element={<Vault />} />
+              </Route>
             </Route>
 
             <Route
@@ -145,7 +150,10 @@ function AppRoutesInner() {
               <Route path="/provider/requests" element={<JobListing />} />
               <Route path="/provider/requests/:id" element={<Offer />} />
               <Route path="/provider/proposals" element={<Proposals />} />
-              <Route path="/provider/requests/:id/proposal" element={<ProposalFormPage />} />
+              <Route
+                path="/provider/requests/:id/proposal"
+                element={<ProposalFormPage />}
+              />
             </Route>
 
             <Route element={<PrivateRoute allowedRoles={[ROLES.PARTNER]} />}>

@@ -3,6 +3,7 @@
 namespace App\Models\User;
 
 use App\Notifications\ConfirmRegistration;
+use App\Notifications\ResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -62,7 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Sends the link to confirm a changed email. Overrides the MustVerifyEmail default so the email
-     * is a ConfirmRegistration and the link opens the frontend instead of the API.
+     * is a ConfirmRegistration for an existing account and the link opens the frontend instead of the API.
      */
     public function sendEmailVerificationNotification()
     {
@@ -84,7 +85,21 @@ class User extends Authenticatable implements MustVerifyEmail
             'signature' => $query['signature'] ?? '',
         ]);
 
-        $this->notify(new ConfirmRegistration($this->name, $url, $minutes));
+        $this->notify(new ConfirmRegistration($this->name, $url, $minutes, newAccount: false));
+    }
+
+    /**
+     * Sends the "Esqueci-me da password" link. Overrides the Laravel default so the email is
+     * in Portuguese and the link opens the frontend's reset page.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $url = config('oauth.frontend_url') . '/reset-password?' . http_build_query([
+            'token' => $token,
+            'email' => $this->getEmailForPasswordReset(),
+        ]);
+
+        $this->notify(new ResetPassword($this->name, $url, config('auth.passwords.users.expire')));
     }
 
     /**
@@ -95,6 +110,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**

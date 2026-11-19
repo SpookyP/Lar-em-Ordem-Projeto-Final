@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { DatePicker, SegmentedControl, TextArea, TextInput } from "../form";
-import { createNotice, updateNotice } from "../../services/api/condominiumService";
+import {
+  createNotice,
+  updateNotice,
+} from "../../services/api/condominiumService";
 import { PRIORITY_OPTIONS, isNoticeCurrent } from "../../data/condominiumInfo";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import { todayISO } from "../../utils/date";
@@ -28,7 +31,12 @@ function validate(form) {
 }
 
 /** Publish a notice to the condominium, or edit one. */
-export function NoticeForm({ condominiumId, notice = null, onSaved, onCancel }) {
+export function NoticeForm({
+  condominiumId,
+  notice = null,
+  onSaved,
+  onCancel,
+}) {
   const isEdit = Boolean(notice);
   const [form, setForm] = useState({
     title: notice?.title ?? "",
@@ -42,7 +50,10 @@ export function NoticeForm({ condominiumId, notice = null, onSaved, onCancel }) 
 
   function set(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
-    setErrors((current) => ({ ...current, [name === "expires_on" ? "expires_at" : name]: undefined }));
+    setErrors((current) => ({
+      ...current,
+      [name === "expires_on" ? "expires_at" : name]: undefined,
+    }));
   }
 
   async function handleSubmit(e) {
@@ -76,8 +87,14 @@ export function NoticeForm({ condominiumId, notice = null, onSaved, onCancel }) 
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <p className="text-xs text-muted">
+        <span className="text-red">*</span> Campos de preenchimento obrigatório
+      </p>
       {formError && (
-        <p role="alert" className="rounded-lg bg-red-light px-3 py-2 text-sm text-red">
+        <p
+          role="alert"
+          className="rounded-lg bg-red-light px-3 py-2 text-sm text-red"
+        >
           {formError}
         </p>
       )}
@@ -115,11 +132,11 @@ export function NoticeForm({ condominiumId, notice = null, onSaved, onCancel }) 
           onChange={(value) => set("expires_on", value)}
           error={errors.expires_at}
           placeholder="Sem data de fim"
-          hint="Opcional. Sem data, fica em vigor até ser apagado."
+          hint="Sem data, fica em vigor até ser apagado."
         />
       </div>
 
-      <p className="text-xs text-muted">
+      <p className="rounded-xl bg-surface px-4 py-3 text-sm text-muted">
         {isEdit && isNoticeCurrent(notice)
           ? "Ao guardar, o aviso volta a ficar por ler e é enviado de novo por email aos residentes."
           : isEdit
@@ -140,7 +157,11 @@ export function NoticeForm({ condominiumId, notice = null, onSaved, onCancel }) 
           disabled={saving}
           className="rounded-xl bg-navy px-5 py-2.5 font-bold text-white transition hover:bg-navy-light disabled:opacity-60"
         >
-          {saving ? "A guardar..." : isEdit ? "Guardar alterações" : "Publicar aviso"}
+          {saving
+            ? "A guardar..."
+            : isEdit
+              ? "Guardar alterações"
+              : "Publicar aviso"}
         </button>
       </div>
     </form>

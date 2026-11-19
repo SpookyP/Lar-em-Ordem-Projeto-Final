@@ -34,10 +34,10 @@ class CondominiumNoticePublished extends Notification implements ShouldQueue
             ->subject("{$condominium->name} - {$prefix}: {$this->notice->title}")
             ->greeting("Olá, {$notifiable->name}!")
             ->line($this->updated
-                ? "Um aviso do condomínio {$condominium->name} foi atualizado."
-                : "Há um novo aviso do condomínio {$condominium->name}.")
-            ->line("**{$this->notice->title}**")
-            ->line($this->notice->message);
+                ? "Um aviso do condomínio {$this->plain($condominium->name)} foi atualizado."
+                : "Há um novo aviso do condomínio {$this->plain($condominium->name)}.")
+            ->line("**{$this->plain($this->notice->title)}**")
+            ->line($this->plain($this->notice->message));
 
         if ($this->notice->expires_at) {
             $mail->line('Válido até ' . $this->notice->expires_at->format('d/m/Y H:i') . '.');
@@ -50,5 +50,10 @@ class CondominiumNoticePublished extends Notification implements ShouldQueue
         return $mail
             ->action('Ver no Lar em Ordem', config('oauth.frontend_url'))
             ->salutation('Lar em Ordem');
+    }
+
+    private function plain(string $text): string
+    {
+        return preg_replace('/([\\\\\[\]])/', '\\\\$1', $text);
     }
 }

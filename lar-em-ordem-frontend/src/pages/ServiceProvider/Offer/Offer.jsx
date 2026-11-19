@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, MapPin, Pencil, Send } from "lucide-react";
 import { useAssistanceRequest } from "../../../hooks/useAssistanceRequest";
 import { categoryInfo, proposalStatus, providerRequestLabel } from "../../../data/assistanceInfo";
@@ -27,7 +27,7 @@ function Row({ label, value }) {
   );
 }
 
-function MyProposal({ proposal }) {
+function MyProposal({ proposal, requestId }) {
   const status = proposalStatus(proposal.status, proposal.isExpired);
 
   return (
@@ -58,8 +58,7 @@ function MyProposal({ proposal }) {
 
       {proposal.status === "pending" && (
         <Link
-          to={`/provider/requests/${proposal.request.id}/proposal`}
-          state={{ proposal }}
+          to={`/provider/requests/${requestId}/proposal`}
           className="flex items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3.5 font-semibold text-white transition hover:bg-navy-light"
         >
           <Pencil size={17} aria-hidden="true" />
@@ -96,12 +95,8 @@ function NoProposal({ request }) {
 
 export default function Offer() {
   const { id } = useParams();
-  const { state } = useLocation();
   const { request, loading, error } = useAssistanceRequest(id);
   const { icon: Icon, color } = categoryInfo(request?.category.slug);
-
-  // the list of proposals sends the proposal along when it opens its request
-  const proposal = state?.proposal?.request?.id === id ? state.proposal : null;
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -165,8 +160,8 @@ export default function Offer() {
           </article>
 
           <div className="min-w-0">
-            {proposal ? (
-              <MyProposal proposal={proposal} />
+            {request.myProposal ? (
+              <MyProposal proposal={request.myProposal} requestId={request.id} />
             ) : (
               <NoProposal request={request} />
             )}

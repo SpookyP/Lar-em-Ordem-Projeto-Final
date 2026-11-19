@@ -107,30 +107,31 @@ class ProposalService
 
     /**
      * Aceita uma proposta: as outras pendentes do mesmo pedido são rejeitadas
-     * e o pedido passa a 'closed'. Tudo numa transação.
+     * e o pedido passa a 'closed'. Tudo numa transação, com o pedido bloqueado:
+     * se duas propostas forem aceites ao mesmo tempo, a segunda já encontra o pedido fechado.
      *
      * @param Proposal $proposal Proposta a aceitar.
      * @return Proposal
      */
     public function accept(Proposal $proposal): Proposal
     {
-        $this->ensurePending($proposal, 'Só é possível aceitar propostas pendentes.');
+        DB::transaction(function () use ($proposal) {
+            $assistanceRequest = AssistanceRequest::lockForUpdate()->findOrFail($proposal->assistance_request_id);
 
-        $assistanceRequest = $proposal->assistanceRequest;
+            $this->ensurePending($proposal, 'Só é possível aceitar propostas pendentes.');
 
-        if (! $assistanceRequest->isOpen()) {
-            throw ValidationException::withMessages([
-                'status' => 'O pedido já não está aberto.',
-            ]);
-        }
+            if (! $assistanceRequest->isOpen()) {
+                throw ValidationException::withMessages([
+                    'status' => 'O pedido já não está aberto.',
+                ]);
+            }
 
-        if ($proposal->isExpired()) {
-            throw ValidationException::withMessages([
-                'validity' => 'Esta proposta já expirou.',
-            ]);
-        }
+            if ($proposal->isExpired()) {
+                throw ValidationException::withMessages([
+                    'validity' => 'Esta proposta já expirou.',
+                ]);
+            }
 
-        DB::transaction(function () use ($proposal, $assistanceRequest) {
             $proposal->update([
                 'status'        => 'accepted',
                 'response_date' => now(),
@@ -147,7 +148,7 @@ class ProposalService
             ]);
         });
 
-        return $proposal->load('serviceProvider');
+        return $proposal->refresh()->load('serviceProvider');
     }
 
     /**

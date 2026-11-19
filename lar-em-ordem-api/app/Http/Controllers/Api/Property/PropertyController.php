@@ -88,7 +88,7 @@ class PropertyController extends Controller
     public function destroy(Property $property)
     {
         $this->service->deleteResidentProperty($property);
-        return response()->json(['message' => 'Casa excluída.']);
+        return response()->json(['message' => 'Casa eliminada.']);
     }
 
     /**
@@ -100,26 +100,6 @@ class PropertyController extends Controller
  
         return response()->json([
             'data' => $this->service->getPropertyForms()
-        ]);
-    }
-
-    public function terminateContract(Request $request, Property $property): JsonResponse
-    {
-        $this->authorize('terminateContract', $property);
-
-        $terminated = $this->service->terminateContract(
-            property: $property,
-            user: $request->user()
-        );
-
-        if (!$terminated) {
-            return response()->json([
-                'message' => 'Não tens um contrato ativo nesta casa.'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'Contrato terminado.'
         ]);
     }
 }

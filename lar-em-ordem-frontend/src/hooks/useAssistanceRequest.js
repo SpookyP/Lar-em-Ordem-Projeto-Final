@@ -13,10 +13,11 @@ export function useAssistanceRequest(id) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [version, setVersion] = useState(0);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     let active = true;
-    getAssistanceRequest(id)
+    getAssistanceRequest(id, { page })
       .then((data) => {
         if (active) {
           setRequest(data);
@@ -32,11 +33,11 @@ export function useAssistanceRequest(id) {
     return () => {
       active = false;
     };
-  }, [id, version]);
+  }, [id, version, page]);
 
   function reload() {
     setVersion((v) => v + 1);
   }
 
-  return { request, loading, error, reload };
+  return { request, loading, error, reload, page, setPage };
 }

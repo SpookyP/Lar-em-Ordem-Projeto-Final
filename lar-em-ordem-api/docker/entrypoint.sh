@@ -5,7 +5,7 @@ cd /var/www/html
 rm -f /tmp/ready
 
 if [ ! -f .env ]; then
-  echo "Falta o .env em lar-em-ordem-api (corre: make init)" >&2
+  echo "Falta o .env em lar-em-ordem-api (copia o .env.example para .env)" >&2
   exit 1
 fi
 
@@ -27,7 +27,8 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
     sleep 2
   done
   if php artisan migrate:status >/dev/null 2>&1; then
-    echo "Base de dados ja migrada: a saltar migrate:fresh" >&2
+    echo "Base de dados ja migrada: a correr so as migracoes novas" >&2
+    php artisan migrate --force
   else
     php artisan migrate:fresh --seed
   fi

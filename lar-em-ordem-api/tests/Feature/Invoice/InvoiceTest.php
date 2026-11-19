@@ -20,7 +20,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -229,19 +228,6 @@ class InvoiceTest extends TestCase
     private function pdf(): UploadedFile
     {
         return UploadedFile::fake()->create('fatura.pdf', 100, 'application/pdf');
-    }
-
-    private function invoiceFile(User $owner): File
-    {
-        $file = File::factory()->create([
-            'user_id' => $owner->id,
-            'category' => InvoiceService::FILE_CATEGORY,
-            'path' => "users/{$owner->id}/invoices/" . Str::ulid() . '.pdf',
-        ]);
-
-        Storage::disk('r2')->put($file->path, 'pdf');
-
-        return $file;
     }
 
     public function test_endpoints_require_authentication(): void
@@ -477,10 +463,17 @@ class InvoiceTest extends TestCase
             ->assertJsonPath('data.0.property_id', $second->id);
     }
 
-    public function test_invoice_upload_and_file_url_flow(): void
+    public function test_an_invoice_without_a_pdf_has_no_file_content(): void
     {
-        $user = auth()->user();
+        $invoiceId = $this->postJson('/api/v1/invoices', $this->payload($this->property))
+            ->assertCreated()
+            ->json('data.id');
 
+        $this->getJson("/api/v1/invoices/{$invoiceId}/file/content")->assertNotFound();
+    }
+
+    public function test_reading_a_pdf_only_extracts_the_data_and_stores_nothing(): void
+    {
         $this->mock(InvoiceExtractionService::class, function (MockInterface $mock) {
             $mock->shouldReceive('extract')->once()->andReturn([
                 'supplier' => 'EDP',
@@ -492,29 +485,32 @@ class InvoiceTest extends TestCase
                 'consumptions' => [],
             ]);
         });
+        $filesBefore = File::count();
 
-        $response = $this->postJson('/api/v1/invoices/upload', ['file' => $this->pdf()])
-            ->assertCreated();
+        $this->postJson('/api/v1/invoices/upload', ['file' => $this->pdf()])
+            ->assertOk()
+            ->assertJsonPath('data.extracted.invoice_number', 'FT-999')
+            ->assertJsonMissingPath('data.file_id');
 
-        $fileId = $response->json('data.file_id');
+        // closing the form without saving leaves nothing behind
+        $this->assertSame($filesBefore, File::count());
+        $this->assertSame([], Storage::disk('r2')->allFiles());
+    }
 
-        $file = File::findOrFail($fileId);
-
-        $this->assertSame($user->id, $file->user_id);
-        $this->assertSame(InvoiceService::FILE_CATEGORY, $file->category);
-        $this->assertTrue(
-            Storage::disk('r2')->exists($file->path),
-            'O PDF deveria existir no disco R2.'
-        );
-
-        $invoiceResponse = $this->postJson(
+    public function test_the_pdf_is_stored_only_when_the_invoice_is_saved(): void
+    {
+        $invoiceId = $this->postJson(
             '/api/v1/invoices',
-            $this->payload($this->property, ['file_id' => $fileId])
+            $this->payload($this->property, ['file' => $this->pdf()])
         )
             ->assertCreated()
-            ->assertJsonPath('data.has_file', true);
+            ->assertJsonPath('data.has_file', true)
+            ->json('data.id');
 
-        $invoiceId = $invoiceResponse->json('data.id');
+        $file = Invoice::findOrFail($invoiceId)->file;
+
+        $this->assertSame(auth()->id(), $file->user_id);
+        $this->assertSame(InvoiceService::FILE_CATEGORY, $file->category);
 
         // the PDF is read through the API: no link to the bucket is ever handed out
         $content = $this->get("/api/v1/invoices/{$invoiceId}/file/content")->assertOk();
@@ -522,44 +518,40 @@ class InvoiceTest extends TestCase
         $this->assertSame(Storage::disk('r2')->get($file->path), $content->streamedContent());
     }
 
-    public function test_an_invoice_cannot_use_a_file_uploaded_by_someone_else(): void
+    public function test_an_invoice_that_fails_validation_stores_no_pdf(): void
     {
-        $someoneElsesFile = $this->invoiceFile(User::factory()->create());
+        $filesBefore = File::count();
 
         $this->postJson('/api/v1/invoices', $this->payload($this->property, [
-            'file_id' => $someoneElsesFile->id,
+            'file' => $this->pdf(),
+            'consumptions' => [],
         ]))
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['file_id']);
+            ->assertJsonValidationErrors(['consumptions']);
+
+        $this->assertSame($filesBefore, File::count());
+        $this->assertSame([], Storage::disk('r2')->allFiles());
     }
 
-    public function test_a_file_can_only_be_attached_to_one_invoice(): void
+    public function test_only_a_pdf_can_be_attached(): void
     {
-        $file = $this->invoiceFile(auth()->user());
-
         $this->postJson('/api/v1/invoices', $this->payload($this->property, [
-            'file_id' => $file->id,
-        ]))
-            ->assertCreated();
-
-        $this->postJson('/api/v1/invoices', $this->payload($this->property, [
-            'file_id' => $file->id,
-            'invoice_number' => 'FT-0002',
+            'file' => UploadedFile::fake()->create('fatura.html', 10, 'text/html'),
         ]))
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['file_id']);
+            ->assertJsonValidationErrors(['file' => 'A fatura tem de ser um ficheiro PDF.']);
     }
 
     public function test_deleting_an_invoice_deletes_its_pdf(): void
     {
-        $file = $this->invoiceFile(auth()->user());
-
         $invoiceId = $this->postJson(
             '/api/v1/invoices',
-            $this->payload($this->property, ['file_id' => $file->id])
+            $this->payload($this->property, ['file' => $this->pdf()])
         )
             ->assertCreated()
             ->json('data.id');
+
+        $file = Invoice::findOrFail($invoiceId)->file;
 
         $this->deleteJson("/api/v1/invoices/{$invoiceId}")->assertOk();
 
@@ -569,14 +561,5 @@ class InvoiceTest extends TestCase
             Storage::disk('r2')->exists($file->path),
             'O PDF deveria ter sido removido do disco R2.'
         );
-    }
-
-    public function test_an_invoice_without_a_pdf_has_no_file_content(): void
-    {
-        $invoiceId = $this->postJson('/api/v1/invoices', $this->payload($this->property))
-            ->assertCreated()
-            ->json('data.id');
-
-        $this->getJson("/api/v1/invoices/{$invoiceId}/file/content")->assertNotFound();
     }
 }

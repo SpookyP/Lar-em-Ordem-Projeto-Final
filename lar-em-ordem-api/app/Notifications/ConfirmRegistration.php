@@ -15,6 +15,7 @@ class ConfirmRegistration extends Notification
         public readonly string $name,
         public readonly string $url,
         public readonly int $minutes,
+        public readonly bool $newAccount = true,
     ) {
     }
 
@@ -29,12 +30,18 @@ class ConfirmRegistration extends Notification
             Log::info('Email confirmation link: ' . $this->url);
         }
 
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject('Confirme o seu email - Lar em Ordem')
-            ->greeting('Olá, ' . $this->name . '!')
-            ->line('Recebemos o seu pedido de registo. Clique no botão abaixo para confirmar o email e criar a conta.')
-            ->action('Confirmar email e criar conta', $this->url)
-            ->line('O link expira em ' . $this->minutes . ' minutos e pode ser aberto em qualquer dispositivo. Se não pediu este registo, ignore este email.')
+            ->greeting('Olá, ' . $this->name . '!');
+
+        $mail = $this->newAccount
+            ? $mail->line('Recebemos o seu pedido de registo. Clique no botão abaixo para confirmar o email e criar a conta.')
+                ->action('Confirmar email e criar conta', $this->url)
+            : $mail->line('Clique no botão abaixo para confirmar o email da sua conta.')
+                ->action('Confirmar email', $this->url);
+
+        return $mail
+            ->line('O link expira em ' . $this->minutes . ' minutos e pode ser aberto em qualquer dispositivo. Se não fez este pedido, ignore este email.')
             ->salutation('Lar em Ordem');
     }
 }

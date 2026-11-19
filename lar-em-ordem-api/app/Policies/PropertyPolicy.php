@@ -58,11 +58,6 @@ class PropertyPolicy
         return $this->isOwner($user, $property);
     }
 
-    public function terminateContract(User $user, Property $property): bool
-    {
-        return $this->isOwner($user, $property);
-    }
-
     public function viewOptions(User $user): bool
     {
         return $user->resident !== null;

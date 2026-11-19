@@ -70,5 +70,8 @@ jobs:
       - name: Instalar Dependências do NPM
         run: npm ci
 
+      - name: Verificar o Lint
+        run: npm run lint
+
       - name: Validar Build de Produção
         run: npm run build

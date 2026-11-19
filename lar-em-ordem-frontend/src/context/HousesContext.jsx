@@ -7,15 +7,19 @@ import { ROLE_INFO } from "../data/roleInfo";
 export function HousesProvider({ children }) {
   const { user } = useAuth();
   const [count, setCount] = useState(0);
+  const [loadedFor, setLoadedFor] = useState(null);
+
+  const loading = !user || loadedFor !== user;
 
   useEffect(() => {
+    if (!user) return;
     let active = true;
+
     const hasHouses = (user?.roles ?? []).some((r) => ROLE_INFO[r]?.hasHouses);
 
-    const request =
-      !user || !hasHouses
-        ? Promise.resolve({ total: 0 })
-        : getPropertiesPage({ page: 1 });
+    const request = hasHouses
+      ? getPropertiesPage({ page: 1 })
+      : Promise.resolve({ total: 0 });
 
     request
       .then((data) => {
@@ -23,6 +27,9 @@ export function HousesProvider({ children }) {
       })
       .catch(() => {
         if (active) setCount(0);
+      })
+      .finally(() => {
+        if (active) setLoadedFor(user);
       });
 
     return () => {
@@ -35,7 +42,7 @@ export function HousesProvider({ children }) {
     setCount(data.total);
   }
 
-  const value = { count, refreshHouses };
+  const value = { count, loading, refreshHouses };
 
   return (
     <HousesContext.Provider value={value}>{children}</HousesContext.Provider>
