@@ -8,6 +8,7 @@ use App\Models\Property\PropertyContract;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\ProblemCategory;
 use App\Models\ServiceProvider\Proposal;
+use App\Models\User\ResidentType;
 use App\Models\User\ServiceProvider as ServiceProviderModel;
 use App\Models\User\User;
 use Illuminate\Database\Seeder;
@@ -37,6 +38,7 @@ class AssistanceRequestSeeder extends Seeder
         PropertyContract::factory()->create([
             'resident_id' => $morador->resident->id,
             'property_id' => $property->id,
+            'resident_type_id' => ResidentType::where('type', 'Owner')->value('id'),
             'is_active'   => true,
         ]);
 

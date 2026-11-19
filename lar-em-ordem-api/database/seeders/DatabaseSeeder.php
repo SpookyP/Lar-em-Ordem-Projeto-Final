@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User\User;
 use App\Models\Property\PropertyContract;
+use App\Models\User\ResidentType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 
@@ -45,7 +46,10 @@ class DatabaseSeeder extends Seeder
             'nif'  => '123456789',
         ]);
         $resident->assignRole('resident');
-        PropertyContract::class::factory()->count(6)->create([
+        PropertyContract::class::factory()->count(3)->sequence(
+            ['resident_type_id' => ResidentType::where('type', 'Owner')->value('id')],
+            ['resident_type_id' => ResidentType::where('type', 'Tenant')->value('id')],
+        )->create([
             'resident_id' => $resident->resident->id,
         ]);
         $resident->service_provider()->create([
@@ -105,6 +109,12 @@ class DatabaseSeeder extends Seeder
             CondominiumSeeder::class,
             OfferSeeder::class,
         ]);
+
+        $demo = ! app()->runningUnitTests();
+
+        if ($demo) {
+            $this->call(DemoSeeder::class);
+        }
     
         // after every seeder that creates users: everyone accepts the policy and shares data
         $this->call(UserConsentSeeder::class);
@@ -113,6 +123,10 @@ class DatabaseSeeder extends Seeder
         Artisan::call('benchmarks:backfill');
         $this->command->info(Artisan::output());
 
-        $this->call(ResidenteConsumptionSeeder::class);
+        $this->callWith(ResidenteConsumptionSeeder::class, ['allHomes' => $demo]);
+
+        if ($demo) {
+            $this->callWith(ResidenteConsumptionSeeder::class, ['email' => 'morador@example.com', 'allHomes' => true]);
+        }
     }
 }
