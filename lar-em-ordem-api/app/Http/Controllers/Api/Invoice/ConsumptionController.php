@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Invoice;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Resources\Invoice\ConsumptionResource;
 use App\Http\Resources\Invoice\ConsumptionItemResource;
 use App\Models\Invoice\Consumption;
@@ -20,21 +21,22 @@ class ConsumptionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(PerPageRequest $request)
     {
+        // Validar os filtros específicos dos consumos.
         $validated = $request->validate([
             'property_id' => ['nullable', 'string', 'exists:properties,id'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         Gate::authorize('viewAny', Consumption::class);
 
         $resident = $request->user()->resident;
 
+        // Obter os consumos com os filtros e a paginação aplicados.
         $consumptions = $this->service->getConsumptions(
             residentId: $resident->id,
             propertyId: $validated['property_id'] ?? null,
-            perPage: $validated['per_page'] ?? 15
+            perPage: $request->validated('per_page') ?? 5
         );
 
         return ConsumptionResource::collection($consumptions);

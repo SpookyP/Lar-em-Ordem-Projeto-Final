@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
 import {
   LineChart,
   Line,
@@ -9,24 +10,25 @@ import {
   ReferenceLine,
   Tooltip,
 } from "recharts";
-import {
-  MONTHS,
-  asNumber,
-  buildMonthlySeries,
-  indexToKey,
-  keyToIndex,
-  monthKey,
-  monthLabel,
-  monthLongLabel,
-  monthsBetween,
-} from "./invoiceTimeline";
+
+import { buildMonthlySeries } from "./invoiceTimelineUtils";
+
+// Nomes completos e abreviados dos meses.
+const MONTHS = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+const MONTHS_SHORT = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
 
 // Configurações de dimensões e apresentação do gráfico.
 const MIN_MONTH_WIDTH = 96;
 const Y_AXIS_WIDTH = 56;
 const CHART_HEIGHT = 240;
 const MAX_MONTH_DISTANCE = 24;
-const ACCENT = "#1C3557";
 const HEADER_COLOR = "#1C3557";
 
 // Cores e designações dos diferentes serviços.
@@ -73,6 +75,64 @@ const money = new Intl.NumberFormat("pt-PT", {
 const percent = new Intl.NumberFormat("pt-PT", {
   maximumFractionDigits: 1,
 });
+
+// Converte um ano e mês num identificador no formato YYYY-MM.
+const monthKey = (year, monthIndex) =>
+  `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+
+// Converte um identificador de mês num índice cronológico.
+const keyToIndex = (key) => {
+  const [year, month] = key.split("-").map(Number);
+  return year * 12 + month - 1;
+};
+
+// Converte um índice cronológico no formato YYYY-MM.
+const indexToKey = (index) =>
+  monthKey(Math.floor(index / 12), index % 12);
+
+// Obtém a abreviatura do mês.
+const monthLabel = (key) =>
+  MONTHS_SHORT[keyToIndex(key) % 12];
+
+// Obtém o nome completo do mês e respetivo ano.
+const monthLongLabel = (key) =>
+  `${MONTHS[keyToIndex(key) % 12]} ${key.slice(0, 4)}`;
+
+// Cria uma lista de meses entre duas datas, incluindo os extremos.
+function monthsBetween(startKey, endKey) {
+  const result = [];
+
+  for (
+    let i = keyToIndex(startKey);
+    i <= keyToIndex(endKey);
+    i += 1
+  ) {
+    result.push(indexToKey(i));
+  }
+
+  return result;
+}
+
+// Converte valores numéricos, incluindo formatos monetários portugueses.
+function asNumber(value) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (value == null || value === "") return 0;
+
+  let text = String(value)
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/[€]/g, "");
+
+  if (text.includes(",")) {
+    text = text.replace(/\./g, "").replace(",", ".");
+  }
+
+  const result = Number(text);
+  return Number.isFinite(result) ? result : 0;
+}
 
 // Calcula uma escala adequada para o eixo vertical do gráfico.
 function niceScale(maxValue) {
@@ -138,6 +198,7 @@ function TimelineTooltip({
           className="h-2 w-2 rounded-full"
           style={{ backgroundColor: color }}
         />
+
         {serviceLabel}:{" "}
         <strong>
           {row.mine == null ? "sem dados" : money.format(row.mine)}
@@ -150,6 +211,7 @@ function TimelineTooltip({
             className="h-0.5 w-3"
             style={{ backgroundColor: benchmarkColor }}
           />
+
           Média similar:{" "}
           <strong>{money.format(row.benchmark)}</strong>
         </p>
@@ -159,7 +221,12 @@ function TimelineTooltip({
 }
 
 // Seletor de mês e ano para definir um intervalo personalizado.
-function DateRangeSelects({ range, currentMonthIndex, onChange }) {
+function DateRangeSelects({
+  range,
+  currentMonthIndex,
+  onChange,
+}) {
+  // O componente é recriado quando o intervalo exterior muda.
   const [draft, setDraft] = useState(range);
   const [error, setError] = useState("");
 
@@ -171,15 +238,6 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
     { length: currentYear - 1899 },
     (_, index) => currentYear - index
   );
-
-  // Sincroniza os seletores sempre que o intervalo exterior muda.
-  const rangeKey = `${range.start}|${range.end}`;
-  const [syncedKey, setSyncedKey] = useState(rangeKey);
-  if (syncedKey !== rangeKey) {
-    setSyncedKey(rangeKey);
-    setDraft(range);
-    setError("");
-  }
 
   // Atualiza uma das datas e valida os limites permitidos.
   function updateDate(field, part, value) {
@@ -241,8 +299,14 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
     const [year, month] = draft[field].split("-").map(Number);
 
     const availableMonths = MONTHS
-      .map((name, index) => ({ value: index, label: name }))
-      .filter(({ value }) => year < currentYear || value <= currentMonth);
+      .map((name, index) => ({
+        value: index,
+        label: name,
+      }))
+      .filter(
+        ({ value }) =>
+          year < currentYear || value <= currentMonth
+      );
 
     // Diferencia visualmente a data inicial da data final.
     const palette = tone === "indigo"
@@ -260,7 +324,9 @@ function DateRangeSelects({ range, currentMonthIndex, onChange }) {
     return (
       <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:shadow-md sm:p-4">
         <div className="mb-3 flex items-center gap-2.5">
-          <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${palette.icon}`}>
+          <span
+            className={`flex h-9 w-9 items-center justify-center rounded-xl ${palette.icon}`}
+          >
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -392,12 +458,7 @@ export default function InvoiceTimelineChart({
 
   // Referência ao contentor do gráfico e respetiva largura.
   const wrapRef = useRef(null);
-  const [wrapElement, setWrapElement] = useState(null);
   const [wrapWidth, setWrapWidth] = useState(0);
-  const attachWrap = useCallback((element) => {
-    wrapRef.current = element;
-    setWrapElement(element);
-  }, []);
 
   // Controla o posicionamento inicial e a emissão do intervalo predefinido.
   const scrolledToEnd = useRef(false);
@@ -421,10 +482,7 @@ export default function InvoiceTimelineChart({
     const grouped = new Map();
 
     (Array.isArray(benchmark) ? benchmark : []).forEach((entry) => {
-      if (
-        !entry?.period_start ||
-        entry.average_cost == null
-      ) {
+      if (!entry?.period_start || entry.average_cost == null) {
         return;
       }
 
@@ -438,7 +496,10 @@ export default function InvoiceTimelineChart({
         grouped.set(key, new Map());
       }
 
-      grouped.get(key).set(typeId, asNumber(entry.average_cost));
+      grouped.get(key).set(
+        typeId,
+        asNumber(entry.average_cost)
+      );
     });
 
     // Combina os serviços ou seleciona apenas o serviço pretendido.
@@ -638,32 +699,34 @@ export default function InvoiceTimelineChart({
     };
   }, [chartRange, data, benchmarkMap]);
 
-  // Mede a largura disponível para ajustar dinamicamente o gráfico.
+  // Observa a largura do contentor do gráfico.
   useEffect(() => {
-    if (!wrapElement) return undefined;
+    const element = wrapRef.current;
+
+    if (!element) return undefined;
 
     const observer = new ResizeObserver(([entry]) => {
       setWrapWidth(entry.contentRect.width);
     });
 
-    observer.observe(wrapElement);
+    observer.observe(element);
 
     return () => observer.disconnect();
-  }, [wrapElement]);
+  }, []);
 
   // Desloca o gráfico para o mês mais recente na primeira apresentação.
   useEffect(() => {
-    const wrap = wrapRef.current;
+    const element = wrapRef.current;
 
     if (
-      wrap &&
+      element &&
       monthKeys.length > 0 &&
       !scrolledToEnd.current
     ) {
       scrolledToEnd.current = true;
-      wrap.scrollLeft = wrap.scrollWidth;
+      element.scrollLeft = element.scrollWidth;
     }
-  }, [wrapElement, monthKeys.length, wrapWidth]);
+  }, [monthKeys.length, wrapWidth]);
 
   // Comunica o intervalo inicial ao componente que contém o gráfico.
   useEffect(() => {
@@ -786,7 +849,6 @@ export default function InvoiceTimelineChart({
         className="relative -mx-4 -mt-4 mb-4 flex flex-col gap-3 overflow-hidden rounded-t-2xl p-5 text-white shadow-sm sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-center sm:justify-between sm:p-6"
         style={{ backgroundColor: HEADER_COLOR }}
       >
-        {/* Elementos decorativos do cabeçalho. */}
         <div className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-16 right-1/3 h-32 w-32 rounded-full bg-black/10" />
 
@@ -829,26 +891,21 @@ export default function InvoiceTimelineChart({
 
         {/* Legenda das linhas apresentadas no gráfico. */}
         <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/90">
-
-          {/* Serviço selecionado */}
           <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-2.5 py-1 font-semibold text-white">
             {style.label}
           </span>
 
-          {/* Linha contínua: a minha casa */}
           <span className="inline-flex items-center gap-2 whitespace-nowrap">
             <span className="h-[3px] w-6 rounded-full bg-white" />
             A minha casa
           </span>
 
-          {/* Linha tracejada: média similar */}
           {benchmarkMap.size > 0 && (
             <span className="inline-flex items-center gap-2 whitespace-nowrap">
               <span className="w-6 border-t-2 border-dashed border-white/80" />
               Média similar
             </span>
           )}
-
         </div>
       </div>
 
@@ -857,7 +914,7 @@ export default function InvoiceTimelineChart({
         <p className="text-base text-slate-500">
           <span
             className="mr-2 border-l-2 pl-2"
-            style={{ borderColor: ACCENT }}
+            style={{ borderColor: "#1C3557" }}
           >
             Intervalo ativo
           </span>
@@ -892,7 +949,7 @@ export default function InvoiceTimelineChart({
 
       {/* Gráfico com deslocamento horizontal para navegar pelos meses. */}
       <div
-        ref={attachWrap}
+        ref={wrapRef}
         className="mt-4 w-full min-w-0 max-w-full overflow-x-auto rounded-xl border border-slate-200"
         style={{ contain: "inline-size" }}
       >
@@ -1091,6 +1148,7 @@ export default function InvoiceTimelineChart({
             checked={advancedEnabled}
             onChange={(event) => {
               const enabled = event.target.checked;
+
               setAdvancedEnabled(enabled);
 
               if (enabled) {
@@ -1152,7 +1210,6 @@ export default function InvoiceTimelineChart({
         {/* Seletores de datas apresentados quando o filtro avançado está ativo. */}
         {advancedEnabled && (
           <div className="relative mt-3 overflow-hidden rounded-2xl border border-[#1C3557]/15 bg-gradient-to-br from-[#1C3557]/[0.055] via-white to-[#1C3557]/[0.035] p-4 shadow-sm sm:p-5">
-            {/* Elementos decorativos do painel de seleção. */}
             <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-[#1C3557]/[0.06] blur-2xl" />
             <div className="pointer-events-none absolute -bottom-16 left-1/3 h-36 w-36 rounded-full bg-[#1C3557]/[0.045] blur-2xl" />
 
@@ -1205,8 +1262,9 @@ export default function InvoiceTimelineChart({
               </div>
 
               <DateRangeSelects
+                key={`${range.start}-${range.end}`}
                 range={range}
-                currentMonthIndex={currentYear * 12 + currentMonth}
+                currentMonthIndex={currentMonthIndex}
                 onChange={updateRange}
               />
 

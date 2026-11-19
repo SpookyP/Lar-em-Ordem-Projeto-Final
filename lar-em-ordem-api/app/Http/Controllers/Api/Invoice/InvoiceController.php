@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Invoice;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Requests\Invoice\StoreInvoiceRequest;
 use App\Http\Requests\Invoice\UploadInvoiceRequest;
 use App\Http\Resources\Invoice\InvoiceResource;
@@ -13,7 +14,7 @@ use App\Services\Invoice\InvoiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use \Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceController extends Controller
 {
@@ -24,12 +25,11 @@ class InvoiceController extends Controller
     /**
      * Apresentar a lista de faturas.
      */
-    public function index(Request $request)
+    public function index(PerPageRequest $request)
     {
-        // Validar os filtros recebidos.
+        // Validar os filtros específicos das faturas.
         $validated = $request->validate([
             'property_id' => ['nullable', 'ulid'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ], [
             'property_id.ulid' => 'O identificador da habitação é inválido.',
         ]);
@@ -39,10 +39,10 @@ class InvoiceController extends Controller
 
         $resident = $request->user()->resident;
 
-        // Obter as faturas com os filtros aplicados.
+        // Obter as faturas com os filtros e a paginação aplicados.
         $invoices = $this->service->getInvoicesByResident(
             residentId: $resident->id,
-            perPage: $validated['per_page'] ?? 15,
+            perPage: $request->validated('per_page') ?? 5,
             propertyId: $validated['property_id'] ?? null
         );
 
@@ -151,7 +151,10 @@ class InvoiceController extends Controller
     ): StreamedResponse {
         Gate::authorize('viewAny', Invoice::class);
 
-        $invoice = $this->service->getInvoiceById($invoiceId, $request->user()->resident->id);
+        $invoice = $this->service->getInvoiceById(
+            $invoiceId,
+            $request->user()->resident->id
+        );
 
         Gate::authorize('view', $invoice);
 

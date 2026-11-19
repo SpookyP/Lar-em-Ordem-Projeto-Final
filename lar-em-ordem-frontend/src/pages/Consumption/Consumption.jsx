@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useInvoices from "../../hooks/useInvoices";
 import DetailedConsumptionChart from "../../components/ui/DetailedConsumptionChart";
 import InvoiceTimelineChart from "../../components/ui/InvoiceTimelineChart";
-import { scaleInvoicesToRange } from "../../components/ui/invoiceTimeline";
+import { scaleInvoicesToRange } from "../../components/ui/invoiceTimelineUtils";
 import AnnualBenchmarkTable from "../../components/ui/AnnualBenchmarkTable";
 import InvoiceForm from "../../components/ui/InvoiceForm";
 

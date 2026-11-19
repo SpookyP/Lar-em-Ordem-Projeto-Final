@@ -1,5 +1,15 @@
-import { useMemo, useState } from "react";
-import axiosClient from "../../services/api/axiosClient";
+import { useEffect, useMemo, useState } from "react";
+import {
+  deleteInvoice as deleteInvoiceRequest,
+  getInvoice,
+  getInvoiceFileBlob,
+} from "../../services/api/invoiceService";
+import {
+  asNumber as toNumber,
+  getConsumptions,
+  getItems as getConsumptionItems,
+  getTypeId,
+} from "./invoiceTimelineUtils";
 import {
   Search,
   FileText,
@@ -55,64 +65,9 @@ const DARKER_SERVICE_COLORS = {
   3: "#B84508",
 };
 
-// Devolve os consumos associados à fatura.
-function getConsumptions(invoice) {
-  return Array.isArray(invoice?.consumptions) ? invoice.consumptions : [];
-}
-
-// Identifica a lista de linhas de detalhe disponível no consumo.
-function getConsumptionItems(consumption) {
-  const possibleItems = [
-    consumption?.items,
-    consumption?.consumption_items,
-    consumption?.consumptionItems,
-    consumption?.details,
-    consumption?.lines,
-  ];
-
-  return (
-    possibleItems.find((items) => Array.isArray(items) && items.length > 0) ??
-    possibleItems.find(Array.isArray) ??
-    []
-  );
-}
-
-// Converte o tipo de consumo para o identificador interno do serviço.
-function getTypeId(consumption) {
-  const id =
-    consumption?.consumption_type_id ?? consumption?.consumption_type?.id;
-
-  if (id && SERVICE_TYPES[id]) return Number(id);
-
-  const name = String(
-    consumption?.consumption_type?.name ?? consumption?.type ?? ""
-  ).toLowerCase();
-
-  if (name.includes("eletric") || name.includes("electric")) return 1;
-  if (name.includes("água") || name.includes("agua")) return 2;
-  if (name.includes("gás") || name.includes("gas")) return 3;
-
-  return null;
-}
-
 // Devolve os tipos de serviço sem repetições.
 function getInvoiceTypes(invoice) {
   return [...new Set(getConsumptions(invoice).map(getTypeId).filter(Boolean))];
-}
-
-// Converte valores numéricos ou monetários para número.
-function toNumber(value) {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
-
-  let normalized = String(value).replace(/[€\s]/g, "");
-
-  if (normalized.includes(",")) {
-    normalized = normalized.replace(/\./g, "").replace(",", ".");
-  }
-
-  const number = Number(normalized);
-  return Number.isFinite(number) ? number : 0;
 }
 
 // Formata um valor como moeda em euros.
@@ -325,10 +280,27 @@ function DeleteConfirmationModal({
   onClose,
   onConfirm,
 }) {
+  // Fecha com Escape (exceto durante a eliminação).
+  useEffect(() => {
+    if (!invoice || loading) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [invoice, loading, onClose]);
+
   if (!invoice) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="Eliminar fatura"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+    >
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-5 flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -408,6 +380,18 @@ function DeleteConfirmationModal({
 
 // Apresenta todos os dados e consumos da fatura selecionada.
 function InvoiceDetailsModal({ invoice, onClose }) {
+  // Fecha com Escape.
+  useEffect(() => {
+    if (!invoice) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [invoice, onClose]);
+
   if (!invoice) return null;
 
   const invoiceTypes = getInvoiceTypes(invoice);
@@ -417,6 +401,9 @@ function InvoiceDetailsModal({ invoice, onClose }) {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Detalhes da fatura"
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
@@ -459,7 +446,7 @@ function InvoiceDetailsModal({ invoice, onClose }) {
               </div>
             </div>
 
-            {/* O X é o único botão para fechar o modal. */}
+            {/* Botão para fechar (o modal também fecha com Escape ou ao clicar fora). */}
             <button
               type="button"
               onClick={onClose}
@@ -620,7 +607,7 @@ function InvoiceDetailsModal({ invoice, onClose }) {
                               >
                                 <span className="min-w-0 text-slate-600">
                                   {item.name || "Item"}
-                                  {item.amount != null && (
+                                  {toNumber(item.amount) !== 0 && (
                                     <span className="ml-1 text-xs text-slate-400">
                                       ({item.amount} {item.unit || ""})
                                     </span>
@@ -670,25 +657,69 @@ export default function InvoiceTable({
   error = "",
   onRefresh,
 }) {
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [deleteInvoice, setDeleteInvoice] = useState(null);
-  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
-  const [actionLoading, setActionLoading] = useState("");
-
   const invoiceList = Array.isArray(invoices) ? invoices : NO_INVOICES;
 
-  // Repõe a paginação e fecha os modais quando a lista de faturas muda.
-  const [shownList, setShownList] = useState(invoiceList);
-  if (shownList !== invoiceList) {
-    setShownList(invoiceList);
-    setCurrentPage(1);
-    setSelectedInvoice(null);
-    setDeleteInvoice(null);
-    setDeleteConfirmed(false);
-  }
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [actionLoading, setActionLoading] = useState("");
+
+  // Associa o estado da interface à lista atual, sem sincronização via useEffect.
+  const [paginationState, setPaginationState] = useState({
+    source: invoiceList,
+    page: 1,
+  });
+
+  const currentPage =
+    paginationState.source === invoiceList ? paginationState.page : 1;
+
+  const setCurrentPage = (page) => {
+    setPaginationState({ source: invoiceList, page });
+  };
+
+  // Fecha automaticamente os detalhes quando a lista de faturas muda.
+  const [selectedInvoiceState, setSelectedInvoiceState] = useState({
+    source: invoiceList,
+    value: null,
+  });
+
+  const selectedInvoice =
+    selectedInvoiceState.source === invoiceList
+      ? selectedInvoiceState.value
+      : null;
+
+  const setSelectedInvoice = (value) => {
+    setSelectedInvoiceState({ source: invoiceList, value });
+  };
+
+  // Fecha automaticamente a confirmação quando a lista muda.
+  const [deleteInvoiceState, setDeleteInvoiceState] = useState({
+    source: invoiceList,
+    value: null,
+  });
+
+  const deleteInvoice =
+    deleteInvoiceState.source === invoiceList
+      ? deleteInvoiceState.value
+      : null;
+
+  const setDeleteInvoice = (value) => {
+    setDeleteInvoiceState({ source: invoiceList, value });
+  };
+
+  // A confirmação também é reiniciada quando chega uma nova lista.
+  const [deleteConfirmedState, setDeleteConfirmedState] = useState({
+    source: invoiceList,
+    value: false,
+  });
+
+  const deleteConfirmed =
+    deleteConfirmedState.source === invoiceList
+      ? deleteConfirmedState.value
+      : false;
+
+  const setDeleteConfirmed = (value) => {
+    setDeleteConfirmedState({ source: invoiceList, value });
+  };
 
   // Aplica a pesquisa e o filtro de serviço.
   const filteredInvoices = useMemo(() => {
@@ -773,10 +804,7 @@ export default function InvoiceTable({
     setActionLoading(`details-${invoice.id}`);
 
     try {
-      const response = await axiosClient.get(
-        `/api/v1/invoices/${invoice.id}`
-      );
-      const body = response?.data?.data ?? response?.data ?? response;
+      const body = await getInvoice(invoice.id);
       setSelectedInvoice(body);
     } catch (err) {
       console.error("Erro ao consultar fatura:", err);
@@ -798,18 +826,28 @@ export default function InvoiceTable({
 
     setActionLoading(`file-${invoice.id}`);
 
-    try {
-      const response = await axiosClient.get(
-        `/api/v1/invoices/${invoice.id}/file/content`,
-        { responseType: "blob" }
-      );
-      const url = URL.createObjectURL(response.data);
+    // Abre o separador logo no clique (antes do pedido) para evitar o bloqueio de pop-ups.
+    const pdfWindow = window.open("", "_blank");
 
-      window.open(url, "_blank", "noopener,noreferrer");
+    try {
+      const blob = await getInvoiceFileBlob(invoice.id);
+      const url = URL.createObjectURL(blob);
+
+      if (pdfWindow) {
+        pdfWindow.opener = null;
+        pdfWindow.location.href = url;
+      } else {
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.click();
+      }
 
       // Liberta o URL temporário depois de dar tempo para abrir o documento.
       window.setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
+      pdfWindow?.close();
       console.error("Erro ao obter PDF:", err);
       alert(
         err?.response?.data?.message ||
@@ -841,7 +879,7 @@ export default function InvoiceTable({
     setActionLoading("delete");
 
     try {
-      await axiosClient.delete(`/api/v1/invoices/${deleteInvoice.id}`);
+      await deleteInvoiceRequest(deleteInvoice.id);
 
       if (String(selectedInvoice?.id) === String(deleteInvoice.id)) {
         setSelectedInvoice(null);

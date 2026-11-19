@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchAllInvoices } from "../../services/api/invoiceService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  asNumber,
+  getItems,
+  getTypeId,
+  itemCost,
+} from "./invoiceTimelineUtils";
 
 // Define a cor principal do cabeçalho.
 const HEADER_COLOR = "#1C3557";
@@ -39,79 +45,6 @@ const money = new Intl.NumberFormat("pt-PT", {
 const number = new Intl.NumberFormat("pt-PT", {
   maximumFractionDigits: 3,
 });
-
-// Converte valores para números.
-function asNumber(value) {
-  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
-  if (value == null || value === "") return 0;
-
-  let text = String(value).trim().replace(/\s/g, "").replace(/[€]/g, "");
-
-  if (text.includes(",")) {
-    text = text.replace(/\./g, "").replace(",", ".");
-  }
-
-  const result = Number(text);
-  return Number.isFinite(result) ? result : 0;
-}
-
-// Identifica o tipo de consumo.
-function getTypeId(consumption) {
-  const raw =
-    consumption?.consumption_type_id ??
-    consumption?.consumptionTypeId ??
-    consumption?.consumption_type?.id ??
-    consumption?.consumptionType?.id ??
-    consumption?.type_id ??
-    consumption?.type?.id;
-
-  const id = Number(raw);
-
-  if (UTILITIES[id]) return id;
-
-  const name = String(
-    consumption?.consumption_type?.name ??
-      consumption?.consumptionType?.name ??
-      consumption?.type?.name ??
-      consumption?.name ??
-      ""
-  ).toLowerCase();
-
-  if (name.includes("eletric") || name.includes("electric")) return 1;
-  if (name.includes("água") || name.includes("agua") || name.includes("water")) return 2;
-  if (name.includes("gás") || name.includes("gas")) return 3;
-
-  return null;
-}
-
-// Obtém a lista de itens de um consumo.
-function getItems(consumption) {
-  const itemLists = [
-    consumption?.items,
-    consumption?.consumption_items,
-    consumption?.consumptionItems,
-    consumption?.details,
-    consumption?.lines,
-  ];
-
-  return (
-    itemLists.find((items) => Array.isArray(items) && items.length > 0) ??
-    itemLists.find(Array.isArray) ??
-    []
-  );
-}
-
-// Obtém o custo de um item.
-function itemCost(item) {
-  return asNumber(
-    item?.cost ??
-      item?.total_cost ??
-      item?.totalCost ??
-      item?.amount_cost ??
-      item?.price ??
-      0
-  );
-}
 
 // Obtém a quantidade de um item.
 function itemAmount(item) {
@@ -232,7 +165,6 @@ function normalizeInvoices(invoices) {
                   : "Total do consumo"
               )
             : itemDescription(item),
-          category: fallback ? "" : item?.category ?? "",
           categoryLabel: fallback
             ? ""
             : CATEGORY_LABELS[item?.category] ?? item?.category ?? "",
@@ -276,7 +208,6 @@ function normalizeInvoices(invoices) {
         ...item,
         invoiceKeys: item.invoiceKey ? [item.invoiceKey] : [],
         descriptions: item.description ? [item.description] : [],
-        categories: item.categoryLabel ? [item.categoryLabel] : [],
       });
 
       return;
@@ -293,10 +224,6 @@ function normalizeInvoices(invoices) {
 
     if (item.description && !existing.descriptions.includes(item.description)) {
       existing.descriptions.push(item.description);
-    }
-
-    if (item.categoryLabel && !existing.categories.includes(item.categoryLabel)) {
-      existing.categories.push(item.categoryLabel);
     }
   });
 
@@ -333,7 +260,10 @@ function normalizeInvoices(invoices) {
             ) === index
         );
 
-      const { invoiceKeys, ...groupedItem } = item;
+      // Remove os campos auxiliares que não são necessários na apresentação.
+      const groupedItem = { ...item };
+      delete groupedItem.invoiceKeys;
+      delete groupedItem.invoiceKey;
 
       return {
         ...groupedItem,
@@ -341,7 +271,7 @@ function normalizeInvoices(invoices) {
         sliceValue: Math.abs(item.cost),
         isCredit: item.cost < 0,
         description: descriptionParts.join(" · "),
-        invoiceCount: invoiceKeys.length,
+        invoiceCount: item.invoiceKeys.length,
       };
     })
     .sort((a, b) =>
