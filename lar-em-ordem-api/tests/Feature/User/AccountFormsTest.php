@@ -115,6 +115,17 @@ class AccountFormsTest extends TestCase
             ->assertJsonValidationErrors(['name' => 'O nome só pode ter letras, espaços, apóstrofos e hífenes.']);
     }
 
+    public function test_forgot_password_answers_the_same_whether_the_account_exists_or_not(): void
+    {
+        Notification::fake();
+
+        $sent = $this->postJson('/forgot-password', ['email' => 'morador@example.com'])->assertOk()->json();
+
+        $this->postJson('/forgot-password', ['email' => 'ninguem@example.com'])->assertOk()->assertExactJson($sent);
+        // a second link within the minute is refused by the broker, which would also give the account away
+        $this->postJson('/forgot-password', ['email' => 'morador@example.com'])->assertOk()->assertExactJson($sent);
+    }
+
     public function test_the_forgotten_password_email_is_in_portuguese_and_opens_the_frontend(): void
     {
         Notification::fake();

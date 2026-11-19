@@ -99,6 +99,7 @@ class RouteProtectionTest extends TestCase
             'oauth redirect'        => ['GET', 'auth/{provider}/redirect'],
             'oauth callback'        => ['GET', 'auth/{provider}/callback'],
             'login'                 => ['POST', 'login'],
+            'forgot password'       => ['POST', 'forgot-password'],
         ];
     }
 
