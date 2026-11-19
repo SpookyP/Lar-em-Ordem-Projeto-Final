@@ -2,10 +2,15 @@ import { useNavigate } from "react-router-dom";
 import { Compass } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { homePath } from "../../data/roleInfo";
+import { useGoBack } from "../../hooks/useGoBack";
 
 export default function NotFound() {
   const navigate = useNavigate();
   const { isAuthenticated, activeProfile } = useAuth();
+
+  const goBack = useGoBack(
+    isAuthenticated ? homePath(activeProfile?.name) : "/",
+  );
 
   function goHome() {
     navigate(isAuthenticated ? homePath(activeProfile?.name) : "/");
@@ -35,7 +40,7 @@ export default function NotFound() {
           </button>
 
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => goBack()}
             className="text-sm text-muted transition hover:text-navy"
           >
             Voltar atrás

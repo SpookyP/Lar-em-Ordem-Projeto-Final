@@ -7,6 +7,7 @@ import { getPropertiesPage } from "../../services/api/propertyService";
 import { HouseList } from "../../components/ui/HouseList";
 import { AuthSplit } from "../../components/layout/AuthSplit";
 import { Footer } from "../../components/layout/Footer";
+import { useGoBack } from "../../hooks/useGoBack";
 
 function Shell({ onLogout, children }) {
   return (
@@ -46,6 +47,8 @@ export default function Profiles() {
   const [searchParams] = useSearchParams();
   const preselectedName = searchParams.get("profile");
   const preselectedProfile = profiles.find((p) => p.name === preselectedName);
+
+  const goBack = useGoBack("/profiles");
 
   function handleProfileClick(profile) {
     if (!profile.hasHouses) {
@@ -157,7 +160,7 @@ export default function Profiles() {
 
         {preselectedProfile && (
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => goBack()}
             className="mt-7 text-sm font-medium text-navy hover:underline"
           >
             ← Voltar

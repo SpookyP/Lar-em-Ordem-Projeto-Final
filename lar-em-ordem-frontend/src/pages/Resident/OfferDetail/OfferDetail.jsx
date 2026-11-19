@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Building2,
@@ -15,18 +15,20 @@ import { getOfferStatus } from "../../../utils/offerStatus";
 import { createPortal } from "react-dom";
 import { formatDate } from "../../../utils/date";
 import { toHref } from "../../../utils/url";
+import { useGoBack } from "../../../hooks/useGoBack";
 
 export default function OfferDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [offer, setOffer] = useState(null);
   const [partner, setPartner] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const goBack = useGoBack("/offers");
+
   function close() {
-    navigate(-1);
+    goBack();
   }
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function OfferDetail() {
 
   useEffect(() => {
     function onKey(e) {
-      if (e.key === "Escape") navigate(-1);
+      if (e.key === "Escape") goBack();
     }
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -74,7 +76,7 @@ export default function OfferDetail() {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [navigate]);
+  }, [goBack]);
 
   const status = offer ? getOfferStatus(offer) : null;
   const start = offer ? formatDate(offer.startDate) : null;
