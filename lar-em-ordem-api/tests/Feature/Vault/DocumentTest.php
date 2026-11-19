@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Vault;
 
+use App\Models\Condominium\Condominium;
 use Tests\TestCase;
 use App\Models\User\User;
 use App\Models\User\Resident;
@@ -251,5 +252,67 @@ class DocumentTest extends TestCase
         // Confirmar que o alerta do "Seguro" foi apagado, mas o do "Seguro Casa" continua intacto!
         $this->assertDatabaseMissing('vault_notifications', ['document_id' => $seguroId]);
         $this->assertDatabaseHas('vault_notifications', ['document_id' => $seguroCasaId]);
+    }
+
+    public function test_tenant_cannot_access_vault_documents_or_notifications(): void
+    {
+        $propertyType = PropertyType::query()->first();
+
+        if (! $propertyType) {
+            $propertyType = new PropertyType();
+            $propertyType->type = 'Apartamento';
+            $propertyType->save();
+        }
+
+        $propertyTypology = PropertyTypology::query()->first();
+
+        if (! $propertyTypology) {
+            $propertyTypology = new PropertyTypology();
+            $propertyTypology->typology = 'T2';
+            $propertyTypology->save();
+        }
+
+        $condominium = Condominium::factory()->create();
+
+        $property = Property::factory()->create([
+            'property_type_id' => $propertyType->id,
+            'property_typology_id' => $propertyTypology->id,
+            'condominium_id' => $condominium->id,
+        ]);
+
+        $tenantUser = User::factory()->create();
+        $tenantResident = Resident::factory()->create(['user_id' => $tenantUser->id]);
+
+        $tenantType = ResidentType::query()->where('type', 'Tenant')->first();
+
+        if (! $tenantType) {
+            $tenantType = new ResidentType();
+            $tenantType->type = 'Tenant';
+            $tenantType->save();
+        }
+
+        PropertyContract::factory()->create([
+            'property_id' => $property->id,
+            'resident_id' => $tenantResident->id,
+            'resident_type_id' => $tenantType->id,
+            'is_active' => true,
+        ]);
+
+        $category = DocumentCategory::factory()->create();
+
+        $this->actingAs($tenantUser)
+            ->getJson("/api/v1/properties/{$property->id}/documents")
+            ->assertForbidden();
+
+        $this->actingAs($tenantUser)
+            ->postJson("/api/v1/properties/{$property->id}/documents", [
+                'document_category_id' => $category->id,
+                'name' => 'Documento Inquilino',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($tenantUser)
+            ->getJson("/api/v1/properties/{$property->id}/notifications")
+            ->assertForbidden();
     }
 }
