@@ -3,10 +3,6 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
-use App\Http\Requests\PartnerOffer\StorePartnerRequest;
-use App\Http\Requests\Resident\StoreResidentRequest;
-use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
 use App\Models\User\User;
 use App\Services\Auth\PendingRegistrationService;
 use App\Services\Auth\ProfileService;
@@ -70,18 +66,13 @@ class SocialRegisterController extends Controller
             'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ])['role'];
 
-        // same rules as the normal registration; name and email do not come from the request,
+        // same rules and messages as the normal registration; name and email do not come from the request,
         // only from the identity stored on the server
-        $rules = match ($role) {
-            'resident' => (new StoreResidentRequest())->rules(),
-            'partner' => (new StorePartnerRequest())->rules(),
-            'service_provider' => (new StoreServiceProviderRequest())->rules(),
-            'condominium_admin' => (new StoreCondominiumAdminRequest())->rules(),
-        };
+        $roleRequest = ProfileService::requestFor($role);
 
         $validated = $request->validate(
-            array_merge($rules, ConsentService::signUpRules()),
-            ConsentService::signUpMessages(),
+            array_merge($roleRequest->rules(), ConsentService::signUpRules()),
+            array_merge($roleRequest->messages(), ConsentService::signUpMessages()),
         );
         $data = Arr::except($validated, ConsentService::SIGN_UP_FIELDS);
         $consents = ConsentService::fromSignUp($validated);

@@ -5,27 +5,12 @@ use App\Models\User\Resident;
 use App\Models\User\User;
 use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\Uid\Ulid;
 
 class ResidentService
 {
     public function __construct(private PersonalDataEraser $eraser) {}
 
     #region CRUD
-    #region Get Resident
-    public function getResidentByUserId(Ulid $userId){
-        // o Ulid do Symfony escreve-se em MAIÚSCULAS; os ids gravados pelo Laravel estão em minúsculas
-        $resident = Resident::query()
-            ->where('user_id', strtolower((string) $userId))
-            ->first();
-
-        if(!$resident){
-            abort(404, 'Residente não encontrado no perfil do utilizador.');
-        }
-        return $resident;
-    }
-    #endregion
-
     /**
      * Cria o perfil de residente de um utilizador e atribui-lhe a role 'resident'. Transação.
      *
@@ -61,10 +46,15 @@ class ResidentService
         });
     }
 
-    public function updateResident(string|Ulid $userId, array $data): Resident
+    /**
+     * Updates the resident profile with the validated data (nif), in a transaction.
+     *
+     * @param Resident $resident The profile, already found by the ProfileService.
+     * @param array $data Validated data.
+     * @return Resident
+     */
+    public function update(Resident $resident, array $data): Resident
     {
-        $ulid = is_string($userId) ? new Ulid($userId) : $userId;
-        $resident = $this->getResidentByUserId($ulid);
         return DB::transaction(function () use ($data, $resident) {
             $resident->update($data);
             return $resident->fresh();

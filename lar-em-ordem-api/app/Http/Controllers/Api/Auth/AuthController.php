@@ -11,11 +11,6 @@ use App\Services\Privacy\ConsentService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth as AuthFacade;
-use App\Http\Requests\Resident\StoreResidentRequest;
-use App\Http\Requests\PartnerOffer\StorePartnerRequest;
-use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
-use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
-
 
 class AuthController extends Controller
 {
@@ -54,19 +49,7 @@ class AuthController extends Controller
 
         $role = $rules['role'];
 
-        // o FormRequest do perfil dá as regras E as mensagens
-        $makeRequest = function (string $class) use ($user) {
-            $request = new $class();
-            $request->setUserResolver(fn() => $user);
-            return $request;
-        };
-
-        $roleRequest = match ($role) {
-            'resident'         => $makeRequest(StoreResidentRequest::class),
-            'partner'          => $makeRequest(StorePartnerRequest::class),
-            'service_provider' => $makeRequest(StoreServiceProviderRequest::class),
-            'condominium_admin' => $makeRequest(StoreCondominiumAdminRequest::class),
-        };
+        $roleRequest = ProfileService::requestFor($role, user: $user);
 
         $validated = $request->validate($roleRequest->rules(), $roleRequest->messages());
 
