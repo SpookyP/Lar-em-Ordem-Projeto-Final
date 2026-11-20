@@ -1,6 +1,8 @@
 import { useHousesPage } from "../../hooks/useHousesPage";
 import { useNavigate } from "react-router-dom";
 import { Pager } from "./Pager";
+import { LoadingState } from "./LoadingState";
+import { EmptyState } from "./EmptyState";
 
 export function HouseList({ onEnter }) {
   const {
@@ -19,14 +21,15 @@ export function HouseList({ onEnter }) {
       <p className="text-sm text-muted">Escolha a casa</p>
 
       {loading ? (
-        <p className="py-4 text-center text-sm text-muted">A carregar...</p>
+        <LoadingState className="py-4 text-center" />
       ) : error ? (
         <p className="py-4 text-center text-sm text-red-600">{error}</p>
       ) : total === 0 ? (
         <div className="flex flex-col items-center gap-3 py-4 text-center">
-          <p className="text-center text-sm text-muted">
-            Ainda não tem casas associadas.
-          </p>
+          <EmptyState
+            className="text-center"
+            message="Ainda não tem casas associadas."
+          />
           <button
             onClick={() => navigate("/welcome")}
             className="rounded-xl bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-light"

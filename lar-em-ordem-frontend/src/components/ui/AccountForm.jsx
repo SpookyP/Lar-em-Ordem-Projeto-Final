@@ -16,6 +16,8 @@ import {
   ZoneSummary,
 } from "./ProviderCoverageFields";
 import { EMPTY_COVERAGE } from "./coverage";
+import { LoadingState } from "./LoadingState";
+import { EmptyState } from "./EmptyState";
 
 const PROVIDER_LABELS = { google: "o Google", microsoft: "a Microsoft" };
 
@@ -200,9 +202,7 @@ function ProviderCoverageSections() {
     );
   }
   if (!coverage) {
-    return (
-      <p className="text-sm text-muted">A carregar zonas e especialidades...</p>
-    );
+    return <LoadingState label="A carregar zonas e especialidades..." />;
   }
 
   // each card sends only its own keys; the API leaves the others untouched
@@ -267,7 +267,7 @@ export function AccountForm() {
   const role = activeProfile?.name;
 
   if (!role) {
-    return <p className="text-sm text-muted">Selecione um perfil primeiro.</p>;
+    return <EmptyState message="Selecione um perfil primeiro." />;
   }
 
   return (

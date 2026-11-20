@@ -1,6 +1,7 @@
 import { getZones } from "../../services/api/catalogService";
 import { getCounties, getDistricts, getLocations } from "../../utils/zones";
 import { useFetch } from "../../hooks/useFetch";
+import { LoadingState } from "./LoadingState";
 
 const selectClass =
   "rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-navy disabled:bg-surface disabled:text-muted";
@@ -55,7 +56,7 @@ export function ZoneSelect({ district, county, location, onChange }) {
   });
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!zones) return <p className="text-sm text-muted">A carregar zonas...</p>;
+  if (!zones) return <LoadingState label="A carregar zonas..." />;
 
   const districts = withCurrent(getDistricts(zones), district);
   const counties = district
