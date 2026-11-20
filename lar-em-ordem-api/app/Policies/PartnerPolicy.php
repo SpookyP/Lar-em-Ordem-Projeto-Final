@@ -5,63 +5,17 @@ namespace App\Policies;
 use App\Models\User\Partner;
 use App\Models\User\User;
 
+/**
+ * Only editing is checked here (UpdateUserProfileInformation); creating and removing
+ * the profile go through ProfileService.
+ */
 class PartnerPolicy
 {
-
-
     /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
-    {
-        return true;
-    }
-
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Partner $partner): bool
-    {
-        return true;
-    }
-
-    /**
-    * The partner profile is created during registration (CreateNewUser), not by this resource.
-    */
-   public function create(User $user): bool
-    {
-        return true;
-    }
-
-    /**
-     * Determine whether the user can update the model.
+     * Only the owner can edit the profile.
      */
     public function update(User $user, Partner $partner): bool
     {
         return $partner->user_id === $user->id;
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-     public function delete(User $user, Partner $partner): bool
-    {
-        return $partner->user_id === $user->id;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Partner $partner): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-     public function forceDelete(User $user, Partner $partner): bool
-    {
-        return false;
     }
 }
