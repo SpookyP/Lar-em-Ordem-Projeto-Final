@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAttachmentUrl } from "../../services/api/assistanceService";
 
-function Photo({ id }) {
+export function AttachmentPhoto({ id }) {
   const [src, setSrc] = useState(null);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function AttachmentGallery({ attachments }) {
       <h3 className="text-sm font-semibold text-muted">Fotografias</h3>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {attachments.map((a) => (
-          <Photo key={a.id} id={a.id} />
+          <AttachmentPhoto key={a.id} id={a.id} />
         ))}
       </div>
     </div>

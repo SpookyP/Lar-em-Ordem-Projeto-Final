@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
-import { Camera } from "lucide-react";
+import { useState } from "react";
+import { Camera, X } from "lucide-react";
 import { getCategories } from "../../services/api/assistanceService";
 import { TextInput, SearchSelect, TextArea } from "../form";
+import { AttachmentPhoto } from "./AttachmentGallery";
+import { useFetch } from "../../hooks/useFetch";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_PHOTOS = 2;
 
 function getErrorMessage(err) {
   const status = err.response?.status;
@@ -21,32 +24,30 @@ function getErrorMessage(err) {
   return err.message;
 }
 
-export default function AssistanceForm({ onSubmit }) {
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
+// with "initial" it edits an existing request (its photos can be removed) instead of creating one
+export default function AssistanceForm({ onSubmit, initial, onCancel }) {
+  const editing = Boolean(initial);
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [category, setCategory] = useState(initial?.categoryId ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
   const [photo, setPhoto] = useState(null);
   const [photoError, setPhotoError] = useState("");
+  const [removeIds, setRemoveIds] = useState([]);
 
-  const [categories, setCategories] = useState([]);
-  const [categoriesError, setCategoriesError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let active = true;
-    getCategories()
-      .then((list) => {
-        if (active) setCategories(list);
-      })
-      .catch(() => {
-        if (active)
-          setCategoriesError("Não foi possível carregar as categorias.");
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: categories, error: categoriesError } = useFetch(
+    getCategories,
+    [],
+    {
+      errorMessage: "Não foi possível carregar as categorias.",
+    },
+  );
+
+  const keptPhotos = (initial?.attachments ?? []).filter(
+    (a) => !removeIds.includes(a.id),
+  );
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -80,13 +81,16 @@ export default function AssistanceForm({ onSubmit }) {
     setSubmitting(true);
     setError("");
     try {
-      await onSubmit({ title, category, description, photo });
-      form.reset();
-      setTitle("");
-      setCategory("");
-      setDescription("");
-      setPhoto(null);
-      setPhotoError("");
+      await onSubmit({ title, category, description, photo, removeIds });
+      // when editing, the page closes the form after saving
+      if (!editing) {
+        form.reset();
+        setTitle("");
+        setCategory("");
+        setDescription("");
+        setPhoto(null);
+        setPhotoError("");
+      }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -94,7 +98,7 @@ export default function AssistanceForm({ onSubmit }) {
     }
   };
 
-  const categoryOptions = categories.map((c) => ({
+  const categoryOptions = (categories ?? []).map((c) => ({
     value: String(c.id),
     label: c.label,
   }));
@@ -103,7 +107,7 @@ export default function AssistanceForm({ onSubmit }) {
     <div className="rounded-2xl bg-card p-8 shadow-sm">
       <div className="mb-6">
         <h2 className="font-display text-xl text-navy">
-          Novo Pedido de Assistência
+          {editing ? "Editar Pedido" : "Novo Pedido de Assistência"}
         </h2>
         <p className="mt-1 text-sm text-muted">
           <span className="text-red">*</span> Campos de preenchimento
@@ -152,26 +156,45 @@ export default function AssistanceForm({ onSubmit }) {
           <label className="text-sm font-medium text-navy">
             Fotografia da avaria
           </label>
-          <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-background/50 p-6 transition-colors hover:border-orange/50">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-light text-orange">
-              <Camera className="h-6 w-6" />
+          {keptPhotos.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {keptPhotos.map((a) => (
+                <div key={a.id} className="relative">
+                  <AttachmentPhoto id={a.id} />
+                  <button
+                    type="button"
+                    onClick={() => setRemoveIds((ids) => [...ids, a.id])}
+                    aria-label="Remover fotografia"
+                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-card text-muted shadow-sm transition hover:text-red"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
             </div>
-            <span className="text-sm font-medium text-navy">
-              {photo ? photo.name : "Adicionar Fotografia"}
-            </span>
-            <span className="mt-1 text-xs text-muted">
-              Opcional — tire uma foto ou escolha da galeria
-            </span>
-            <span className="mt-0.5 text-xs text-muted">
-              PNG, JPG ou WebP (Máx. 5MiB)
-            </span>
-            <input
-              type="file"
-              accept="image/jpeg, image/png, image/webp"
-              className="hidden"
-              onChange={handlePhotoChange}
-            />
-          </label>
+          )}
+          {keptPhotos.length < MAX_PHOTOS && (
+            <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-background/50 p-6 transition-colors hover:border-orange/50">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-light text-orange">
+                <Camera className="h-6 w-6" />
+              </div>
+              <span className="text-sm font-medium text-navy">
+                {photo ? photo.name : "Adicionar Fotografia"}
+              </span>
+              <span className="mt-1 text-xs text-muted">
+                Opcional — tire uma foto ou escolha da galeria
+              </span>
+              <span className="mt-0.5 text-xs text-muted">
+                PNG, JPG ou WebP (Máx. 5MiB)
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg, image/png, image/webp"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+            </label>
+          )}
           {photoError && (
             <span className="text-xs font-medium text-red">{photoError}</span>
           )}
@@ -184,8 +207,25 @@ export default function AssistanceForm({ onSubmit }) {
           disabled={submitting}
           className="w-full mt-2 rounded-xl bg-orange py-3.5 text-sm font-medium text-white shadow-sm hover:bg-orange/90 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {submitting ? "A enviar..." : "Submeter Pedido"}
+          {editing
+            ? submitting
+              ? "A guardar..."
+              : "Guardar alterações"
+            : submitting
+              ? "A enviar..."
+              : "Submeter Pedido"}
         </button>
+
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={submitting}
+            className="text-sm text-muted underline hover:text-navy disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+        )}
       </form>
     </div>
   );
