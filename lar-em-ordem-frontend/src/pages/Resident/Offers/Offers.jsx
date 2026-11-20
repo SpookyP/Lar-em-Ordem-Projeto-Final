@@ -7,6 +7,8 @@ import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { Pager } from "../../../components/ui/Pager";
 import { OfferGridCard } from "../../../components/ui/OfferGridCard";
 import { useFetch } from "../../../hooks/useFetch";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 export default function Offers() {
   const [searchInput, setSearchInput] = useState("");
@@ -104,15 +106,18 @@ export default function Offers() {
         </div>
 
         {loading && offers.length === 0 ? (
-          <p className="p-4 text-muted">A carregar ofertas…</p>
+          <LoadingState label="A carregar ofertas..." className="p-4" />
         ) : error ? (
           <p className="p-4 text-red">{error}</p>
         ) : offers.length === 0 ? (
-          <p className="p-4 text-muted">
-            {hasFilters
-              ? "Nenhuma oferta corresponde aos filtros."
-              : "De momento não há ofertas disponíveis."}
-          </p>
+          <EmptyState
+            className="p-4"
+            message={
+              hasFilters
+                ? "Nenhuma oferta corresponde aos filtros."
+                : "De momento não há ofertas disponíveis."
+            }
+          />
         ) : view === "grid" ? (
           <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {offers.map((offer, index) => (

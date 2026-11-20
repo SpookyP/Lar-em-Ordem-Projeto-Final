@@ -17,6 +17,7 @@ import { formatDate } from "../../../utils/date";
 import { toHref } from "../../../utils/url";
 import { useGoBack } from "../../../hooks/useGoBack";
 import { useFetch } from "../../../hooks/useFetch";
+import { LoadingState } from "../../../components/ui/LoadingState";
 
 export default function OfferDetail() {
   const { id } = useParams();
@@ -64,7 +65,7 @@ export default function OfferDetail() {
 
       <div className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-card shadow-xl">
         {loading ? (
-          <p className="p-6 text-muted">A carregar oferta…</p>
+          <LoadingState label="A carregar oferta..." className="p-6" />
         ) : error || !offer ? (
           <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-red-light text-red">
