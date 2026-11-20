@@ -203,7 +203,7 @@ class CondominiumNoticeService
     private function recipients(Condominium $condominium)
     {
         return User::whereHas('resident.contracts', fn (Builder $q) => $q
-            ->where('is_active', true)
+            ->active()
             ->whereHas('property', fn (Builder $p) => $p->where('condominium_id', $condominium->id)))
             ->get();
     }

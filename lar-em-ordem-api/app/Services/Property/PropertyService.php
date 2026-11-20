@@ -36,18 +36,31 @@ class PropertyService
     #endregion
 
     #region Get Properties
+    /**
+     * Loads what the home screens show: address, type, typology and the active contract with its type.
+     */
+    public function withDetails(Property $property): Property
+    {
+        return $property->load([
+            'address',
+            'propertyType',
+            'propertyTypology',
+            'contracts' => fn ($query) => $query->active()->with('residentType'),
+        ]);
+    }
+
     public function getResidentProperties(User $user, int $perPage = 5): LengthAwarePaginator
     {
         return Property::query()
             ->whereHas('contracts', function ($query) use ($user) {
                 $query->where('resident_id', $user->resident?->id)
-                    ->where('is_active', true);
+                    ->active();
             })
             ->with([
                 'address:id,fraction,street,location',
                 'propertyType:id,type',
                 'propertyTypology:id,typology',
-                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType:id,type'),
+                'contracts' => fn($query) => $query->active()->with('residentType:id,type'),
             ])
             ->latest() // order by latest
             ->latest('id')
@@ -70,12 +83,7 @@ class PropertyService
                 'is_active'        => true,
             ]);
 
-            return $property->load([
-                'address',
-                'propertyType',
-                'propertyTypology',
-                'contracts' => fn ($q) => $q->where('is_active', true)->with('residentType'),
-            ]);
+            return $this->withDetails($property);
         });
     }
 
@@ -93,18 +101,12 @@ class PropertyService
 
             if (!empty($contractData)) {
                 $property->contracts()
-                    ->where('is_active', true)
+                    ->active()
                     ->first()
                     ?->update($contractData);
             }
 
-
-            return $property->fresh([
-                'address',
-                'propertyType',
-                'propertyTypology',
-                'contracts' => fn($query) => $query->where('is_active', true)->with('residentType'),
-            ]);
+            return $this->withDetails($property->refresh());
         });
     }
 
@@ -117,7 +119,7 @@ class PropertyService
     {
         DB::transaction(function () use ($property) {
             $property->contracts()
-                ->where('is_active', true)
+                ->active()
                 ->update([
                     'is_active' => false,
                     'end_date' => now()

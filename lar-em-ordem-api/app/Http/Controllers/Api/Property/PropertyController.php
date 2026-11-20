@@ -7,7 +7,7 @@ use App\Models\Property\Property;
 use App\Services\Property\PropertyService;
 use App\Http\Requests\Property\StorePropertyRequest;
 use App\Http\Requests\Property\UpdatePropertyRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\PerPageRequest;
 use App\Http\Resources\Property\PropertyResource;
 use App\Http\Resources\Property\PropertyListResource;
 use Illuminate\Http\JsonResponse;
@@ -18,13 +18,12 @@ class PropertyController extends Controller
     {
         $this->authorizeResource(Property::class, 'property');
     }
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(PerPageRequest $request)
     {
-        $request->validate(['per_page' => ['sometimes', 'integer', 'between:1,15'],]);
-
         $properties = $this->service->getResidentProperties(
             user: $request->user(),
             perPage: $request->integer('per_page', 5)
@@ -55,14 +54,7 @@ class PropertyController extends Controller
      */
     public function show(Property $property): JsonResponse
     {
-        $property->load([
-            'address',
-            'propertyType',
-            'propertyTypology',
-            'contracts' => fn($q) => $q->where('is_active', true)->with('residentType'),
-        ]);
-
-        return PropertyResource::make($property)->response();
+        return PropertyResource::make($this->service->withDetails($property))->response();
     }
 
     /**
