@@ -10,6 +10,7 @@ import { ProposalForm } from "../../../components/ui/ProposalForm";
 import { formatAddress } from "../../../utils/format";
 import { formatDate, formatDay } from "../../../utils/date";
 import { useGoBack } from "../../../hooks/useGoBack";
+import { LoadingState } from "../../../components/ui/LoadingState";
 
 function RequestSummary({ request, proposal }) {
   const { icon: Icon, color } = categoryInfo(request.category.slug);
@@ -118,7 +119,7 @@ export default function ProposalFormPage() {
       </nav>
 
       {loading ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : error && !request ? (
         <p
           role="alert"

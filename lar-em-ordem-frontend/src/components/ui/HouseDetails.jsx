@@ -11,6 +11,8 @@ import {
   CalendarClock,
 } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
+import { LoadingState } from "./LoadingState";
+import { EmptyState } from "./EmptyState";
 
 function formatDate(value) {
   if (!value) return null;
@@ -48,8 +50,8 @@ export function HouseDetails() {
   });
 
   if (!activeHouse)
-    return <p className="text-sm text-muted">Nenhuma habitação selecionada.</p>;
-  if (loading) return <p className="text-sm text-muted">A carregar...</p>;
+    return <EmptyState message="Nenhuma habitação selecionada." />;
+  if (loading) return <LoadingState />;
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!house) return null;
 

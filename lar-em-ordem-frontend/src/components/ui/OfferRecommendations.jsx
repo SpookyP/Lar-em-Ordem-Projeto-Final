@@ -3,6 +3,7 @@ import { getRecommendations } from "../../services/api/offerService";
 import { PartnerOfferCard } from "./PartnerOfferCard";
 import { ArrowRight } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
+import { LoadingState } from "./LoadingState";
 
 export function OfferRecommendations() {
   const {
@@ -14,8 +15,7 @@ export function OfferRecommendations() {
   });
   const offers = page?.items ?? [];
 
-  if (loading)
-    return <p className="text-sm text-muted">A carregar ofertas...</p>;
+  if (loading) return <LoadingState label="A carregar ofertas..." />;
   if (error) return <p className="text-sm text-red">{error}</p>;
   if (offers.length === 0) return null;
 

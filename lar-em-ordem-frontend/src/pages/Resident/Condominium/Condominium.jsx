@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { Mail, MapPin, Phone, PiggyBank, Settings, UserRound } from "lucide-react";
+import {
+  Mail,
+  MapPin,
+  Phone,
+  PiggyBank,
+  Settings,
+  UserRound,
+} from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import { usePropertyDocumentsPage } from "../../../hooks/usePropertyDocumentsPage";
 import { CategoryFilter } from "../../../components/condominium/CategoryFilter";
@@ -9,16 +16,23 @@ import { Pager } from "../../../components/ui/Pager";
 import { priorityInfo } from "../../../data/condominiumInfo";
 import { addressLine, formatMoney } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 // the administrator's contact may be an email or a phone number: make it clickable either way
 function ContactLink({ contact }) {
   if (!contact) return null;
   const isEmail = contact.includes("@");
   const Icon = isEmail ? Mail : Phone;
-  const href = isEmail ? `mailto:${contact}` : `tel:${contact.replace(/[^\d+]/g, "")}`;
+  const href = isEmail
+    ? `mailto:${contact}`
+    : `tel:${contact.replace(/[^\d+]/g, "")}`;
 
   return (
-    <a href={href} className="flex items-center gap-2 text-navy hover:underline">
+    <a
+      href={href}
+      className="flex items-center gap-2 text-navy hover:underline"
+    >
       <Icon size={16} aria-hidden="true" />
       {contact}
     </a>
@@ -36,7 +50,7 @@ function Card({ title, children }) {
 
 function Notices({ notices }) {
   if (notices.length === 0) {
-    return <p className="text-sm text-muted">Não há avisos em vigor.</p>;
+    return <EmptyState message="Não há avisos em vigor." />;
   }
 
   return (
@@ -44,17 +58,26 @@ function Notices({ notices }) {
       {notices.map((notice) => {
         const priority = priorityInfo(notice.priority);
         return (
-          <li key={notice.id} className="flex flex-col gap-1.5 rounded-xl border border-border p-4">
+          <li
+            key={notice.id}
+            className="flex flex-col gap-1.5 rounded-xl border border-border p-4"
+          >
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-medium text-text">{notice.title}</h3>
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${priority.className}`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${priority.className}`}
+              >
                 {priority.label}
               </span>
             </div>
-            <p className="whitespace-pre-line text-sm text-text">{notice.message}</p>
+            <p className="whitespace-pre-line text-sm text-text">
+              {notice.message}
+            </p>
             <p className="text-xs text-muted">
               Publicado a {formatDate(notice.publishedAt)}
-              {notice.expiresAt ? ` · em vigor até ${formatDate(notice.expiresAt)}` : ""}
+              {notice.expiresAt
+                ? ` · em vigor até ${formatDate(notice.expiresAt)}`
+                : ""}
             </p>
           </li>
         );
@@ -84,7 +107,11 @@ function Documents({ propertyId }) {
       <h2 className="font-medium text-navy">Documentos</h2>
 
       {categories.length > 0 && (
-        <CategoryFilter categories={categories} value={categoryId} onChange={setCategoryId} />
+        <CategoryFilter
+          categories={categories}
+          value={categoryId}
+          onChange={setCategoryId}
+        />
       )}
 
       {error ? (
@@ -92,14 +119,16 @@ function Documents({ propertyId }) {
           {error}
         </p>
       ) : loading && documents.length === 0 ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : total === 0 ? (
         <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted">
-            {categoryId
-              ? "Não há documentos nesta categoria."
-              : "A administração ainda não partilhou nenhum documento."}
-          </p>
+          <EmptyState
+            message={
+              categoryId
+                ? "Não há documentos nesta categoria."
+                : "A administração ainda não partilhou nenhum documento."
+            }
+          />
         </div>
       ) : (
         <>
@@ -120,12 +149,13 @@ export default function Condominium() {
   const { activeHouse, activeCondominium: condominium } = useAuth();
 
   if (condominium === undefined) {
-    return <p className="text-sm text-muted">A carregar...</p>;
+    return <LoadingState />;
   }
 
-  // no condominium (or the home just left it): joining is done in the settings
   if (condominium === null) {
-    return <Navigate to="/settings" state={{ section: "condominium" }} replace />;
+    return (
+      <Navigate to="/settings" state={{ section: "condominium" }} replace />
+    );
   }
 
   return (
@@ -145,12 +175,20 @@ export default function Condominium() {
         <Card title={condominium.name}>
           <div className="flex flex-col gap-3 text-sm text-text">
             <p className="flex items-start gap-2">
-              <MapPin size={16} className="mt-0.5 shrink-0 text-muted" aria-hidden="true" />
+              <MapPin
+                size={16}
+                className="mt-0.5 shrink-0 text-muted"
+                aria-hidden="true"
+              />
               {addressLine(condominium.address)}
             </p>
             {condominium.reserveFund != null && (
               <p className="flex items-center gap-2">
-                <PiggyBank size={16} className="text-muted" aria-hidden="true" />
+                <PiggyBank
+                  size={16}
+                  className="text-muted"
+                  aria-hidden="true"
+                />
                 Fundo comum de reserva: {formatMoney(condominium.reserveFund)}
               </p>
             )}
@@ -172,7 +210,7 @@ export default function Condominium() {
             <Notices notices={condominium.notices ?? []} />
           </Card>
         </div>
-        
+
         <div className="lg:col-span-2">
           <Documents propertyId={activeHouse.id} />
         </div>

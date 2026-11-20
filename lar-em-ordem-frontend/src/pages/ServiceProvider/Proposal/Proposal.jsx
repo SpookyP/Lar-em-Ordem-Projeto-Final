@@ -7,6 +7,8 @@ import { ProviderProposalCard } from "../../../components/ui/ProviderProposalCar
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { Pager } from "../../../components/ui/Pager";
 import { getErrorMessage } from "../../../utils/apiError";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 const FILTERS = [
   { id: "all", label: "Todas" },
@@ -17,7 +19,14 @@ const FILTERS = [
 const COLUMNS =
   "lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_7rem]";
 
-const HEADINGS = ["Pedido", "Valor", "Disponibilidade", "Validade", "Estado", "Ações"];
+const HEADINGS = [
+  "Pedido",
+  "Valor",
+  "Disponibilidade",
+  "Validade",
+  "Estado",
+  "Ações",
+];
 
 export default function Proposals() {
   const [filter, setFilter] = useState("all");
@@ -44,7 +53,9 @@ export default function Proposals() {
       reload();
       setCountsVersion((v) => v + 1);
     } catch (err) {
-      setActionError(getErrorMessage(err, "Não foi possível retirar a proposta."));
+      setActionError(
+        getErrorMessage(err, "Não foi possível retirar a proposta."),
+      );
     } finally {
       setBusy(false);
       setWithdrawing(null);
@@ -54,8 +65,12 @@ export default function Proposals() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-7">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">Prestador</p>
-        <h1 className="mt-1 font-display text-4xl text-navy">As minhas propostas</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+          Prestador
+        </p>
+        <h1 className="mt-1 font-display text-4xl text-navy">
+          As minhas propostas
+        </h1>
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -69,7 +84,9 @@ export default function Proposals() {
                 onClick={() => setFilter(f.id)}
                 aria-pressed={active}
                 className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
-                  active ? "bg-navy text-white" : "bg-surface text-muted hover:text-navy"
+                  active
+                    ? "bg-navy text-white"
+                    : "bg-surface text-muted hover:text-navy"
                 }`}
               >
                 {f.label}
@@ -88,7 +105,10 @@ export default function Proposals() {
         </div>
 
         {actionError && (
-          <p role="alert" className="mx-4 mb-4 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red sm:mx-6">
+          <p
+            role="alert"
+            className="mx-4 mb-4 rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red sm:mx-6"
+          >
             {actionError}
           </p>
         )}
@@ -97,24 +117,36 @@ export default function Proposals() {
           className={`hidden gap-4 border-y border-border bg-surface px-6 py-3 text-xs font-semibold uppercase tracking-wider text-muted lg:grid ${COLUMNS}`}
         >
           {HEADINGS.map((heading) => (
-            <span key={heading} className={heading === "Ações" ? "text-center" : heading === "Pedido" ? "pl-15" : ""}>
+            <span
+              key={heading}
+              className={
+                heading === "Ações"
+                  ? "text-center"
+                  : heading === "Pedido"
+                    ? "pl-15"
+                    : ""
+              }
+            >
               {heading}
             </span>
           ))}
         </div>
 
         {loading ? (
-          <p className="p-4 text-sm text-muted sm:p-6">A carregar...</p>
+          <LoadingState className="p-4 sm:p-6" />
         ) : error ? (
           <p role="alert" className="p-4 text-sm text-red sm:p-6">
             {error}
           </p>
         ) : proposals.length === 0 ? (
-          <p className="p-4 text-sm text-muted sm:p-6">
-            {filter === "all"
-              ? "Ainda não enviou nenhuma proposta."
-              : "Nenhuma proposta neste estado."}
-          </p>
+          <EmptyState
+            className="p-4 sm:p-6"
+            message={
+              filter === "all"
+                ? "Ainda não enviou nenhuma proposta."
+                : "Nenhuma proposta neste estado."
+            }
+          />
         ) : (
           <div className="divide-y divide-border border-t border-border lg:border-t-0">
             {proposals.map((proposal) => (

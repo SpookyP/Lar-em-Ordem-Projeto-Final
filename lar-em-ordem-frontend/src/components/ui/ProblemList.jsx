@@ -2,6 +2,8 @@ import { AssistanceCard } from "./AssistanceCard";
 import { Pager } from "./Pager";
 import { categoryInfo } from "../../data/assistanceInfo";
 import { formatDate } from "../../utils/date";
+import { LoadingState } from "./LoadingState";
+import { EmptyState } from "./EmptyState";
 
 const STATUS_FILTERS = [
   { value: "", label: "Todos" },
@@ -48,15 +50,17 @@ export default function ProblemList({
       )}
 
       {loading ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : error ? (
         <p className="text-sm text-red">{error}</p>
       ) : requests.length === 0 ? (
-        <p className="text-sm text-muted">
-          {status
-            ? "Nenhum pedido com este estado."
-            : "Ainda não existem pedidos registados."}
-        </p>
+        <EmptyState
+          message={
+            status
+              ? "Nenhum pedido com este estado."
+              : "Ainda não existem pedidos registados."
+          }
+        />
       ) : (
         <div className="flex flex-col gap-2.5">
           {requests.map((r) => {

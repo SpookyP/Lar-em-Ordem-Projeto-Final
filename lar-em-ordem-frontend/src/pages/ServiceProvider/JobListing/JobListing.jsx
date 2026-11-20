@@ -7,6 +7,8 @@ import { useAvailableJobs } from "../../../hooks/useAvailableJobs";
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { categoryInfo } from "../../../data/assistanceInfo";
 import { formatRelative } from "../../../utils/date";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 export default function JobListing() {
   const [search, setSearch] = useState("");
@@ -39,10 +41,13 @@ export default function JobListing() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
           Prestador de serviços
         </p>
-        <h1 className="mt-1 font-display text-4xl text-navy">Pedidos disponíveis</h1>
+        <h1 className="mt-1 font-display text-4xl text-navy">
+          Pedidos disponíveis
+        </h1>
         <p className="mt-2 text-sm text-muted">
-          Pedidos de assistência abertos nas suas zonas e especialidades. Abra um pedido para
-          ver a descrição e as fotografias e enviar a sua proposta.
+          Pedidos de assistência abertos nas suas zonas e especialidades. Abra
+          um pedido para ver a descrição e as fotografias e enviar a sua
+          proposta.
         </p>
       </header>
 
@@ -78,22 +83,25 @@ export default function JobListing() {
           <div>
             <h2 className="text-lg font-semibold text-navy">Pedidos abertos</h2>
             <p className="text-sm text-muted">
-              {total} {total === 1 ? "pedido disponível" : "pedidos disponíveis"}
+              {total}{" "}
+              {total === 1 ? "pedido disponível" : "pedidos disponíveis"}
             </p>
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted">A carregar...</p>
+            <LoadingState />
           ) : error ? (
             <p role="alert" className="text-sm text-red">
               {error}
             </p>
           ) : jobs.length === 0 ? (
-            <p className="text-sm text-muted">
-              {hasFilters
-                ? "Nenhum pedido encontrado. Experimente alterar os filtros."
-                : "Não há pedidos disponíveis para si neste momento."}
-            </p>
+            <EmptyState
+              message={
+                hasFilters
+                  ? "Nenhum pedido encontrado. Experimente alterar os filtros."
+                  : "Não há pedidos disponíveis para si neste momento."
+              }
+            />
           ) : (
             <div className="flex flex-col gap-2.5">
               {jobs.map((job) => {

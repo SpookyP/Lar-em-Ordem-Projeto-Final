@@ -9,6 +9,7 @@ import { ZoneSelect } from "./ZoneSelect";
 import { TextInput, SearchSelect, DatePicker, StepProgress } from "../form";
 import { todayISO } from "../../utils/date";
 import { useFetch } from "../../hooks/useFetch";
+import { LoadingState } from "./LoadingState";
 
 const EMPTY_FORM = {
   property_type_id: "",
@@ -246,7 +247,7 @@ export function PropertyForm({
   }
 
   if (!options) {
-    return <p className="text-sm text-muted">A carregar...</p>;
+    return <LoadingState />;
   }
 
   return (

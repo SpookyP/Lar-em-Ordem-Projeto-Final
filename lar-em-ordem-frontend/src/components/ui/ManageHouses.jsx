@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { Pager } from "./Pager";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { LoadingState } from "./LoadingState";
+import { EmptyState } from "./EmptyState";
 
 export function ManageHouses() {
   const { refreshHouses } = useHouses();
@@ -106,9 +108,9 @@ export function ManageHouses() {
       {(error || listError) && (
         <p className="text-sm text-red-600">{error || listError}</p>
       )}
-      {loading && <p className="text-sm text-muted">A carregar...</p>}
+      {loading && <LoadingState />}
       {!loading && !listError && total === 0 && (
-        <p className="text-sm text-muted">Ainda não tens habitações.</p>
+        <EmptyState message="Ainda não tens habitações." />
       )}
 
       <ul className="flex flex-col gap-2">
