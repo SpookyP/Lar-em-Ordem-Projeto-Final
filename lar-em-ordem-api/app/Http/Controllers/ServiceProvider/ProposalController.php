@@ -8,8 +8,8 @@ use App\Http\Requests\ServiceProvider\UpdateProposalRequest;
 use App\Http\Resources\ServiceProvider\ProposalResource;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\Proposal;
+use App\Services\Auth\ProfileService;
 use App\Services\ServiceProvider\ProposalService;
-use App\Services\ServiceProvider\ServiceProviderService;
 use App\Http\Requests\ServiceProvider\IndexProposalRequest;
 use Illuminate\Support\Facades\Gate;
 
@@ -17,7 +17,7 @@ class ProposalController extends Controller
 {
     public function __construct(
         private ProposalService $service,
-        private ServiceProviderService $serviceProviderService,
+        private ProfileService $profiles,
     ) {}
 
     /**
@@ -30,7 +30,7 @@ class ProposalController extends Controller
     {
         Gate::authorize('create', Proposal::class);
 
-        $provider = $this->serviceProviderService->getByUser($request->user());
+        $provider = $this->profiles->get($request->user(), 'service_provider');
 
         return ProposalResource::collection(
             $this->service->listByProvider(
@@ -52,7 +52,7 @@ class ProposalController extends Controller
     {
         Gate::authorize('create', Proposal::class);
 
-        $provider = $this->serviceProviderService->getByUser($request->user());
+        $provider = $this->profiles->get($request->user(), 'service_provider');
         $proposal = $this->service->create($assistanceRequest, $provider, $request->validated());
 
         return (new ProposalResource($proposal))

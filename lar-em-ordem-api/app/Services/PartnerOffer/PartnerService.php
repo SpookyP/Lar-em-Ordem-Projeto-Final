@@ -8,35 +8,11 @@ use App\Models\User\User;
 use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use App\Support\Search;
 
 class PartnerService
 {
     public function __construct(private PersonalDataEraser $eraser) {}
-
-    /**
-     * Procura o perfil de parceiro de um utilizador.
-     *
-     * @param User $user Utilizador a procurar.
-     * @return Partner|null O parceiro, ou null se o utilizador não tiver perfil de parceiro.
-     */
-    public function findByUser(User $user): ?Partner
-    {
-        return Partner::where('user_id', $user->id)->first();
-    }
-
-    /**
-     * Devolve o perfil de parceiro de um utilizador; termina com 403 se não existir.
-     *
-     * @param User $user Utilizador a procurar.
-     * @return Partner
-     */
-    public function getByUser(User $user): Partner
-    {
-        return $this->findByUser($user)
-            ?? abort(403, 'Este utilizador não tem um perfil de parceiro.');
-    }
     
     /**
      * Parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor de cada um,
@@ -63,7 +39,6 @@ class PartnerService
 
     /**
      * Cria o perfil de parceiro de um utilizador e atribui-lhe a role 'partner'.
-     * Cada utilizador só pode ter um perfil de parceiro.
      *
      * @param array $data Dados validados para a criação do parceiro.
      * @param User $owner Utilizador dono do perfil.
@@ -71,11 +46,6 @@ class PartnerService
      */
     public function create(array $data, User $owner): Partner
     {
-        if ($this->findByUser($owner)) {
-            throw ValidationException::withMessages([
-                'user_id' => 'Este utilizador já tem um perfil de parceiro.',
-            ]);
-        }
         return DB::transaction(function () use ($data, $owner) {
             $owner->assignRole('partner');
 

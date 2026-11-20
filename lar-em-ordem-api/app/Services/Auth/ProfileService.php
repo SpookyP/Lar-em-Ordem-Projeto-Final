@@ -32,6 +32,14 @@ class ProfileService
     /** Perfil estritamente profissional: não pode existir com nenhum outro perfil na mesma conta. */
     public const EXCLUSIVE_ROLE = 'partner';
 
+    /** Portuguese name of each profile, for the 403 in get(). */
+    private const LABELS = [
+        'resident'          => 'residente',
+        'service_provider'  => 'prestador de serviços',
+        'partner'           => 'parceiro',
+        'condominium_admin' => 'administrador de condomínio',
+    ];
+
     public function __construct(
         private ResidentService $residentService,
         private ServiceProviderService $serviceProviderService,
@@ -85,6 +93,19 @@ class ProfileService
             'partner'          => $user->partner()->first(),
             'condominium_admin' => $user->condominium_admin()->first(),
         };
+    }
+
+    /**
+     * The user's profile for a role, for controllers that act as that profile; 403 if they don't have it.
+     *
+     * @param User $user Authenticated user.
+     * @param string $role One of the ROLES.
+     * @return Model
+     */
+    public function get(User $user, string $role): Model
+    {
+        return $this->find($user, $role)
+            ?? abort(403, 'Este utilizador não tem um perfil de ' . self::LABELS[$role] . '.');
     }
 
     /**

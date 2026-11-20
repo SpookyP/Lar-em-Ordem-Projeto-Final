@@ -11,16 +11,16 @@ use App\Http\Requests\ServiceProvider\UpdateAssistanceRequestRequest;
 use App\Http\Resources\ServiceProvider\AssistanceRequestResource;
 use App\Models\ServiceProvider\AssistanceRequest;
 use App\Models\ServiceProvider\RequestAttachment;
+use App\Services\Auth\ProfileService;
 use App\Services\FileStorage\FileStorageService;
 use App\Services\ServiceProvider\AssistanceRequestService;
-use App\Services\ServiceProvider\ServiceProviderService;
 use Illuminate\Support\Facades\Gate;
 
 class AssistanceRequestController extends Controller
 {
     public function __construct(
         private AssistanceRequestService $service,
-        private ServiceProviderService $serviceProviderService,
+        private ProfileService $profiles,
     ) {}
 
      /**
@@ -124,7 +124,7 @@ class AssistanceRequestController extends Controller
     {
         Gate::authorize('viewAvailable', AssistanceRequest::class);
 
-        $provider = $this->serviceProviderService->getByUser($request->user());
+        $provider = $this->profiles->get($request->user(), 'service_provider');
 
         return AssistanceRequestResource::collection(
             $this->service->listAvailableFor(

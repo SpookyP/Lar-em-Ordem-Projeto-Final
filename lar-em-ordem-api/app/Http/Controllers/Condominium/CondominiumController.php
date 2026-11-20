@@ -11,7 +11,7 @@ use App\Http\Requests\Condominium\ClaimCondominiumRequest;
 use App\Http\Resources\Condominium\CondominiumResource;
 use App\Models\Condominium\Condominium;
 use App\Models\Property\Property;
-use App\Services\Condominium\CondominiumAdminService;
+use App\Services\Auth\ProfileService;
 use App\Services\Condominium\CondominiumService;
 use App\Services\Condominium\CondominiumNoticeService;
 use Illuminate\Support\Facades\Gate;
@@ -21,7 +21,7 @@ class CondominiumController extends Controller
 {
     public function __construct(
         private CondominiumService $service,
-        private CondominiumAdminService $adminService,
+        private ProfileService $profiles,
         private CondominiumNoticeService $noticeService,
     ) {}
 
@@ -50,7 +50,7 @@ class CondominiumController extends Controller
     {
         Gate::authorize('create', Condominium::class);
 
-        $admin = $this->adminService->getByUser($request->user());
+        $admin = $this->profiles->get($request->user(), 'condominium_admin');
 
         return (new CondominiumResource($this->service->create($request->validated(), $admin)))
             ->response()
@@ -206,7 +206,7 @@ class CondominiumController extends Controller
     {
         Gate::authorize('claim', Condominium::class);
 
-        $admin = $this->adminService->getByUser($request->user());
+        $admin = $this->profiles->get($request->user(), 'condominium_admin');
 
         return new CondominiumResource($this->service->claim($request->validated('transfer_code'), $admin));
     }
