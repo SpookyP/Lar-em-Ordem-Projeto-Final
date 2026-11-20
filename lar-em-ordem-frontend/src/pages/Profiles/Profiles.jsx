@@ -8,6 +8,7 @@ import { HouseList } from "../../components/ui/HouseList";
 import { AuthSplit } from "../../components/layout/AuthSplit";
 import { Footer } from "../../components/layout/Footer";
 import { useGoBack } from "../../hooks/useGoBack";
+import { LoadingState } from "../../components/ui/LoadingState";
 
 function Shell({ onLogout, children }) {
   return (
@@ -120,7 +121,7 @@ export default function Profiles() {
   if (deciding) {
     return (
       <Shell onLogout={handleLogout}>
-        <p className="text-muted">A carregar...</p>
+        <LoadingState />
       </Shell>
     );
   }

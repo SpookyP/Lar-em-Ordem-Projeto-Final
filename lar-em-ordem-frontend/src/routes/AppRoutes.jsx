@@ -7,6 +7,7 @@ import { SessionTimeout } from "../components/layout/SessionTimeout";
 import { ROLES } from "../utils/roles";
 import { lazy, Suspense } from "react";
 import { RequireHouse } from "./RequireHouse";
+import { LoadingState } from "../components/ui/LoadingState";
 
 //Login fica eager: é a página de entrada, evita loading no arranque
 import Login from "../pages/Login/Login";
@@ -81,11 +82,10 @@ const CondominiumDocuments = lazy(
     import("../pages/CondominiumAdmin/CondominiumDocuments/CondominiumDocuments"),
 );
 
-//Ecrã mostrado enquanto o código de uma página ainda está a carregar
 function RouteFallback() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center">
-      <p className="text-muted">A carregar...</p>
+      <LoadingState />
     </div>
   );
 }

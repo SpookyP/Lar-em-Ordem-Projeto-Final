@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Bell, Building, Eye, House, MapPin, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bell,
+  Building,
+  Eye,
+  House,
+  MapPin,
+  Pencil,
+} from "lucide-react";
 import {
   getCondominium,
   regenerateInviteCode,
@@ -13,6 +22,8 @@ import { addressLine, formatMoney } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
 import { fractionLabel, priorityInfo } from "../../../data/condominiumInfo";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 function Card({ title, description, action, children }) {
   return (
@@ -20,7 +31,9 @@ function Card({ title, description, action, children }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-navy">{title}</h2>
-          {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+          {description && (
+            <p className="mt-1 text-sm text-muted">{description}</p>
+          )}
         </div>
         {action}
       </div>
@@ -32,7 +45,9 @@ function Card({ title, description, action, children }) {
 function HeroStat({ label, value }) {
   return (
     <div className="flex flex-col gap-1.5 px-8 py-6">
-      <p className="text-xs font-semibold uppercase tracking-wider text-white/60">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-white/60">
+        {label}
+      </p>
       <p className="font-display text-2xl">{value}</p>
     </div>
   );
@@ -59,9 +74,7 @@ function Fractions({ condominium, onRemoved }) {
 
   if (condominium.properties.length === 0) {
     return (
-      <p className="text-sm text-muted">
-        Ainda nenhuma casa entrou. Partilha o código de convite com os condóminos.
-      </p>
+      <EmptyState message="Ainda nenhuma casa entrou. Partilhe o código de convite com os condóminos." />
     );
   }
 
@@ -74,7 +87,10 @@ function Fractions({ condominium, onRemoved }) {
       )}
       <ul className="flex flex-col divide-y divide-border">
         {condominium.properties.map((property) => (
-          <li key={property.id} className="flex flex-col gap-2 py-3.5 first:pt-0 last:pb-0">
+          <li
+            key={property.id}
+            className="flex flex-col gap-2 py-3.5 first:pt-0 last:pb-0"
+          >
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-3 text-sm font-medium text-text">
                 <span className="flex size-10 items-center justify-center rounded-full bg-surface text-muted">
@@ -96,8 +112,8 @@ function Fractions({ condominium, onRemoved }) {
             {confirmingId === property.id && (
               <div className="flex flex-col gap-2 rounded-xl bg-surface p-3 text-sm">
                 <p className="text-muted">
-                  A casa deixa de ver os avisos e os documentos do condomínio. O morador pode
-                  voltar a entrar com o código de convite.
+                  A casa deixa de ver os avisos e os documentos do condomínio. O
+                  morador pode voltar a entrar com o código de convite.
                 </p>
                 <div className="flex items-center gap-3">
                   <button
@@ -127,7 +143,7 @@ function Fractions({ condominium, onRemoved }) {
 
 function CurrentNotices({ notices }) {
   if (notices.length === 0) {
-    return <p className="text-sm text-muted">Não há avisos em vigor.</p>;
+    return <EmptyState message="Não há avisos em vigor." />;
   }
 
   return (
@@ -135,20 +151,27 @@ function CurrentNotices({ notices }) {
       {notices.map((notice) => {
         const priority = priorityInfo(notice.priority);
         return (
-          <li key={notice.id} className="flex items-start gap-3.5 rounded-xl border border-border p-4">
+          <li
+            key={notice.id}
+            className="flex items-start gap-3.5 rounded-xl border border-border p-4"
+          >
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-orange-light text-orange">
               <Bell size={18} aria-hidden="true" />
             </span>
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-medium text-text">{notice.title}</h3>
-                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${priority.className}`}>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${priority.className}`}
+                >
                   {priority.label}
                 </span>
               </div>
               <p className="text-xs text-muted">
                 Publicado a {formatDate(notice.publishedAt)}
-                {notice.expiresAt ? ` · em vigor até ${formatDate(notice.expiresAt)}` : ""}
+                {notice.expiresAt
+                  ? ` · em vigor até ${formatDate(notice.expiresAt)}`
+                  : ""}
               </p>
               {notice.readersCount != null && (
                 <p className="flex items-center gap-1.5 text-xs text-muted">
@@ -177,8 +200,12 @@ export default function CondominiumDetail() {
     let active = true;
     getCondominium(id)
       .then((data) => active && setCondominium(data))
-      .catch((err) =>
-        active && setError(getErrorMessage(err, "Não foi possível carregar o condomínio.")),
+      .catch(
+        (err) =>
+          active &&
+          setError(
+            getErrorMessage(err, "Não foi possível carregar o condomínio."),
+          ),
       )
       .finally(() => active && setLoading(false));
     return () => {
@@ -190,9 +217,14 @@ export default function CondominiumDetail() {
     setCodeError("");
     try {
       const updated = await regenerateInviteCode(id);
-      setCondominium((current) => ({ ...current, inviteCode: updated.inviteCode }));
+      setCondominium((current) => ({
+        ...current,
+        inviteCode: updated.inviteCode,
+      }));
     } catch (err) {
-      setCodeError(getErrorMessage(err, "Não foi possível gerar um novo código."));
+      setCodeError(
+        getErrorMessage(err, "Não foi possível gerar um novo código."),
+      );
     }
   }
 
@@ -206,23 +238,34 @@ export default function CondominiumDetail() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <nav aria-label="Caminho" className="flex items-center gap-2 text-sm text-muted">
-        <Link to="/admin/condominiums" className="flex items-center gap-2 transition hover:text-navy">
+      <nav
+        aria-label="Caminho"
+        className="flex items-center gap-2 text-sm text-muted"
+      >
+        <Link
+          to="/admin/condominiums"
+          className="flex items-center gap-2 transition hover:text-navy"
+        >
           <ArrowLeft size={16} aria-hidden="true" />
           Condomínios
         </Link>
         <span aria-hidden="true">/</span>
-        <span className="truncate font-medium text-text">{condominium?.name ?? "Condomínio"}</span>
+        <span className="truncate font-medium text-text">
+          {condominium?.name ?? "Condomínio"}
+        </span>
       </nav>
 
       {error && (
-        <p role="alert" className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+        <p
+          role="alert"
+          className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red"
+        >
           {error}
         </p>
       )}
 
       {loading ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : (
         condominium && (
           <>
@@ -238,12 +281,20 @@ export default function CondominiumDetail() {
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-light">
                     Condomínio
                   </p>
-                  <h1 className="mt-2 font-display text-4xl">{condominium.name}</h1>
+                  <h1 className="mt-2 font-display text-4xl">
+                    {condominium.name}
+                  </h1>
                   <p className="mt-3 flex items-start gap-2 text-white/80">
-                    <MapPin size={17} className="mt-0.5 shrink-0" aria-hidden="true" />
+                    <MapPin
+                      size={17}
+                      className="mt-0.5 shrink-0"
+                      aria-hidden="true"
+                    />
                     <span>
                       {addressLine(condominium.address)}
-                      {condominium.address?.location ? ` (${condominium.address.location})` : ""}
+                      {condominium.address?.location
+                        ? ` (${condominium.address.location})`
+                        : ""}
                     </span>
                   </p>
                 </div>
@@ -264,15 +315,27 @@ export default function CondominiumDetail() {
                       : "Sem valor"
                   }
                 />
-                <HeroStat label="Frações ligadas" value={condominium.propertiesCount} />
-                <HeroStat label="Avisos em vigor" value={condominium.notices.length} />
+                <HeroStat
+                  label="Frações ligadas"
+                  value={condominium.propertiesCount}
+                />
+                <HeroStat
+                  label="Avisos em vigor"
+                  value={condominium.notices.length}
+                />
               </div>
             </header>
 
             <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
               <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-                <Card title="Frações" description="Casas ligadas a este condomínio.">
-                  <Fractions condominium={condominium} onRemoved={handleRemoved} />
+                <Card
+                  title="Frações"
+                  description="Casas ligadas a este condomínio."
+                >
+                  <Fractions
+                    condominium={condominium}
+                    onRemoved={handleRemoved}
+                  />
                 </Card>
 
                 <Card
@@ -300,7 +363,8 @@ export default function CondominiumDetail() {
                       state={{ name: condominium.name }}
                       className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-teal hover:underline"
                     >
-                      Gerir documentos <ArrowRight size={15} aria-hidden="true" />
+                      Gerir documentos{" "}
+                      <ArrowRight size={15} aria-hidden="true" />
                     </Link>
                   }
                 />
@@ -316,7 +380,10 @@ export default function CondominiumDetail() {
                       {codeError}
                     </p>
                   )}
-                  <InviteCode code={condominium.inviteCode} onRegenerate={handleRegenerate} />
+                  <InviteCode
+                    code={condominium.inviteCode}
+                    onRegenerate={handleRegenerate}
+                  />
                 </Card>
 
                 <Card
@@ -327,7 +394,10 @@ export default function CondominiumDetail() {
                     condominiumId={id}
                     expiresAt={condominium.transferExpiresAt}
                     onChange={(expiresAt) =>
-                      setCondominium((current) => ({ ...current, transferExpiresAt: expiresAt }))
+                      setCondominium((current) => ({
+                        ...current,
+                        transferExpiresAt: expiresAt,
+                      }))
                     }
                   />
                 </Card>
