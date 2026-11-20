@@ -3,6 +3,7 @@ import { FileText } from 'lucide-react';
 import axiosClient from '../services/api/axiosClient.js';
 import { useAuth } from './useAuth';
 import { echo } from '../services/echo.js';
+import {isOwnerHouse} from "../utils/ownerHouse.js";
 
 const SNOOZE_STORAGE_KEY = 'snoozed_notifs';
 
@@ -31,6 +32,7 @@ export function timeAgo(dateString) {
 export function useNotifications() {
     const { activeHouse } = useAuth();
     const propertyId = activeHouse?.id;
+    const isOwner = isOwnerHouse(activeHouse);
 
     const [notifications, setNotifications] = useState([]);
     const [error, setError] = useState(null);
@@ -77,8 +79,11 @@ export function useNotifications() {
         let isMounted = true;
 
         const loadNotifications = async () => {
-            if (!propertyId) {
-                if (isMounted) setNotifications([]);
+            if (!propertyId || !isOwner) {
+                if (isMounted) {
+                    setNotifications([]);
+                    setError(null);
+                }
                 return;
             }
             try {
@@ -96,23 +101,22 @@ export function useNotifications() {
 
                 if (updatedSnoozes) saveSnoozedMap(snoozedData);
                 if (isMounted) setNotifications(formattedNotifs);
-            } catch (err) {
-                if (err?.response?.status === 403) {
-                    if (isMounted) {
-                        setNotifications([]);
-                        setError(null);
-                    }
-                    return;
-                }
+            } catch {
                 if (isMounted) setError('Não foi possível carregar as notificações.');
             }
         };
 
         loadNotifications();
 
+        if (!propertyId || !isOwner) {
+            return () => {
+                isMounted = false;
+            };
+        }
+
         let channel = null;
 
-        if (echo && propertyId) {
+        if (echo) {
             channel = echo.private(`properties.${propertyId}`);
 
             channel.listen('.vault.notification', (payload) => {
@@ -159,7 +163,7 @@ export function useNotifications() {
                 channel.stopListening('.vault.notification');
             }
         };
-    }, [propertyId, formatSingleNotification]);
+    }, [propertyId, isOwner, formatSingleNotification]);
 
     // Função genérica para evitar repetição nas chamadas otimistas à API
     const runOptimistic = async (updater, apiCall, errorMessage) => {
@@ -189,7 +193,7 @@ export function useNotifications() {
         );
 
     const markAllAsRead = () => {
-        if (!propertyId) return;
+        if (!propertyId || !isOwner) return;
         return runOptimistic(
             (prev) => prev.map((n) => ({ ...n, read: true })),
             () => axiosClient.patch(`/api/v1/properties/${propertyId}/notifications/read-all`),
