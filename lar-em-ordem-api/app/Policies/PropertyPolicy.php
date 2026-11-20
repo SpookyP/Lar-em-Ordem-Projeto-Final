@@ -4,19 +4,22 @@ namespace App\Policies;
 
 use App\Models\Property\Property;
 use App\Models\User\User;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PropertyPolicy
 {
-    public function isOwner(User $user, Property $property): bool
+    /** The user's active contract for the home, as a query; null when the user has no resident profile. */
+    private function activeContract(User $user, Property $property): ?HasMany
     {
-        if (!$user->resident) {
-            return false;
-        }
+        return $user->resident
+            ? $property->contracts()->where('resident_id', $user->resident->id)->active()
+            : null;
+    }
 
-        return $property->contracts()
-            ->where('resident_id', $user->resident->id)
-            ->where('is_active', true)
-            ->exists();
+    /** Has an active contract for the home, as owner or tenant. */
+    private function isOwner(User $user, Property $property): bool
+    {
+        return (bool) $this->activeContract($user, $property)?->exists();
     }
     /**
      * Determine whether the user can view any models.
@@ -63,16 +66,13 @@ class PropertyPolicy
         return $user->resident !== null;
     }
 
+    /**
+     * The vault (deeds, IMI, insurance) and its alerts are only for the owner: a tenant has none for the home.
+     */
     public function manageVault(User $user, Property $property): bool
     {
-        if (!$user->resident) {
-            return false;
-        }
-
-        return $property->contracts()
-            ->where('resident_id', $user->resident->id)
-            ->where('is_active', true)
-            ->whereHas('residentType', fn ($q) => $q->where('type', 'Owner'))
+        return (bool) $this->activeContract($user, $property)
+            ?->whereHas('residentType', fn ($type) => $type->where('type', 'Owner'))
             ->exists();
     }
 }

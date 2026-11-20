@@ -13,30 +13,6 @@ class CondominiumAdminService
     public function __construct(private PersonalDataEraser $eraser) {}
 
     /**
-     * Procura o perfil de administrador de condomínio de um utilizador.
-     *
-     * @param User $user Utilizador a procurar.
-     * @return CondominiumAdmin|null
-     */
-    public function findByUser(User $user): ?CondominiumAdmin
-    {
-        return CondominiumAdmin::where('user_id', $user->id)->first();
-    }
-
-    /**
-     * Devolve o perfil de administrador do utilizador; 403 se não existir.
-     *
-     * @param User $user Utilizador a procurar.
-     * @return CondominiumAdmin
-     */
-    public function getByUser(User $user): CondominiumAdmin
-    {
-        return $this->findByUser($user)
-            ?? abort(403, 'Este utilizador não tem um perfil de administrador de condomínio.');
-      
-    }
-    
-    /**
      * Cria o perfil de administrador e atribui a role 'condominium_admin'.
      * O "já tem este perfil" é verificado no ProfileService.
      *

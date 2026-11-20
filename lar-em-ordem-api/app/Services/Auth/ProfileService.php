@@ -2,7 +2,16 @@
 
 namespace App\Services\Auth;
 
+use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
+use App\Http\Requests\Condominium\UpdateCondominiumAdminRequest;
+use App\Http\Requests\PartnerOffer\StorePartnerRequest;
+use App\Http\Requests\PartnerOffer\UpdatePartnerRequest;
+use App\Http\Requests\Resident\StoreResidentRequest;
+use App\Http\Requests\Resident\UpdateResidentRequest;
+use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
+use App\Http\Requests\ServiceProvider\UpdateServiceProviderRequest;
 use App\Models\User\User;
+use Illuminate\Foundation\Http\FormRequest;
 use App\Services\PartnerOffer\PartnerService;
 use App\Services\Resident\ResidentService;
 use App\Services\ServiceProvider\ServiceProviderService;
@@ -23,12 +32,51 @@ class ProfileService
     /** Perfil estritamente profissional: não pode existir com nenhum outro perfil na mesma conta. */
     public const EXCLUSIVE_ROLE = 'partner';
 
+    /** Portuguese name of each profile, for the 403 in get(). */
+    private const LABELS = [
+        'resident'          => 'residente',
+        'service_provider'  => 'prestador de serviços',
+        'partner'           => 'parceiro',
+        'condominium_admin' => 'administrador de condomínio',
+    ];
+
     public function __construct(
         private ResidentService $residentService,
         private ServiceProviderService $serviceProviderService,
         private PartnerService $partnerService,
         private CondominiumAdminService $condominiumAdminService,
     ) {}
+
+    /**
+     * The profile's FormRequest, used outside a request for its rules and its Portuguese messages:
+     * the sign-up, the Google/Microsoft sign-up, adding a profile and editing it all share them.
+     *
+     * @param string $role One of the ROLES (anything else gives null, so the "role" rule fails on its own).
+     * @param bool $update The edit rules instead of the creation ones.
+     * @param User|null $user Who the rules are for (some rules ignore the user's own record).
+     */
+    public static function requestFor(string $role, bool $update = false, ?User $user = null): ?FormRequest
+    {
+        $class = match ($role) {
+            'resident'          => $update ? UpdateResidentRequest::class : StoreResidentRequest::class,
+            'service_provider'  => $update ? UpdateServiceProviderRequest::class : StoreServiceProviderRequest::class,
+            'partner'           => $update ? UpdatePartnerRequest::class : StorePartnerRequest::class,
+            'condominium_admin' => $update ? UpdateCondominiumAdminRequest::class : StoreCondominiumAdminRequest::class,
+            default             => null,
+        };
+
+        if (!$class) {
+            return null;
+        }
+
+        $request = new $class();
+
+        if ($user) {
+            $request->setUserResolver(fn () => $user);
+        }
+
+        return $request;
+    }
 
     /**
      * Devolve o perfil do utilizador para um role, ou null se não o tiver.
@@ -45,6 +93,19 @@ class ProfileService
             'partner'          => $user->partner()->first(),
             'condominium_admin' => $user->condominium_admin()->first(),
         };
+    }
+
+    /**
+     * The user's profile for a role, for controllers that act as that profile; 403 if they don't have it.
+     *
+     * @param User $user Authenticated user.
+     * @param string $role One of the ROLES.
+     * @return Model
+     */
+    public function get(User $user, string $role): Model
+    {
+        return $this->find($user, $role)
+            ?? abort(403, 'Este utilizador não tem um perfil de ' . self::LABELS[$role] . '.');
     }
 
     /**
@@ -86,7 +147,7 @@ class ProfileService
         $profile = $this->findOrFail($user, $role);
 
         return match ($role) {
-            'resident'         =>$this->residentService->updateResident($user->id, $data),
+            'resident'         => $this->residentService->update($profile, $data),
             'service_provider' => $this->serviceProviderService->update($profile, $data),
             'partner'          => $this->partnerService->update($profile, $data),
             'condominium_admin' => $this->condominiumAdminService->update($profile, $data),

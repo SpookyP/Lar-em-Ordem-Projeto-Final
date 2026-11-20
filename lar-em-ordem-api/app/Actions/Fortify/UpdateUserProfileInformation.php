@@ -13,11 +13,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Arr;
 use App\Services\Auth\ProfileService;
 
-use App\Http\Requests\Resident\UpdateResidentRequest;
-use App\Http\Requests\PartnerOffer\UpdatePartnerRequest;
-use App\Http\Requests\ServiceProvider\UpdateServiceProviderRequest;
-use App\Http\Requests\Condominium\UpdateCondominiumAdminRequest;
-
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
     public function __construct(private ProfileService $profileService) {}
@@ -71,19 +66,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             default             => abort(403),
         };
 
-        // o FormRequest do perfil dá as regras E as mensagens
-        $makeRequest = function (string $class) use ($user) {
-            $request = new $class();
-            $request->setUserResolver(fn() => $user);
-            return $request;
-        };
-
-        $roleRequest = match ($role) {
-            'resident'         => $makeRequest(UpdateResidentRequest::class),
-            'partner'          => $makeRequest(UpdatePartnerRequest::class),
-            'service_provider' => $makeRequest(UpdateServiceProviderRequest::class),
-            'condominium_admin' => $makeRequest(UpdateCondominiumAdminRequest::class),
-        };
+        $roleRequest = ProfileService::requestFor($role, update: true, user: $user);
 
         // só os campos validados seguem para a frente (nunca o $input bruto: protege user_id, etc.)
         $validated = Validator::make($input, array_merge($rules, $roleRequest->rules()), array_merge($roleRequest->messages(), [

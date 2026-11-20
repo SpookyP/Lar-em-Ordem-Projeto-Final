@@ -6,10 +6,14 @@ import {
   acceptProposal,
   rejectProposal,
 } from "../../../services/api/proposalService";
-import { cancelAssistanceRequest } from "../../../services/api/assistanceService";
+import {
+  cancelAssistanceRequest,
+  updateAssistanceRequest,
+} from "../../../services/api/assistanceService";
 import { categoryInfo, statusInfo } from "../../../data/assistanceInfo";
 import { ProposalCard } from "../../../components/ui/ProposalCard";
 import { AttachmentGallery } from "../../../components/ui/AttachmentGallery";
+import AssistanceForm from "../../../components/ui/AssistanceForm";
 import { formatAddress } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
@@ -24,6 +28,7 @@ export default function AssistanceDetail() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [editing, setEditing] = useState(false);
   const navigate = useNavigate();
 
   async function run(action) {
@@ -56,6 +61,24 @@ export default function AssistanceDetail() {
     }
   }
 
+  async function handleEdit({
+    title,
+    category,
+    description,
+    photo,
+    removeIds,
+  }) {
+    await updateAssistanceRequest(request.id, {
+      problem_category_id: Number(category),
+      title,
+      description,
+      images: photo ? [photo] : [],
+      removeIds,
+    });
+    setEditing(false);
+    reload();
+  }
+
   const open = request?.status === "open";
   const { icon: Icon, color } = categoryInfo(request?.category.slug);
   const badge = statusInfo(request?.status);
@@ -85,6 +108,19 @@ export default function AssistanceDetail() {
         <LoadingState />
       ) : error && !request ? (
         <p className="text-sm text-red">{error}</p>
+      ) : editing ? (
+        <div className="lg:w-3/5">
+          <AssistanceForm
+            initial={{
+              title: request.title,
+              categoryId: String(request.category.id),
+              description: request.description,
+              attachments: request.attachments,
+            }}
+            onSubmit={handleEdit}
+            onCancel={() => setEditing(false)}
+          />
+        </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
           <div className="lg:col-span-3 flex flex-col gap-6 rounded-2xl bg-card p-8 shadow-sm">
@@ -148,13 +184,22 @@ export default function AssistanceDetail() {
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => setConfirmingCancel(true)}
-                    disabled={busy}
-                    className="text-muted underline hover:text-red disabled:opacity-60"
-                  >
-                    Cancelar pedido
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setEditing(true)}
+                      disabled={busy}
+                      className="text-muted underline hover:text-navy disabled:opacity-60"
+                    >
+                      Editar pedido
+                    </button>
+                    <button
+                      onClick={() => setConfirmingCancel(true)}
+                      disabled={busy}
+                      className="text-muted underline hover:text-red disabled:opacity-60"
+                    >
+                      Cancelar pedido
+                    </button>
+                  </>
                 )}
               </div>
             )}

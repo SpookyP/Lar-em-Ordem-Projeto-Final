@@ -74,7 +74,7 @@ class Condominium extends Model
         return $residentId !== null && $this->properties()
             ->whereHas('contracts', fn (Builder $q) => $q
                 ->where('resident_id', $residentId)
-                ->where('is_active', true))
+                ->active())
             ->exists();
     }
 

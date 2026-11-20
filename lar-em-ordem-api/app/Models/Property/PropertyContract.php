@@ -4,6 +4,7 @@ namespace App\Models\Property;
 
 use App\Models\User\Resident;
 use App\Models\User\ResidentType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -32,8 +33,8 @@ class PropertyContract extends Model
                 return;
             }
 
-            $taken = static::where('property_id', $contract->property_id)
-                ->where('is_active', true)
+            $taken = static::active()
+                ->where('property_id', $contract->property_id)
                 ->when($contract->exists, fn ($query) => $query->whereKeyNot($contract->getKey()))
                 ->exists();
 
@@ -43,6 +44,12 @@ class PropertyContract extends Model
                 ]);
             }
         });
+    }
+
+    /** Only the contracts in force (a home has at most one). */
+    public function scopeActive(Builder $query): void
+    {
+        $query->where('is_active', true);
     }
 
     protected function casts(): array

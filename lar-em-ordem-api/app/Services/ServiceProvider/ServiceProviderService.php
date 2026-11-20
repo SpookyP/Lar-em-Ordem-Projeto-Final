@@ -7,7 +7,6 @@ use App\Models\User\User;
 use App\Services\Privacy\PersonalDataEraser;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class ServiceProviderService {
 
@@ -19,7 +18,7 @@ class ServiceProviderService {
     /**
      * Cria o perfil de prestador de um utilizador e atribui-lhe a role 'service_provider'.
      * Pode receber logo as zonas e as especialidades (da lista e próprias).
-     * Cada utilizador só pode ter um perfil de prestador (senão 422). Transação.
+     * Transação.
      *
      * @param array $data Dados validados (inclui opcionalmente zone_ids, service_specialty_ids, custom_specialties).
      * @param User $owner Utilizador dono do perfil.
@@ -27,12 +26,6 @@ class ServiceProviderService {
      */
     public function create(array $data, User $owner): ServiceProviderModel
     {
-        if (ServiceProviderModel::where('user_id', $owner->id)->exists()) {
-            throw ValidationException::withMessages([
-                'user_id' => 'Este utilizador já tem um perfil de prestador de serviços.',
-            ]);
-        }
-
         $provider = DB::transaction(function () use ($data, $owner) {
             $owner->assignRole('service_provider');
 
@@ -116,17 +109,5 @@ class ServiceProviderService {
             $data['service_specialty_ids'] ?? null,
             $data['custom_specialties'] ?? null,
         );
-    }
-
-    /**
-     * Devolve o perfil de prestador de um utilizador; termina com 403 se não existir.
-     *
-     * @param User $user Utilizador a procurar.
-     * @return ServiceProviderModel
-     */
-    public function getByUser(User $user): ServiceProviderModel
-    {
-        return ServiceProviderModel::where('user_id', $user->id)->first()
-            ?? abort(403, 'Este utilizador não tem um perfil de prestador de serviços.');
     }
 }

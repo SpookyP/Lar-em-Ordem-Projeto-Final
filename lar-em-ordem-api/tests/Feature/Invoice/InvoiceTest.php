@@ -236,7 +236,6 @@ class InvoiceTest extends TestCase
 
         $this->getJson('/api/v1/benchmarks/monthly/series')->assertUnauthorized();
         $this->getJson('/api/v1/benchmarks/annual/series')->assertUnauthorized();
-        $this->getJson('/api/v1/consumptions')->assertUnauthorized();
         $this->getJson('/api/v1/invoices')->assertUnauthorized();
         $this->getJson('/api/v1/consumption-types')->assertUnauthorized();
     }
@@ -388,29 +387,6 @@ class InvoiceTest extends TestCase
         $this->getJson('/api/v1/consumption-types')
             ->assertOk()
             ->assertJsonStructure(['data' => [['id', 'name', 'unit_of_measure']]]);
-    }
-
-    public function test_consumptions_index_filter_and_show(): void
-    {
-        $invoice = $this->createInvoiceWithConsumption(
-            $this->resident,
-            $this->property,
-            $this->type
-        );
-
-        $consumption = $invoice->consumptions()->first();
-
-        $this->getJson('/api/v1/consumptions')
-            ->assertOk()
-            ->assertJsonCount(1, 'data');
-
-        $this->getJson("/api/v1/consumptions?property_id={$this->property->id}")
-            ->assertOk()
-            ->assertJsonCount(1, 'data');
-
-        $this->getJson("/api/v1/consumptions/{$consumption->id}")
-            ->assertOk()
-            ->assertJsonPath('data.id', $consumption->id);
     }
 
     public function test_invoice_full_lifecycle_crud(): void

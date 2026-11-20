@@ -86,6 +86,26 @@ export async function createAssistanceRequest({ images = [], ...fields }) {
   return toAssistance(response.data.data);
 }
 
+// POST with _method=PATCH, so new photos can go as multipart (PATCH can't carry files in PHP)
+export async function updateAssistanceRequest(
+  id,
+  { images = [], removeIds = [], ...fields },
+) {
+  const body = new FormData();
+  body.append("_method", "PATCH");
+  Object.entries(fields).forEach(([key, value]) => body.append(key, value));
+  images.forEach((file) => body.append("images[]", file));
+  removeIds.forEach((attachmentId) =>
+    body.append("remove_attachment_ids[]", attachmentId),
+  );
+
+  const response = await axiosClient.post(
+    `/api/v1/assistance-requests/${id}`,
+    body,
+  );
+  return toAssistance(response.data.data);
+}
+
 export async function cancelAssistanceRequest(id) {
   const response = await axiosClient.patch(
     `/api/v1/assistance-requests/${id}/cancel`,

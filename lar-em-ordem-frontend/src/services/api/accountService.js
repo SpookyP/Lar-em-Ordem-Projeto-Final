@@ -31,3 +31,9 @@ export async function updatePrivacy(data) {
   const response = await axiosClient.put("/api/user/privacy", data);
   return response.data;
 }
+
+//Descarregar uma cópia de todos os dados da conta (RGPD); devolve o ficheiro JSON
+export async function downloadMyData() {
+  const response = await axiosClient.get("/api/user/export", { responseType: "blob" });
+  return response.data;
+}

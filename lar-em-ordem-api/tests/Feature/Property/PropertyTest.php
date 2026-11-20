@@ -235,10 +235,10 @@ class PropertyTest extends TestCase
 
         $propertyB = $this->createPropertyForUser($userB);
 
-        $response = $this->actingAs($userA, 'sanctum')
-            ->getJson("/api/v1/properties/{$propertyB->id}");
-
-        $this->assertTrue(in_array($response->status(), [403, 404]));
+        $this->actingAs($userA, 'sanctum')
+            ->getJson("/api/v1/properties/{$propertyB->id}")
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Não tem permissão para esta ação.');
     }
 
     /*

@@ -9,15 +9,6 @@ use Illuminate\Auth\Access\Response;
 
 class OfferPolicy
 {
- 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
-    {
-        return true;
-    }
-
     /**
      * O parceiro dono vê sempre a oferta; os restantes só a veem se estiver em vigor.
      * Para quem não é dono, uma oferta fora de vigor responde 404.
@@ -59,21 +50,5 @@ class OfferPolicy
      public function delete(User $user, Offer $offer): bool
     {
         return $offer->partner->user_id === $user->id;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Offer $offer): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Offer $offer): bool
-    {
-        return false;
     }
 }

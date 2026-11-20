@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -37,6 +38,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if ($e->getPrevious() instanceof ModelNotFoundException) {
                 return response()->json(['message' => 'Registo não encontrado.'], 404);
+            }
+        });
+        $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
+            if ($request->expectsJson() && in_array($e->getMessage(), ['', 'This action is unauthorized.'], true)) {
+                return response()->json(['message' => 'Não tem permissão para esta ação.'], 403);
             }
         });
     })->create();

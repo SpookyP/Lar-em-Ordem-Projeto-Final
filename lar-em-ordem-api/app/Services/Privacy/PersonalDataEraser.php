@@ -44,7 +44,7 @@ class PersonalDataEraser
             ->get()
             ->each(fn (Property $property) => $this->eraseProperty($property));
 
-        $resident->contracts()->where('is_active', true)->update(['is_active' => false, 'end_date' => now()]);
+        $resident->contracts()->active()->update(['is_active' => false, 'end_date' => now()]);
         $resident->contracts()->delete();
         DB::table('condominium_notice_reads')->where('resident_id', $resident->id)->delete();
 

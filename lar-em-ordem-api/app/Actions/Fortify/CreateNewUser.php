@@ -10,10 +10,6 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Illuminate\Support\Facades\DB;
 
-use App\Http\Requests\Resident\StoreResidentRequest;
-use App\Http\Requests\PartnerOffer\StorePartnerRequest;
-use App\Http\Requests\ServiceProvider\StoreServiceProviderRequest;
-use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 use Illuminate\Support\Arr;
 use App\Services\Auth\ProfileService;
 use App\Services\Privacy\ConsentService;
@@ -42,14 +38,8 @@ class CreateNewUser implements CreatesNewUsers
             'role' => ['required', 'string', Rule::in(ProfileService::ROLES)],
         ];
 
-        // o FormRequest do perfil dá as regras E as mensagens (senão os erros vinham com o texto genérico do Laravel)
-        $roleRequest = match ($role) {
-            'resident' => new StoreResidentRequest(),
-            'partner' => new StorePartnerRequest(),
-            'service_provider' => new StoreServiceProviderRequest(),
-            'condominium_admin' => new StoreCondominiumAdminRequest(),
-            default => null, // role inválido: falha na regra 'role'
-        };
+        // an invalid role has no FormRequest and fails on the 'role' rule
+        $roleRequest = is_string($role) ? ProfileService::requestFor($role) : null;
 
         // só os campos validados seguem para o perfil (nunca o $input bruto)
         return Validator::make(

@@ -18,30 +18,13 @@ class MonthlyBenchmarkSeriesController extends Controller
 
     public function __invoke(MonthlyBenchmarkSeriesRequest $request): JsonResponse
     {
-        $data = $request->validated();
-        $user = $request->user();
-
-        // Apenas residentes podem consultar benchmarks (ver PropertyPolicy).
+        // only residents can see benchmarks (see PropertyPolicy)
         Gate::authorize('viewAny', Property::class);
 
-        $resident = $user->resident;
-
-        $property = Property::query()
-            ->whereHas('contracts', function ($query) use ($resident) {
-                $query->where('property_contracts.resident_id', $resident->id)
-                    ->where('property_contracts.is_active', true);
-            })
-            ->whereKey($data['property_id'])
-            ->first();
-
-        if (! $property) {
-            abort(404, 'Não foi encontrada nenhuma propriedade associada ao residente.');
-        }
+        $property = $this->service->propertyFor($request->user()->resident, $request->validated('property_id'));
 
         Gate::authorize('view', $property);
 
-        $result = $this->service->monthlyCostSeries($property);
-
-        return response()->json($result);
+        return response()->json($this->service->monthlyCostSeries($property));
     }
 }

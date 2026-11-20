@@ -9,8 +9,8 @@ use App\Http\Requests\PartnerOffer\IndexOfferRequest;
 use App\Http\Requests\PartnerOffer\RecommendedOfferRequest;
 use App\Http\Resources\PartnerOffer\OfferResource;
 use App\Models\Offer\Offer;
+use App\Services\Auth\ProfileService;
 use App\Services\PartnerOffer\OfferService;
-use App\Services\PartnerOffer\PartnerService;
 use Illuminate\Support\Facades\Gate;
 
 
@@ -19,7 +19,7 @@ class OfferController extends Controller
 
     public function __construct(
         private OfferService $service,
-        private PartnerService $partnerService,
+        private ProfileService $profiles,
     ) {}
 
     /**
@@ -31,7 +31,7 @@ class OfferController extends Controller
      */
     public function index(IndexOfferRequest $request)
     {
-        $partner = $this->partnerService->getByUser($request->user());
+        $partner = $this->profiles->get($request->user(), 'partner');
 
         return OfferResource::collection(
             $this->service->listByPartner($partner, $request->integer('per_page', 5), $request->validated('status'))
@@ -48,7 +48,7 @@ class OfferController extends Controller
     {
         Gate::authorize('create', Offer::class);
 
-        $partner = $this->partnerService->getByUser($request->user());
+        $partner = $this->profiles->get($request->user(), 'partner');
         $offer = $this->service->create($request->validated(), $partner);
 
         return (new OfferResource($offer))
