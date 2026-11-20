@@ -3,6 +3,7 @@ import { ChevronLeft, Pencil } from "lucide-react";
 import { OfferForm } from "../../../components/ui/OfferForm";
 import { getOffer } from "../../../services/api/offerService";
 import { useFetch } from "../../../hooks/useFetch";
+import { LoadingState } from "../../../components/ui/LoadingState";
 
 const TITLES = {
   create: "Nova oferta",
@@ -52,7 +53,7 @@ export default function OfferFormPage({ mode }) {
       {error && <p className="text-sm text-red">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : (
         <div className="rounded-2xl bg-card p-6 shadow-sm">
           <OfferForm
