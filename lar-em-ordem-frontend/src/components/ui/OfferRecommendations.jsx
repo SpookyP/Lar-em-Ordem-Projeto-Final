@@ -1,30 +1,18 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getRecommendations } from "../../services/api/offerService";
 import { PartnerOfferCard } from "./PartnerOfferCard";
 import { ArrowRight } from "lucide-react";
+import { useFetch } from "../../hooks/useFetch";
 
 export function OfferRecommendations() {
-  const [offers, setOffers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    getRecommendations({ perPage: 4 })
-      .then((data) => {
-        if (active) setOffers(data.items);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar as ofertas.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const {
+    data: page,
+    loading,
+    error,
+  } = useFetch(() => getRecommendations({ perPage: 4 }), [], {
+    errorMessage: "Não foi possível carregar as ofertas.",
+  });
+  const offers = page?.items ?? [];
 
   if (loading)
     return <p className="text-sm text-muted">A carregar ofertas...</p>;
