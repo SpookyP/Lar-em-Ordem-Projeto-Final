@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -16,14 +16,10 @@ import { createPortal } from "react-dom";
 import { formatDate } from "../../../utils/date";
 import { toHref } from "../../../utils/url";
 import { useGoBack } from "../../../hooks/useGoBack";
+import { useFetch } from "../../../hooks/useFetch";
 
 export default function OfferDetail() {
   const { id } = useParams();
-
-  const [offer, setOffer] = useState(null);
-  const [partner, setPartner] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const goBack = useGoBack("/offers");
 
@@ -31,40 +27,18 @@ export default function OfferDetail() {
     goBack();
   }
 
-  useEffect(() => {
-    let active = true;
+  const {
+    data: offer,
+    loading,
+    error,
+  } = useFetch(() => getOffer(id), [id], {
+    errorMessage: "Não foi possível carregar esta oferta.",
+  });
 
-    getOffer(id)
-      .then((data) => {
-        if (active) setOffer(data);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar esta oferta.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [id]);
-
-  useEffect(() => {
-    const partnerId = offer?.partner?.id;
-    if (!partnerId) return;
-
-    let active = true;
-    getPartner(partnerId)
-      .then((data) => {
-        if (active) setPartner(data);
-      })
-      .catch(() => {});
-
-    return () => {
-      active = false;
-    };
-  }, [offer]);
+  const partnerId = offer?.partner?.id;
+  const { data: partner } = useFetch(() => getPartner(partnerId), [partnerId], {
+    enabled: Boolean(partnerId),
+  });
 
   useEffect(() => {
     function onKey(e) {
@@ -92,13 +66,23 @@ export default function OfferDetail() {
         {loading ? (
           <p className="p-6 text-muted">A carregar oferta…</p>
         ) : error || !offer ? (
-          <div className="space-y-4 p-6">
-            <p className="text-red">{error ?? "Oferta não encontrada."}</p>
+          <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-red-light text-red">
+              <Tag size={26} aria-hidden="true" />
+            </span>
+            <div className="space-y-1">
+              <h2 className="font-display text-xl text-navy">
+                Oferta indisponível
+              </h2>
+              <p className="text-sm text-muted">
+                Esta oferta já não existe ou foi removida.
+              </p>
+            </div>
             <Link
               to="/offers"
-              className="inline-flex items-center gap-1 text-navy hover:underline"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-light"
             >
-              <ArrowLeft size={16} /> Voltar às ofertas
+              <ArrowLeft size={16} aria-hidden="true" /> Voltar às ofertas
             </Link>
           </div>
         ) : (

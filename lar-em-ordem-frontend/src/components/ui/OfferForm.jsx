@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TextInput, TextArea, SearchSelect, DatePicker } from "../form";
 import {
   createOffer,
@@ -7,6 +7,7 @@ import {
 } from "../../services/api/offerService";
 import { getErrorMessage } from "../../utils/apiError";
 import { formatDate } from "../../utils/date";
+import { useFetch } from "../../hooks/useFetch";
 
 export function OfferForm({ offer = null, onSaved, readOnly = false }) {
   const isEdit = Boolean(offer);
@@ -19,21 +20,10 @@ export function OfferForm({ offer = null, onSaved, readOnly = false }) {
     start_date: offer?.startDate ?? "",
     end_date: offer?.endDate ?? "",
   });
-  const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let active = true;
-    getOfferCategories()
-      .then((data) => {
-        if (active) setCategories(data);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: categories } = useFetch(getOfferCategories, []);
 
   function setField(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -82,7 +72,7 @@ export function OfferForm({ offer = null, onSaved, readOnly = false }) {
     }
   }
 
-  const categoryOptions = categories.map((c) => ({
+  const categoryOptions = (categories ?? []).map((c) => ({
     value: String(c.id),
     label: c.name,
   }));

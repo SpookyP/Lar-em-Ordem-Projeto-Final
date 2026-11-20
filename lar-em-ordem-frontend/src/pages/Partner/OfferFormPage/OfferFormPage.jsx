@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ChevronLeft, Pencil } from "lucide-react";
 import { OfferForm } from "../../../components/ui/OfferForm";
 import { getOffer } from "../../../services/api/offerService";
+import { useFetch } from "../../../hooks/useFetch";
 
 const TITLES = {
   create: "Nova oferta",
@@ -16,27 +16,14 @@ export default function OfferFormPage({ mode }) {
   const isView = mode === "view";
   const needsLoad = mode === "view" || mode === "edit";
 
-  const [offer, setOffer] = useState(null);
-  const [loading, setLoading] = useState(needsLoad);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!needsLoad) return;
-    let active = true;
-    getOffer(id)
-      .then((data) => {
-        if (active) setOffer(data);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar a oferta.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [id, needsLoad]);
+  const {
+    data: offer,
+    loading,
+    error,
+  } = useFetch(() => getOffer(id), [id], {
+    enabled: needsLoad,
+    errorMessage: "Não foi possível carregar a oferta.",
+  });
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto">

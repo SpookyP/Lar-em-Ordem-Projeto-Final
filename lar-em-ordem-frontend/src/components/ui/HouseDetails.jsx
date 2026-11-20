@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { getProperty } from "../../services/api/propertyService";
 import {
@@ -11,6 +10,7 @@ import {
   CalendarDays,
   CalendarClock,
 } from "lucide-react";
+import { useFetch } from "../../hooks/useFetch";
 
 function formatDate(value) {
   if (!value) return null;
@@ -38,29 +38,14 @@ function Tile({ icon: Icon, label, value }) {
 
 export function HouseDetails() {
   const { activeHouse } = useAuth();
-  const [house, setHouse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    if (!activeHouse) {
-      return;
-    }
-    getProperty(activeHouse.id)
-      .then((data) => {
-        if (active) setHouse(data);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar a habitação.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [activeHouse]);
+  const {
+    data: house,
+    loading,
+    error,
+  } = useFetch(() => getProperty(activeHouse.id), [activeHouse?.id], {
+    enabled: Boolean(activeHouse),
+    errorMessage: "Não foi possível carregar a habitação.",
+  });
 
   if (!activeHouse)
     return <p className="text-sm text-muted">Nenhuma habitação selecionada.</p>;
