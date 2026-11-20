@@ -1,5 +1,5 @@
 // how each notice priority is shown (labels for people, colours from the theme)
-export const NOTICE_PRIORITIES = {
+const NOTICE_PRIORITIES = {
   high: { label: "Alta", className: "bg-red-light text-red" },
   normal: { label: "Normal", className: "bg-navy/10 text-navy" },
   low: { label: "Baixa", className: "bg-surface text-muted" },
@@ -11,7 +11,10 @@ export function priorityInfo(priority) {
 
 // "Nº 12 · 2º Esq"; a home without door or fraction still needs a readable name
 export function fractionLabel(property) {
-  return [property.door, property.fraction].filter(Boolean).join(" · ") || "Fração sem identificação";
+  return (
+    [property.door, property.fraction].filter(Boolean).join(" · ") ||
+    "Fração sem identificação"
+  );
 }
 
 // order low -> high, as they read left to right; activeClass colours the chosen pill

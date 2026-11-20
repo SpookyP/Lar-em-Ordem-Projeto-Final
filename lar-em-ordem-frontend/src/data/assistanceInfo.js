@@ -10,7 +10,7 @@ import {
   Wrench,
 } from "lucide-react";
 
-export const CATEGORY_INFO = {
+const CATEGORY_INFO = {
   canalizacao: { icon: Droplet, color: "bg-teal-light text-teal" },
   eletricidade: { icon: Zap, color: "bg-amber-light text-amber" },
   climatizacao: { icon: Thermometer, color: "bg-orange-light text-orange" },
@@ -23,7 +23,7 @@ export const CATEGORY_INFO = {
 const FALLBACK = { icon: Wrench, color: "bg-navy/10 text-navy" };
 export const categoryInfo = (slug) => CATEGORY_INFO[slug] ?? FALLBACK;
 
-export const STATUS_INFO = {
+const STATUS_INFO = {
   open: { label: "Pendente", style: "bg-amber-light text-amber" },
   closed: { label: "Proposta aceite", style: "bg-green-light text-green" },
   cancelled: { label: "Cancelado", style: "bg-red-light text-red" },
@@ -39,7 +39,8 @@ const PROVIDER_REQUEST_LABELS = {
   cancelled: "Cancelado",
 };
 
-export const providerRequestLabel = (status) => PROVIDER_REQUEST_LABELS[status] ?? status;
+export const providerRequestLabel = (status) =>
+  PROVIDER_REQUEST_LABELS[status] ?? status;
 
 export const statusInfo = (status) =>
   STATUS_INFO[status] ?? { label: status, style: "bg-surface text-muted" };
