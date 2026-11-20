@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Building, Euro, MapPin, X } from "lucide-react";
 import { SearchSelect, StepProgress, TextInput } from "../form";
@@ -9,6 +9,7 @@ import {
 } from "../../services/api/condominiumService";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import { getCounties, getDistricts, getLocations } from "../../utils/zones";
+import { useFetch } from "../../hooks/useFetch";
 
 const STEPS = [
   {
@@ -103,22 +104,13 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
   const isEdit = Boolean(condominium);
   const [form, setForm] = useState(() => initialForm(condominium));
   const [step, setStep] = useState(0);
-  const [zones, setZones] = useState(null);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    getZones()
-      .then((data) => active && setZones(data))
-      .catch(
-        () => active && setFormError("Não foi possível carregar os distritos."),
-      );
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: zones, error: zonesError } = useFetch(getZones, [], {
+    errorMessage: "Não foi possível carregar os distritos.",
+  });
 
   function set(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -229,12 +221,12 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
             <span className="text-red">*</span> Campos de preenchimento
             obrigatório
           </p>
-          {formError && (
+          {(formError || zonesError) && (
             <p
               role="alert"
               className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red"
             >
-              {formError}
+              {formError || zonesError}
             </p>
           )}
 
