@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Camera } from "lucide-react";
 import { getCategories } from "../../services/api/assistanceService";
 import { TextInput, SearchSelect, TextArea } from "../form";
+import { useFetch } from "../../hooks/useFetch";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -28,25 +29,16 @@ export default function AssistanceForm({ onSubmit }) {
   const [photo, setPhoto] = useState(null);
   const [photoError, setPhotoError] = useState("");
 
-  const [categories, setCategories] = useState([]);
-  const [categoriesError, setCategoriesError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let active = true;
-    getCategories()
-      .then((list) => {
-        if (active) setCategories(list);
-      })
-      .catch(() => {
-        if (active)
-          setCategoriesError("Não foi possível carregar as categorias.");
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: categories, error: categoriesError } = useFetch(
+    getCategories,
+    [],
+    {
+      errorMessage: "Não foi possível carregar as categorias.",
+    },
+  );
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -94,7 +86,7 @@ export default function AssistanceForm({ onSubmit }) {
     }
   };
 
-  const categoryOptions = categories.map((c) => ({
+  const categoryOptions = (categories ?? []).map((c) => ({
     value: String(c.id),
     label: c.label,
   }));

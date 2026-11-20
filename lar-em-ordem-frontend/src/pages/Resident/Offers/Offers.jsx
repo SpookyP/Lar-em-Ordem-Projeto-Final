@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Search, List, LayoutGrid } from "lucide-react";
 import { OfferRow } from "../../../components/ui/OfferRow";
 import { getOfferCategories } from "../../../services/api/offerService";
@@ -6,27 +6,16 @@ import { useOffersPage } from "../../../hooks/useOffersPage";
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { Pager } from "../../../components/ui/Pager";
 import { OfferGridCard } from "../../../components/ui/OfferGridCard";
+import { useFetch } from "../../../hooks/useFetch";
 
 export default function Offers() {
   const [searchInput, setSearchInput] = useState("");
   const search = useDebouncedValue(searchInput.trim());
   const [categoryId, setCategoryId] = useState("");
-  const [categories, setCategories] = useState([]);
   const [view, setView] = useState(
     () => localStorage.getItem("offersView") ?? "list",
   );
-
-  useEffect(() => {
-    let active = true;
-    getOfferCategories()
-      .then((data) => {
-        if (active) setCategories(data);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: categories } = useFetch(getOfferCategories, []);
 
   const {
     items: offers,
@@ -75,7 +64,7 @@ export default function Offers() {
             className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text outline-none focus:border-navy sm:w-56"
           >
             <option value="">Todas as categorias</option>
-            {categories.map((c) => (
+            {(categories ?? []).map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
