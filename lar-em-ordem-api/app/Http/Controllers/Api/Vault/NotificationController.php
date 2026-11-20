@@ -34,15 +34,6 @@ class NotificationController extends Controller
         return NotificationResource::collection($query->paginate($perPage)->withQueryString());
     }
 
-    public function unreadCount(Property $property): JsonResponse
-    {
-        $this->authorize('manageVault', $property);
-
-        $count = $property->notifications()->whereNull('read_at')->count();
-
-        return response()->json(['unread_count' => $count]);
-    }
-
     public function markAsRead(Notification $notification): NotificationResource
     {
         $this->authorize('manageVault', $notification->property);
