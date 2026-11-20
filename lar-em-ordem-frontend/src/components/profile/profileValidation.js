@@ -3,7 +3,7 @@ import { isPasswordValid } from "../../utils/passwordValidation";
 // same rules as the API, so most mistakes show up before sending; the API still checks everything
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function isHttpUrl(text) {
+function isHttpUrl(text) {
   try {
     const url = new URL(text);
     return url.protocol === "http:" || url.protocol === "https:";
@@ -33,7 +33,8 @@ const rules = {
       : "Indique um endereço começado por http:// ou https://.",
   description: (v) => (v.trim() ? null : "Escreva uma breve descrição."),
   admin_type: (v) => (v ? null : "Escolha o tipo de administrador."),
-  contact: (v) => (v.trim() ? null : "Indique um contacto (telefone ou email)."),
+  contact: (v) =>
+    v.trim() ? null : "Indique um contacto (telefone ou email).",
 };
 
 export function validateFields(names, values) {

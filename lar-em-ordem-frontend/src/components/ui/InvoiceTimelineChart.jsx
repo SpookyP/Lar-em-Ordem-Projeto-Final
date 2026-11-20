@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-
 import {
   LineChart,
   Line,
@@ -10,28 +9,51 @@ import {
   ReferenceLine,
   Tooltip,
 } from "recharts";
+import {
+  buildMonthlySeries,
+  monthKey,
+  keyToIndex,
+  indexToKey,
+  monthsBetween,
+  asNumber,
+} from "./invoiceTimelineUtils";
 
-import { buildMonthlySeries } from "./invoiceTimelineUtils";
-
-// Nomes completos e abreviados dos meses.
 const MONTHS = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 const MONTHS_SHORT = [
-  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
 ];
 
-// Configurações de dimensões e apresentação do gráfico.
 const MIN_MONTH_WIDTH = 96;
 const Y_AXIS_WIDTH = 56;
 const CHART_HEIGHT = 240;
 const MAX_MONTH_DISTANCE = 24;
 const HEADER_COLOR = "#1C3557";
 
-// Cores e designações dos diferentes serviços.
 const SERVICE_STYLE = {
   all: {
     label: "Total",
@@ -55,10 +77,8 @@ const SERVICE_STYLE = {
   },
 };
 
-// Cor utilizada para assinalar o intervalo selecionado.
 const RANGE_COLOR = "#dc2626";
 
-// Intervalos rápidos disponíveis.
 const PRESETS = [
   { label: "Último mês", months: 1 },
   { label: "Últimos 3 meses", months: 3 },
@@ -66,7 +86,6 @@ const PRESETS = [
   { label: "Últimos 12 meses", months: 12 },
 ];
 
-// Formatadores de valores monetários e percentagens.
 const money = new Intl.NumberFormat("pt-PT", {
   style: "currency",
   currency: "EUR",
@@ -76,74 +95,17 @@ const percent = new Intl.NumberFormat("pt-PT", {
   maximumFractionDigits: 1,
 });
 
-// Converte um ano e mês num identificador no formato YYYY-MM.
-const monthKey = (year, monthIndex) =>
-  `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+const monthLabel = (key) => MONTHS_SHORT[keyToIndex(key) % 12];
 
-// Converte um identificador de mês num índice cronológico.
-const keyToIndex = (key) => {
-  const [year, month] = key.split("-").map(Number);
-  return year * 12 + month - 1;
-};
-
-// Converte um índice cronológico no formato YYYY-MM.
-const indexToKey = (index) =>
-  monthKey(Math.floor(index / 12), index % 12);
-
-// Obtém a abreviatura do mês.
-const monthLabel = (key) =>
-  MONTHS_SHORT[keyToIndex(key) % 12];
-
-// Obtém o nome completo do mês e respetivo ano.
 const monthLongLabel = (key) =>
   `${MONTHS[keyToIndex(key) % 12]} ${key.slice(0, 4)}`;
 
-// Cria uma lista de meses entre duas datas, incluindo os extremos.
-function monthsBetween(startKey, endKey) {
-  const result = [];
-
-  for (
-    let i = keyToIndex(startKey);
-    i <= keyToIndex(endKey);
-    i += 1
-  ) {
-    result.push(indexToKey(i));
-  }
-
-  return result;
-}
-
-// Converte valores numéricos, incluindo formatos monetários portugueses.
-function asNumber(value) {
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  if (value == null || value === "") return 0;
-
-  let text = String(value)
-    .trim()
-    .replace(/\s/g, "")
-    .replace(/[€]/g, "");
-
-  if (text.includes(",")) {
-    text = text.replace(/\./g, "").replace(",", ".");
-  }
-
-  const result = Number(text);
-  return Number.isFinite(result) ? result : 0;
-}
-
-// Calcula uma escala adequada para o eixo vertical do gráfico.
 function niceScale(maxValue) {
   if (!Number.isFinite(maxValue) || maxValue <= 0) {
     return { max: 10, ticks: [0, 5, 10] };
   }
 
-  const steps = [
-    1, 2, 5, 10, 20, 25, 50, 100, 200, 250,
-    500, 1000, 2500, 5000,
-  ];
+  const steps = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2500, 5000];
 
   const step = steps.find((s) => maxValue / s <= 5) ?? 10000;
   const max = Math.ceil(maxValue / step) * step;
@@ -156,7 +118,6 @@ function niceScale(maxValue) {
   return { max, ticks };
 }
 
-// Cria um intervalo rápido com base no número de meses pretendido.
 function presetRange(monthKeys, months) {
   if (monthKeys.length === 0) return null;
 
@@ -164,7 +125,7 @@ function presetRange(monthKeys, months) {
 
   const startIndex = Math.max(
     keyToIndex(monthKeys[0]),
-    keyToIndex(last) - months + 1
+    keyToIndex(last) - months + 1,
   );
 
   return {
@@ -173,7 +134,6 @@ function presetRange(monthKeys, months) {
   };
 }
 
-// Conteúdo personalizado apresentado ao passar o rato sobre o gráfico.
 function TimelineTooltip({
   active,
   payload,
@@ -198,7 +158,6 @@ function TimelineTooltip({
           className="h-2 w-2 rounded-full"
           style={{ backgroundColor: color }}
         />
-
         {serviceLabel}:{" "}
         <strong>
           {row.mine == null ? "sem dados" : money.format(row.mine)}
@@ -211,35 +170,25 @@ function TimelineTooltip({
             className="h-0.5 w-3"
             style={{ backgroundColor: benchmarkColor }}
           />
-
-          Média similar:{" "}
-          <strong>{money.format(row.benchmark)}</strong>
+          Média similar: <strong>{money.format(row.benchmark)}</strong>
         </p>
       )}
     </div>
   );
 }
 
-// Seletor de mês e ano para definir um intervalo personalizado.
-function DateRangeSelects({
-  range,
-  currentMonthIndex,
-  onChange,
-}) {
-  // O componente é recriado quando o intervalo exterior muda.
+function DateRangeSelects({ range, currentMonthIndex, onChange }) {
   const [draft, setDraft] = useState(range);
   const [error, setError] = useState("");
 
   const currentYear = Math.floor(currentMonthIndex / 12);
   const currentMonth = currentMonthIndex % 12;
 
-  // Disponibiliza os anos desde 1900 até ao ano atual.
   const years = Array.from(
     { length: currentYear - 1899 },
-    (_, index) => currentYear - index
+    (_, index) => currentYear - index,
   );
 
-  // Atualiza uma das datas e valida os limites permitidos.
   function updateDate(field, part, value) {
     const [year, month] = draft[field].split("-").map(Number);
 
@@ -266,16 +215,11 @@ function DateRangeSelects({
     const startIndex = keyToIndex(next.start);
     const endIndex = keyToIndex(next.end);
 
-    // Impede a seleção de datas futuras.
-    if (
-      startIndex > currentMonthIndex ||
-      endIndex > currentMonthIndex
-    ) {
+    if (startIndex > currentMonthIndex || endIndex > currentMonthIndex) {
       setError("Não podes selecionar uma data futura.");
       return;
     }
 
-    // Valida a ordem e a duração máxima do intervalo.
     if (endIndex < startIndex) {
       setError("A data final não pode ser anterior à data inicial.");
       return;
@@ -285,7 +229,7 @@ function DateRangeSelects({
 
     if (distance > MAX_MONTH_DISTANCE) {
       setError(
-        "O intervalo máximo é de 25 meses, contando com o mês inicial e o mês final."
+        "O intervalo máximo é de 25 meses, contando com o mês inicial e o mês final.",
       );
       return;
     }
@@ -294,32 +238,26 @@ function DateRangeSelects({
     onChange(next);
   }
 
-  // Constrói os seletores de mês e ano para cada extremidade do intervalo.
   function renderDateSelector(field, label, tone) {
     const [year, month] = draft[field].split("-").map(Number);
 
-    const availableMonths = MONTHS
-      .map((name, index) => ({
-        value: index,
-        label: name,
-      }))
-      .filter(
-        ({ value }) =>
-          year < currentYear || value <= currentMonth
-      );
+    const availableMonths = MONTHS.map((name, index) => ({
+      value: index,
+      label: name,
+    })).filter(({ value }) => year < currentYear || value <= currentMonth);
 
-    // Diferencia visualmente a data inicial da data final.
-    const palette = tone === "indigo"
-      ? {
-          icon: "bg-indigo-100 text-indigo-700",
-          dot: "bg-indigo-700",
-          focus: "focus:border-indigo-400 focus:ring-indigo-100",
-        }
-      : {
-          icon: "bg-teal-100 text-teal-700",
-          dot: "bg-teal-500",
-          focus: "focus:border-teal-400 focus:ring-teal-100",
-        };
+    const palette =
+      tone === "indigo"
+        ? {
+            icon: "bg-indigo-100 text-indigo-700",
+            dot: "bg-indigo-700",
+            focus: "focus:border-indigo-400 focus:ring-indigo-100",
+          }
+        : {
+            icon: "bg-teal-100 text-teal-700",
+            dot: "bg-teal-500",
+            focus: "focus:border-teal-400 focus:ring-teal-100",
+          };
 
     return (
       <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:shadow-md sm:p-4">
@@ -330,7 +268,7 @@ function DateRangeSelects({
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              className="h-[18px] w-[18px]"
+              className="h-4.5[18px]"
               stroke="currentColor"
               strokeWidth="1.8"
               strokeLinecap="round"
@@ -404,13 +342,11 @@ function DateRangeSelects({
 
   return (
     <div>
-      {/* Seletores das datas inicial e final. */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {renderDateSelector("start", "Data inicial", "indigo")}
         {renderDateSelector("end", "Data final", "teal")}
       </div>
 
-      {/* Apresenta os erros de validação do intervalo. */}
       {error && (
         <div
           role="alert"
@@ -441,7 +377,6 @@ function DateRangeSelects({
   );
 }
 
-// Componente principal da linha temporal dos consumos.
 export default function InvoiceTimelineChart({
   invoices = [],
   range: rangeProp = null,
@@ -449,35 +384,28 @@ export default function InvoiceTimelineChart({
   serviceFilter = "all",
   benchmark = null,
 }) {
-  // Define as cores e a designação do serviço selecionado.
   const style = SERVICE_STYLE[serviceFilter] ?? SERVICE_STYLE.all;
 
-  // Estado do intervalo e do filtro avançado.
   const [innerRange, setInnerRange] = useState(null);
   const [advancedEnabled, setAdvancedEnabled] = useState(false);
 
-  // Referência ao contentor do gráfico e respetiva largura.
   const wrapRef = useRef(null);
   const [wrapWidth, setWrapWidth] = useState(0);
 
-  // Controla o posicionamento inicial e a emissão do intervalo predefinido.
   const scrolledToEnd = useRef(false);
   const emittedDefault = useRef(false);
 
-  // Obtém a data atual e os índices dos meses correspondentes.
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
   const currentMonthIndex = currentYear * 12 + currentMonth;
   const previousMonthIndex = currentMonthIndex - 1;
 
-  // Calcula os custos mensais da habitação para o serviço selecionado.
   const mine = useMemo(
     () => buildMonthlySeries(invoices, serviceFilter),
-    [invoices, serviceFilter]
+    [invoices, serviceFilter],
   );
 
-  // Prepara os valores de benchmark e agrupa-os por mês e tipo de serviço.
   const benchmarkMap = useMemo(() => {
     const grouped = new Map();
 
@@ -496,13 +424,9 @@ export default function InvoiceTimelineChart({
         grouped.set(key, new Map());
       }
 
-      grouped.get(key).set(
-        typeId,
-        asNumber(entry.average_cost)
-      );
+      grouped.get(key).set(typeId, asNumber(entry.average_cost));
     });
 
-    // Combina os serviços ou seleciona apenas o serviço pretendido.
     const result = new Map();
 
     grouped.forEach((services, key) => {
@@ -510,10 +434,7 @@ export default function InvoiceTimelineChart({
 
       if (serviceFilter === "all") {
         if ([1, 2, 3].every((id) => services.has(id))) {
-          result.set(
-            key,
-            services.get(1) + services.get(2) + services.get(3)
-          );
+          result.set(key, services.get(1) + services.get(2) + services.get(3));
         }
 
         return;
@@ -529,23 +450,22 @@ export default function InvoiceTimelineChart({
     return result;
   }, [benchmark, serviceFilter, mine]);
 
-  // Identifica o mês mais recente com dados de consumo.
   const latestDataIndex = useMemo(() => {
     const indexes = [...mine.keys()].map(keyToIndex);
 
     return indexes.length ? Math.max(...indexes) : null;
   }, [mine]);
 
-  // Define o intervalo inicial do filtro avançado.
-  const initialAdvancedRange = useMemo(() => ({
-    start: indexToKey(previousMonthIndex - MAX_MONTH_DISTANCE),
-    end: indexToKey(previousMonthIndex),
-  }), [previousMonthIndex]);
+  const initialAdvancedRange = useMemo(
+    () => ({
+      start: indexToKey(previousMonthIndex - MAX_MONTH_DISTANCE),
+      end: indexToKey(previousMonthIndex),
+    }),
+    [previousMonthIndex],
+  );
 
-  // Utiliza o intervalo recebido por props ou o intervalo interno.
   const selectedBaseRange = rangeProp ?? innerRange;
 
-  // Determina o intervalo efetivamente utilizado pelo gráfico.
   const range = useMemo(() => {
     if (!selectedBaseRange?.start || !selectedBaseRange?.end) {
       if (advancedEnabled) return initialAdvancedRange;
@@ -553,7 +473,7 @@ export default function InvoiceTimelineChart({
 
       const keys = monthsBetween(
         indexToKey(latestDataIndex - 23),
-        indexToKey(latestDataIndex)
+        indexToKey(latestDataIndex),
       );
 
       return presetRange(keys, 1);
@@ -570,7 +490,6 @@ export default function InvoiceTimelineChart({
     latestDataIndex,
   ]);
 
-  // Normaliza as datas para garantir uma ordem cronológica.
   const chartRange = useMemo(() => {
     if (!range) return null;
 
@@ -583,33 +502,20 @@ export default function InvoiceTimelineChart({
     };
   }, [range]);
 
-  // Cria os meses disponíveis para apresentar na linha temporal.
   const monthKeys = useMemo(() => {
     if (latestDataIndex == null && !advancedEnabled && !range) {
       return [];
     }
 
     const anchor = range
-      ? Math.max(
-          keyToIndex(range.start),
-          keyToIndex(range.end)
-        )
+      ? Math.max(keyToIndex(range.start), keyToIndex(range.end))
       : latestDataIndex;
 
     const end = Math.min(anchor, currentMonthIndex);
 
-    return monthsBetween(
-      indexToKey(end - MAX_MONTH_DISTANCE),
-      indexToKey(end)
-    );
-  }, [
-    latestDataIndex,
-    advancedEnabled,
-    range,
-    currentMonthIndex,
-  ]);
+    return monthsBetween(indexToKey(end - MAX_MONTH_DISTANCE), indexToKey(end));
+  }, [latestDataIndex, advancedEnabled, range, currentMonthIndex]);
 
-  // Agrupa os meses por ano para apresentar o cabeçalho do gráfico.
   const yearGroups = useMemo(() => {
     const groups = [];
 
@@ -627,35 +533,30 @@ export default function InvoiceTimelineChart({
     return groups;
   }, [monthKeys]);
 
-  // Prepara os dados mensais da habitação e dos benchmarks.
   const data = useMemo(
     () =>
       monthKeys.map((key) => ({
         key,
-        mine: mine.has(key)
-          ? Number(mine.get(key).toFixed(2))
-          : null,
+        mine: mine.has(key) ? Number(mine.get(key).toFixed(2)) : null,
         benchmark: benchmarkMap.has(key)
           ? Number(benchmarkMap.get(key).toFixed(2))
           : null,
       })),
-    [monthKeys, mine, benchmarkMap]
+    [monthKeys, mine, benchmarkMap],
   );
 
-  // Ajusta automaticamente os limites e as divisões do eixo vertical.
   const scale = useMemo(
     () =>
       niceScale(
         Math.max(
           0,
           ...data.map((row) => row.mine ?? 0),
-          ...data.map((row) => row.benchmark ?? 0)
-        )
+          ...data.map((row) => row.benchmark ?? 0),
+        ),
       ),
-    [data]
+    [data],
   );
 
-  // Calcula os totais e a diferença para os meses comparáveis.
   const comparison = useMemo(() => {
     if (!chartRange || benchmarkMap.size === 0) return null;
 
@@ -686,9 +587,7 @@ export default function InvoiceTimelineChart({
     const difference = mineTotal - benchmarkTotal;
 
     const percentageDifference =
-      benchmarkTotal > 0
-        ? (difference / benchmarkTotal) * 100
-        : null;
+      benchmarkTotal > 0 ? (difference / benchmarkTotal) * 100 : null;
 
     return {
       mineTotal,
@@ -699,7 +598,6 @@ export default function InvoiceTimelineChart({
     };
   }, [chartRange, data, benchmarkMap]);
 
-  // Observa a largura do contentor do gráfico.
   useEffect(() => {
     const element = wrapRef.current;
 
@@ -714,21 +612,15 @@ export default function InvoiceTimelineChart({
     return () => observer.disconnect();
   }, []);
 
-  // Desloca o gráfico para o mês mais recente na primeira apresentação.
   useEffect(() => {
     const element = wrapRef.current;
 
-    if (
-      element &&
-      monthKeys.length > 0 &&
-      !scrolledToEnd.current
-    ) {
+    if (element && monthKeys.length > 0 && !scrolledToEnd.current) {
       scrolledToEnd.current = true;
       element.scrollLeft = element.scrollWidth;
     }
   }, [monthKeys.length, wrapWidth]);
 
-  // Comunica o intervalo inicial ao componente que contém o gráfico.
   useEffect(() => {
     if (range && !rangeProp && !emittedDefault.current) {
       emittedDefault.current = true;
@@ -736,7 +628,6 @@ export default function InvoiceTimelineChart({
     }
   }, [range, rangeProp, onRangeChange]);
 
-  // Valida e atualiza o intervalo selecionado.
   function updateRange(next) {
     if (!next) return;
 
@@ -756,19 +647,15 @@ export default function InvoiceTimelineChart({
     onRangeChange?.(next);
   }
 
-  // Calcula a largura dos meses de acordo com o espaço disponível.
   const monthCount = monthKeys.length;
 
   const monthWidth = Math.max(
     MIN_MONTH_WIDTH,
-    wrapWidth > 0
-      ? (wrapWidth - Y_AXIS_WIDTH) / Math.max(monthCount, 1)
-      : 0
+    wrapWidth > 0 ? (wrapWidth - Y_AXIS_WIDTH) / Math.max(monthCount, 1) : 0,
   );
 
   const chartWidth = Y_AXIS_WIDTH + monthWidth * monthCount;
 
-  // Mensagem apresentada quando não existem dados suficientes para o gráfico.
   if (mine.size === 0 || monthCount === 0 || !range || !chartRange) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-6 text-center">
@@ -783,7 +670,6 @@ export default function InvoiceTimelineChart({
     );
   }
 
-  // Limites cronológicos utilizados para destacar a área selecionada.
   const chartStartIndex = keyToIndex(chartRange.start);
   const chartEndIndex = keyToIndex(chartRange.end);
 
@@ -792,17 +678,12 @@ export default function InvoiceTimelineChart({
     return index >= chartStartIndex && index <= chartEndIndex;
   };
 
-  // Identifica o intervalo rápido atualmente ativo.
   const activePreset = PRESETS.find((preset) => {
     const target = presetRange(monthKeys, preset.months);
 
-    return (
-      target?.start === range.start &&
-      target?.end === range.end
-    );
+    return target?.start === range.start && target?.end === range.end;
   });
 
-  // Desenha os pontos da linha correspondente aos consumos da habitação.
   const renderDot = ({ cx, cy, payload }) => {
     if (cx == null || cy == null || payload?.mine == null) {
       return <g key={`empty-${payload?.key}`} />;
@@ -821,7 +702,6 @@ export default function InvoiceTimelineChart({
     );
   };
 
-  // Desenha os pontos quadrados da linha do benchmark.
   const renderBenchmarkDot = ({ cx, cy, payload }) => {
     if (cx == null || cy == null || payload?.benchmark == null) {
       return <g key={`benchmark-empty-${payload?.key}`} />;
@@ -880,10 +760,10 @@ export default function InvoiceTimelineChart({
                   ? "Em linha com a média"
                   : comparison.percentageDifference < 0
                     ? `▼ ${percent.format(
-                        Math.abs(comparison.percentageDifference)
+                        Math.abs(comparison.percentageDifference),
                       )}% abaixo da média`
                     : `▲ ${percent.format(
-                        comparison.percentageDifference
+                        comparison.percentageDifference,
                       )}% acima da média`}
             </span>
           )}
@@ -896,8 +776,7 @@ export default function InvoiceTimelineChart({
           </span>
 
           <span className="inline-flex items-center gap-2 whitespace-nowrap">
-            <span className="h-[3px] w-6 rounded-full bg-white" />
-            A minha casa
+            <span className="h-0.75w-6 rounded-full bg-white" />A minha casa
           </span>
 
           {benchmarkMap.size > 0 && (
@@ -936,8 +815,8 @@ export default function InvoiceTimelineChart({
                 aria-pressed={activePreset?.label === preset.label}
                 className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   activePreset?.label === preset.label
-                    ? "border-[#1C3557] bg-[#1C3557] text-white"
-                    : "border-slate-200 text-slate-600 hover:border-[#1C3557]/40 hover:bg-[#1C3557]/5"
+                    ? "border-navy bg-navy text-white"
+                    : "border-slate-200 text-slate-600 hover:border-navy/40 hover:bg-navy/5"
                 }`}
               >
                 {preset.label}
@@ -1116,15 +995,15 @@ export default function InvoiceTimelineChart({
         <label
           className={`group flex cursor-pointer items-center gap-3.5 rounded-2xl border p-3.5 transition-all duration-200 sm:p-4 ${
             advancedEnabled
-              ? "border-[#1C3557]/20 bg-gradient-to-r from-[#1C3557]/[0.07] via-white to-[#1C3557]/[0.04] shadow-sm shadow-[#1C3557]/10"
-              : "border-slate-200 bg-white hover:border-[#1C3557]/30 hover:bg-[#1C3557]/[0.025]"
+              ? "border-navy/20 bg-linear-to-r from-[#1C3557]/[0.07] via-white to-[#1C3557]/4 shadow-sm shadow-[#1C3557]/10"
+              : "border-slate-200 bg-white hover:border-navy/30 hover:bg-navy/2.5"
           }`}
         >
           <span
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
               advancedEnabled
-                ? "bg-[#1C3557] text-white shadow-md shadow-[#1C3557]/20"
-                : "bg-slate-100 text-slate-500 group-hover:bg-[#1C3557]/10 group-hover:text-[#1C3557]"
+                ? "bg-navy text-white shadow-md shadow-[#1C3557]/20"
+                : "bg-slate-100 text-slate-500 group-hover:bg-navy/10 group-hover:text-navy"
             }`}
           >
             <svg
@@ -1156,18 +1035,18 @@ export default function InvoiceTimelineChart({
               } else {
                 const defaultEndIndex = Math.min(
                   latestDataIndex ?? currentMonthIndex,
-                  currentMonthIndex
+                  currentMonthIndex,
                 );
 
                 const defaultMonthKeys = monthsBetween(
                   indexToKey(defaultEndIndex - MAX_MONTH_DISTANCE),
-                  indexToKey(defaultEndIndex)
+                  indexToKey(defaultEndIndex),
                 );
 
                 updateRange(presetRange(defaultMonthKeys, 1));
               }
             }}
-            className="h-4 w-4 shrink-0 rounded border-slate-300 text-[#1C3557] focus:ring-[#1C3557]"
+            className="h-4 w-4 shrink-0 rounded border-slate-300 text-navy focus:ring-[#1C3557]"
           />
 
           <span className="min-w-0 flex-1">
@@ -1179,7 +1058,7 @@ export default function InvoiceTimelineChart({
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${
                   advancedEnabled
-                    ? "bg-[#1C3557]/10 text-[#1C3557]"
+                    ? "bg-navy/10 text-navy"
                     : "bg-slate-100 text-slate-500"
                 }`}
               >
@@ -1188,7 +1067,8 @@ export default function InvoiceTimelineChart({
             </span>
 
             <span className="mt-1 block text-sm leading-relaxed text-slate-500">
-              Define um intervalo personalizado para explorar a evolução dos teus consumos.
+              Define um intervalo personalizado para explorar a evolução dos
+              teus consumos.
             </span>
           </span>
 
@@ -1196,7 +1076,7 @@ export default function InvoiceTimelineChart({
             viewBox="0 0 24 24"
             fill="none"
             className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${
-              advancedEnabled ? "rotate-180 text-[#1C3557]" : ""
+              advancedEnabled ? "rotate-180 text-navy" : ""
             }`}
             stroke="currentColor"
             strokeWidth="2"
@@ -1209,9 +1089,9 @@ export default function InvoiceTimelineChart({
 
         {/* Seletores de datas apresentados quando o filtro avançado está ativo. */}
         {advancedEnabled && (
-          <div className="relative mt-3 overflow-hidden rounded-2xl border border-[#1C3557]/15 bg-gradient-to-br from-[#1C3557]/[0.055] via-white to-[#1C3557]/[0.035] p-4 shadow-sm sm:p-5">
-            <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-[#1C3557]/[0.06] blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-16 left-1/3 h-36 w-36 rounded-full bg-[#1C3557]/[0.045] blur-2xl" />
+          <div className="relative mt-3 overflow-hidden rounded-2xl border border-navy/15 bg-linear-to-br from-[#1C3557]/5.5 via-white to-[#1C3557]/[0.035] p-4 shadow-sm sm:p-5">
+            <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-navy/6 blur-2xl" />
+            <div className="pointer-events-none absolute -bottom-16 left-1/3 h-36 w-36 rounded-full bg-navy/4.5 blur-2xl" />
 
             <div className="relative">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -1220,7 +1100,7 @@ export default function InvoiceTimelineChart({
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="h-[18px] w-[18px]"
+                      className="h-4.5 w-4.5"
                       stroke="currentColor"
                       strokeWidth="1.8"
                       strokeLinecap="round"
@@ -1243,7 +1123,7 @@ export default function InvoiceTimelineChart({
                   </div>
                 </div>
 
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#1C3557]/15 bg-white/90 px-3 py-1.5 text-[13px] font-bold text-[#1C3557] shadow-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-navy/15 bg-white/90 px-3 py-1.5 text-[13px] font-bold text-navy shadow-sm">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -1270,7 +1150,7 @@ export default function InvoiceTimelineChart({
 
               {/* Informação sobre os limites de seleção do período. */}
               <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-white/90 bg-white/75 px-3.5 py-3 shadow-sm">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#1C3557]/10 text-[#1C3557]">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-navy/10 text-navy">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -1286,7 +1166,8 @@ export default function InvoiceTimelineChart({
                 </span>
 
                 <p className="text-[13px] leading-relaxed text-slate-600">
-                  Podes selecionar qualquer mês e ano desde 1900 até ao mês atual. O intervalo máximo é de{" "}
+                  Podes selecionar qualquer mês e ano desde 1900 até ao mês
+                  atual. O intervalo máximo é de{" "}
                   <strong className="font-semibold text-slate-800">
                     25 meses de calendário, contando o mês inicial e o final
                   </strong>

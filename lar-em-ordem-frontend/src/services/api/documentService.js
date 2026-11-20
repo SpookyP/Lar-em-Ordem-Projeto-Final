@@ -1,8 +1,7 @@
 import axiosClient from "./axiosClient";
 import { cleanParams, toPage } from "./pagination";
 
-//Estado calculado a partir da data de validade
-export function getDocumentStatus(expirationDate) {
+function getDocumentStatus(expirationDate) {
   if (!expirationDate) return "valid";
   const exp = new Date(expirationDate);
   if (Number.isNaN(exp.getTime())) return "valid";
@@ -52,11 +51,6 @@ export async function getPropertyDocuments({
     },
   );
   return toPage(response, toDocument);
-}
-
-export async function getDocument(id) {
-  const response = await axiosClient.get(`/api/v1/documents/${id}`);
-  return toDocument(response.data.data);
 }
 
 export async function uploadDocument(

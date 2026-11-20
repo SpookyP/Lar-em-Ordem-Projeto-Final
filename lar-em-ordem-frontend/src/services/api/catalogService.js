@@ -35,10 +35,9 @@ export async function getMyProviderCoverage() {
       .filter((id) => id != null),
     custom_specialties: specialties
       .filter((s) => s.is_custom && s.category?.id != null)
-      .map((s) => ({ problem_category_id: s.category.id, name: s.display_name })),
+      .map((s) => ({
+        problem_category_id: s.category.id,
+        name: s.display_name,
+      })),
   };
-}
-
-export function clearCatalogCache() {
-  zonesPromise = null;
 }

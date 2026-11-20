@@ -1,4 +1,4 @@
-export const PASSWORD_RULES = [
+const PASSWORD_RULES = [
   {
     id: "length",
     label: "Pelo menos 12 caracteres",

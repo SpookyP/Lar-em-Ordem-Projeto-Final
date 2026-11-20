@@ -3,7 +3,7 @@ import { ROLES } from "../utils/roles";
 import { formatPhone } from "../utils/format";
 
 // who administers the building: a company that does it for a living, or one of the residents
-export const ADMIN_TYPES = [
+const ADMIN_TYPES = [
   {
     value: "professional",
     label: "Empresa de administração",

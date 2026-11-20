@@ -15,7 +15,7 @@ export function toNotice(n) {
 }
 
 // API (snake_case) -> app (camelCase); fields the API leaves out stay null or empty
-export function toCondominium(c) {
+function toCondominium(c) {
   return {
     id: c.id,
     name: c.name,
@@ -73,21 +73,30 @@ export async function removeProperty(condominiumId, propertyId) {
 
 // every notice of the condominium, expired ones included, newest first
 export async function getNotices({ condominiumId, page = 1, perPage = 5 }) {
-  const response = await axiosClient.get(`/api/v1/condominiums/${condominiumId}/notices`, {
-    params: cleanParams({ page, per_page: perPage }),
-  });
+  const response = await axiosClient.get(
+    `/api/v1/condominiums/${condominiumId}/notices`,
+    {
+      params: cleanParams({ page, per_page: perPage }),
+    },
+  );
   return toPage(response, toNotice);
 }
 
 // publishing emails the residents and pushes the notice to their homes in real time
 export async function createNotice(condominiumId, data) {
-  const response = await axiosClient.post(`/api/v1/condominiums/${condominiumId}/notices`, data);
+  const response = await axiosClient.post(
+    `/api/v1/condominiums/${condominiumId}/notices`,
+    data,
+  );
   return toNotice(response.data.data);
 }
 
 // a changed notice that is still current becomes unread again and is sent again
 export async function updateNotice(noticeId, data) {
-  const response = await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}`, data);
+  const response = await axiosClient.patch(
+    `/api/v1/condominium-notices/${noticeId}`,
+    data,
+  );
   return toNotice(response.data.data);
 }
 
@@ -111,13 +120,24 @@ export function toDocument(d) {
 
 // a page of documents plus the categories, which every listing brings for the filter
 function toDocumentsPage(response) {
-  return { ...toPage(response, toDocument), extra: { categories: response.data.categories ?? [] } };
+  return {
+    ...toPage(response, toDocument),
+    extra: { categories: response.data.categories ?? [] },
+  };
 }
 
-export async function getCondominiumDocuments({ condominiumId, categoryId, page = 1, perPage = 5 }) {
-  const response = await axiosClient.get(`/api/v1/condominiums/${condominiumId}/documents`, {
-    params: cleanParams({ page, per_page: perPage, category_id: categoryId }),
-  });
+export async function getCondominiumDocuments({
+  condominiumId,
+  categoryId,
+  page = 1,
+  perPage = 5,
+}) {
+  const response = await axiosClient.get(
+    `/api/v1/condominiums/${condominiumId}/documents`,
+    {
+      params: cleanParams({ page, per_page: perPage, category_id: categoryId }),
+    },
+  );
   return toDocumentsPage(response);
 }
 
@@ -127,13 +147,19 @@ export async function uploadDocument(condominiumId, data) {
   Object.entries(data).forEach(([key, value]) => {
     if (value != null && value !== "") body.append(key, value);
   });
-  const response = await axiosClient.post(`/api/v1/condominiums/${condominiumId}/documents`, body);
+  const response = await axiosClient.post(
+    `/api/v1/condominiums/${condominiumId}/documents`,
+    body,
+  );
   return toDocument(response.data.data);
 }
 
 // only the details change; the file stays the same
 export async function updateDocument(documentId, data) {
-  const response = await axiosClient.patch(`/api/v1/condominium-documents/${documentId}`, data);
+  const response = await axiosClient.patch(
+    `/api/v1/condominium-documents/${documentId}`,
+    data,
+  );
   return toDocument(response.data.data);
 }
 
@@ -143,15 +169,20 @@ export async function deleteDocument(documentId) {
 
 // the file itself, read through the API with the session; the address only works in this browser
 export async function getDocumentLink(documentId) {
-  const response = await axiosClient.get(`/api/v1/condominium-documents/${documentId}/content`, {
-    responseType: "blob",
-  });
+  const response = await axiosClient.get(
+    `/api/v1/condominium-documents/${documentId}/content`,
+    {
+      responseType: "blob",
+    },
+  );
   return URL.createObjectURL(response.data);
 }
 
 // the code is only ever shown in this answer; a new one replaces the previous
 export async function startTransfer(condominiumId) {
-  const response = await axiosClient.post(`/api/v1/condominiums/${condominiumId}/transfer`);
+  const response = await axiosClient.post(
+    `/api/v1/condominiums/${condominiumId}/transfer`,
+  );
   return {
     code: response.data.data.transfer_code,
     expiresAt: response.data.data.transfer_expires_at,
@@ -172,7 +203,9 @@ export async function claimCondominium(transferCode) {
 
 // the condominium of a home, or null when the home has not joined one
 export async function getPropertyCondominium(propertyId) {
-  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium`);
+  const response = await axiosClient.get(
+    `/api/v1/properties/${propertyId}/condominium`,
+  );
   return response.data.data ? toCondominium(response.data.data) : null;
 }
 
@@ -186,7 +219,9 @@ export async function joinCondominium(inviteCode, propertyId) {
 }
 
 export async function getBellNotices(propertyId) {
-  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium-notices`);
+  const response = await axiosClient.get(
+    `/api/v1/properties/${propertyId}/condominium-notices`,
+  );
   return response.data.data.map(toNotice);
 }
 
@@ -195,7 +230,9 @@ export async function markNoticeRead(noticeId) {
 }
 
 export async function markAllNoticesRead(propertyId) {
-  await axiosClient.patch(`/api/v1/properties/${propertyId}/condominium-notices/read-all`);
+  await axiosClient.patch(
+    `/api/v1/properties/${propertyId}/condominium-notices/read-all`,
+  );
 }
 
 // hides the notice from this resident's bell only (it stays on the condominium page)
@@ -203,9 +240,17 @@ export async function dismissNotice(noticeId) {
   await axiosClient.patch(`/api/v1/condominium-notices/${noticeId}/dismiss`);
 }
 
-export async function getPropertyDocuments({ propertyId, categoryId, page = 1, perPage = 5 }) {
-  const response = await axiosClient.get(`/api/v1/properties/${propertyId}/condominium-documents`, {
-    params: cleanParams({ page, per_page: perPage, category_id: categoryId }),
-  });
+export async function getPropertyDocuments({
+  propertyId,
+  categoryId,
+  page = 1,
+  perPage = 5,
+}) {
+  const response = await axiosClient.get(
+    `/api/v1/properties/${propertyId}/condominium-documents`,
+    {
+      params: cleanParams({ page, per_page: perPage, category_id: categoryId }),
+    },
+  );
   return toDocumentsPage(response);
 }
