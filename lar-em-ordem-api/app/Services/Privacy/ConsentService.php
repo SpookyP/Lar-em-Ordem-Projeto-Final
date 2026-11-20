@@ -80,6 +80,19 @@ class ConsentService
     }
 
     /**
+     * What the privacy settings screen shows: the current policy version and the latest answers.
+     *
+     * @return array{policy_version: string, consents: array<string, array{granted: bool, version: string, at: ?string}|null>}
+     */
+    public function summary(User $user): array
+    {
+        return [
+            'policy_version' => config('privacy.policy_version'),
+            'consents' => $this->current($user),
+        ];
+    }
+
+    /**
      * The current answer for each consent, or null when it was never answered.
      *
      * @return array<string, array{granted: bool, version: string, at: ?string}|null>

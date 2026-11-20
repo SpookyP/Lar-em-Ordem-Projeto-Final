@@ -8,20 +8,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * The signed-in user's consents: what they answered, and changing the data sharing answer
- * (withdrawing consent must be as easy as giving it, RGPD art. 7(3)).
+ * Changing the signed-in user's data sharing answer (withdrawing consent must be as easy as giving it,
+ * RGPD art. 7(3)). The current answers come with GET /api/user, in "privacy".
  */
 class PrivacyController extends Controller
 {
     public function __construct(private ConsentService $consents) {}
-
-    public function show(Request $request): JsonResponse
-    {
-        return response()->json([
-            'policy_version' => config('privacy.policy_version'),
-            'consents' => $this->consents->current($request->user()),
-        ]);
-    }
 
     public function update(Request $request): JsonResponse
     {
@@ -35,6 +27,6 @@ class PrivacyController extends Controller
 
         $this->consents->set($request->user(), ConsentService::DATA_SHARING, (bool) $granted, 'settings');
 
-        return $this->show($request);
+        return response()->json($this->consents->summary($request->user()));
     }
 }

@@ -148,7 +148,6 @@ class ConsentTest extends TestCase
 
     public function test_the_privacy_endpoint_needs_a_session(): void
     {
-        $this->getJson('/api/user/privacy')->assertUnauthorized();
         $this->putJson('/api/user/privacy', ['data_sharing' => false])->assertUnauthorized();
     }
 
@@ -158,10 +157,11 @@ class ConsentTest extends TestCase
         $rows = fn () => $user->consents()->where('type', ConsentService::DATA_SHARING)->count();
         $before = $rows();
 
-        $this->actingAs($user)->getJson('/api/user/privacy')
+        // the settings screen reads the answers from /api/user, so they survive a page reload
+        $this->actingAs($user)->getJson('/api/user')
             ->assertOk()
-            ->assertJsonPath('policy_version', config('privacy.policy_version'))
-            ->assertJsonPath('consents.data_sharing.granted', true);
+            ->assertJsonPath('privacy.policy_version', config('privacy.policy_version'))
+            ->assertJsonPath('privacy.consents.data_sharing.granted', true);
 
         $this->actingAs($user)->putJson('/api/user/privacy', ['data_sharing' => false])
             ->assertOk()

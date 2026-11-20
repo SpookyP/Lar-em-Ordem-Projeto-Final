@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\Auth\ProfileService;
 use App\Services\Privacy\AccountErasureService;
+use App\Services\Privacy\ConsentService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth as AuthFacade;
@@ -18,7 +19,7 @@ use App\Http\Requests\Condominium\StoreCondominiumAdminRequest;
 
 class AuthController extends Controller
 {
-    public function __construct(private ProfileService $profileService) {}
+    public function __construct(private ProfileService $profileService, private ConsentService $consents) {}
     
     public function user(Request $request)
     {
@@ -34,6 +35,7 @@ class AuthController extends Controller
             'partner'          => $user->partner,
             'service_provider' => $user->service_provider,
             'condominium_admin' => $user->condominium_admin,
+            'privacy'          => $this->consents->summary($user),
         ]);
     }
 
