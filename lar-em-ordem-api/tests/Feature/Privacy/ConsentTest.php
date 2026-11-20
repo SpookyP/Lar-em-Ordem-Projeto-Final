@@ -149,6 +149,24 @@ class ConsentTest extends TestCase
     public function test_the_privacy_endpoint_needs_a_session(): void
     {
         $this->putJson('/api/user/privacy', ['data_sharing' => false])->assertUnauthorized();
+        $this->getJson('/api/user/export')->assertUnauthorized();
+    }
+
+    public function test_a_user_downloads_a_copy_of_their_own_data(): void
+    {
+        $response = $this->actingAs(User::where('email', 'morador@example.com')->firstOrFail())
+            ->getJson('/api/user/export')
+            ->assertOk()
+            ->assertHeader('Content-Disposition', 'attachment; filename="lar-em-ordem-dados-' . now()->toDateString() . '.json"')
+            ->assertJsonPath('conta.email', 'morador@example.com');
+
+        $this->assertNotEmpty($response->json('residente.casas'));
+        $this->assertNotEmpty(collect($response->json('residente.pedidos_assistencia'))->pluck('propostas_recebidas')->flatten(1));
+
+        // the providers who answered appear by company name only, never with their own data
+        $provider = User::where('email', 'prestador@example.com')->firstOrFail();
+        $this->assertStringNotContainsString($provider->email, $response->getContent());
+        $this->assertStringNotContainsString($provider->service_provider->nif, $response->getContent());
     }
 
     public function test_a_user_can_withdraw_and_give_consent_and_the_history_is_kept(): void
