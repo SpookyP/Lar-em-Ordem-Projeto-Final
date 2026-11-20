@@ -6,10 +6,37 @@ use App\Models\Invoice\Consumption;
 use App\Models\Invoice\ConsumptionBenchmark;
 use App\Models\Invoice\ConsumptionType;
 use App\Models\Property\Property;
+use App\Models\User\Resident;
 use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class BenchmarkService
 {
+    /**
+     * The resident's home to compare: one of the homes with an active contract,
+     * the one given by id, or the only one when no id is given.
+     * 404 if there is none; 422 if there are several and no id was given.
+     */
+    public function propertyFor(Resident $resident, ?string $propertyId): Property
+    {
+        $properties = Property::query()
+            ->whereHas('contracts', fn ($query) => $query->where('resident_id', $resident->id)->active())
+            ->when($propertyId, fn ($query, $id) => $query->whereKey($id))
+            ->get();
+
+        if ($properties->isEmpty()) {
+            abort(404, 'Não foi encontrada nenhuma propriedade associada ao residente.');
+        }
+
+        if ($properties->count() > 1) {
+            throw ValidationException::withMessages([
+                'property_id' => ['Indique a propriedade que pretende comparar.'],
+            ]);
+        }
+
+        return $properties->first();
+    }
+    
     /**
      * Devolve a série histórica mensal de custos médios do grupo comparável.
      *
