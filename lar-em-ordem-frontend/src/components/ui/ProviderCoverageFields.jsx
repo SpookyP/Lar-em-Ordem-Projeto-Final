@@ -1,28 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { getZones } from "../../services/api/catalogService";
 import { getCategories } from "../../services/api/assistanceService";
 import { getCounties, getDistricts, zoneIdsFor } from "../../utils/zones";
 import { MultiSearchSelect, SearchSelect, TextInput } from "../form";
 import { chipClass } from "../form/styles";
+import { useFetch } from "../../hooks/useFetch";
 
 const DISTRICT_PREFIX = "district:";
-
-function useCatalog(load) {
-  const [state, setState] = useState({ data: null, failed: false });
-
-  useEffect(() => {
-    let active = true;
-    load()
-      .then((data) => active && setState({ data, failed: false }))
-      .catch(() => active && setState({ data: null, failed: true }));
-    return () => {
-      active = false;
-    };
-  }, [load]);
-
-  return state;
-}
 
 function countyKey(zone) {
   return `${zone.district}|${zone.county}`;
@@ -77,7 +62,7 @@ function CatalogMessage({ failed, what }) {
   );
 }
 
-/** Zones picker. value = zone ids; onChange receives zone ids. */
+/* value = zone ids; onChange receives zone ids. */
 export function ZoneCoverageField({
   value,
   onChange,
@@ -85,10 +70,11 @@ export function ZoneCoverageField({
   label = "Zonas de atuação",
   hint = "Escolha os concelhos onde trabalha. Se não escolher nenhum, vê pedidos de todo o país.",
 }) {
-  const { data: zones, failed } = useCatalog(getZones);
+  const { data: zones, error: loadError } = useFetch(getZones);
   const index = useCountyIndex(zones);
 
-  if (!index) return <CatalogMessage failed={failed} what="as zonas" />;
+  if (!index)
+    return <CatalogMessage failed={Boolean(loadError)} what="as zonas" />;
 
   function handleChange(keys) {
     const chosen = new Set();
@@ -119,12 +105,11 @@ export function ZoneCoverageField({
   );
 }
 
-/** Read-only list of the chosen counties. */
 export function ZoneSummary({ zoneIds }) {
-  const { data: zones, failed } = useCatalog(getZones);
+  const { data: zones, error } = useFetch(getZones);
   const index = useCountyIndex(zones);
 
-  if (!index) return <CatalogMessage failed={failed} what="as zonas" />;
+  if (!index) return <CatalogMessage failed={Boolean(error)} what="as zonas" />;
 
   const keys = selectedCountyKeys(index, zoneIds);
   if (keys.length === 0) {
@@ -149,7 +134,7 @@ export function ZoneSummary({ zoneIds }) {
   );
 }
 
-// Specialties the provider writes themselves: a category plus a free-text name.
+//Specialties the provider writes themselves: a category plus a free-text name.
 function CustomSpecialtyEditor({ categories, value, onChange, error }) {
   const [open, setOpen] = useState(false);
   const [categoryId, setCategoryId] = useState("");
@@ -173,7 +158,7 @@ function CustomSpecialtyEditor({ categories, value, onChange, error }) {
       setLocalError("Indique o nome da especialidade.");
       return;
     }
-    // the API rejects the same name twice in the same category
+    //the API rejects the same name twice in the same category
     const duplicate = value.some(
       (c) =>
         c.problem_category_id === categoryId &&
@@ -190,7 +175,7 @@ function CustomSpecialtyEditor({ categories, value, onChange, error }) {
   }
 
   function handleKeyDown(e) {
-    // Enter adds the specialty instead of submitting the whole form
+    //Enter adds the specialty instead of submitting the whole form
     if (e.key === "Enter") {
       e.preventDefault();
       add();
@@ -282,11 +267,10 @@ function CustomSpecialtyEditor({ categories, value, onChange, error }) {
 }
 
 /**
- * Catalog specialties plus custom ones.
  * value = { service_specialty_ids, custom_specialties }; onChange receives the same shape.
  */
 export function SpecialtyCoverageField({ value, onChange, errors = {} }) {
-  const { data: categories, failed } = useCatalog(getCategories);
+  const { data: categories, error } = useFetch(getCategories);
 
   const options = useMemo(
     () =>
@@ -301,7 +285,7 @@ export function SpecialtyCoverageField({ value, onChange, errors = {} }) {
   );
 
   if (!categories)
-    return <CatalogMessage failed={failed} what="as especialidades" />;
+    return <CatalogMessage failed={Boolean(error)} what="as especialidades" />;
 
   return (
     <div className="flex flex-col gap-3">
@@ -324,12 +308,11 @@ export function SpecialtyCoverageField({ value, onChange, errors = {} }) {
   );
 }
 
-/** Read-only list of the chosen specialties (catalog and custom). */
 export function SpecialtySummary({ value }) {
-  const { data: categories, failed } = useCatalog(getCategories);
+  const { data: categories, error } = useFetch(getCategories);
 
   if (!categories)
-    return <CatalogMessage failed={failed} what="as especialidades" />;
+    return <CatalogMessage failed={Boolean(error)} what="as especialidades" />;
 
   const catalogNames = new Map(
     categories.flatMap((c) => c.specialties.map((s) => [s.id, s.name])),
@@ -360,7 +343,6 @@ export function SpecialtySummary({ value }) {
   );
 }
 
-/** Zones and specialties together, for the register and add-profile forms. */
 export function ProviderCoverageFields({ value, onChange, errors = {} }) {
   return (
     <div className="flex flex-col gap-5">

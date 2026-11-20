@@ -9,6 +9,8 @@ import { isNoticeCurrent, priorityInfo } from "../../../data/condominiumInfo";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 function NoticeItem({ notice, onEdit, onAskDelete }) {
   const priority = priorityInfo(notice.priority);
@@ -179,13 +181,11 @@ export default function CondominiumNotices() {
       )}
 
       {loading && notices.length === 0 ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : isEmpty ? (
         editing === null && (
           <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
-            <p className="text-sm text-muted">
-              Ainda não publicaste nenhum aviso.
-            </p>
+            <EmptyState message="Ainda não publicou nenhum aviso." />
           </div>
         )
       ) : (

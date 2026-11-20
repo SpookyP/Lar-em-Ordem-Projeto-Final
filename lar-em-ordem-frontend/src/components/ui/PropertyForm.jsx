@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   getFormOptions,
   createProperty,
@@ -8,6 +8,8 @@ import { useHouses } from "../../hooks/useHouses";
 import { ZoneSelect } from "./ZoneSelect";
 import { TextInput, SearchSelect, DatePicker, StepProgress } from "../form";
 import { todayISO } from "../../utils/date";
+import { useFetch } from "../../hooks/useFetch";
+import { LoadingState } from "./LoadingState";
 
 const EMPTY_FORM = {
   property_type_id: "",
@@ -66,7 +68,6 @@ export function PropertyForm({
   secondaryAction,
   property,
 }) {
-  const [options, setOptions] = useState(null);
   const [form, setForm] = useState(() =>
     property ? propertyToForm(property) : EMPTY_FORM,
   );
@@ -77,15 +78,7 @@ export function PropertyForm({
   const isEditing = Boolean(property);
   const [stepIndex, setStepIndex] = useState(0);
 
-  useEffect(() => {
-    let active = true;
-    getFormOptions().then((data) => {
-      if (active) setOptions(data);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: options } = useFetch(getFormOptions, []);
 
   function setField(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -254,7 +247,7 @@ export function PropertyForm({
   }
 
   if (!options) {
-    return <p className="text-sm text-muted">A carregar...</p>;
+    return <LoadingState />;
   }
 
   return (

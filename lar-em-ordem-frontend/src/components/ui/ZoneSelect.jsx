@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
 import { getZones } from "../../services/api/catalogService";
 import { getCounties, getDistricts, getLocations } from "../../utils/zones";
+import { useFetch } from "../../hooks/useFetch";
+import { LoadingState } from "./LoadingState";
 
 const selectClass =
   "rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-navy disabled:bg-surface disabled:text-muted";
@@ -50,27 +51,12 @@ function Select({
 }
 
 export function ZoneSelect({ district, county, location, onChange }) {
-  const [zones, setZones] = useState(null);
-  const [failed, setFailed] = useState(false);
+  const { data: zones, error } = useFetch(getZones, [], {
+    errorMessage: "Não foi possível carregar as zonas.",
+  });
 
-  useEffect(() => {
-    let active = true;
-    getZones()
-      .then((data) => active && setZones(data))
-      .catch(() => active && setFailed(true));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (failed) {
-    return (
-      <p className="text-sm text-red-600">
-        Não foi possível carregar as zonas.
-      </p>
-    );
-  }
-  if (!zones) return <p className="text-sm text-muted">A carregar zonas...</p>;
+  if (error) return <p className="text-sm text-red-600">{error}</p>;
+  if (!zones) return <LoadingState label="A carregar zonas..." />;
 
   const districts = withCurrent(getDistricts(zones), district);
   const counties = district

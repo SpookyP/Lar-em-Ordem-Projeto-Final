@@ -1,10 +1,15 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, MapPin, Pencil, Send } from "lucide-react";
 import { useAssistanceRequest } from "../../../hooks/useAssistanceRequest";
-import { categoryInfo, proposalStatus, providerRequestLabel } from "../../../data/assistanceInfo";
+import {
+  categoryInfo,
+  proposalStatus,
+  providerRequestLabel,
+} from "../../../data/assistanceInfo";
 import { AttachmentGallery } from "../../../components/ui/AttachmentGallery";
 import { formatAddress, formatMoney } from "../../../utils/format";
 import { formatDate, formatDay } from "../../../utils/date";
+import { LoadingState } from "../../../components/ui/LoadingState";
 
 function Tile({ icon: Icon, label, value }) {
   return (
@@ -34,12 +39,16 @@ function MyProposal({ proposal, requestId }) {
     <section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-7 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <h2 className="font-display text-2xl text-navy">A sua proposta</h2>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${status.style}`}>
+        <span
+          className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${status.style}`}
+        >
           {status.label}
         </span>
       </div>
 
-      <p className="font-display text-4xl text-navy">{formatMoney(proposal.value)}</p>
+      <p className="font-display text-4xl text-navy">
+        {formatMoney(proposal.value)}
+      </p>
 
       <div>
         <Row
@@ -111,7 +120,8 @@ export default function Offer() {
         <div className="min-w-0">
           {request && (
             <p className="text-sm text-muted">
-              #{request.id.slice(-6).toUpperCase()} · Publicado a {formatDate(request.createdAt)}
+              #{request.id.slice(-6).toUpperCase()} · Publicado a{" "}
+              {formatDate(request.createdAt)}
             </p>
           )}
           <h1 className="font-display text-3xl text-navy">Detalhe do pedido</h1>
@@ -119,9 +129,12 @@ export default function Offer() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : error && !request ? (
-        <p role="alert" className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+        <p
+          role="alert"
+          className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red"
+        >
           {error}
         </p>
       ) : (
@@ -129,7 +142,9 @@ export default function Offer() {
           <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:col-span-2">
             <header className="flex flex-col gap-4 bg-navy px-8 py-7 text-white">
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${color}`}>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${color}`}
+                >
                   <Icon size={14} aria-hidden="true" />
                   {request.category.name}
                 </span>
@@ -141,8 +156,16 @@ export default function Offer() {
             </header>
 
             <div className="grid grid-cols-1 gap-3 border-b border-border p-6 sm:grid-cols-2">
-              <Tile icon={MapPin} label="Localização" value={formatAddress(request.address)} />
-              <Tile icon={CalendarDays} label="Publicado" value={formatDate(request.createdAt)} />
+              <Tile
+                icon={MapPin}
+                label="Localização"
+                value={formatAddress(request.address)}
+              />
+              <Tile
+                icon={CalendarDays}
+                label="Publicado"
+                value={formatDate(request.createdAt)}
+              />
             </div>
 
             <div className="flex flex-col gap-4 p-8">
@@ -151,7 +174,8 @@ export default function Offer() {
                   Descrição
                 </h3>
                 <p className="whitespace-pre-line wrap-break-word leading-relaxed text-text">
-                  {request.description || "A descrição deste pedido foi removida."}
+                  {request.description ||
+                    "A descrição deste pedido foi removida."}
                 </p>
               </div>
 
@@ -161,7 +185,10 @@ export default function Offer() {
 
           <div className="min-w-0">
             {request.myProposal ? (
-              <MyProposal proposal={request.myProposal} requestId={request.id} />
+              <MyProposal
+                proposal={request.myProposal}
+                requestId={request.id}
+              />
             ) : (
               <NoProposal request={request} />
             )}

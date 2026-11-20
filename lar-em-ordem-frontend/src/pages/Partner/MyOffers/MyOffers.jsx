@@ -10,6 +10,8 @@ import { getOfferStatus } from "../../../utils/offerStatus";
 import { Pager } from "../../../components/ui/Pager";
 import { useMyOffersPage } from "../../../hooks/useMyOffersPage";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 const FILTERS = [
   { value: "", label: "Todas" },
@@ -107,10 +109,10 @@ export default function MyOffers() {
       )}
 
       {loading && offers.length === 0 ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : isEmptyAll ? (
         <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted">Ainda não tens ofertas.</p>
+          <EmptyState message="Ainda não tens ofertas." />
           <Link
             to="/partner/offers/new"
             className="mt-3 inline-block font-semibold text-navy hover:underline"
@@ -119,7 +121,7 @@ export default function MyOffers() {
           </Link>
         </div>
       ) : offers.length === 0 ? (
-        <p className="text-sm text-muted">Nenhuma oferta neste estado.</p>
+        <EmptyState message="Nenhuma oferta neste estado." />
       ) : (
         <>
           <div className="grid gap-4 lg:grid-cols-2">

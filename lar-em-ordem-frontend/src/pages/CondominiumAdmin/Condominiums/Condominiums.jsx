@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Building, KeyRound, MapPin, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowRight,
+  Building,
+  KeyRound,
+  MapPin,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { deleteCondominium } from "../../../services/api/condominiumService";
 import { useMyCondominiumsPage } from "../../../hooks/useMyCondominiumsPage";
 import { Pager } from "../../../components/ui/Pager";
@@ -11,11 +20,14 @@ import { ClaimCondominium } from "../../../components/condominium/ClaimCondomini
 import { CondominiumForm } from "../../../components/condominium/CondominiumForm";
 import { getErrorMessage } from "../../../utils/apiError";
 import { addressLine, formatMoney } from "../../../utils/format";
+import { LoadingState } from "../../../components/ui/LoadingState";
 
 function Stat({ label, value, hint }) {
   return (
     <div className="flex flex-col gap-1 px-7 py-6">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+        {label}
+      </p>
       <p className="font-display text-3xl text-navy">{value}</p>
       {hint && <p className="text-sm text-muted">{hint}</p>}
     </div>
@@ -53,7 +65,9 @@ export default function Condominiums() {
         reload();
       }
     } catch (err) {
-      setActionError(getErrorMessage(err, "Não foi possível eliminar o condomínio."));
+      setActionError(
+        getErrorMessage(err, "Não foi possível eliminar o condomínio."),
+      );
     } finally {
       setBusy(false);
       setDeleting(null);
@@ -78,8 +92,14 @@ export default function Condominiums() {
 
   const isEmpty = !loading && !error && total === 0;
   const scope = totalPages > 1 ? "nesta página" : "soma de todos";
-  const linkedFractions = condominiums.reduce((sum, c) => sum + c.propertiesCount, 0);
-  const reserveFund = condominiums.reduce((sum, c) => sum + Number(c.reserveFund ?? 0), 0);
+  const linkedFractions = condominiums.reduce(
+    (sum, c) => sum + c.propertiesCount,
+    0,
+  );
+  const reserveFund = condominiums.reduce(
+    (sum, c) => sum + Number(c.reserveFund ?? 0),
+    0,
+  );
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-7">
@@ -88,7 +108,9 @@ export default function Condominiums() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
             Administração
           </p>
-          <h1 className="mt-1 font-display text-4xl text-navy">Os meus condomínios</h1>
+          <h1 className="mt-1 font-display text-4xl text-navy">
+            Os meus condomínios
+          </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -114,13 +136,19 @@ export default function Condominiums() {
       </div>
 
       {message && (
-        <p role="status" className="rounded-xl bg-green-light px-3.5 py-2.5 text-sm text-green">
+        <p
+          role="status"
+          className="rounded-xl bg-green-light px-3.5 py-2.5 text-sm text-green"
+        >
           {message}
         </p>
       )}
 
       {(error || actionError) && (
-        <p role="alert" className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red">
+        <p
+          role="alert"
+          className="rounded-xl bg-red-light px-3.5 py-2.5 text-sm text-red"
+        >
           {error || actionError}
         </p>
       )}
@@ -132,12 +160,16 @@ export default function Condominiums() {
         >
           <Stat label="Condomínios" value={total} />
           <Stat label="Frações ligadas" value={linkedFractions} hint={scope} />
-          <Stat label="Fundo de reserva" value={formatMoney(reserveFund)} hint={scope} />
+          <Stat
+            label="Fundo de reserva"
+            value={formatMoney(reserveFund)}
+            hint={scope}
+          />
         </section>
       )}
 
       {loading && condominiums.length === 0 ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -156,8 +188,14 @@ export default function Condominiums() {
                         {condominium.name}
                       </h2>
                       <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted">
-                        <MapPin size={14} className="shrink-0" aria-hidden="true" />
-                        <span className="truncate">{addressLine(condominium.address)}</span>
+                        <MapPin
+                          size={14}
+                          className="shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">
+                          {addressLine(condominium.address)}
+                        </span>
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
@@ -201,7 +239,9 @@ export default function Condominiums() {
                     </div>
                   </dl>
 
-                  {condominium.inviteCode && <InviteCode code={condominium.inviteCode} />}
+                  {condominium.inviteCode && (
+                    <InviteCode code={condominium.inviteCode} />
+                  )}
                 </div>
 
                 <Link
@@ -223,7 +263,9 @@ export default function Condominiums() {
                 <Plus size={22} aria-hidden="true" />
               </span>
               <span className="font-semibold text-navy">
-                {isEmpty ? "Criar o primeiro condomínio" : "Adicionar condomínio"}
+                {isEmpty
+                  ? "Criar o primeiro condomínio"
+                  : "Adicionar condomínio"}
               </span>
               <span className="max-w-56 text-sm text-muted">
                 Crie um novo edifício e convide os condóminos.
@@ -238,7 +280,10 @@ export default function Condominiums() {
       {claiming &&
         createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60" onClick={() => setClaiming(false)} />
+            <div
+              className="absolute inset-0 bg-black/60"
+              onClick={() => setClaiming(false)}
+            />
             <div
               role="dialog"
               aria-modal="true"
@@ -246,7 +291,10 @@ export default function Condominiums() {
               className="relative z-10 w-full max-w-lg rounded-2xl bg-card p-7 shadow-xl"
             >
               <div className="flex items-start justify-between gap-4">
-                <h2 id="claim-title" className="font-display text-2xl text-navy">
+                <h2
+                  id="claim-title"
+                  className="font-display text-2xl text-navy"
+                >
                   Receber condomínio
                 </h2>
                 <button
@@ -259,9 +307,13 @@ export default function Condominiums() {
                 </button>
               </div>
               <p className="mt-1 mb-5 text-sm text-muted">
-                Passas a gerir o condomínio, com os avisos, os documentos e as frações.
+                Passas a gerir o condomínio, com os avisos, os documentos e as
+                frações.
               </p>
-              <ClaimCondominium onClaimed={handleClaimed} onCancel={() => setClaiming(false)} />
+              <ClaimCondominium
+                onClaimed={handleClaimed}
+                onCancel={() => setClaiming(false)}
+              />
             </div>
           </div>,
           document.body,

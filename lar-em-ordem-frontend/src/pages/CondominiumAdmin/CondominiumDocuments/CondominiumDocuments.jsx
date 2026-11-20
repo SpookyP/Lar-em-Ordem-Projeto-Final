@@ -9,6 +9,8 @@ import { CategoryFilter } from "../../../components/condominium/CategoryFilter";
 import { Pager } from "../../../components/ui/Pager";
 import { getErrorMessage } from "../../../utils/apiError";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 export default function CondominiumDocuments() {
   const { id } = useParams();
@@ -137,14 +139,16 @@ export default function CondominiumDocuments() {
       )}
 
       {loading && documents.length === 0 ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : isEmpty ? (
         <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted">
-            {categoryId
-              ? "Não há documentos nesta categoria."
-              : "Ainda não carregaste nenhum documento."}
-          </p>
+          <EmptyState
+            message={
+              categoryId
+                ? "Não há documentos nesta categoria."
+                : "Ainda não carregaste nenhum documento."
+            }
+          />
         </div>
       ) : (
         <>

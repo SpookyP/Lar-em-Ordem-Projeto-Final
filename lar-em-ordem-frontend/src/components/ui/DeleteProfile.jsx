@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { deleteProfile } from "../../services/api/accountService";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { EmptyState } from "./EmptyState";
 
 export function DeleteProfile() {
   const { activeProfile, refreshUser } = useAuth();
@@ -32,8 +33,7 @@ export function DeleteProfile() {
     }
   }
 
-  if (!role)
-    return <p className="text-sm text-muted">Nenhum perfil selecionado.</p>;
+  if (!role) return <EmptyState message="Nenhum perfil selecionado." />;
 
   return (
     <div className="flex flex-col gap-4">

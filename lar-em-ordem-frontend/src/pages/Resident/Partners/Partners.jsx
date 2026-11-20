@@ -14,6 +14,8 @@ import { toHref } from "../../../utils/url";
 import { usePartnersPage } from "../../../hooks/usePartnersPage";
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { Pager } from "../../../components/ui/Pager";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 const PALETTE = [
   { bg: "bg-navy", shadow: "shadow-navy/30" },
@@ -111,14 +113,14 @@ export default function Partners() {
       {error && <p className="text-sm text-red">{error}</p>}
 
       {loading && colored.length === 0 ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : (
         <div
           className={`grid gap-6 ${selectedId ? "lg:grid-cols-2" : "grid-cols-1"}`}
         >
           <div className={`min-w-0 ${selectedId ? "hidden lg:block" : ""}`}>
             {colored.length === 0 ? (
-              <p className="text-sm text-muted">Nenhum parceiro encontrado.</p>
+              <EmptyState message="Nenhum parceiro encontrado." />
             ) : (
               <div
                 className={`grid gap-4 ${
@@ -162,7 +164,7 @@ export default function Partners() {
           {selectedId && (
             <div className="min-w-0">
               {detailLoading && !detail ? (
-                <p className="text-sm text-muted">A carregar ofertas...</p>
+                <LoadingState label="A carregar ofertas..." />
               ) : !detail ? (
                 <p className="text-sm text-red">
                   Não foi possível carregar o parceiro.
@@ -219,9 +221,7 @@ export default function Partners() {
                   </h3>
 
                   {detail.offers.length === 0 ? (
-                    <p className="text-sm text-muted">
-                      Sem ofertas em vigor de momento.
-                    </p>
+                    <EmptyState message="Sem ofertas em vigor de momento." />
                   ) : (
                     <div className="flex flex-col gap-2">
                       {detail.offers.map((offer) => (

@@ -18,6 +18,8 @@ import { formatAddress } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";
 import { Pager } from "../../../components/ui/Pager";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 export default function AssistanceDetail() {
   const { id } = useParams();
@@ -103,7 +105,7 @@ export default function AssistanceDetail() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted">A carregar...</p>
+        <LoadingState />
       ) : error && !request ? (
         <p className="text-sm text-red">{error}</p>
       ) : editing ? (
@@ -220,9 +222,7 @@ export default function AssistanceDetail() {
             )}
 
             {request.proposals.length === 0 ? (
-              <p className="text-sm text-muted">
-                Ainda não recebeu propostas para este pedido.
-              </p>
+              <EmptyState message="Ainda não recebeu propostas para este pedido." />
             ) : (
               <>
                 <div className="flex flex-col gap-3">

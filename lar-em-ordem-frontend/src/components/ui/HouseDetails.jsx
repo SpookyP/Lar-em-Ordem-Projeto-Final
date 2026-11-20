@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { getProperty } from "../../services/api/propertyService";
 import {
@@ -11,6 +10,9 @@ import {
   CalendarDays,
   CalendarClock,
 } from "lucide-react";
+import { useFetch } from "../../hooks/useFetch";
+import { LoadingState } from "./LoadingState";
+import { EmptyState } from "./EmptyState";
 
 function formatDate(value) {
   if (!value) return null;
@@ -38,33 +40,18 @@ function Tile({ icon: Icon, label, value }) {
 
 export function HouseDetails() {
   const { activeHouse } = useAuth();
-  const [house, setHouse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    if (!activeHouse) {
-      return;
-    }
-    getProperty(activeHouse.id)
-      .then((data) => {
-        if (active) setHouse(data);
-      })
-      .catch(() => {
-        if (active) setError("Não foi possível carregar a habitação.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [activeHouse]);
+  const {
+    data: house,
+    loading,
+    error,
+  } = useFetch(() => getProperty(activeHouse.id), [activeHouse?.id], {
+    enabled: Boolean(activeHouse),
+    errorMessage: "Não foi possível carregar a habitação.",
+  });
 
   if (!activeHouse)
-    return <p className="text-sm text-muted">Nenhuma habitação selecionada.</p>;
-  if (loading) return <p className="text-sm text-muted">A carregar...</p>;
+    return <EmptyState message="Nenhuma habitação selecionada." />;
+  if (loading) return <LoadingState />;
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!house) return null;
 

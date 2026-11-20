@@ -12,6 +12,8 @@ import { isOwnerHouse } from "../../../utils/ownerHouse";
 import { DocumentUploadModal } from "../../../components/ui/DocumentUploadModal";
 import { DocumentEditModal } from "../../../components/ui/DocumentEditModal";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { LoadingState } from "../../../components/ui/LoadingState";
+import { EmptyState } from "../../../components/ui/EmptyState";
 
 const FILTERS = [
   { value: "all", label: "Todos" },
@@ -91,12 +93,10 @@ export default function Vault() {
   const total = docs.length;
   const attention = docs.filter((d) => d.status !== "valid").length;
 
-  //recarregar lista de documentos
   function reload() {
     setRefreshKey((k) => k + 1);
   }
 
-  //carrosel de docs (seta anda exatamente à largura de um cartão)
   function scroll(dir) {
     const el = scrollRef.current;
     if (!el) return;
@@ -197,17 +197,19 @@ export default function Vault() {
         </div>
 
         {!propertyId ? (
-          <p className="text-sm text-muted">Nenhuma casa selecionada.</p>
+          <EmptyState message="Nenhuma casa selecionada." />
         ) : loading ? (
-          <p className="text-sm text-muted">A carregar documentos…</p>
+          <LoadingState label="A carregar documentos..." />
         ) : error ? (
           <p className="text-sm text-red">{error}</p>
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-muted">
-            {docs.length === 0
-              ? "Ainda não há documentos relativos a esta casa."
-              : "Nenhum documento corresponde à pesquisa."}
-          </p>
+          <EmptyState
+            message={
+              docs.length === 0
+                ? "Ainda não há documentos relativos a esta casa."
+                : "Nenhum documento corresponde à pesquisa."
+            }
+          />
         ) : (
           <div
             ref={scrollRef}
