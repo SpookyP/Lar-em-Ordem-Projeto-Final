@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import useInvoices from "../../hooks/useInvoices";
 import DetailedConsumptionChart from "../../components/consumption/DetailedConsumptionChart";
-import InvoiceTimelineChart from "../../components/ui/InvoiceTimelineChart";
-import { scaleInvoicesToRange } from "../../components/ui/invoiceTimelineUtils";
+import InvoiceTimelineChart from "../../components/invoice/InvoiceTimelineChart";
+import { scaleInvoicesToRange } from "../../utils/invoiceTimelineUtils";
 import AnnualBenchmarkTable from "../../components/consumption/AnnualBenchmarkTable";
-import InvoiceForm from "../../components/ui/InvoiceForm";
+import InvoiceForm from "../../components/invoice/InvoiceForm";
 
 const MONTHS = [
   "Jan",

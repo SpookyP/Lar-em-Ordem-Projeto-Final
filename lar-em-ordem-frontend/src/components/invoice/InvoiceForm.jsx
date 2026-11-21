@@ -1,68 +1,75 @@
-import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, AlertCircle, Plus, Trash2 } from 'lucide-react';
-import { uploadInvoiceFile, createInvoice } from '../../services/api/invoiceService';
-import { getConsumptionTypes } from '../../services/api/consumptionService';
-import { Checkbox } from '../form/Checkbox';
-import { DatePicker } from '../form/DatePicker';
-import { FileInput } from '../form/FileInput';
-import { SearchSelect } from '../form/SearchSelect';
-import { TextArea } from '../form/TextArea';
-import { TextInput } from '../form/TextInput';
-import { asNumber } from './invoiceTimelineUtils';
+import { useState, useEffect, useRef } from "react";
+import { CheckCircle2, AlertCircle, Plus, Trash2 } from "lucide-react";
+import {
+  uploadInvoiceFile,
+  createInvoice,
+} from "../../services/api/invoiceService";
+import { getConsumptionTypes } from "../../services/api/consumptionService";
+import { Checkbox } from "../form/Checkbox";
+import { DatePicker } from "../form/DatePicker";
+import { FileInput } from "../form/FileInput";
+import { SearchSelect } from "../form/SearchSelect";
+import { TextArea } from "../form/TextArea";
+import { TextInput } from "../form/TextInput";
+import { asNumber } from "../../utils/invoiceTimelineUtils";
 
 // Define a estrutura inicial dos itens e as opções disponíveis.
 const emptyItem = () => ({
-  name: '',
-  category: 'consumption',
-  amount: '',
-  unit: '',
-  cost: ''
+  name: "",
+  category: "consumption",
+  amount: "",
+  unit: "",
+  cost: "",
 });
 
 // Interpreta números, incluindo o formato português (1.234,56).
-const numberValue = v => asNumber(v);
+const numberValue = (v) => asNumber(v);
 
-const isBlank = v => v == null || String(v).trim() === '';
+const isBlank = (v) => v == null || String(v).trim() === "";
 
 // Converte valores extraídos do PDF para o formato dos campos numéricos (ponto decimal).
-const toInputValue = v => (isBlank(v) ? '' : String(asNumber(v)));
+const toInputValue = (v) => (isBlank(v) ? "" : String(asNumber(v)));
 
-const sumInputs = (a, b) => String(Number((asNumber(a) + asNumber(b)).toFixed(4)));
+const sumInputs = (a, b) =>
+  String(Number((asNumber(a) + asNumber(b)).toFixed(4)));
 
 // Obtém o identificador da habitação ativa através do localStorage.
 const readActiveHouseId = () => {
-  if (typeof window === 'undefined') return '';
+  if (typeof window === "undefined") return "";
 
   try {
-    const stored = window.localStorage.getItem('activeHouse');
-    if (!stored) return '';
+    const stored = window.localStorage.getItem("activeHouse");
+    if (!stored) return "";
 
     try {
       const parsed = JSON.parse(stored);
-      if (typeof parsed === 'string') return parsed;
-      if (typeof parsed === 'number') return String(parsed);
-      if (parsed && typeof parsed === 'object') return parsed.id ?? '';
-      return '';
+      if (typeof parsed === "string") return parsed;
+      if (typeof parsed === "number") return String(parsed);
+      if (parsed && typeof parsed === "object") return parsed.id ?? "";
+      return "";
     } catch {
       return stored;
     }
   } catch {
-    return '';
+    return "";
   }
 };
 
 // Define as categorias disponíveis para os itens da fatura.
 const itemCategoryOptions = [
-  { value: 'consumption', label: 'Consumo' },
-  { value: 'fixed_fee', label: 'Tarifa fixa' },
-  { value: 'tax', label: 'Imposto / taxa' },
-  { value: 'discount', label: 'Desconto' },
-  { value: 'other', label: 'Outro' }
+  { value: "consumption", label: "Consumo" },
+  { value: "fixed_fee", label: "Tarifa fixa" },
+  { value: "tax", label: "Imposto / taxa" },
+  { value: "discount", label: "Desconto" },
+  { value: "other", label: "Outro" },
 ];
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_PERIOD_DAYS = 400;
-const eur = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' });
+const eur = new Intl.NumberFormat("pt-PT", {
+  style: "currency",
+  currency: "EUR",
+});
 
 // Valida os dados antes do envio; devolve a mensagem de erro ou null.
 function validateInvoice({
@@ -71,14 +78,14 @@ function validateInvoice({
   consumptionsData,
   showItems,
   itemsData,
-  consumptionTypes
+  consumptionTypes,
 }) {
   if (isBlank(formData.supplier) || isBlank(formData.invoice_number)) {
-    return 'Preenche o fornecedor e o número da fatura.';
+    return "Preenche o fornecedor e o número da fatura.";
   }
 
   if (isBlank(formData.total_amount)) {
-    return 'Preenche o valor total da fatura.';
+    return "Preenche o valor total da fatura.";
   }
 
   const start = Date.parse(formData.period_start);
@@ -86,7 +93,7 @@ function validateInvoice({
 
   if (Number.isFinite(start) && Number.isFinite(end)) {
     if (end < start) {
-      return 'O fim do período não pode ser anterior ao início.';
+      return "O fim do período não pode ser anterior ao início.";
     }
 
     if ((end - start) / DAY_MS > MAX_PERIOD_DAYS) {
@@ -95,11 +102,12 @@ function validateInvoice({
   }
 
   if (selectedTypeIds.length === 0) {
-    return 'Seleciona pelo menos um tipo de consumo.';
+    return "Seleciona pelo menos um tipo de consumo.";
   }
 
   for (const id of selectedTypeIds) {
-    const name = consumptionTypes.find(t => Number(t.id) === id)?.name ?? 'consumo';
+    const name =
+      consumptionTypes.find((t) => Number(t.id) === id)?.name ?? "consumo";
     const data = consumptionsData[id] ?? {};
 
     if (isBlank(data.amount) || isBlank(data.cost)) {
@@ -108,10 +116,13 @@ function validateInvoice({
 
     // Os gráficos somam os itens quando existem: têm de bater certo com o custo total.
     if (showItems[id]) {
-      const items = (itemsData[id] || []).filter(item => item.name.trim());
+      const items = (itemsData[id] || []).filter((item) => item.name.trim());
 
       if (items.length > 0) {
-        const itemsTotal = items.reduce((sum, item) => sum + numberValue(item.cost), 0);
+        const itemsTotal = items.reduce(
+          (sum, item) => sum + numberValue(item.cost),
+          0,
+        );
         const consumptionCost = numberValue(data.cost);
 
         if (Math.abs(itemsTotal - consumptionCost) > 0.05) {
@@ -128,9 +139,9 @@ function validateInvoice({
 export default function InvoiceForm({ onInvoiceSaved }) {
   // Guarda os tipos de consumo disponíveis.
   const [consumptionTypes, setConsumptionTypes] = useState([
-    { id: 1, name: 'Eletricidade', unit_of_measure: 'kWh' },
-    { id: 2, name: 'Água', unit_of_measure: 'm³' },
-    { id: 3, name: 'Gás', unit_of_measure: 'kWh' }
+    { id: 1, name: "Eletricidade", unit_of_measure: "kWh" },
+    { id: 2, name: "Água", unit_of_measure: "m³" },
+    { id: 3, name: "Gás", unit_of_measure: "kWh" },
   ]);
 
   // Guarda os consumos selecionados e os respetivos detalhes.
@@ -153,41 +164,41 @@ export default function InvoiceForm({ onInvoiceSaved }) {
   // Guarda os dados principais da fatura.
   const [formData, setFormData] = useState({
     property_id: readActiveHouseId(),
-    supplier: '',
-    invoice_number: '',
-    issue_date: '',
-    period_start: '',
-    period_end: '',
-    total_amount: ''
+    supplier: "",
+    invoice_number: "",
+    issue_date: "",
+    period_start: "",
+    period_end: "",
+    total_amount: "",
   });
 
   // Atualiza um campo específico dos dados da fatura.
   const updateFormField = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   // Carrega os tipos de consumo disponíveis através da API.
   useEffect(() => {
     getConsumptionTypes()
-      .then(data => {
+      .then((data) => {
         if (Array.isArray(data) && data.length) {
-          setConsumptionTypes(data.map(t => ({
-            ...t,
-            id: Number(t.id),
-            unit_of_measure: Number(t.id) === 3
-              ? 'kWh'
-              : t.unit_of_measure
-          })));
+          setConsumptionTypes(
+            data.map((t) => ({
+              ...t,
+              id: Number(t.id),
+              unit_of_measure: Number(t.id) === 3 ? "kWh" : t.unit_of_measure,
+            })),
+          );
         }
       })
       .catch(() => null);
   }, []);
 
   // Carrega o PDF e preenche automaticamente os dados extraídos.
-  const handleFileUpload = async file => {
+  const handleFileUpload = async (file) => {
     if (!file) {
       if (uploadLock.current || submitLock.current) return;
 
@@ -207,7 +218,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
     try {
       const data = new FormData();
-      data.append('file', file);
+      data.append("file", file);
 
       // a API só lê o PDF: o ficheiro é guardado quando a fatura for registada
       const body = await uploadInvoiceFile(data);
@@ -219,7 +230,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       const extracted = result.extracted || result.invoice_data;
 
       if (extracted) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           supplier: extracted.supplier ?? prev.supplier,
           invoice_number: extracted.invoice_number ?? prev.invoice_number,
@@ -228,7 +239,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           period_end: extracted.period_end ?? prev.period_end,
           total_amount: isBlank(extracted.total_amount)
             ? prev.total_amount
-            : toInputValue(extracted.total_amount)
+            : toInputValue(extracted.total_amount),
         }));
 
         // Preenche os consumos e os respetivos itens extraídos.
@@ -238,7 +249,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           const detailsVisible = {};
           const details = {};
 
-          extracted.consumptions.forEach(c => {
+          extracted.consumptions.forEach((c) => {
             const id = Number(c.consumption_type_id);
             selected.push(id);
 
@@ -251,7 +262,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                 : toInputValue(c.amount),
               cost: previous
                 ? sumInputs(previous.cost, c.cost)
-                : toInputValue(c.cost)
+                : toInputValue(c.cost),
             };
 
             const extractedItems = Array.isArray(c.items)
@@ -259,12 +270,12 @@ export default function InvoiceForm({ onInvoiceSaved }) {
               : c.consumption_items;
 
             const mappedItems = Array.isArray(extractedItems)
-              ? extractedItems.map(item => ({
-                  name: item.name ?? '',
-                  category: item.category ?? 'other',
+              ? extractedItems.map((item) => ({
+                  name: item.name ?? "",
+                  category: item.category ?? "other",
                   amount: toInputValue(item.amount),
-                  unit: item.unit ?? '',
-                  cost: toInputValue(item.cost)
+                  unit: item.unit ?? "",
+                  cost: toInputValue(item.cost),
                 }))
               : [];
 
@@ -279,17 +290,20 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         }
       } else {
         setFormMessage({
-          type: 'success',
-          text: 'PDF carregado. Preenche os dados manualmente.'
+          type: "success",
+          text: "PDF carregado. Preenche os dados manualmente.",
         });
       }
     } catch (err) {
       // Apresenta uma mensagem caso ocorra um erro no carregamento.
       setFormMessage({
-        type: 'error',
-        text: err.response?.status === 429
-          ? 'Foram feitos demasiados pedidos. Aguarda um pouco antes de tentares novamente.'
-          : err.response?.data?.message || err.message || 'Erro ao carregar o ficheiro.'
+        type: "error",
+        text:
+          err.response?.status === 429
+            ? "Foram feitos demasiados pedidos. Aguarda um pouco antes de tentares novamente."
+            : err.response?.data?.message ||
+              err.message ||
+              "Erro ao carregar o ficheiro.",
       });
     } finally {
       uploadLock.current = false;
@@ -302,43 +316,41 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     const id = Number(rawId);
 
     if (checked) {
-      setSelectedTypeIds(prev =>
-        prev.includes(id) ? prev : [...prev, id]
-      );
+      setSelectedTypeIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
-      setConsumptionsData(prev => ({
+      setConsumptionsData((prev) => ({
         ...prev,
-        [id]: prev[id] || { amount: '', cost: '' }
+        [id]: prev[id] || { amount: "", cost: "" },
       }));
 
-      setShowItems(prev => ({
+      setShowItems((prev) => ({
         ...prev,
-        [id]: prev[id] ?? false
+        [id]: prev[id] ?? false,
       }));
 
-      setItemsData(prev => ({
+      setItemsData((prev) => ({
         ...prev,
-        [id]: prev[id] || []
+        [id]: prev[id] || [],
       }));
 
       return;
     }
 
-    setSelectedTypeIds(prev => prev.filter(v => v !== id));
+    setSelectedTypeIds((prev) => prev.filter((v) => v !== id));
 
-    setConsumptionsData(prev => {
+    setConsumptionsData((prev) => {
       const next = { ...prev };
       delete next[id];
       return next;
     });
 
-    setShowItems(prev => {
+    setShowItems((prev) => {
       const next = { ...prev };
       delete next[id];
       return next;
     });
 
-    setItemsData(prev => {
+    setItemsData((prev) => {
       const next = { ...prev };
       delete next[id];
       return next;
@@ -347,43 +359,43 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
   // Atualiza a quantidade ou o custo de um consumo.
   const changeConsumption = (id, field, value) =>
-    setConsumptionsData(prev => ({
+    setConsumptionsData((prev) => ({
       ...prev,
       [id]: {
         ...(prev[id] || {}),
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
 
   // Atualiza um campo de um item individual da fatura.
   const changeItem = (id, index, field, value) =>
-    setItemsData(prev => {
+    setItemsData((prev) => {
       const list = [...(prev[id] || [])];
 
       list[index] = {
         ...(list[index] || emptyItem()),
-        [field]: value
+        [field]: value,
       };
 
       return { ...prev, [id]: list };
     });
 
   // Adiciona uma nova linha de detalhe ao consumo selecionado.
-  const addItem = id =>
-    setItemsData(prev => ({
+  const addItem = (id) =>
+    setItemsData((prev) => ({
       ...prev,
-      [id]: [...(prev[id] || []), emptyItem()]
+      [id]: [...(prev[id] || []), emptyItem()],
     }));
 
   // Remove um item individual da lista de consumos.
   const removeItem = (id, index) =>
-    setItemsData(prev => ({
+    setItemsData((prev) => ({
       ...prev,
-      [id]: (prev[id] || []).filter((_, i) => i !== index)
+      [id]: (prev[id] || []).filter((_, i) => i !== index),
     }));
 
   // Valida os dados e envia a fatura e os consumos para a API.
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (submitLock.current || uploadLock.current) return;
@@ -398,8 +410,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
       if (!propertyId) {
         setFormMessage({
-          type: 'error',
-          text: 'Seleciona uma habitação antes de guardar a fatura.'
+          type: "error",
+          text: "Seleciona uma habitação antes de guardar a fatura.",
         });
         return;
       }
@@ -411,8 +423,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         !formData.period_end
       ) {
         setFormMessage({
-          type: 'error',
-          text: 'Preenche a data de emissão, o início e o fim do período.'
+          type: "error",
+          text: "Preenche a data de emissão, o início e o fim do período.",
         });
         return;
       }
@@ -424,31 +436,31 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         consumptionsData,
         showItems,
         itemsData,
-        consumptionTypes
+        consumptionTypes,
       });
 
       if (validationError) {
-        setFormMessage({ type: 'error', text: validationError });
+        setFormMessage({ type: "error", text: validationError });
         return;
       }
 
       // Prepara os consumos e os respetivos itens para envio.
-      const consumptions = selectedTypeIds.map(id => {
+      const consumptions = selectedTypeIds.map((id) => {
         const entry = {
           consumption_type_id: id,
           amount: numberValue(consumptionsData[id]?.amount),
-          cost: numberValue(consumptionsData[id]?.cost)
+          cost: numberValue(consumptionsData[id]?.cost),
         };
 
         if (showItems[id]) {
           entry.items = (itemsData[id] || [])
-            .filter(item => item.name.trim())
-            .map(item => ({
+            .filter((item) => item.name.trim())
+            .map((item) => ({
               name: item.name.trim(),
-              category: item.category || 'other',
+              category: item.category || "other",
               amount: numberValue(item.amount),
               unit: item.unit.trim(),
-              cost: numberValue(item.cost)
+              cost: numberValue(item.cost),
             }));
         }
 
@@ -464,7 +476,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         period_end: formData.period_end,
         total_amount: numberValue(formData.total_amount),
         supplier: formData.supplier,
-        consumptions
+        consumptions,
       };
 
       // Regista a fatura (com o PDF, se houver) e apresenta uma mensagem de sucesso.
@@ -472,19 +484,19 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       onInvoiceSaved?.();
 
       setFormMessage({
-        type: 'success',
-        text: 'Fatura e consumos registados com sucesso!'
+        type: "success",
+        text: "Fatura e consumos registados com sucesso!",
       });
 
       // Limpa os campos após o registo bem-sucedido.
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        supplier: '',
-        invoice_number: '',
-        issue_date: '',
-        period_start: '',
-        period_end: '',
-        total_amount: ''
+        supplier: "",
+        invoice_number: "",
+        issue_date: "",
+        period_start: "",
+        period_end: "",
+        total_amount: "",
       }));
 
       setSelectedTypeIds([]);
@@ -498,10 +510,10 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       const errors = err.response?.data?.errors;
 
       setFormMessage({
-        type: 'error',
+        type: "error",
         text: errors
-          ? Object.values(errors).flat().join(' ')
-          : err.response?.data?.message || 'Erro ao guardar a fatura.'
+          ? Object.values(errors).flat().join(" ")
+          : err.response?.data?.message || "Erro ao guardar a fatura.",
       });
     } finally {
       submitLock.current = false;
@@ -515,7 +527,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       {/* Cabeçalho e descrição do formulário. */}
       <header
         className="relative -mx-6 -mt-6 mb-8 flex flex-col gap-2 overflow-hidden rounded-t-2xl p-6 text-white"
-        style={{ backgroundColor: '#0F766E' }}
+        style={{ backgroundColor: "#0F766E" }}
       >
         <div className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-16 right-1/3 h-32 w-32 rounded-full bg-black/10" />
@@ -523,7 +535,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         <div className="relative z-10">
           <h2 className="text-xl font-bold">Registar Nova Fatura</h2>
           <p className="mt-1 text-sm text-white/80">
-            Carrega o PDF para preencher automaticamente ou introduz os dados manualmente.
+            Carrega o PDF para preencher automaticamente ou introduz os dados
+            manualmente.
           </p>
         </div>
       </header>
@@ -533,10 +546,10 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         label="Documento da fatura"
         hint={
           uploading
-            ? 'A carregar PDF...'
+            ? "A carregar PDF..."
             : uploadSuccess
-              ? 'PDF lido com sucesso!'
-              : 'Opcional: anexa o documento original.'
+              ? "PDF lido com sucesso!"
+              : "Opcional: anexa o documento original."
         }
         value={selectedFile}
         onChange={handleFileUpload}
@@ -546,13 +559,16 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       {/* Confirmação de que o documento foi carregado. */}
       {uploadSuccess && (
         <div className="-mt-6 flex items-center gap-2 text-sm font-medium text-emerald-700">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          O PDF é guardado quando registares a fatura.
+          <CheckCircle2 className="h-4 w-4 shrink-0" />O PDF é guardado quando
+          registares a fatura.
         </div>
       )}
 
       {/* Formulário com os dados principais da fatura. */}
-      <form onSubmit={handleSubmit} className="space-y-6 border-t border-slate-100 pt-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 border-t border-slate-100 pt-4"
+      >
         <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
           Dados principais da fatura
         </h3>
@@ -560,17 +576,18 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         {/* Apresenta mensagens de sucesso ou erro. */}
         {formMessage && (
           <div
-            role={formMessage.type === 'error' ? 'alert' : 'status'}
+            role={formMessage.type === "error" ? "alert" : "status"}
             className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold ${
-              formMessage.type === 'success'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border-red-200 bg-red-50 text-red-700'
+              formMessage.type === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                : "border-red-200 bg-red-50 text-red-700"
             }`}
           >
-            {formMessage.type === 'success'
-              ? <CheckCircle2 className="h-4 w-4 shrink-0" />
-              : <AlertCircle className="h-4 w-4 shrink-0" />
-            }
+            {formMessage.type === "success" ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            ) : (
+              <AlertCircle className="h-4 w-4 shrink-0" />
+            )}
             {formMessage.text}
           </div>
         )}
@@ -581,21 +598,21 @@ export default function InvoiceForm({ onInvoiceSaved }) {
             label="Data de emissão"
             required
             value={formData.issue_date}
-            onChange={value => updateFormField('issue_date', value)}
+            onChange={(value) => updateFormField("issue_date", value)}
           />
 
           <DatePicker
             label="Início do período"
             required
             value={formData.period_start}
-            onChange={value => updateFormField('period_start', value)}
+            onChange={(value) => updateFormField("period_start", value)}
           />
 
           <DatePicker
             label="Fim do período"
             required
             value={formData.period_end}
-            onChange={value => updateFormField('period_end', value)}
+            onChange={(value) => updateFormField("period_end", value)}
           />
         </div>
 
@@ -605,7 +622,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
             label="Fornecedor"
             required
             value={formData.supplier}
-            onChange={value => updateFormField('supplier', value)}
+            onChange={(value) => updateFormField("supplier", value)}
             placeholder="Ex.: Endesa, EPAL"
           />
 
@@ -613,7 +630,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
             label="Número da fatura"
             required
             value={formData.invoice_number}
-            onChange={value => updateFormField('invoice_number', value)}
+            onChange={(value) => updateFormField("invoice_number", value)}
           />
 
           <TextInput
@@ -622,7 +639,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
             type="number"
             step="0.01"
             value={formData.total_amount}
-            onChange={value => updateFormField('total_amount', value)}
+            onChange={(value) => updateFormField("total_amount", value)}
           />
         </div>
 
@@ -637,7 +654,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           </p>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {consumptionTypes.map(type => {
+            {consumptionTypes.map((type) => {
               const id = Number(type.id);
 
               return (
@@ -647,7 +664,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                 >
                   <Checkbox
                     checked={selectedTypeIds.includes(id)}
-                    onChange={checked => toggleType(id, checked)}
+                    onChange={(checked) => toggleType(id, checked)}
                     label={`${type.name} (${type.unit_of_measure})`}
                   />
                 </div>
@@ -659,8 +676,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         {/* Apresenta os campos dos consumos selecionados. */}
         {selectedTypeIds.length > 0 && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {selectedTypeIds.map(id => {
-              const type = consumptionTypes.find(t => Number(t.id) === id);
+            {selectedTypeIds.map((id) => {
+              const type = consumptionTypes.find((t) => Number(t.id) === id);
               if (!type) return null;
 
               const items = itemsData[id] || [];
@@ -687,8 +704,10 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                       required
                       type="number"
                       step="any"
-                      value={consumptionsData[id]?.amount ?? ''}
-                      onChange={value => changeConsumption(id, 'amount', value)}
+                      value={consumptionsData[id]?.amount ?? ""}
+                      onChange={(value) =>
+                        changeConsumption(id, "amount", value)
+                      }
                     />
 
                     <TextInput
@@ -696,8 +715,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                       required
                       type="number"
                       step="0.01"
-                      value={consumptionsData[id]?.cost ?? ''}
-                      onChange={value => changeConsumption(id, 'cost', value)}
+                      value={consumptionsData[id]?.cost ?? ""}
+                      onChange={(value) => changeConsumption(id, "cost", value)}
                     />
                   </div>
 
@@ -705,10 +724,12 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                   <div className="rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3">
                     <Checkbox
                       checked={Boolean(showItems[id])}
-                      onChange={checked => setShowItems(prev => ({
-                        ...prev,
-                        [id]: checked
-                      }))}
+                      onChange={(checked) =>
+                        setShowItems((prev) => ({
+                          ...prev,
+                          [id]: checked,
+                        }))
+                      }
                       label="Adicionar informação adicional"
                       hint="Descrição, categoria, quantidade, unidade e custo de cada linha."
                     />
@@ -736,7 +757,8 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                       {/* Informa quando ainda não existem itens adicionados. */}
                       {items.length === 0 && (
                         <p className="rounded-lg border border-dashed border-[#1C3557]/30 bg-[#1C3557]/5 p-3 text-sm text-slate-500">
-                          Sem itens. Adiciona uma linha ou carrega um PDF com detalhe.
+                          Sem itens. Adiciona uma linha ou carrega um PDF com
+                          detalhe.
                         </p>
                       )}
 
@@ -766,7 +788,9 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                           <TextArea
                             label="Descrição"
                             value={item.name}
-                            onChange={value => changeItem(id, index, 'name', value)}
+                            onChange={(value) =>
+                              changeItem(id, index, "name", value)
+                            }
                             placeholder="Ex.: Termo de Energia, IVA 6%"
                             rows={2}
                           />
@@ -777,14 +801,18 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                               label="Categoria"
                               options={itemCategoryOptions}
                               value={item.category}
-                              onChange={value => changeItem(id, index, 'category', value)}
+                              onChange={(value) =>
+                                changeItem(id, index, "category", value)
+                              }
                               placeholder="Escolher categoria..."
                             />
 
                             <TextInput
                               label="Unidade"
                               value={item.unit}
-                              onChange={value => changeItem(id, index, 'unit', value)}
+                              onChange={(value) =>
+                                changeItem(id, index, "unit", value)
+                              }
                               placeholder="kWh, dias, meses..."
                             />
                           </div>
@@ -796,7 +824,9 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                               type="number"
                               step="any"
                               value={item.amount}
-                              onChange={value => changeItem(id, index, 'amount', value)}
+                              onChange={(value) =>
+                                changeItem(id, index, "amount", value)
+                              }
                             />
 
                             <TextInput
@@ -804,7 +834,9 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                               type="number"
                               step="0.01"
                               value={item.cost}
-                              onChange={value => changeItem(id, index, 'cost', value)}
+                              onChange={(value) =>
+                                changeItem(id, index, "cost", value)
+                              }
                             />
                           </div>
                         </div>
@@ -824,11 +856,10 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           className="w-full rounded-xl bg-teal-700 py-3.5 text-base font-semibold text-white transition hover:bg-teal-800 disabled:opacity-50"
         >
           {submitting
-            ? 'A guardar fatura...'
+            ? "A guardar fatura..."
             : uploading
-              ? 'A aguardar o carregamento...'
-              : 'Guardar fatura e consumos'
-          }
+              ? "A aguardar o carregamento..."
+              : "Guardar fatura e consumos"}
         </button>
       </form>
     </section>

@@ -6,7 +6,7 @@ import {
   getItems,
   getTypeId,
   itemCost,
-} from "../ui/invoiceTimelineUtils";
+} from "../../utils/invoiceTimelineUtils";
 
 // Define a cor principal do cabeçalho.
 const HEADER_COLOR = "#1C3557";

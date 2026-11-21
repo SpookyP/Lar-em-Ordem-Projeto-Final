@@ -9,7 +9,7 @@ import {
   getConsumptions,
   getItems as getConsumptionItems,
   getTypeId,
-} from "./invoiceTimelineUtils";
+} from "../../utils/invoiceTimelineUtils";
 import {
   Search,
   FileText,
@@ -92,13 +92,13 @@ function formatDate(value) {
     date = new Date(
       Number(isoMatch[1]),
       Number(isoMatch[2]) - 1,
-      Number(isoMatch[3])
+      Number(isoMatch[3]),
     );
   } else if (ptMatch) {
     date = new Date(
       Number(ptMatch[3]),
       Number(ptMatch[2]) - 1,
-      Number(ptMatch[1])
+      Number(ptMatch[1]),
     );
   } else {
     date = new Date(dateString);
@@ -146,12 +146,12 @@ function matchesDateSearch(invoice, query) {
   const periodStart =
     startIndex !== null && endIndex !== null
       ? Math.min(startIndex, endIndex)
-      : startIndex ?? endIndex;
+      : (startIndex ?? endIndex);
 
   const periodEnd =
     startIndex !== null && endIndex !== null
       ? Math.max(startIndex, endIndex)
-      : startIndex ?? endIndex;
+      : (startIndex ?? endIndex);
 
   // Pesquisa por ano: 2026.
   if (/^\d{4}$/.test(normalizedQuery)) {
@@ -540,10 +540,7 @@ function InvoiceDetailsModal({ invoice, onClose }) {
 
             {consumptions.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-200 p-5 text-center">
-                <FileText
-                  className="mx-auto mb-2 text-slate-300"
-                  size={24}
-                />
+                <FileText className="mx-auto mb-2 text-slate-300" size={24} />
                 <p className="text-sm text-slate-500">
                   Não existem consumos associados a esta fatura.
                 </p>
@@ -698,9 +695,7 @@ export default function InvoiceTable({
   });
 
   const deleteInvoice =
-    deleteInvoiceState.source === invoiceList
-      ? deleteInvoiceState.value
-      : null;
+    deleteInvoiceState.source === invoiceList ? deleteInvoiceState.value : null;
 
   const setDeleteInvoice = (value) => {
     setDeleteInvoiceState({ source: invoiceList, value });
@@ -726,8 +721,12 @@ export default function InvoiceTable({
     return invoiceList.filter((invoice) => {
       const query = search.trim().toLowerCase();
       const matchesText =
-        String(invoice?.invoice_number ?? "").toLowerCase().includes(query) ||
-        String(invoice?.supplier ?? "").toLowerCase().includes(query);
+        String(invoice?.invoice_number ?? "")
+          .toLowerCase()
+          .includes(query) ||
+        String(invoice?.supplier ?? "")
+          .toLowerCase()
+          .includes(query);
       const matchesDate = matchesDateSearch(invoice, query);
       const types = getInvoiceTypes(invoice);
       const matchesFilter = filter === "all" || types.includes(Number(filter));
@@ -738,7 +737,7 @@ export default function InvoiceTable({
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredInvoices.length / PAGE_SIZE)
+    Math.ceil(filteredInvoices.length / PAGE_SIZE),
   );
 
   // Garante que a página apresentada nunca ultrapassa o total disponível.
@@ -747,7 +746,7 @@ export default function InvoiceTable({
   // Obtém apenas as faturas da página atual.
   const paginatedInvoices = filteredInvoices.slice(
     (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
+    page * PAGE_SIZE,
   );
 
   // Reinicia a paginação quando a pesquisa muda.
@@ -774,7 +773,7 @@ export default function InvoiceTable({
       label: "Eletricidade",
       value: "1",
       count: invoiceList.filter((invoice) =>
-        getInvoiceTypes(invoice).includes(1)
+        getInvoiceTypes(invoice).includes(1),
       ).length,
       icon: Zap,
       color: FILTER_COLORS[1],
@@ -783,7 +782,7 @@ export default function InvoiceTable({
       label: "Água",
       value: "2",
       count: invoiceList.filter((invoice) =>
-        getInvoiceTypes(invoice).includes(2)
+        getInvoiceTypes(invoice).includes(2),
       ).length,
       icon: Droplets,
       color: FILTER_COLORS[2],
@@ -792,7 +791,7 @@ export default function InvoiceTable({
       label: "Gás",
       value: "3",
       count: invoiceList.filter((invoice) =>
-        getInvoiceTypes(invoice).includes(3)
+        getInvoiceTypes(invoice).includes(3),
       ).length,
       icon: Flame,
       color: FILTER_COLORS[3],
@@ -810,7 +809,7 @@ export default function InvoiceTable({
       console.error("Erro ao consultar fatura:", err);
       alert(
         err?.response?.data?.message ||
-          "Não foi possível carregar os detalhes da fatura."
+          "Não foi possível carregar os detalhes da fatura.",
       );
     } finally {
       setActionLoading("");
@@ -852,7 +851,7 @@ export default function InvoiceTable({
       alert(
         err?.response?.data?.message ||
           err.message ||
-          "Não foi possível abrir o PDF."
+          "Não foi possível abrir o PDF.",
       );
     } finally {
       setActionLoading("");
@@ -896,8 +895,7 @@ export default function InvoiceTable({
     } catch (err) {
       console.error("Erro ao eliminar fatura:", err);
       alert(
-        err?.response?.data?.message ||
-          "Não foi possível eliminar a fatura."
+        err?.response?.data?.message || "Não foi possível eliminar a fatura.",
       );
     } finally {
       setActionLoading("");
@@ -1114,10 +1112,7 @@ export default function InvoiceTable({
                   <td colSpan="6" className="px-5 py-14 text-center">
                     <div className="flex flex-col items-center">
                       <div className="mb-3 rounded-full bg-[#1C3557]/10 p-4">
-                        <FileText
-                          size={25}
-                          className="text-[#1C3557]"
-                        />
+                        <FileText size={25} className="text-[#1C3557]" />
                       </div>
                       <p className="font-semibold text-slate-700">
                         Nenhuma fatura encontrada
@@ -1205,9 +1200,7 @@ export default function InvoiceTable({
               </span>
               <button
                 type="button"
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, page + 1))
-                }
+                onClick={() => setCurrentPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-[#583D69]/30 hover:bg-[#583D69]/5 hover:text-[#583D69] disabled:cursor-not-allowed disabled:opacity-40"
               >
