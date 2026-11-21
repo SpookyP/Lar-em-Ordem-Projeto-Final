@@ -1,5 +1,5 @@
 import { Building, Home, Wrench, ChevronRight } from "lucide-react";
-import { HouseList } from "./HouseList";
+import { HouseList } from "../house/HouseList";
 import { createElement } from "react";
 
 function getProfileIcon(name) {

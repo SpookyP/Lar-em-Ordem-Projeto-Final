@@ -5,11 +5,11 @@ import {
   updateProperty,
 } from "../../services/api/propertyService";
 import { useHouses } from "../../hooks/useHouses";
-import { ZoneSelect } from "./ZoneSelect";
+import { ZoneSelect } from "../ui/ZoneSelect";
 import { TextInput, SearchSelect, DatePicker, StepProgress } from "../form";
 import { todayISO } from "../../utils/date";
 import { useFetch } from "../../hooks/useFetch";
-import { LoadingState } from "./LoadingState";
+import { LoadingState } from "../ui/LoadingState";
 
 const EMPTY_FORM = {
   property_type_id: "",

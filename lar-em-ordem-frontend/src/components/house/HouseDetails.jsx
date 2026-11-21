@@ -11,8 +11,8 @@ import {
   CalendarClock,
 } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
-import { LoadingState } from "./LoadingState";
-import { EmptyState } from "./EmptyState";
+import { LoadingState } from "../ui/LoadingState";
+import { EmptyState } from "../ui/EmptyState";
 
 function formatDate(value) {
   if (!value) return null;

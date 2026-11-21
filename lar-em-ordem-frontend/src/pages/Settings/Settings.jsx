@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { PropertyForm } from "../../components/ui/PropertyForm";
+import { PropertyForm } from "../../components/house/PropertyForm";
 import { PasswordForm } from "../../components/ui/PasswordForm";
 import { ProfileForm } from "../../components/ui/ProfileForm";
 import {
@@ -17,8 +17,8 @@ import {
   Building,
 } from "lucide-react";
 import { AccountForm } from "../../components/ui/AccountForm";
-import { HouseDetails } from "../../components/ui/HouseDetails";
-import { ManageHouses } from "../../components/ui/ManageHouses";
+import { HouseDetails } from "../../components/house/HouseDetails";
+import { ManageHouses } from "../../components/house/ManageHouses";
 import { DeleteProfile } from "../../components/ui/DeleteProfile";
 import { DeleteAccount } from "../../components/ui/DeleteAccount";
 import { PrivacySettings } from "../../components/ui/PrivacySettings";
@@ -43,7 +43,7 @@ const GROUPS = [
       { id: "house", label: "A minha habitação", icon: House },
       { id: "property", label: "Adicionar habitação", icon: HousePlus },
       { id: "manage-house", label: "Gerir habitações", icon: Pencil },
-            { id: "condominium", label: "Condomínio", icon: Building },
+      { id: "condominium", label: "Condomínio", icon: Building },
     ],
   },
   {
