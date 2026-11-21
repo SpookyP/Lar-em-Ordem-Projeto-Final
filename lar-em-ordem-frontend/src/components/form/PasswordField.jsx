@@ -1,4 +1,4 @@
-import { PasswordInput } from "../ui/PasswordInput";
+import { PasswordInput } from "../account/PasswordInput";
 import { FormField } from "./FormField";
 import { inputClass } from "./styles";
 
@@ -14,7 +14,13 @@ export function PasswordField({
   ...props
 }) {
   return (
-    <FormField label={label} hint={hint} error={error} required={required} className={className}>
+    <FormField
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      className={className}
+    >
       <PasswordInput
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { deleteAccount } from "../../services/api/accountService";
 import { accountTypes } from "../../data/registerFields";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 
 function describeAccount(roles) {
   if (roles.length === 1) {

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { PropertyForm } from "../../components/house/PropertyForm";
-import { PasswordForm } from "../../components/ui/PasswordForm";
-import { ProfileForm } from "../../components/ui/ProfileForm";
+import { PasswordForm } from "../../components/account/PasswordForm";
+import { ProfileForm } from "../../components/account/ProfileForm";
 import {
   User,
   KeyRound,
@@ -16,12 +16,12 @@ import {
   ShieldCheck,
   Building,
 } from "lucide-react";
-import { AccountForm } from "../../components/ui/AccountForm";
+import { AccountForm } from "../../components/account/AccountForm";
 import { HouseDetails } from "../../components/house/HouseDetails";
 import { ManageHouses } from "../../components/house/ManageHouses";
-import { DeleteProfile } from "../../components/ui/DeleteProfile";
-import { DeleteAccount } from "../../components/ui/DeleteAccount";
-import { PrivacySettings } from "../../components/ui/PrivacySettings";
+import { DeleteProfile } from "../../components/account/DeleteProfile";
+import { DeleteAccount } from "../../components/account/DeleteAccount";
+import { PrivacySettings } from "../../components/account/PrivacySettings";
 import { CondominiumSettings } from "../../components/condominium/CondominiumSettings";
 import { useAuth } from "../../hooks/useAuth";
 

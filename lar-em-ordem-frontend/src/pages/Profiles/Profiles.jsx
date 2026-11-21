@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ProfileCard } from "../../components/ui/ProfileCard";
+import { ProfileCard } from "../../components/account/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
 import { getPropertiesPage } from "../../services/api/propertyService";

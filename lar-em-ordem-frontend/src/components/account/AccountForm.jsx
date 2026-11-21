@@ -15,9 +15,9 @@ import {
   ZoneCoverageField,
   ZoneSummary,
 } from "../assistance/ProviderCoverageFields";
-import { EMPTY_COVERAGE } from "./coverage";
-import { LoadingState } from "./LoadingState";
-import { EmptyState } from "./EmptyState";
+import { EMPTY_COVERAGE } from "../../utils/coverage";
+import { LoadingState } from "../ui/LoadingState";
+import { EmptyState } from "../ui/EmptyState";
 
 const PROVIDER_LABELS = { google: "o Google", microsoft: "a Microsoft" };
 
