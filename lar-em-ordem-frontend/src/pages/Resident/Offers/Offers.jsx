@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Search, List, LayoutGrid } from "lucide-react";
-import { OfferRow } from "../../../components/ui/OfferRow";
+import { OfferRow } from "../../../components/offer/OfferRow";
 import { getOfferCategories } from "../../../services/api/offerService";
 import { useOffersPage } from "../../../hooks/useOffersPage";
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { Pager } from "../../../components/ui/Pager";
-import { OfferGridCard } from "../../../components/ui/OfferGridCard";
+import { OfferGridCard } from "../../../components/offer/OfferGridCard";
 import { useFetch } from "../../../hooks/useFetch";
 import { LoadingState } from "../../../components/ui/LoadingState";
 import { EmptyState } from "../../../components/ui/EmptyState";

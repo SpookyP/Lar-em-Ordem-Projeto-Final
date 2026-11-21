@@ -1,6 +1,6 @@
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ChevronLeft, Pencil } from "lucide-react";
-import { OfferForm } from "../../../components/ui/OfferForm";
+import { OfferForm } from "../../../components/offer/OfferForm";
 import { getOffer } from "../../../services/api/offerService";
 import { useFetch } from "../../../hooks/useFetch";
 import { LoadingState } from "../../../components/ui/LoadingState";

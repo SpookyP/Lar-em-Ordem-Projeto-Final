@@ -5,7 +5,7 @@ import { ShortcutCard } from "../../../components/ui/ShortcutCard";
 import ConsumptionChart from "../../../components/consumption/ConsumptionChart";
 import ConsumptionSummary from "../../../components/consumption/ConsumptionSummary";
 import { NotificationBell } from "../../../components/notification/NotificationBell";
-import { OfferRecommendations } from "../../../components/ui/OfferRecommendations";
+import { OfferRecommendations } from "../../../components/offer/OfferRecommendations";
 import useInvoices from "../../../hooks/useInvoices";
 import { useAuth } from "../../../hooks/useAuth";
 import { isOwnerHouse } from "../../../utils/ownerHouse";
