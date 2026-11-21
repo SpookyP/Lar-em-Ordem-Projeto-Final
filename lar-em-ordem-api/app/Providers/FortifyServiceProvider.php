@@ -21,8 +21,9 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-        public function register(): void
+    public function register(): void
     {
+        // an unknown email gets the same answer as a known one, so the reset form can't be used to find accounts
         $this->app->bind(
             FailedPasswordResetLinkRequestResponse::class,
             fn () => new SuccessfulPasswordResetLinkRequestResponse(Password::RESET_LINK_SENT),

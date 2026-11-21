@@ -8,13 +8,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Decide que utilizador entra quando alguem faz login com Google/Microsoft.
- * Regra de ouro: a conta e identificada pelo id do fornecedor ("sub"), nunca so pelo email.
+ * Decides which user signs in with Google/Microsoft.
+ * Golden rule: the account is identified by the provider's id ("sub"), never by the email alone.
  */
 class SocialLoginService
 {
     public function __construct(private ProfileService $profiles) {}
+
     /**
+     * The account for this identity: the linked one, or an existing one with the same verified email
+     * (which gets linked). Null when there is no account yet, so the registration can be finished.
+     *
      * @param array{id: string, email: ?string, email_verified: bool, name: string} $profile
      *
      * @throws SocialLoginException
@@ -64,14 +68,14 @@ class SocialLoginService
     }
 
     /**
-     * Fim do registo de quem entrou com Google/Microsoft e ainda nao tinha conta.
-     * So agora a conta nasce, ja com o perfil escolhido. O nome e o email vem da identidade
-     * guardada no servidor ($pending), nunca do que o browser envia.
+     * Last step for someone who signed in with Google/Microsoft without an account: only now is the account
+     * created, with the chosen profile. Name and email come from the identity kept on the server ($pending),
+     * never from what the browser sends.
      *
      * @param array{provider: string, id: string, email: string, email_verified: bool, name: string} $pending
-     * @param array $data campos do perfil, ja validados
+     * @param array<string, mixed> $data validated profile fields
      *
-     * @throws SocialLoginException se, entretanto, esse email ou essa conta Google/Microsoft ja ficaram registados
+     * @throws SocialLoginException when that email or that Google/Microsoft account got registered in the meantime
      */
     public function registerFromPending(array $pending, string $role, array $data): User
     {
@@ -102,9 +106,9 @@ class SocialLoginService
     }
 
     /**
-     * A app nao verifica emails no registo, por isso quem criou a conta com password
-     * pode nao ser o dono do email. Quando o dono verificado aparece, fica com a conta
-     * e tudo o que foi criado antes (password, sessoes, 2FA, chaves, ligacoes) deixa de valer.
+     * An account whose email isn't verified (e.g. changed in the profile and not confirmed yet) may not
+     * belong to the email's owner. When the verified owner signs in, they get the account and everything
+     * set up before (password, sessions, 2FA, passkeys, links) stops working.
      */
     private function takeOver(User $user): void
     {

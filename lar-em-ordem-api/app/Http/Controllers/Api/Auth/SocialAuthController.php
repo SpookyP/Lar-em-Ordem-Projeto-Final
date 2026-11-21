@@ -13,12 +13,13 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Login com Google/Microsoft. O browser navega para estas rotas (nao sao pedidos axios):
- *   /auth/{fornecedor}/redirect  -> vai para a Google/Microsoft
- *   /auth/{fornecedor}/callback  -> volta de la; cria a sessao e regressa ao frontend
+ * Social sign-in. The browser navigates to these routes (they aren't axios requests):
+ *   /auth/{provider}/redirect  -> goes to Google/Microsoft
+ *   /auth/{provider}/callback  -> comes back, starts the session and returns to the frontend
  */
 class SocialAuthController extends Controller
 {
+    // the codes the frontend login page knows how to show
     private const REASONS = [
         'cancelado',
         'conta_existente',
@@ -34,7 +35,7 @@ class SocialAuthController extends Controller
     ) {}
 
     /**
-     * Passo 1: guarda "state" e o verifier PKCE na sessao e envia o browser para o fornecedor.
+     * Step 1: keeps the state and the PKCE verifier in the session and sends the browser to the provider.
      */
     public function redirect(Request $request, string $provider): RedirectResponse
     {
@@ -58,11 +59,11 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Passo 2: o fornecedor devolve o utilizador aqui com ?code e ?state.
+     * Step 2: the provider sends the user back here with ?code and ?state.
      */
     public function callback(Request $request, string $provider): RedirectResponse
     {
-        // pull = le e apaga: cada pedido de login so pode ser usado uma vez
+        // pull reads and deletes: each sign-in attempt can only be used once
         $saved = $request->session()->pull('oauth');
         $config = $this->oauth->config($provider);
 
@@ -70,7 +71,7 @@ class SocialAuthController extends Controller
             return $this->failure('falhou');
         }
 
-        // o utilizador carregou em "cancelar" no ecra do fornecedor
+        // the user pressed cancel on the provider's screen
         if ($request->query('error') !== null) {
             return $this->failure('cancelado');
         }
@@ -92,6 +93,7 @@ class SocialAuthController extends Controller
             return $this->failure('falhou');
         }
 
+        // no account yet: the identity waits in the session for the last step (SocialRegisterController)
          if ($user === null) {
             $request->session()->put('social_pending', $profile + [
                 'provider' => $provider,
@@ -108,7 +110,7 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * O "state" tem de ser o que guardamos na sessao, para o mesmo fornecedor, e ainda nao ter expirado.
+     * The state must be the one saved in the session, for the same provider, and not expired.
      */
     private function stateIsValid(Request $request, mixed $saved, string $provider): bool
     {
@@ -123,7 +125,7 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Volta ao login do frontend com um codigo fixo. Nunca mostramos texto vindo do fornecedor.
+     * Back to the frontend login with a fixed code; text from the provider is never shown.
      */
     private function failure(string $reason): RedirectResponse
     {

@@ -18,7 +18,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     public function __construct(private ProfileService $profileService) {}
 
     /**
-     * Validate and update the given user's profile information.
+     * Updates the account name and email and the profile of the given role.
+     * A new email needs the current password and is verified again; social accounts can't change it.
      *
      * @param  array<string, string>  $input
      *
@@ -68,7 +69,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         $roleRequest = ProfileService::requestFor($role, update: true, user: $user);
 
-        // só os campos validados seguem para a frente (nunca o $input bruto: protege user_id, etc.)
+        // only validated fields go on, never the raw input (so user_id and the like can't be set)
         $validated = Validator::make($input, array_merge($rules, $roleRequest->rules()), array_merge($roleRequest->messages(), [
             'current_password.required'         => 'Indique a password atual para mudar o email.',
             'current_password.current_password' => 'A password atual não está correta.',
@@ -94,7 +95,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     }
 
     /**
-     * Update the given verified user's profile information.
+     * A changed email is marked as unverified and gets a new confirmation link.
      */
     protected function updateVerifiedUser(User $user, string $name, string $email): void
     {
