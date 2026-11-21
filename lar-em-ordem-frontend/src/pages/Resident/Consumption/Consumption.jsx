@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import useInvoices from "../../hooks/useInvoices";
-import DetailedConsumptionChart from "../../components/consumption/DetailedConsumptionChart";
-import InvoiceTimelineChart from "../../components/invoice/InvoiceTimelineChart";
-import { scaleInvoicesToRange } from "../../utils/invoiceTimelineUtils";
-import AnnualBenchmarkTable from "../../components/consumption/AnnualBenchmarkTable";
-import InvoiceForm from "../../components/invoice/InvoiceForm";
+import useInvoices from "../../../hooks/useInvoices";
+import DetailedConsumptionChart from "../../../components/consumption/DetailedConsumptionChart";
+import InvoiceTimelineChart from "../../../components/invoice/InvoiceTimelineChart";
+import { scaleInvoicesToRange } from "../../../utils/invoiceTimelineUtils";
+import AnnualBenchmarkTable from "../../../components/consumption/AnnualBenchmarkTable";
+import InvoiceForm from "../../../components/invoice/InvoiceForm";
 
 const MONTHS = [
   "Jan",

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import InvoiceCard from "../../components/invoice/InvoiceCard";
-import InvoiceTable from "../../components/invoice/InvoiceTable";
-import useInvoices from "../../hooks/useInvoices";
+import InvoiceCard from "../../../components/invoice/InvoiceCard";
+import InvoiceTable from "../../../components/invoice/InvoiceTable";
+import useInvoices from "../../../hooks/useInvoices";
 
 export default function Invoice() {
   const navigate = useNavigate();
