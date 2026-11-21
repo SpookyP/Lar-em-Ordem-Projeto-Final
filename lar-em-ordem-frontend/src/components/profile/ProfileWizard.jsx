@@ -14,7 +14,7 @@ import {
   SpecialtySummary,
   ZoneCoverageField,
   ZoneSummary,
-} from "../ui/ProviderCoverageFields";
+} from "../assistance/ProviderCoverageFields";
 import { EMPTY_COVERAGE } from "../ui/coverage";
 import { ProfileFieldInput } from "./ProfileFieldInput";
 import { ConsentFields } from "./ConsentFields";

@@ -14,7 +14,7 @@ import {
   SpecialtySummary,
   ZoneCoverageField,
   ZoneSummary,
-} from "./ProviderCoverageFields";
+} from "../assistance/ProviderCoverageFields";
 import { EMPTY_COVERAGE } from "./coverage";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";

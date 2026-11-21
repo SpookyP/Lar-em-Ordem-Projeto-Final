@@ -1,5 +1,5 @@
-import AssistanceForm from "../../../components/ui/AssistanceForm";
-import ProblemList from "../../../components/ui/ProblemList";
+import AssistanceForm from "../../../components/assistance/AssistanceForm";
+import ProblemList from "../../../components/assistance/ProblemList";
 import { useAuth } from "../../../hooks/useAuth";
 import { useAssistanceRequests } from "../../../hooks/useAssistanceRequests";
 import { createAssistanceRequest } from "../../../services/api/assistanceService";
