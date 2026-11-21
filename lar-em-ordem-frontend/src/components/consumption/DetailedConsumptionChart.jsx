@@ -6,7 +6,7 @@ import {
   getItems,
   getTypeId,
   itemCost,
-} from "./invoiceTimelineUtils";
+} from "../../utils/invoiceTimelineUtils";
 
 // Define a cor principal do cabeçalho.
 const HEADER_COLOR = "#1C3557";
@@ -54,10 +54,7 @@ function itemAmount(item) {
 // Obtém a unidade de medida de um item.
 function itemUnit(item) {
   return String(
-    item?.unit ??
-      item?.measurement_unit ??
-      item?.unit_of_measure ??
-      ""
+    item?.unit ?? item?.measurement_unit ?? item?.unit_of_measure ?? "",
   ).trim();
 }
 
@@ -69,7 +66,7 @@ function itemName(item, index) {
       item?.label ??
       item?.concept ??
       item?.category ??
-      `Item ${index + 1}`
+      `Item ${index + 1}`,
   ).trim();
 }
 
@@ -81,7 +78,7 @@ function itemDescription(item) {
       item?.notes ??
       item?.tariff ??
       item?.rate_name ??
-      ""
+      "",
   ).trim();
 
   const rawCategory = String(item?.category ?? "").trim();
@@ -90,9 +87,7 @@ function itemDescription(item) {
   const unit = itemUnit(item);
 
   const quantityText =
-    amount !== 0
-      ? `${number.format(amount)}${unit ? ` ${unit}` : ""}`
-      : "";
+    amount !== 0 ? `${number.format(amount)}${unit ? ` ${unit}` : ""}` : "";
 
   const name = String(item?.name ?? "").trim();
 
@@ -141,9 +136,7 @@ function normalizeInvoices(invoices) {
           ? asNumber(consumption?.amount ?? consumption?.quantity)
           : itemAmount(item);
 
-        const unit = fallback
-          ? itemUnit(consumption)
-          : itemUnit(item);
+        const unit = fallback ? itemUnit(consumption) : itemUnit(item);
 
         result.push({
           id: [
@@ -159,15 +152,13 @@ function normalizeInvoices(invoices) {
             ? `${utility.name} — total`
             : itemName(item, itemIndex),
           description: fallback
-            ? (
-                amount !== 0
-                  ? `${number.format(amount)}${unit ? ` ${unit}` : ""} · Total do consumo`
-                  : "Total do consumo"
-              )
+            ? amount !== 0
+              ? `${number.format(amount)}${unit ? ` ${unit}` : ""} · Total do consumo`
+              : "Total do consumo"
             : itemDescription(item),
           categoryLabel: fallback
             ? ""
-            : CATEGORY_LABELS[item?.category] ?? item?.category ?? "",
+            : (CATEGORY_LABELS[item?.category] ?? item?.category ?? ""),
           amount,
           unit,
           cost,
@@ -189,9 +180,9 @@ function normalizeInvoices(invoices) {
             consumption?.cost ??
               consumption?.total_cost ??
               consumption?.totalCost ??
-              0
+              0,
           ),
-          true
+          true,
         );
       }
     });
@@ -244,8 +235,7 @@ function normalizeInvoices(invoices) {
             const isQuantity =
               /^[\d.,]+\s(kwh|mwh|m3|m³|l|litros?|kw|kva)$/i.test(value);
 
-            const isTaxBase =
-              /^[\d.,]+\s(eur|€)\s+de\s+base$/i.test(value);
+            const isTaxBase = /^[\d.,]+\s(eur|€)\s+de\s+base$/i.test(value);
 
             return !isQuantity && !isTaxBase;
           }),
@@ -256,8 +246,8 @@ function normalizeInvoices(invoices) {
         .filter(
           (part, index, array) =>
             array.findIndex(
-              (value) => value.toLowerCase() === part.toLowerCase()
-            ) === index
+              (value) => value.toLowerCase() === part.toLowerCase(),
+            ) === index,
         );
 
       // Remove os campos auxiliares que não são necessários na apresentação.
@@ -277,7 +267,7 @@ function normalizeInvoices(invoices) {
     .sort((a, b) =>
       a.typeId !== b.typeId
         ? a.typeId - b.typeId
-        : a.name.localeCompare(b.name, "pt-PT")
+        : a.name.localeCompare(b.name, "pt-PT"),
     );
 }
 
@@ -290,13 +280,9 @@ function ChartTooltip({ active, payload }) {
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
-      <p className="text-base font-semibold text-slate-800">
-        {item.name}
-      </p>
+      <p className="text-base font-semibold text-slate-800">{item.name}</p>
 
-      <p className="mt-1 text-sm text-slate-500">
-        {item.utility}
-      </p>
+      <p className="mt-1 text-sm text-slate-500">{item.utility}</p>
 
       {item.description && (
         <p className="mt-2 max-w-64 text-sm text-slate-500">
@@ -335,7 +321,7 @@ export default function DetailedConsumptionChart({
   const [fetched, setFetched] = useState({
     key: null,
     invoices: [],
-    error: ""
+    error: "",
   });
 
   // Controla o filtro e o item selecionado.
@@ -361,7 +347,7 @@ export default function DetailedConsumptionChart({
           setFetched({
             key: requestKey,
             invoices: allInvoices,
-            error: ""
+            error: "",
           });
         }
       })
@@ -388,10 +374,7 @@ export default function DetailedConsumptionChart({
   const error = hasInvoicesProp || loading ? "" : fetched.error;
 
   // Normaliza os consumos das faturas.
-  const allItems = useMemo(
-    () => normalizeInvoices(invoices),
-    [invoices]
-  );
+  const allItems = useMemo(() => normalizeInvoices(invoices), [invoices]);
 
   // Aplica o filtro selecionado aos consumos.
   const visibleItems = useMemo(
@@ -399,7 +382,7 @@ export default function DetailedConsumptionChart({
       filter === "all"
         ? allItems
         : allItems.filter((item) => String(item.typeId) === filter),
-    [allItems, filter]
+    [allItems, filter],
   );
 
   // Calcula o total dos consumos visíveis.
@@ -413,9 +396,9 @@ export default function DetailedConsumptionChart({
         .sort((a, b) =>
           a.typeId !== b.typeId
             ? a.typeId - b.typeId
-            : a.name.localeCompare(b.name, "pt-PT")
+            : a.name.localeCompare(b.name, "pt-PT"),
         ),
-    [visibleItems]
+    [visibleItems],
   );
 
   // Agrupa os itens por tipo de serviço.
@@ -446,9 +429,7 @@ export default function DetailedConsumptionChart({
   if (loading) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
-        <p className="text-base text-slate-500">
-          A carregar consumos...
-        </p>
+        <p className="text-base text-slate-500">A carregar consumos...</p>
       </section>
     );
   }
@@ -456,7 +437,6 @@ export default function DetailedConsumptionChart({
   // Renderiza o gráfico e a lista de consumos.
   return (
     <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-
       {/* Cabeçalho com título e filtros. */}
       <div
         className="relative -mx-4 -mt-4 mb-4 flex flex-col gap-4 overflow-hidden rounded-t-2xl p-5 text-white shadow-sm sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-center sm:justify-between sm:p-6"
@@ -490,11 +470,7 @@ export default function DetailedConsumptionChart({
                     ? "border-white bg-white shadow-sm"
                     : "border-white/40 bg-white/10 text-white hover:bg-white/20"
                 }`}
-                style={
-                  active
-                    ? { color: option.color }
-                    : { color: "#FFFFFF" }
-                }
+                style={active ? { color: option.color } : { color: "#FFFFFF" }}
               >
                 {option.label}
               </button>
@@ -525,7 +501,6 @@ export default function DetailedConsumptionChart({
         <>
           {/* Organiza o gráfico e a lista em duas colunas. */}
           <div className="mt-6 grid w-full min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)]">
-
             {/* Gráfico circular e totais por serviço. */}
             <div className="min-w-0">
               <div className="relative h-[320px] sm:h-[350px] xl:h-[380px]">
@@ -614,7 +589,8 @@ export default function DetailedConsumptionChart({
                   </>
                 ) : (
                   <div className="flex h-full items-center justify-center text-center text-base text-slate-500">
-                    Não existem custos diferentes de zero para desenhar o gráfico.
+                    Não existem custos diferentes de zero para desenhar o
+                    gráfico.
                   </div>
                 )}
               </div>
@@ -624,7 +600,7 @@ export default function DetailedConsumptionChart({
                 {groups.map((group) => {
                   const groupTotal = group.items.reduce(
                     (sum, item) => sum + item.cost,
-                    0
+                    0,
                   );
 
                   return (
@@ -642,9 +618,7 @@ export default function DetailedConsumptionChart({
 
                       <strong
                         className={`text-base ${
-                          groupTotal < 0
-                            ? "text-emerald-700"
-                            : "text-slate-800"
+                          groupTotal < 0 ? "text-emerald-700" : "text-slate-800"
                         }`}
                       >
                         {money.format(groupTotal)}
@@ -661,7 +635,7 @@ export default function DetailedConsumptionChart({
                 {groups.map((group) => {
                   const groupTotal = group.items.reduce(
                     (sum, item) => sum + item.cost,
-                    0
+                    0,
                   );
 
                   return (
@@ -699,9 +673,7 @@ export default function DetailedConsumptionChart({
                           const invoiceText =
                             item.invoiceCount > 0
                               ? `Incluído em ${item.invoiceCount} ${
-                                  item.invoiceCount === 1
-                                    ? "fatura"
-                                    : "faturas"
+                                  item.invoiceCount === 1 ? "fatura" : "faturas"
                                 }`
                               : "";
 
@@ -716,8 +688,9 @@ export default function DetailedConsumptionChart({
                             .filter(
                               (value, index, array) =>
                                 array.findIndex(
-                                  (other) => other.toLowerCase() === value.toLowerCase()
-                                ) === index
+                                  (other) =>
+                                    other.toLowerCase() === value.toLowerCase(),
+                                ) === index,
                             );
 
                           const metadata = metadataParts.join(" · ");

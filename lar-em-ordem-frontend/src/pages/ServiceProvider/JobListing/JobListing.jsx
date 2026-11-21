@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MapPin, Search } from "lucide-react";
-import { OfferCard } from "../../../components/ui/OfferCard";
+import { OfferCard } from "../../../components/offer/OfferCard";
 import { Pager } from "../../../components/ui/Pager";
 import { TextInput } from "../../../components/form";
 import { useAvailableJobs } from "../../../hooks/useAvailableJobs";

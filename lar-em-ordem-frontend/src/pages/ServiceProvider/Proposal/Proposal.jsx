@@ -3,7 +3,7 @@ import { useMyProposals } from "../../../hooks/useMyProposals";
 import { useProposalCounts } from "../../../hooks/useProposalCounts";
 import { withdrawProposal } from "../../../services/api/proposalService";
 import { PROPOSAL_STATUS } from "../../../data/assistanceInfo";
-import { ProviderProposalCard } from "../../../components/ui/ProviderProposalCard";
+import { ProviderProposalCard } from "../../../components/assistance/ProviderProposalCard";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { Pager } from "../../../components/ui/Pager";
 import { getErrorMessage } from "../../../utils/apiError";

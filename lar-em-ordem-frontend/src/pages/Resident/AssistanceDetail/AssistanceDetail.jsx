@@ -11,9 +11,9 @@ import {
   updateAssistanceRequest,
 } from "../../../services/api/assistanceService";
 import { categoryInfo, statusInfo } from "../../../data/assistanceInfo";
-import { ProposalCard } from "../../../components/ui/ProposalCard";
-import { AttachmentGallery } from "../../../components/ui/AttachmentGallery";
-import AssistanceForm from "../../../components/ui/AssistanceForm";
+import { ProposalCard } from "../../../components/assistance/ProposalCard";
+import { AttachmentGallery } from "../../../components/assistance/AttachmentGallery";
+import AssistanceForm from "../../../components/assistance/AssistanceForm";
 import { formatAddress } from "../../../utils/format";
 import { formatDate } from "../../../utils/date";
 import { getErrorMessage } from "../../../utils/apiError";

@@ -1,13 +1,11 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Zap, FolderClosed, ChevronRight } from "lucide-react";
-
 import { ShortcutCard } from "../../../components/ui/ShortcutCard";
-import ConsumptionChart from "../../../components/ui/ConsumptionChart";
-import ConsumptionSummary from "../../../components/ui/ConsumptionSummary";
-import { NotificationBell } from "../../../components/ui/NotificationBell";
-import { OfferRecommendations } from "../../../components/ui/OfferRecommendations";
+import ConsumptionChart from "../../../components/consumption/ConsumptionChart";
+import ConsumptionSummary from "../../../components/consumption/ConsumptionSummary";
+import { NotificationBell } from "../../../components/notification/NotificationBell";
+import { OfferRecommendations } from "../../../components/offer/OfferRecommendations";
 import useInvoices from "../../../hooks/useInvoices";
 import { useAuth } from "../../../hooks/useAuth";
 import { isOwnerHouse } from "../../../utils/ownerHouse";
@@ -49,14 +47,10 @@ export default function Dashboard() {
           <div className="rounded-2xl bg-card p-4 shadow-sm sm:p-8">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="font-display text-xl text-navy">
-                  Gasto Mensal
-                </h2>
+                <h2 className="font-display text-xl text-navy">Gasto Mensal</h2>
 
                 <p className="text-sm text-muted">
-                  {period === 1
-                    ? "Último mês"
-                    : `Últimos ${period} meses`}
+                  {period === 1 ? "Último mês" : `Últimos ${period} meses`}
                 </p>
               </div>
 
@@ -120,13 +114,9 @@ export default function Dashboard() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-navy">
-                Consumos
-              </h3>
+              <h3 className="font-semibold text-navy">Consumos</h3>
 
-              <p className="mt-1 text-sm text-muted">
-                Registar fatura
-              </p>
+              <p className="mt-1 text-sm text-muted">Registar fatura</p>
             </div>
 
             <ChevronRight

@@ -5,7 +5,7 @@ import {
   getSocialPending,
   resendRegistration,
 } from "../../services/api/authService";
-import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
+import { SocialLoginButtons } from "../../components/account/SocialLoginButtons";
 import { ProfileWizard } from "../../components/profile/ProfileWizard";
 import { AuthSplit } from "../../components/layout/AuthSplit";
 

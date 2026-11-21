@@ -16,7 +16,7 @@ import {
   indexToKey,
   monthsBetween,
   asNumber,
-} from "./invoiceTimelineUtils";
+} from "../../utils/invoiceTimelineUtils";
 
 const MONTHS = [
   "Janeiro",

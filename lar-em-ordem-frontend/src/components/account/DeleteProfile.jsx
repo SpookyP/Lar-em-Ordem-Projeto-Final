@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { deleteProfile } from "../../services/api/accountService";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { EmptyState } from "./EmptyState";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { EmptyState } from "../ui/EmptyState";
 
 export function DeleteProfile() {
   const { activeProfile, refreshUser } = useAuth();

@@ -7,7 +7,7 @@ import {
   useSearchParams,
   useLocation,
 } from "react-router-dom";
-import { SocialLoginButtons } from "../../components/ui/SocialLoginButtons";
+import { SocialLoginButtons } from "../../components/account/SocialLoginButtons";
 import { socialErrorMessage } from "../../utils/socialErrors";
 import { TextInput, PasswordField } from "../../components/form";
 import { AuthSplit } from "../../components/layout/AuthSplit";

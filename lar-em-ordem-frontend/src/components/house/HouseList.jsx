@@ -1,8 +1,8 @@
 import { useHousesPage } from "../../hooks/useHousesPage";
 import { useNavigate } from "react-router-dom";
-import { Pager } from "./Pager";
-import { LoadingState } from "./LoadingState";
-import { EmptyState } from "./EmptyState";
+import { Pager } from "../ui/Pager";
+import { LoadingState } from "../ui/LoadingState";
+import { EmptyState } from "../ui/EmptyState";
 
 export function HouseList({ onEnter }) {
   const {

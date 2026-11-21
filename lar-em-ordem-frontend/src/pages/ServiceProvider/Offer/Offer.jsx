@@ -6,7 +6,7 @@ import {
   proposalStatus,
   providerRequestLabel,
 } from "../../../data/assistanceInfo";
-import { AttachmentGallery } from "../../../components/ui/AttachmentGallery";
+import { AttachmentGallery } from "../../../components/assistance/AttachmentGallery";
 import { formatAddress, formatMoney } from "../../../utils/format";
 import { formatDate, formatDay } from "../../../utils/date";
 import { LoadingState } from "../../../components/ui/LoadingState";
