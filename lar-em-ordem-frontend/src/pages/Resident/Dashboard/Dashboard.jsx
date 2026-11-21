@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Zap, FolderClosed, ChevronRight } from "lucide-react";
-
 import { ShortcutCard } from "../../../components/ui/ShortcutCard";
-import ConsumptionChart from "../../../components/ui/ConsumptionChart";
-import ConsumptionSummary from "../../../components/ui/ConsumptionSummary";
+import ConsumptionChart from "../../../components/consumption/ConsumptionChart";
+import ConsumptionSummary from "../../../components/consumption/ConsumptionSummary";
 import { NotificationBell } from "../../../components/notification/NotificationBell";
 import { OfferRecommendations } from "../../../components/ui/OfferRecommendations";
 import useInvoices from "../../../hooks/useInvoices";

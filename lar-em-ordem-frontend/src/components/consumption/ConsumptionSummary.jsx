@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Droplet, Zap, Flame } from "lucide-react";
-import { SummaryCard } from "./SummaryCard";
+import { SummaryCard } from "../ui/SummaryCard";
 
 // Configuração visual e unidades de cada tipo de consumo.
 const CONSUMPTION_CONFIG = {
@@ -23,7 +23,6 @@ const CONSUMPTION_CONFIG = {
     unit: "kWh",
   },
 };
-
 
 const EMPTY_TOTALS = { 1: 0, 2: 0, 3: 0 };
 
@@ -56,11 +55,7 @@ function parseDate(value) {
     if (match) {
       const [, year, month, day] = match;
 
-      return new Date(
-        Number(year),
-        Number(month) - 1,
-        Number(day)
-      );
+      return new Date(Number(year), Number(month) - 1, Number(day));
     }
   }
 
@@ -88,11 +83,7 @@ function getConsumptionDate(consumption, invoice) {
 function getPeriodStart(period) {
   const now = new Date();
 
-  return new Date(
-    now.getFullYear(),
-    now.getMonth() - Number(period),
-    1
-  );
+  return new Date(now.getFullYear(), now.getMonth() - Number(period), 1);
 }
 
 // Identifica o tipo de consumo através do ID ou do nome.
@@ -111,14 +102,15 @@ function getConsumptionTypeId(consumption) {
 
   const name = String(
     consumption?.consumption_type?.name ??
-    consumption?.consumptionType?.name ??
-    consumption?.type?.name ??
-    consumption?.name ??
-    ""
+      consumption?.consumptionType?.name ??
+      consumption?.type?.name ??
+      consumption?.name ??
+      "",
   ).toLowerCase();
 
   if (name.includes("eletric") || name.includes("electric")) return 1;
-  if (name.includes("água") || name.includes("agua") || name.includes("water")) return 2;
+  if (name.includes("água") || name.includes("agua") || name.includes("water"))
+    return 2;
   if (name.includes("gás") || name.includes("gas")) return 3;
 
   return null;
@@ -128,9 +120,9 @@ function getConsumptionTypeId(consumption) {
 function getConsumptionAmount(consumption) {
   return parseAmount(
     consumption?.amount ??
-    consumption?.quantity ??
-    consumption?.consumption ??
-    0
+      consumption?.quantity ??
+      consumption?.consumption ??
+      0,
   );
 }
 
@@ -153,9 +145,7 @@ export default function ConsumptionSummary({
         : [];
 
       consumptions.forEach((consumption) => {
-        const date = parseDate(
-          getConsumptionDate(consumption, invoice)
-        );
+        const date = parseDate(getConsumptionDate(consumption, invoice));
 
         // Ignora consumos sem data válida ou fora do período.
         if (!date || date < startDate || date > endDate) return;
