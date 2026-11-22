@@ -18,28 +18,20 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceController extends Controller
 {
-    public function __construct(private InvoiceService $service)
-    {
-    }
+    public function __construct(private InvoiceService $service){}
 
-    /**
-     * Apresentar a lista de faturas.
-     */
     public function index(PerPageRequest $request)
     {
-        // Validar os filtros específicos das faturas.
         $validated = $request->validate([
             'property_id' => ['nullable', 'ulid'],
         ], [
             'property_id.ulid' => 'O identificador da habitação é inválido.',
         ]);
 
-        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
         Gate::authorize('viewAny', Invoice::class);
 
         $resident = $request->user()->resident;
 
-        // Obter as faturas com os filtros e a paginação aplicados.
         $invoices = $this->service->getInvoicesByResident(
             residentId: $resident->id,
             perPage: $request->validated('per_page') ?? 5,
@@ -49,15 +41,10 @@ class InvoiceController extends Controller
         return InvoiceResource::collection($invoices);
     }
 
-    /**
-     * Registar uma nova fatura.
-     */
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
-        // Apenas residentes podem registar faturas (ver InvoicePolicy).
         Gate::authorize('create', Invoice::class);
 
-        // Criar a fatura e os respetivos consumos (com o PDF, se vier).
         $invoice = $this->service->createInvoiceWithConsumptions(
             user: $request->user(),
             invoiceData: $request->invoiceData(),
@@ -73,17 +60,12 @@ class InvoiceController extends Controller
             ->setStatusCode(201);
     }
 
-    /**
-     * Apresentar os detalhes de uma fatura.
-     */
     public function show(Request $request, string $invoiceId): JsonResponse
     {
-        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
         Gate::authorize('viewAny', Invoice::class);
 
         $resident = $request->user()->resident;
 
-        // Obter a fatura pertencente ao residente.
         $invoice = $this->service->getInvoiceById(
             invoiceId: $invoiceId,
             residentId: $resident->id
@@ -94,17 +76,12 @@ class InvoiceController extends Controller
         return InvoiceResource::make($invoice)->response();
     }
 
-    /**
-     * Eliminar uma fatura.
-     */
     public function destroy(Request $request, string $invoiceId): JsonResponse
     {
-        // Apenas residentes podem aceder às faturas (ver InvoicePolicy).
         Gate::authorize('viewAny', Invoice::class);
 
         $resident = $request->user()->resident;
 
-        // Obter e autorizar a fatura antes da eliminação.
         $invoice = $this->service->getInvoiceById(
             invoiceId: $invoiceId,
             residentId: $resident->id
@@ -123,8 +100,8 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Ler o PDF de uma fatura e devolver os dados extraídos, para preencher o formulário.
-     * O ficheiro não é guardado: só vai para o R2 quando a fatura é registada (store).
+     * Reads an invoice PDF and returns the extracted data, to pre-fill the form.
+     * The file is not stored: it only goes to R2 when the invoice is registered (store).
      */
     public function upload(
         UploadInvoiceRequest $request,

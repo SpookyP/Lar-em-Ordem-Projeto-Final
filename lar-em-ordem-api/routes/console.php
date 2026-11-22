@@ -11,22 +11,22 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new CheckDocumentExpiry)->dailyAt('08:00');
 
-// Criar Benchmarks do mes ou ano aumaticamente
+// benchmarks are created automatically: monthly (the last 3 complete months) and yearly (the previous year)
 Schedule::command('benchmarks:monthly')
-    ->monthlyOn(15, '03:00') // Meio do mês
+    ->monthlyOn(15, '03:00') // mid-month
     ->withoutOverlapping()
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/benchmarks.log'))
     ->onFailure(fn () => logger()->error('O processamento mensal de benchmarks falhou.'));
 
 Schedule::command('benchmarks:annual')
-    ->yearlyOn(2, 1, '03:00') // 1 de fevereiro
+    ->yearlyOn(2, 1, '03:00') // 1 February
     ->withoutOverlapping()
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/benchmarks.log'))
     ->onFailure(fn () => logger()->error('O processamento anual de benchmarks falhou.'));
 
-// Limpar diariamente PDFs de faturas sem associação e com mais de 24 horas.
+// daily cleanup of invoice PDFs with no invoice that are older than 24 hours
 Schedule::command('invoices:clean-orphaned-files')
     ->dailyAt('08:15')
     ->withoutOverlapping()

@@ -1,5 +1,5 @@
-"""Benchmark anual. Por defeito processa o ano anterior.
-Exemplos:
+"""Annual benchmark. Processes the previous year by default.
+Examples:
   python annual_benchmark.py
   python annual_benchmark.py --year 2026
 """

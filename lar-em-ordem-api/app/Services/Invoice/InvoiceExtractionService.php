@@ -10,19 +10,17 @@ use Symfony\Component\Process\Process;
 class InvoiceExtractionService
 {
     /**
-     * Corre o script Python sobre o PDF e devolve os dados extraídos.
-     * Devolve null se a extração falhar (o utilizador preenche o formulário à mão).
+     * Runs the Python script on the PDF and returns the extracted data.
+     * Returns null when the extraction fails (the user then fills the form by hand).
      *
      * @return array<string, mixed>|null
      */
     public function extract(string $pdfPath): ?array
     {
-        // Tipos de consumo da BD para o script mapear
         $types = ConsumptionType::query()
             ->pluck('id', 'name')
             ->mapWithKeys(fn ($id, $name) => [mb_strtolower($name) => $id]);
 
-        // Argumentos em array: o caminho nunca é interpretado como comando
         $process = new Process([
             config('invoices.python_bin'),
             base_path(config('invoices.extract_script')),
@@ -35,13 +33,12 @@ class InvoiceExtractionService
         try {
             $process->run();
         } catch (\Throwable $e) {
-            report($e); // timeout ou Python não encontrado
+            report($e); // timeout or Python not found
 
             return null;
         }
 
         if (! $process->isSuccessful()) {
-            // Não regista o conteúdo do PDF nem dos dados extraídos
             Log::warning('Falha na extração dos dados da fatura', [
                 'exit_code' => $process->getExitCode(),
                 'stderr'    => Str::limit($process->getErrorOutput(), 500),

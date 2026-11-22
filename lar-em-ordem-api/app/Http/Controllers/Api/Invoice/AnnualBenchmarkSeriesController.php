@@ -17,8 +17,7 @@ class AnnualBenchmarkSeriesController extends Controller
     }
 
     /**
-     * Devolve, numa única resposta, a comparação anual geral e as séries
-     * individuais de eletricidade, água e gás.
+     * The overall annual comparison and the electricity, water and gas series, in a single response.
      */
     public function __invoke(AnnualBenchmarkSeriesRequest $request): JsonResponse
     {

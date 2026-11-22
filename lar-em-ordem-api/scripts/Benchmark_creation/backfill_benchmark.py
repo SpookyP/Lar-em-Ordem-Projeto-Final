@@ -1,5 +1,5 @@
-"""Backfill: cria os benchmarks históricos (todos os meses e anos completos com dados).
-Corre-se uma vez; depois os agendamentos mensal e anual mantêm tudo atualizado."""
+"""Backfill: creates the historical benchmarks (every complete month and year with data).
+Run it once; the monthly and annual schedules keep everything up to date afterwards."""
 
 from datetime import date
 from sqlalchemy import text
@@ -15,17 +15,17 @@ if hasattr(first, "date"):
     first = first.date()
 
 current = month_start(first)
-this_month = month_start(date.today())  # o mês em curso não está completo
+this_month = month_start(date.today())  # the current month isn't complete
 
-# Todos os meses completos, do mais antigo até ao mês passado
+# Every complete month, from the oldest to last month
 monthly_total = 0
 while current < this_month:
     monthly_total += build_month(current)
     current = next_month(current)
 
-# Todos os anos completos (o ano em curso fica de fora)
+# Every complete year (the current one is left out)
 annual_total = 0
-for year in range(first.year, date.today().year):  # só anos completos
+for year in range(first.year, date.today().year):
     annual_total += build_year(year)
 
 print(f"Monthly: {monthly_total}")

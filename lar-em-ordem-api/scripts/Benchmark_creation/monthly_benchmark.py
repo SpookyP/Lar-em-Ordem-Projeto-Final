@@ -1,9 +1,9 @@
-"""Benchmark mensal.
-Por defeito reprocessa os últimos 3 meses completos (apanha faturas registadas tarde).
-Exemplos:
-  python monthly_benchmark.py                     # últimos 3 meses
-  python monthly_benchmark.py --months-back 6     # últumos 6 meses
-  python monthly_benchmark.py --month 2026-09     # só setembro de 2026
+"""Monthly benchmark.
+By default it reprocesses the last 3 complete months (this catches invoices registered late).
+Examples:
+  python monthly_benchmark.py                     # last 3 months
+  python monthly_benchmark.py --months-back 6     # last 6 months
+  python monthly_benchmark.py --month 2026-09     # September 2026 only
 """
 
 import argparse
@@ -22,7 +22,7 @@ if args.month:
     target = date(y, m, 1)
     months_to_process = 1
 else:
-    # Começa no mês anterior (o mês em curso ainda está incompleto)
+    # Starts at last month (the current one isn't complete yet)
     target = month_start(month_start(date.today()) - timedelta(days=1))
     months_to_process = args.months_back
 

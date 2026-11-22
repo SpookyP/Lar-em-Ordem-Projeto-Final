@@ -1,12 +1,12 @@
 """
-Extrai dados de faturas portuguesas da Endesa e da EPAL.
+Extracts data from Portuguese Endesa and EPAL invoices and prints it as JSON.
 
-Uso:
-    python invoice_parser.py Fatura_Endesa.pdf
-    python invoice_parser.py Fatura_Epal.pdf
-    python invoice_parser.py fatura.pdf --types-map '{"eletricidade": 1, "agua": 2, "gas": 3}'
+Usage:
+    python InvoiceExtract.py Fatura_Endesa.pdf
+    python InvoiceExtract.py Fatura_Epal.pdf
+    python InvoiceExtract.py fatura.pdf --types-map '{"eletricidade": 1, "agua": 2, "gas": 3}'
 
-Dependência: pip install pdfplumber
+Dependency: pip install pdfplumber
 """
 
 import argparse
@@ -19,7 +19,7 @@ from datetime import datetime
 import pdfplumber
 
 
-# Abreviaturas dos meses
+# Abbreviations of the Portuguese months.
 MONTHS = {
     "jan": "01", "fev": "02", "mar": "03", "abr": "04",
     "mai": "05", "jun": "06", "jul": "07", "ago": "08",
@@ -27,7 +27,7 @@ MONTHS = {
 }
 
 
-# Padrões para reconhecer números, valores e datas.
+# Patterns that recognise numbers, amounts and dates.
 NUMBER_RE = r"[-+]?\d+(?:[.,]\d+)?"
 CURRENCY_RE = re.compile(rf"({NUMBER_RE})\s*€", re.IGNORECASE)
 DATE_RE = r"\d{1,2}[-/.]\d{1,2}[-/.]\d{4}"
@@ -38,7 +38,7 @@ PERIOD_RE = re.compile(
 )
 
 
-# Remove acentos e converte o texto para minúsculas.
+# Strips accents and lowercases, so matching ignores them.
 def norm(text):
     if not text:
         return ""
@@ -46,7 +46,7 @@ def norm(text):
     return "".join(ch for ch in text if not unicodedata.combining(ch)).lower()
 
 
-# Converte números portugueses para números Python.
+# Converts Portuguese-formatted numbers (e.g. "1.234,56") to floats.
 def parse_number(value):
     if value is None:
         return 0.0
@@ -66,7 +66,7 @@ def parse_number(value):
         return 0.0
 
 
-# Converte datas para o formato AAAA-MM-DD.
+# Converts numeric ("31/12/2025") and textual ("31 dez 2025") dates to YYYY-MM-DD.
 def format_date(value):
     if not value:
         return None
@@ -89,7 +89,7 @@ def format_date(value):
     return None
 
 
-# Identifica se um item é imposto, custo fixo ou consumo.
+# Classifies an item as a tax, a fixed fee or consumption, from its name.
 def classify_category(name):
     text = norm(name)
 
@@ -109,7 +109,7 @@ def classify_category(name):
     return "consumption"
 
 
-# Extrai o texto de todas as páginas do PDF.
+# Returns the text of each page and all of it joined; layout mode keeps table rows on one line.
 def get_all_text(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         pages = [
@@ -119,7 +119,7 @@ def get_all_text(pdf_path):
     return pages, "\n".join(pages)
 
 
-# Procura o número da fatura.
+# Each supplier prints the invoice number differently.
 def extract_invoice_number(text, supplier):
     if supplier == "Endesa":
         patterns = [
@@ -140,7 +140,6 @@ def extract_invoice_number(text, supplier):
     return None
 
 
-# Extrai a data de emissão da fatura.
 def extract_issue_date(text):
     patterns = [
         rf"Data\s+de\s+Emiss[aã]o\s*:\s*({TEXT_DATE_RE}|{DATE_RE})",
@@ -172,13 +171,14 @@ def extract_period(text):
     return None, None
 
 
-# Extrai um valor monetário através de uma expressão regular.
+# Parses the first group of the pattern as an amount; None if it doesn't match.
 def extract_currency_value(pattern, text):
     match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
     return parse_number(match.group(1)) if match else None
 
 
-# Extrai quantidades, unidades e custos das tabelas da Endesa.
+# Reads the table rows of an Endesa page: quantity and unit (kWh, days, months, m³)
+# and the last € amount on the line.
 def parse_endesa_rows(page_text):
     rows = []
 
@@ -217,7 +217,7 @@ def parse_endesa_rows(page_text):
     return rows
 
 
-# Descrições dos itens de eletricidade e respetivas categorias.
+# Names and categories of the electricity items, in the order the rows appear on the Endesa page.
 ELECTRICITY_DEFINITIONS = [
     ("Termo de Energia (Real)", "consumption"),
     ("Termo de Energia (Real)", "consumption"),
@@ -230,7 +230,7 @@ ELECTRICITY_DEFINITIONS = [
 ]
 
 
-# Descrições dos itens de gás e respetivas categorias.
+# Names and categories of the gas items, in the order the rows appear on the Endesa page.
 GAS_DEFINITIONS = [
     ("Termo de Energia (Real)", "consumption"),
     ("Termo Fixo (Escalão 2)", "fixed_fee"),
@@ -241,7 +241,7 @@ GAS_DEFINITIONS = [
 ]
 
 
-# Associa as linhas extraídas às descrições dos itens da Endesa.
+# Pairs each row with the definition in the same position on Endesa; rows beyond the list are ignored.
 def build_endesa_items(rows, definitions):
     items = []
 
@@ -263,7 +263,7 @@ def build_endesa_items(rows, definitions):
     return items
 
 
-# Extrai o IVA discriminado nas faturas Endesa.
+# VAT lines of an Endesa page, without repeated ones.
 def parse_endesa_vat(page_text):
     items = []
     seen = set()
@@ -299,7 +299,7 @@ def parse_endesa_vat(page_text):
     return items
 
 
-# Extrai os consumos de eletricidade e gás das faturas Endesa.
+# Electricity and gas consumptions of an Endesa invoice, and the invoice total.
 def parse_endesa(pages, text, types_map):
     electricity_page = next((
         p for p in pages
@@ -316,7 +316,7 @@ def parse_endesa(pages, text, types_map):
     consumptions = []
     invoice_total = 0.0
 
-    # Processa a eletricidade.
+    # Electricity.
     if electricity_page:
         rows = parse_endesa_rows(electricity_page)
         luz_items = build_endesa_items(rows, ELECTRICITY_DEFINITIONS)
@@ -347,7 +347,7 @@ def parse_endesa(pages, text, types_map):
 
         invoice_total += luz_cost
 
-    # Processa o gás.
+    # Gas.
     if gas_page:
         rows = parse_endesa_rows(gas_page)
         gas_items = build_endesa_items(rows, GAS_DEFINITIONS)
@@ -379,7 +379,7 @@ def parse_endesa(pages, text, types_map):
 
         invoice_total += gas_cost
 
-    # Se existir um total global, utiliza-o em vez da soma calculada.
+    # If the invoice shows an overall total, it replaces the sum of the services.
     top_total = extract_currency_value(
         r"TOTAL A DEBITAR\s*([\d.,]+)\s*€", text
     )
@@ -395,7 +395,7 @@ def parse_endesa(pages, text, types_map):
     return consumptions, invoice_total
 
 
-# Extrai os serviços e os impostos detalhados das faturas EPAL.
+# Service lines and VAT of an EPAL invoice.
 def parse_epal_detail_items(text):
     lines = text.splitlines()
 
@@ -417,9 +417,7 @@ def parse_epal_detail_items(text):
     items = []
     seen = set()
 
-    # --------------------------------------------------------
-    # EXTRAÇÃO DOS SERVIÇOS
-    # --------------------------------------------------------
+    # Service lines.
 
     for idx, line in enumerate(lines):
         selected = None
@@ -442,10 +440,8 @@ def parse_epal_detail_items(text):
             remainder = candidate[date_match.end():]
             values = re.findall(NUMBER_RE, remainder)
 
-            # A tabela contém:
-            # Quantidade | Preço unitário | Valor faturado | Valor a pagar | Taxa IVA
-            # O custo correto é o penúltimo valor.
-            # O último valor corresponde à taxa de IVA.
+            # Table columns: quantity | unit price | billed amount | amount due | VAT rate.
+            # The cost is the second-to-last value; the last one is the VAT rate.
             if len(values) >= 3:
                 quantity = parse_number(values[0])
                 cost = parse_number(values[-2])
@@ -467,9 +463,7 @@ def parse_epal_detail_items(text):
 
         seen.add(selected)
 
-    # --------------------------------------------------------
-    # EXTRAÇÃO DO IVA EPAL
-    # --------------------------------------------------------
+    # VAT.
 
     normalized_text = re.sub(r"\s+", " ", text)
 
@@ -505,7 +499,7 @@ def parse_epal_detail_items(text):
     return items
 
 
-# Extrai os dados de consumo de água e o total da fatura EPAL.
+# Water consumption and total of an EPAL invoice.
 def parse_epal(pages, text, types_map):
     items = parse_epal_detail_items(text)
     total = extract_currency_value(r"Valor a pagar\s*([\d.,]+)\s*€?", text)
@@ -519,13 +513,13 @@ def parse_epal(pages, text, types_map):
     if total is None:
         total = 0.0
 
-    # Procura a quantidade de água indicada em litros.
+
     usage_match = re.search(
         rf"({NUMBER_RE})\s*litros",
         text,
         re.IGNORECASE,
     )
-    # A EPAL indica litros; a base de dados e os benchmarks usam m³.
+    # EPAL prints litres; the database and the benchmarks use m³.
     water_amount = (
         round(parse_number(usage_match.group(1)) / 1000, 3)
         if usage_match
@@ -549,13 +543,13 @@ def parse_epal(pages, text, types_map):
     return consumptions, total
 
 
-# Identifica o fornecedor e reúne os dados principais da fatura.
+# Detects the supplier and collects the invoice's main data.
 def extract(pdf_path, types_map=None):
     types_map = types_map or {}
     pages, text = get_all_text(pdf_path)
     text_norm = norm(text)
 
-    # Identifica o fornecedor pelo conteúdo do documento.
+    # The supplier comes from the document text, not from the file name.
     if "endesa" in text_norm:
         supplier = "Endesa"
     elif (
@@ -570,7 +564,7 @@ def extract(pdf_path, types_map=None):
     issue_date = extract_issue_date(text)
     period_start, period_end = extract_period(text)
 
-    # Chama o extrator adequado ao fornecedor.
+    # Each known supplier has its own extractor; for any other only the total is read.
     if supplier == "Endesa":
         consumptions, total_amount = parse_endesa(pages, text, types_map)
     elif supplier == "EPAL":
@@ -592,7 +586,8 @@ def extract(pdf_path, types_map=None):
     }
 
 
-# Lê os argumentos, executa a extração e apresenta o resultado em JSON.
+# Prints the result as JSON; on error it writes to stderr and exits with 1
+# (InvoiceExtractionService logs it).
 def main():
     parser = argparse.ArgumentParser(
         description="Extrai dados de faturas Endesa e EPAL para JSON."
@@ -609,7 +604,7 @@ def main():
     try:
         types_map = json.loads(args.types_map)
 
-        # O Laravel envia o mapa por stdin (evita problemas de aspas no Windows).
+        # Laravel sends the map through stdin (avoids quoting problems on Windows).
         if not types_map and not sys.stdin.isatty():
             raw = sys.stdin.read().strip()
 
@@ -619,7 +614,7 @@ def main():
         if not isinstance(types_map, dict):
             raise ValueError("O mapa de tipos deve ser um objeto JSON")
 
-        # Normaliza as chaves (sem acentos, minúsculas): "Água" -> "agua".
+        # Normalises the keys (no accents, lowercase): "Água" -> "agua".
         types_map = {norm(key): value for key, value in types_map.items()}
 
         result = extract(args.pdf_path, types_map)
@@ -629,7 +624,5 @@ def main():
         print(f"Erro: {exc}", file=sys.stderr)
         sys.exit(1)
 
-
-# Executa main() apenas quando o ficheiro é iniciado diretamente.
 if __name__ == "__main__":
     main()
