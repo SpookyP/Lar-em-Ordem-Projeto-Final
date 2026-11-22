@@ -64,7 +64,6 @@ class AuthController extends Controller
     /**
      * Remove a role/profile from the authenticated user.
      */
-
     public function destroyProfile(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -84,7 +83,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Erases the authenticated user's account and end the session.
+     * Erases the authenticated user's account and ends the session.
      */
     public function destroyAccount(Request $request, AccountErasureService $erasure): JsonResponse
     {

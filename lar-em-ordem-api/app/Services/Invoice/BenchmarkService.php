@@ -38,7 +38,8 @@ class BenchmarkService
     }
     
     /**
-     * Devolve a série histórica mensal de custos médios do grupo comparável.
+     * Monthly history of the average cost in the comparable group
+     * (same property type, typology and district).
      *
      * @return array<int, array<string, mixed>>
      */
@@ -75,7 +76,7 @@ class BenchmarkService
     }
 
     /**
-     * Calcula o número de dias entre duas datas.
+     * Days between two dates, ignoring the time of day.
      */
     private function days(Carbon $a, Carbon $b): int
     {
@@ -83,15 +84,18 @@ class BenchmarkService
     }
 
     /**
-     * Devolve a comparação anual de todos os serviços numa única resposta.
+     * Annual comparison of all services, in a single response.
      * @return array<string, mixed>
      */
     public function annualCostComparison(Property $property): array
     {
         $property->loadMissing(['address']);
 
+        // consumption type ids: electricity, water and gas (see ConsumptionTypeSeeder)
         $ids = [1, 2, 3];
         $currentYear = now()->year;
+        // months of the current year that are not complete yet (this one included): a benchmark
+        // for the current year is extrapolated over them
         $benchmarkEstimatedMonths = max(0, 12 - (now()->month - 1));
 
         $benchmarks = ConsumptionBenchmark::query()
@@ -152,6 +156,7 @@ class BenchmarkService
         /** @var array<int, array<int, array<string, float>>> $monthly */
         $monthly = [];
 
+        // an invoice period can cross months: its cost is split across them by the days in each
         foreach ($consumptions as $consumption) {
             $start = Carbon::parse($consumption->period_start);
             $end = Carbon::parse($consumption->period_end);
@@ -194,6 +199,8 @@ class BenchmarkService
                 $months = $monthly[$year][$id] ?? [];
                 $count = count($months);
 
+                // at least 9 months of invoices are needed; the missing ones are projected
+                // from the monthly average below
                 if ($count < 9) {
                     continue;
                 }
@@ -227,8 +234,8 @@ class BenchmarkService
             ->get(['id', 'name'])
             ->keyBy('id');
 
-        // Acrescenta o nome do serviço a cada série para a interface poder
-        // apresentar as estimativas por serviço sem fazer pedidos adicionais.
+        // adds the service name to each row, so the interface can show the per-service
+        // estimates without extra requests
         foreach ($eligible as $year => $servicesForYear) {
             foreach ($servicesForYear as $id => $row) {
                 $eligible[$year][$id]['consumption_type'] = $types->get($id)?->name;
@@ -273,7 +280,7 @@ class BenchmarkService
             }
         }
 
-        // A vista Geral só inclui anos em que os três serviços são elegíveis.
+        // the overall view only includes years where all three services are eligible
         $generalData = [];
 
         foreach ($eligible as $year => $servicesForYear) {

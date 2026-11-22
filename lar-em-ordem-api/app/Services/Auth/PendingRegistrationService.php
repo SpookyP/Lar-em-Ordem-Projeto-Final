@@ -50,7 +50,7 @@ class PendingRegistrationService
      * Stores the request and emails the link. A new request for the same email replaces the old one,
      * and every request, resends included, gets a fresh TTL_MINUTES window.
      *
-     * @param array{name: string, email: string, password: ?string, role: string, profile: array, consents: array , provider: ?string, provider_user_id: ?string} $data
+     * @param array{name: string, email: string, password: ?string, role: string, profile: array, consents: array, provider: ?string, provider_user_id: ?string} $data
      *        password is already hashed (null for social registrations)
      */
     public function start(array $data): void

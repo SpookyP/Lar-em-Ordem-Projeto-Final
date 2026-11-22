@@ -13,7 +13,6 @@ class PropertyResource extends JsonResource
             'addressId'        => $this->address_id,
             'area'             => $this->area,
 
-            // Inline Address transformation
             'address'          => $this->whenLoaded('address', fn() => [
                 'id'         => $this->address->id,
                 'street'     => $this->address->street,
@@ -29,7 +28,6 @@ class PropertyResource extends JsonResource
             'propertyTypology' => $this->whenLoaded('propertyTypology'),
             'condominium'      => $this->whenLoaded('condominium'),
 
-            // Inline Contracts transformation
             'contracts'        => $this->whenLoaded('contracts', fn() => $this->contracts->map(fn($contract) => [
                 'id'           => $contract->id,
                 'residentId'   => $contract->resident_id,

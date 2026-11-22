@@ -8,19 +8,12 @@ use Illuminate\Validation\Rule;
 
 class UpdatePropertyRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return $this->user()?->resident !== null;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
         // a date left out of the request is compared with the one saved in the active contract
@@ -72,7 +65,7 @@ class UpdatePropertyRequest extends FormRequest
     }
 
     /**
-     * Extract only present Property data for update.
+     * Only the fields that were sent, so a missing one doesn't overwrite what is saved.
      */
     public function propertyData(): array
     {
@@ -84,7 +77,7 @@ class UpdatePropertyRequest extends FormRequest
     }
 
     /**
-     * Extract only present Contract data for update.
+     * Only the fields that were sent, so a missing one doesn't overwrite what is saved.
      */
     public function contractData(): array
     {
@@ -95,9 +88,6 @@ class UpdatePropertyRequest extends FormRequest
         ]), fn($value) => $value !== null);
     }
 
-    /**
-     * Extract only Address data.
-     */
     public function addressData(): ?array
     {
         return $this->validated('address');

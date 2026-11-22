@@ -14,6 +14,8 @@ class EmailVerificationController extends Controller
     {
         $user = User::find($id);
 
+        // the signature proves the link is ours; the hash ties it to the current email,
+        // so a link sent before an email change stops working
         if (!$user || !hash_equals(sha1($user->getEmailForVerification()), $hash)) {
             return response()->json(['message' => 'Link inválido ou expirado.'], 403);
         }

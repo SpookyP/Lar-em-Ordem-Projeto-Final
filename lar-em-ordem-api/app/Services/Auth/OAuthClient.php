@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
- * Fala com a Google/Microsoft (OAuth 2.0 "authorization code" com PKCE).
- * So trata do protocolo; quem decide que conta entra e o SocialLoginService.
+ * Talks to Google/Microsoft (OAuth 2.0 authorization code flow with PKCE).
+ * It only handles the protocol; SocialLoginService decides which account signs in.
  */
 class OAuthClient
 {
     /**
-     * Configuracao do fornecedor, ou null se nao existir ou faltarem as chaves no .env.
+     * The provider's config, or null if it doesn't exist or its keys are missing from .env.
      */
     public function config(string $provider): ?array
     {
@@ -33,7 +33,7 @@ class OAuthClient
     }
 
     /**
-     * PKCE: texto aleatorio que fica so na sessao do servidor.
+     * PKCE: a random string that only lives in the server session.
      */
     public function newVerifier(): string
     {
@@ -41,16 +41,13 @@ class OAuthClient
     }
 
     /**
-     * PKCE: o fornecedor recebe so o hash (S256); o texto original so o enviamos na troca do codigo.
+     * PKCE: the provider only gets the hash (S256); the original is only sent when exchanging the code.
      */
     public function challenge(string $verifier): string
     {
         return rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
     }
 
-    /**
-     * Endereco do fornecedor para onde mandamos o browser.
-     */
     public function authorizationUrl(string $provider, array $config, string $state, string $verifier): string
     {
         $query = array_merge($config['extra'] ?? [], [
@@ -67,10 +64,12 @@ class OAuthClient
     }
 
     /**
-     * Troca o codigo por um token (servidor para servidor) e le o perfil.
-     * Devolve sempre o mesmo formato: id, email, email_verified, name.
+     * Exchanges the code for a token (server to server) and reads the profile.
+     * Always returns the same shape whatever the provider.
      *
-     * @throws SocialLoginException se o fornecedor falhar ou responder algo inesperado
+     * @return array{id: string, email: ?string, email_verified: bool, name: string}
+     *
+     * @throws SocialLoginException when the provider fails or answers something unexpected
      */
     public function fetchProfile(string $provider, array $config, string $code, string $verifier): array
     {
@@ -103,7 +102,7 @@ class OAuthClient
             $this->logFailure($provider, 'leitura do perfil', $info);
         }
 
-        // "sub" e o id estavel do utilizador no fornecedor
+        // "sub" is the user's stable id at the provider
         if (!is_array($data) || !is_string($data['sub'] ?? null) || $data['sub'] === '') {
             throw new SocialLoginException('falhou');
         }
@@ -121,7 +120,7 @@ class OAuthClient
         return [
             'id' => $data['sub'],
             'email' => $email,
-            // so conta como verificado se o fornecedor e conhecido por o dizer E disse mesmo "true"
+            // only verified if the provider is trusted to say so AND actually said true
             'email_verified' => ($config['trusts_email_verified'] ?? false) === true
                 && ($data['email_verified'] ?? false) === true,
             'name' => Str::limit($name, 255, ''),
@@ -129,8 +128,8 @@ class OAuthClient
     }
 
     /**
-     * Ajuda a perceber porque falhou (segredo errado, URI errado...). Regista so o estado HTTP
-     * e o codigo de erro do fornecedor; nunca o codigo de login, tokens ou segredos.
+     * Helps to find out why it failed (wrong secret, wrong URI...). Logs only the HTTP status and the
+     * provider's error code; never the sign-in code, tokens or secrets.
      */
     private function logFailure(string $provider, string $step, $response): void
     {

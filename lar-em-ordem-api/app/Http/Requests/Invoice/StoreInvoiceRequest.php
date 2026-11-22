@@ -8,23 +8,17 @@ use Illuminate\Validation\Rule;
 
 class StoreInvoiceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true; // Middleware handled
+        return true; // InvoiceController authorizes with InvoicePolicy
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
         return [
-            // Validar se a propriedade pertence ao residente autenticado.
+            // the home must have an active contract of the signed-in user;
+            // any other id is reported as nonexistent
             'property_id' => [
                 'required',
                 'string',
@@ -42,7 +36,7 @@ class StoreInvoiceRequest extends FormRequest
                 },
             ],
 
-            // Impedir números de fatura duplicados para o mesmo fornecedor.
+            // an invoice number can only be registered once per resident from the same service type (water, gas, electricity)
             'invoice_number' => [
                 'required',
                 'string',
@@ -60,10 +54,9 @@ class StoreInvoiceRequest extends FormRequest
             'total_amount' => ['required', 'numeric', 'min:0'],
             'supplier' => ['required', 'string', 'max:255'],
 
-            // PDF da fatura, opcional. Só é guardado quando a fatura é registada.
             'file' => ['nullable', 'file', 'mimes:pdf', 'mimetypes:application/pdf', 'max:10240'],
 
-            // Consumos principais (no máximo 10 por fatura).
+            // max main consumptions (10 per invoice)
             'consumptions' => ['required', 'array', 'max:10'],
             'consumptions.*.consumption_type_id' => [
                 'required',
@@ -84,8 +77,7 @@ class StoreInvoiceRequest extends FormRequest
                 'max:99999999.99',
             ],
 
-            // Sub-itens detalhados opcionais para o gráfico de anel.
-            // Cada consumo pode ter no máximo 30 itens.
+            // Sub-Items for the donut chart (30 per consumption at most)
             'consumptions.*.items' => ['nullable', 'array', 'max:30'],
             'consumptions.*.items.*.name' => ['required', 'string', 'max:255'],
             'consumptions.*.items.*.category' => [
@@ -108,7 +100,7 @@ class StoreInvoiceRequest extends FormRequest
                 'required',
                 'numeric',
                 'between:-99999999.99,99999999.99',
-            ], // Negativos permitidos (ex: autoconsumo solar).
+            ], // negatives allowed (e.g. solar self-consumption)
         ];
     }
 
@@ -162,9 +154,7 @@ class StoreInvoiceRequest extends FormRequest
         ];
     }
 
-    /**
-     * Nomes legíveis dos campos nas mensagens de validação.
-     */
+    /** Readable field names used in the validation messages. */
     public function attributes(): array
     {
         return [

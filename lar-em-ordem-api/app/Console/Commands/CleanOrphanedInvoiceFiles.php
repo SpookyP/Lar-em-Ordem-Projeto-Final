@@ -18,7 +18,8 @@ class CleanOrphanedInvoiceFiles extends Command
     {
         $cutoff = now()->subDay();
 
-        // Seleciona apenas ficheiros de faturas antigos e sem fatura associada.
+        // a file is uploaded before its invoice is saved: the 24 h margin spares the ones still
+        // being registered, and the rest are leftovers from failed requests
         $query = File::query()
             ->where('category', InvoiceService::FILE_CATEGORY)
             ->where('created_at', '<=', $cutoff)
@@ -43,7 +44,7 @@ class CleanOrphanedInvoiceFiles extends Command
         $deleted = 0;
         $failed = 0;
 
-        // Processa em lotes para evitar carregar todos os ficheiros em memória.
+        // Processes in batches of 100, so the files aren't all loaded into memory
         $query
             ->orderBy('id')
             ->chunkById(100, function ($batch) use ($files, &$deleted, &$failed) {

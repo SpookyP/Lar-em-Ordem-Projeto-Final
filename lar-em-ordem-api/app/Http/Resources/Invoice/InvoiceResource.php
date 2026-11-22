@@ -8,9 +8,6 @@ use App\Http\Resources\Property\PropertyResource;
 
 class InvoiceResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray(Request $request): array
     {
         return [

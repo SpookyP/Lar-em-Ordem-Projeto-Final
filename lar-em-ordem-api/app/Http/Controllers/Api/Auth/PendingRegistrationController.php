@@ -15,8 +15,8 @@ use Illuminate\Validation\ValidationException;
 use App\Services\Privacy\ConsentService;
 
 /**
- * Registo com password: a conta so e criada depois de confirmar o email.
- * (O /register do Fortify esta desligado em config/fortify.php: criava a conta logo.)
+ * Sign-up with a password: the account is only created once the email is confirmed.
+ * (Fortify's /register is turned off in config/fortify.php because it created the account straight away.)
  */
 class PendingRegistrationController extends Controller
 {
@@ -29,8 +29,8 @@ class PendingRegistrationController extends Controller
     {
         $email = (string) $request->input('email');
 
-        // quem ja tem conta e acrescenta um perfil com a mesma password mantem o comportamento de sempre
-        // (o email ja existe, logo ja foi confirmado)
+        // an existing account adding a profile with its password is handled at once:
+        // the email already exists, so it was already confirmed
         if ($email !== '' && User::where('email', $email)->exists()) {
             $user = $this->creator->create($request->all());
 
@@ -44,12 +44,12 @@ class PendingRegistrationController extends Controller
             ], 201);
         }
 
-        // conta eliminada (soft delete): o email nao pode ser reutilizado; avisa logo e nao so ao abrir o link
+        // a deleted account (soft delete) keeps its email; warn user now rather than when the link is opened
         if ($email !== '' && User::onlyTrashed()->where('email', $email)->exists()) {
             throw ValidationException::withMessages(['email' => ['Este email não pode ser usado.']]);
         }
 
-        // mesmas validacoes do registo normal; so os campos validados seguem
+        // same validation as the normal sign-up; only validated fields are kept
         $validated = $this->creator->validate($request->all());
 
         $this->pending->start([
@@ -92,7 +92,7 @@ class PendingRegistrationController extends Controller
 
         $this->pending->resend($email);
 
-        // a mesma resposta exista ou nao um registo para este email
+        // same answer whether or not this email has a pending sign-up
         return response()->json(['message' => 'Se existir um registo por confirmar, enviámos um novo link.'], 202);
     }
 }

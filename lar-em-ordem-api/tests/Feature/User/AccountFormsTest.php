@@ -106,7 +106,7 @@ class AccountFormsTest extends TestCase
             ->assertJsonValidationErrors(['name' => 'O campo nome não pode ter mais de 255 caracteres.']);
     }
 
-        public function test_a_name_with_a_link_is_refused(): void
+    public function test_a_name_with_a_link_is_refused(): void
     {
         $data = ['name' => 'Ana [clique aqui](https://evil.example)'] + $this->signUpAsResident('nova.conta@example.com', 'Lar-em-Ordem-2026!');
 

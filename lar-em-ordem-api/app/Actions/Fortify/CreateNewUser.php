@@ -21,7 +21,8 @@ class CreateNewUser implements CreatesNewUsers
     public function __construct(private ProfileService $profileService,private ConsentService $consentService,) {}
 
     /**
-     * Validate a newly registered user.
+     * Validates the account fields together with the chosen profile's rules and the sign-up consents.
+     * An existing account (adding a profile) only needs its current password, not one that meets the rules.
      *
      * @param  array<string, mixed>  $input
      * @return array<string, mixed>
@@ -41,7 +42,7 @@ class CreateNewUser implements CreatesNewUsers
         // an invalid role has no FormRequest and fails on the 'role' rule
         $roleRequest = is_string($role) ? ProfileService::requestFor($role) : null;
 
-        // só os campos validados seguem para o perfil (nunca o $input bruto)
+        // only validated fields reach the profile, never the raw input
         return Validator::make(
             $input,
             array_merge($rules, $roleRequest?->rules() ?? [], ConsentService::signUpRules($existingAccount)),
@@ -50,7 +51,8 @@ class CreateNewUser implements CreatesNewUsers
     }
 
     /**
-     * Create a newly registered user.
+     * Creates the account and its first profile, or adds the profile to an existing account
+     * when the password matches it.
      *
      * @param  array<string, string>  $input
      *
@@ -78,7 +80,7 @@ class CreateNewUser implements CreatesNewUsers
                 ]);
             }
 
-            // perfil + role (e zonas/especialidades do prestador) — "já tem este perfil" dá 422
+            // profile and role (plus a provider's zones and specialties); a profile the account already has gives 422
             $this->profileService->create($user, $role, Arr::except($validated, ['name', 'email', 'password', 'role', ...ConsentService::SIGN_UP_FIELDS]));
             $this->consentService->recordSignUp($user, ConsentService::fromSignUp($validated), 'signup');
             

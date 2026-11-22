@@ -12,7 +12,7 @@ class PerPageRequest extends FormRequest
     }
 
     /**
-     * Listagens paginadas: ?page=2&per_page=10 (por defeito 5 por página, máximo 15).
+     * Paginated lists: ?page=2&per_page=10 (5 per page by default, 15 at most).
      */
     public function rules(): array
     {

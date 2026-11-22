@@ -5,8 +5,8 @@ namespace App\Services\Auth;
 use RuntimeException;
 
 /**
- * Falha previsivel no login social. O "reason" e um codigo fixo
- * (conta_existente, sem_email, ...) que o frontend traduz numa mensagem.
+ * Expected social sign-in failure. The reason is a fixed code (conta_existente, sem_email, ...)
+ * that the frontend turns into a message.
  */
 class SocialLoginException extends RuntimeException
 {

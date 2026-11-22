@@ -10,13 +10,8 @@ class ResidentService
 {
     public function __construct(private PersonalDataEraser $eraser) {}
 
-    #region CRUD
     /**
-     * Cria o perfil de residente de um utilizador e atribui-lhe a role 'resident'. Transação.
-     *
-     * @param array $data Dados validados (nif).
-     * @param User $owner Utilizador dono do perfil.
-     * @return Resident
+     * Creates the user's resident profile and gives them the 'resident' role.
      */
     public function create(array $data, User $owner): Resident
     {
@@ -32,10 +27,7 @@ class ResidentService
     }
 
     /**
-     * Remove o perfil de residente (soft delete) e retira a role 'resident'. Transação.
-     *
-     * @param Resident $resident Perfil a remover.
-     * @return void
+     * Erases the resident's personal data, soft-deletes the profile and removes the 'resident' role.
      */
     public function delete(Resident $resident): void
     {
@@ -46,13 +38,6 @@ class ResidentService
         });
     }
 
-    /**
-     * Updates the resident profile with the validated data (nif), in a transaction.
-     *
-     * @param Resident $resident The profile, already found by the ProfileService.
-     * @param array $data Validated data.
-     * @return Resident
-     */
     public function update(Resident $resident, array $data): Resident
     {
         return DB::transaction(function () use ($data, $resident) {
@@ -60,5 +45,4 @@ class ResidentService
             return $resident->fresh();
         });
     }
-    #endregion
 }

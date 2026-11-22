@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
  */
 class SocialRegisterController extends Controller
 {
-        public function __construct(
+    public function __construct(
         private SocialLoginService $login,
         private PendingRegistrationService $registrations,
         private ConsentService $consents,
