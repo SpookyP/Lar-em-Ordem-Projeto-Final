@@ -15,30 +15,34 @@ export function SiteLayout({ flush = false }) {
   if (isAuthenticated) return <AppLayout />;
 
   return (
-    <div className={`flex flex-col ${flush ? "min-h-dvh bg-card lg:h-dvh" : "min-h-screen bg-surface"}`}>
-      <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 lg:px-10">
+    <div
+      className={`flex flex-col ${flush ? "min-h-dvh bg-card lg:h-dvh" : "min-h-screen bg-surface"}`}
+    >
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 sm:gap-4 sm:px-6 lg:px-10">
         <Link to="/login" className="flex items-center gap-2.5">
           <img src="/logo.svg" alt="" className="size-9" />
-          <span className="whitespace-nowrap font-display text-lg text-navy sm:text-xl">
+          <span className="whitespace-nowrap font-display text-base text-navy sm:text-xl">
             Lar em Ordem
           </span>
         </Link>
-        <nav className="flex items-center gap-2 text-sm">
+        <nav className="flex items-center gap-1.5 text-xs sm:gap-2 sm:text-sm">
           <Link
             to="/login"
-            className="whitespace-nowrap rounded-full bg-surface px-3 py-2 font-medium text-navy transition hover:bg-border sm:px-4"
+            className="whitespace-nowrap rounded-full bg-surface px-2.5 py-1.5 font-medium text-navy transition hover:bg-border sm:px-4 sm:py-2"
           >
             Entrar
           </Link>
           <Link
             to="/register"
-            className="whitespace-nowrap rounded-full bg-navy px-3 py-2 font-semibold text-white transition hover:bg-navy-light sm:px-4"
+            className="whitespace-nowrap rounded-full bg-navy px-2.5 py-1.5 font-semibold text-white transition hover:bg-navy-light sm:px-4 sm:py-2"
           >
             Criar conta
           </Link>
         </nav>
       </header>
-      <main className={flush ? "flex flex-1 flex-col lg:min-h-0" : "flex-1 p-6"}>
+      <main
+        className={flush ? "flex flex-1 flex-col lg:min-h-0" : "flex-1 p-6"}
+      >
         <Outlet />
       </main>
       <Footer />
