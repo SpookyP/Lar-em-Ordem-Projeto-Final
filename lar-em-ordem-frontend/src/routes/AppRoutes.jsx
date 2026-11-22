@@ -44,8 +44,10 @@ const Offers = lazy(() => import("../pages/Resident/Offers/Offers"));
 const OfferDetail = lazy(
   () => import("../pages/Resident/OfferDetail/OfferDetail"),
 );
-const Consumption = lazy(() => import("../pages/Consumption/Consumption"));
-const Invoice = lazy(() => import("../pages/Consumption/Invoice"));
+const Consumption = lazy(
+  () => import("../pages/Resident/Consumption/Consumption"),
+);
+const Invoice = lazy(() => import("../pages/Resident/Invoice/Invoice"));
 const Vault = lazy(() => import("../pages/Resident/Vault/Vault"));
 
 //Prestador

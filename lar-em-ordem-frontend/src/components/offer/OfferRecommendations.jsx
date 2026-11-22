@@ -3,7 +3,7 @@ import { getRecommendations } from "../../services/api/offerService";
 import { PartnerOfferCard } from "./PartnerOfferCard";
 import { ArrowRight } from "lucide-react";
 import { useFetch } from "../../hooks/useFetch";
-import { LoadingState } from "./LoadingState";
+import { LoadingState } from "../ui/LoadingState";
 
 export function OfferRecommendations() {
   const {

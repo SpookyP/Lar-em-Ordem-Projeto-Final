@@ -6,7 +6,7 @@ import {
   updateProposal,
 } from "../../../services/api/proposalService";
 import { categoryInfo, proposalStatus } from "../../../data/assistanceInfo";
-import { ProposalForm } from "../../../components/ui/ProposalForm";
+import { ProposalForm } from "../../../components/assistance/ProposalForm";
 import { formatAddress } from "../../../utils/format";
 import { formatDate, formatDay } from "../../../utils/date";
 import { useGoBack } from "../../../hooks/useGoBack";

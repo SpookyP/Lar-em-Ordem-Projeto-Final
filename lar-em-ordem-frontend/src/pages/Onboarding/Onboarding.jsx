@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { PropertyForm } from "../../components/ui/PropertyForm";
+import { PropertyForm } from "../../components/house/PropertyForm";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function Onboarding() {

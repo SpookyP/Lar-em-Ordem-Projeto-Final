@@ -8,10 +8,10 @@ import {
 import { PropertyForm } from "./PropertyForm";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { Pager } from "./Pager";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { LoadingState } from "./LoadingState";
-import { EmptyState } from "./EmptyState";
+import { Pager } from "../ui/Pager";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { LoadingState } from "../ui/LoadingState";
+import { EmptyState } from "../ui/EmptyState";
 
 export function ManageHouses() {
   const { refreshHouses } = useHouses();

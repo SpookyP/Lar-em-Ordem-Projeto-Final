@@ -1,9 +1,9 @@
 import { AssistanceCard } from "./AssistanceCard";
-import { Pager } from "./Pager";
+import { Pager } from "../ui/Pager";
 import { categoryInfo } from "../../data/assistanceInfo";
 import { formatDate } from "../../utils/date";
-import { LoadingState } from "./LoadingState";
-import { EmptyState } from "./EmptyState";
+import { LoadingState } from "../ui/LoadingState";
+import { EmptyState } from "../ui/EmptyState";
 
 const STATUS_FILTERS = [
   { value: "", label: "Todos" },

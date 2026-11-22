@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react";
-import { DocumentCard } from "../../../components/ui/DocumentCard";
+import { DocumentCard } from "../../../components/vault/DocumentCard";
 import {
   getPropertyDocuments,
   deleteDocument,
@@ -9,8 +9,8 @@ import {
 import { useAuth } from "../../../hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { isOwnerHouse } from "../../../utils/ownerHouse";
-import { DocumentUploadModal } from "../../../components/ui/DocumentUploadModal";
-import { DocumentEditModal } from "../../../components/ui/DocumentEditModal";
+import { DocumentUploadModal } from "../../../components/vault/DocumentUploadModal";
+import { DocumentEditModal } from "../../../components/vault/DocumentEditModal";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { LoadingState } from "../../../components/ui/LoadingState";
 import { EmptyState } from "../../../components/ui/EmptyState";

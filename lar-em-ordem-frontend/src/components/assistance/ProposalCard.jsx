@@ -4,7 +4,13 @@ import { formatDay } from "../../utils/date";
 import { formatMoney } from "../../utils/format";
 
 //proposta vista pelo morador
-export function ProposalCard({ proposal, canRespond, busy, onAccept, onReject }) {
+export function ProposalCard({
+  proposal,
+  canRespond,
+  busy,
+  onAccept,
+  onReject,
+}) {
   const [confirming, setConfirming] = useState(false);
   const expired = proposal.isExpired;
   const status = proposalStatus(proposal.status, expired);
@@ -29,7 +35,7 @@ export function ProposalCard({ proposal, canRespond, busy, onAccept, onReject })
         </span>
       </div>
 
-      <p className="text-sm text-navy whitespace-pre-line break-words">
+      <p className="text-sm text-navy whitespace-pre-line wrap-break-word">
         {proposal.description}
       </p>
 

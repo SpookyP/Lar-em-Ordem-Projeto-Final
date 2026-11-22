@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ProfileCard } from "../../components/ui/ProfileCard";
+import { ProfileCard } from "../../components/account/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_INFO } from "../../data/roleInfo";
 import { getPropertiesPage } from "../../services/api/propertyService";
-import { HouseList } from "../../components/ui/HouseList";
+import { HouseList } from "../../components/house/HouseList";
 import { AuthSplit } from "../../components/layout/AuthSplit";
 import { Footer } from "../../components/layout/Footer";
 import { useGoBack } from "../../hooks/useGoBack";

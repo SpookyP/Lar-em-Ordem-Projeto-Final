@@ -5,8 +5,8 @@ import {
   displayValue,
   roleFields,
 } from "../../data/registerFields";
-import { PasswordRequirements } from "../ui/PasswordRequirements";
-import { DataRow } from "../ui/DataRow";
+import { PasswordRequirements } from "../account/PasswordRequirements";
+import { DataRow } from "../account/DataRow";
 import { ChoiceCards, PasswordField, StepProgress, TextInput } from "../form";
 import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import {
@@ -14,8 +14,8 @@ import {
   SpecialtySummary,
   ZoneCoverageField,
   ZoneSummary,
-} from "../ui/ProviderCoverageFields";
-import { EMPTY_COVERAGE } from "../ui/coverage";
+} from "../assistance/ProviderCoverageFields";
+import { EMPTY_COVERAGE } from "../../utils/coverage";
 import { ProfileFieldInput } from "./ProfileFieldInput";
 import { ConsentFields } from "./ConsentFields";
 import { buildPayload, buildSteps, firstStepWithErrors } from "./profileSteps";

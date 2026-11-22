@@ -1,5 +1,5 @@
 import { detailSteps, roleFields } from "../../data/registerFields";
-import { coverageToPayload } from "../ui/coverage";
+import { coverageToPayload } from "../../utils/coverage";
 import { ROLES } from "../../utils/roles";
 
 const ACCOUNT_STEP = {

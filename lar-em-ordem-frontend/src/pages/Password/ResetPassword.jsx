@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
+import { PasswordRequirements } from "../../components/account/PasswordRequirements";
 import { isPasswordValid } from "../../utils/passwordValidation";
 import { resetPassword } from "../../services/api/authService";
 import { PasswordField } from "../../components/form";

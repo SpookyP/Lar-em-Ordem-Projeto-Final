@@ -16,7 +16,7 @@ import {
   indexToKey,
   monthsBetween,
   asNumber,
-} from "./invoiceTimelineUtils";
+} from "../../utils/invoiceTimelineUtils";
 
 const MONTHS = [
   "Janeiro",
@@ -995,14 +995,14 @@ export default function InvoiceTimelineChart({
         <label
           className={`group flex cursor-pointer items-center gap-3.5 rounded-2xl border p-3.5 transition-all duration-200 sm:p-4 ${
             advancedEnabled
-              ? "border-navy/20 bg-linear-to-r from-[#1C3557]/[0.07] via-white to-[#1C3557]/4 shadow-sm shadow-[#1C3557]/10"
+              ? "border-navy/20 bg-linear-to-r from-navy/[0.07] via-white to-navy/4 shadow-sm shadow-navy/10"
               : "border-slate-200 bg-white hover:border-navy/30 hover:bg-navy/2.5"
           }`}
         >
           <span
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
               advancedEnabled
-                ? "bg-navy text-white shadow-md shadow-[#1C3557]/20"
+                ? "bg-navy text-white shadow-md shadow-navy/20"
                 : "bg-slate-100 text-slate-500 group-hover:bg-navy/10 group-hover:text-navy"
             }`}
           >
@@ -1046,7 +1046,7 @@ export default function InvoiceTimelineChart({
                 updateRange(presetRange(defaultMonthKeys, 1));
               }
             }}
-            className="h-4 w-4 shrink-0 rounded border-slate-300 text-navy focus:ring-[#1C3557]"
+            className="h-4 w-4 shrink-0 rounded border-slate-300 text-navy focus:ring-navy"
           />
 
           <span className="min-w-0 flex-1">
@@ -1089,7 +1089,7 @@ export default function InvoiceTimelineChart({
 
         {/* Seletores de datas apresentados quando o filtro avançado está ativo. */}
         {advancedEnabled && (
-          <div className="relative mt-3 overflow-hidden rounded-2xl border border-navy/15 bg-linear-to-br from-[#1C3557]/5.5 via-white to-[#1C3557]/[0.035] p-4 shadow-sm sm:p-5">
+          <div className="relative mt-3 overflow-hidden rounded-2xl border border-navy/15 bg-linear-to-br from-navy/5.5 via-white to-navy/[0.035] p-4 shadow-sm sm:p-5">
             <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-navy/6 blur-2xl" />
             <div className="pointer-events-none absolute -bottom-16 left-1/3 h-36 w-36 rounded-full bg-navy/4.5 blur-2xl" />
 

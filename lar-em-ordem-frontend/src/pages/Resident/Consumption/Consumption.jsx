@@ -1,16 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import useInvoices from "../../hooks/useInvoices";
-import DetailedConsumptionChart from "../../components/ui/DetailedConsumptionChart";
-import InvoiceTimelineChart from "../../components/ui/InvoiceTimelineChart";
-import { scaleInvoicesToRange } from "../../components/ui/invoiceTimelineUtils";
-import AnnualBenchmarkTable from "../../components/ui/AnnualBenchmarkTable";
-import InvoiceForm from "../../components/ui/InvoiceForm";
+import useInvoices from "../../../hooks/useInvoices";
+import DetailedConsumptionChart from "../../../components/consumption/DetailedConsumptionChart";
+import InvoiceTimelineChart from "../../../components/invoice/InvoiceTimelineChart";
+import { scaleInvoicesToRange } from "../../../utils/invoiceTimelineUtils";
+import AnnualBenchmarkTable from "../../../components/consumption/AnnualBenchmarkTable";
+import InvoiceForm from "../../../components/invoice/InvoiceForm";
 
 const MONTHS = [
-  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
 ];
 
 const formatMonth = (key) => {
@@ -28,24 +38,15 @@ export default function Consumptions() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const {
-    propertyId,
-    invoices,
-    benchmarks,
-    loading,
-    error,
-    refresh,
-  } = useInvoices();
+  const { propertyId, invoices, benchmarks, loading, error, refresh } =
+    useInvoices();
 
   const [rangeState, setRangeState] = useState({
     propertyId: null,
     range: null,
   });
 
-  const range =
-    rangeState.propertyId === propertyId
-      ? rangeState.range
-      : null;
+  const range = rangeState.propertyId === propertyId ? rangeState.range : null;
 
   const handleRangeChange = (nextRange) => {
     setRangeState({
@@ -60,12 +61,12 @@ export default function Consumptions() {
 
   const handleInvoiceSaved = () => {
     refresh();
-    setAnnualRefreshKey(current => current + 1);
+    setAnnualRefreshKey((current) => current + 1);
   };
 
   const visibleInvoices = useMemo(
     () => scaleInvoicesToRange(invoices, range),
-    [invoices, range]
+    [invoices, range],
   );
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function Consumptions() {
         {
           replace: true,
           state: null,
-        }
+        },
       );
     }, 300);
 
@@ -107,14 +108,13 @@ export default function Consumptions() {
 
   return (
     <div className="w-full max-w-none min-w-0 px-3 sm:px-4 lg:px-6 space-y-6 sm:space-y-8 pb-12">
-
       {/* Cabeçalho */}
       <div className="w-full min-w-0">
-        <h1 className="font-display text-3xl text-slate-900 break-words">
+        <h1 className="font-display text-3xl text-slate-900 wrap-break-word">
           Consumos Inteligentes
         </h1>
 
-        <p className="text-slate-500 text-xs sm:text-sm mt-1 break-words">
+        <p className="text-slate-500 text-xs sm:text-sm mt-1 wrap-break-word">
           Decomposição das faturas
           {range
             ? ` · ${formatMonth(range.start)} – ${formatMonth(range.end)}`
@@ -123,7 +123,7 @@ export default function Consumptions() {
       </div>
 
       {error && (
-        <p className="w-full min-w-0 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 break-words">
+        <p className="w-full min-w-0 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 wrap-break-word">
           {error}
         </p>
       )}
@@ -135,7 +135,6 @@ export default function Consumptions() {
         </p>
       ) : (
         <div className="w-full min-w-0 space-y-6 py-2 sm:py-4">
-
           <div className="w-full min-w-0">
             <DetailedConsumptionChart
               invoices={visibleInvoices}
@@ -154,7 +153,6 @@ export default function Consumptions() {
               serviceFilter={serviceFilter}
             />
           </div>
-
         </div>
       )}
 
@@ -167,13 +165,9 @@ export default function Consumptions() {
       </div>
 
       {/* Formulário de novas faturas */}
-      <div
-        id="invoice-form"
-        className="w-full min-w-0 scroll-mt-6"
-      >
+      <div id="invoice-form" className="w-full min-w-0 scroll-mt-6">
         <InvoiceForm onInvoiceSaved={handleInvoiceSaved} />
       </div>
-
     </div>
   );
 }
