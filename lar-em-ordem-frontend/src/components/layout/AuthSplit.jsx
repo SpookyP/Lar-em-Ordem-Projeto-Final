@@ -47,7 +47,7 @@ export function AuthSplit({ children }) {
 
   return (
     <div className="grid flex-1 lg:min-h-0 lg:grid-cols-2">
-      <div className="flex px-6 py-6 [scrollbar-width:thin] lg:min-h-0 lg:overflow-y-auto">
+      <div className="flex px-6 py-6 scrollbar-thin lg:min-h-0 lg:overflow-y-auto">
         <div className="m-auto w-full max-w-md">{children}</div>
       </div>
 
@@ -67,9 +67,9 @@ export function AuthSplit({ children }) {
             A sua casa, <em className="text-orange">em ordem.</em>
           </h2>
           <p className="leading-relaxed text-white/80">
-            O Lar em Ordem junta moradores, condomínios, prestadores de serviços e
-            parceiros numa só plataforma, para que cuidar de uma casa deixe de ser uma
-            pilha de papéis e faturas.
+            O Lar em Ordem junta moradores, condomínios, prestadores de serviços
+            e parceiros numa só plataforma, para que cuidar de uma casa deixe de
+            ser uma pilha de papéis e faturas.
           </p>
 
           <div className="mt-2 grid items-center">
@@ -84,20 +84,27 @@ export function AuthSplit({ children }) {
                   </span>
                   <div>
                     <h3 className="font-semibold">{title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-white/70">{text}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-white/70">
+                      {text}
+                    </p>
                   </div>
                 </li>
               ))}
             </ul>
 
-            <div aria-hidden="true" className={`relative h-56 max-w-md ${slideClass(slide === 1)}`}>
+            <div
+              aria-hidden="true"
+              className={`relative h-56 max-w-md ${slideClass(slide === 1)}`}
+            >
               <div className="absolute left-0 top-0 w-80 rounded-2xl bg-card p-6 text-text shadow-xl">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
                       Eletricidade
                     </p>
-                    <p className="mt-1 font-display text-2xl text-navy">54 kWh</p>
+                    <p className="mt-1 font-display text-2xl text-navy">
+                      54 kWh
+                    </p>
                   </div>
                   <span className="rounded-full bg-green-light px-2.5 py-1 text-[11px] font-semibold text-green">
                     −12% vs. mês anterior
@@ -108,7 +115,9 @@ export function AuthSplit({ children }) {
                     <span
                       key={index}
                       className={`flex-1 rounded-lg ${height} ${
-                        index === EXAMPLE_BARS.length - 1 ? "bg-teal" : "bg-border"
+                        index === EXAMPLE_BARS.length - 1
+                          ? "bg-teal"
+                          : "bg-border"
                       }`}
                     />
                   ))}
@@ -136,7 +145,9 @@ export function AuthSplit({ children }) {
                 aria-label={label}
                 aria-pressed={slide === index}
                 className={`h-1.5 rounded-full transition-all ${
-                  slide === index ? "w-8 bg-white" : "w-4 bg-white/30 hover:bg-white/50"
+                  slide === index
+                    ? "w-8 bg-white"
+                    : "w-4 bg-white/30 hover:bg-white/50"
                 }`}
               />
             ))}

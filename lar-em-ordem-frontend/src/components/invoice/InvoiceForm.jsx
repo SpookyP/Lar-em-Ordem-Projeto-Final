@@ -660,7 +660,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
               return (
                 <div
                   key={id}
-                  className="rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3"
+                  className="rounded-xl border border-navy/30avy/5 p-3"
                 >
                   <Checkbox
                     checked={selectedTypeIds.includes(id)}
@@ -685,14 +685,14 @@ export default function InvoiceForm({ onInvoiceSaved }) {
               return (
                 <section
                   key={id}
-                  className="space-y-4 rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-4"
+                  className="space-y-4 rounded-xl border border-navy/30 bg-navy/5 p-4"
                 >
                   {/* Identificação do consumo e respetiva unidade. */}
                   <div className="flex items-center justify-between">
-                    <strong className="text-base font-semibold text-[#1C3557]">
+                    <strong className="text-base font-semibold text-navy">
                       {type.name}
                     </strong>
-                    <span className="rounded-md bg-[#1C3557]/10 px-2 py-1 text-xs font-medium text-[#1C3557]">
+                    <span className="rounded-md bg-navy/10 px-2 py-1 text-xs font-medium text-navy">
                       {type.unit_of_measure}
                     </span>
                   </div>
@@ -721,7 +721,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                   </div>
 
                   {/* Ativa a introdução de informação adicional. */}
-                  <div className="rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3">
+                  <div className="rounded-xl border border-navy/30 bg-navy/5 p-3">
                     <Checkbox
                       checked={Boolean(showItems[id])}
                       onChange={(checked) =>
@@ -739,7 +739,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                   {showItems[id] && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold uppercase tracking-wider text-[#1C3557]">
+                        <h4 className="text-sm font-bold uppercase tracking-wider text-navy">
                           Itens da fatura
                         </h4>
 
@@ -747,7 +747,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                         <button
                           type="button"
                           onClick={() => addItem(id)}
-                          className="inline-flex items-center gap-1 text-sm font-semibold text-[#1C3557] hover:opacity-80"
+                          className="inline-flex items-center gap-1 text-sm font-semibold text-navy hover:opacity-80"
                         >
                           <Plus className="h-4 w-4" />
                           Adicionar linha
@@ -756,7 +756,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
                       {/* Informa quando ainda não existem itens adicionados. */}
                       {items.length === 0 && (
-                        <p className="rounded-lg border border-dashed border-[#1C3557]/30 bg-[#1C3557]/5 p-3 text-sm text-slate-500">
+                        <p className="rounded-lg border border-dashed border-navy/30 bg-navy/5 p-3 text-sm text-slate-500">
                           Sem itens. Adiciona uma linha ou carrega um PDF com
                           detalhe.
                         </p>
@@ -766,10 +766,10 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                       {items.map((item, index) => (
                         <div
                           key={`${id}-${index}`}
-                          className="space-y-3 rounded-xl border border-[#1C3557]/30 bg-[#1C3557]/5 p-3"
+                          className="space-y-3 rounded-xl border border-navy/30 bg-navy/5 p-3"
                         >
                           <div className="flex items-center justify-between">
-                            <strong className="text-sm font-semibold text-[#1C3557]">
+                            <strong className="text-sm font-semibold text-navy">
                               Linha {index + 1}
                             </strong>
 

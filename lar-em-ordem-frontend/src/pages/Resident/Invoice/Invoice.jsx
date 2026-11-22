@@ -28,7 +28,7 @@ export default function Invoice() {
               state: { scrollToInvoiceForm: true },
             })
           }
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1C3557] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#29496F]"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#29496F]"
         >
           <Plus size={18} />
           Adicionar Fatura

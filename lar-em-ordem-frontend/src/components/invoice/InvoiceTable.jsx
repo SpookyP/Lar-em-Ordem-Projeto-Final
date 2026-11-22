@@ -252,7 +252,7 @@ function InvoiceActions({
         aria-label={`Abrir PDF da fatura ${invoice.invoice_number || ""}`}
         onClick={() => onDownload(invoice)}
         disabled={disabled || !invoice.has_file}
-        className="rounded-lg border border-slate-200 p-2.5 text-slate-600 transition hover:border-[#1C3557]/30 hover:bg-[#1C3557]/5 hover:text-[#1C3557] disabled:cursor-not-allowed disabled:opacity-30 xl:border-0 xl:p-2 xl:text-slate-500 xl:hover:bg-[#1C3557]/10"
+        className="rounded-lg border border-slate-200 p-2.5 text-slate-600 transition hover:border-navy/30 hover:bg-navy/5 hover:text-navy disabled:cursor-not-allowed disabled:opacity-30 xl:border-0 xl:p-2 xl:text-slate-500 xl:hover:bg-navy/10"
       >
         <Download size={17} />
       </button>
@@ -299,7 +299,7 @@ function DeleteConfirmationModal({
       role="alertdialog"
       aria-modal="true"
       aria-label="Eliminar fatura"
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-60 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
     >
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-5 flex items-start justify-between">
@@ -493,7 +493,7 @@ function InvoiceDetailsModal({ invoice, onClose }) {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                 <p className="text-xs font-medium text-slate-500">Fornecedor</p>
-                <p className="mt-1 break-words font-semibold text-slate-900">
+                <p className="mt-1 wrap-break-word font-semibold text-slate-900">
                   {invoice.supplier || "—"}
                 </p>
               </div>
@@ -501,7 +501,7 @@ function InvoiceDetailsModal({ invoice, onClose }) {
                 <p className="text-xs font-medium text-slate-500">
                   Número da fatura
                 </p>
-                <p className="mt-1 break-words font-semibold text-slate-900">
+                <p className="mt-1 wrap-break-word font-semibold text-slate-900">
                   {invoice.invoice_number || "—"}
                 </p>
               </div>
@@ -989,16 +989,13 @@ export default function InvoiceTable({
         <div className="px-3 pb-3 xl:hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-              <RefreshCw
-                size={22}
-                className="mb-2 animate-spin text-[#1C3557]"
-              />
-              A carregar faturas...
+              <RefreshCw size={22} className="mb-2 animate-spin text-navy" />A
+              carregar faturas...
             </div>
           ) : paginatedInvoices.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 px-4 py-12 text-center">
-              <div className="mb-3 rounded-full bg-[#1C3557]/10 p-4">
-                <FileText size={25} className="text-[#1C3557]" />
+              <div className="mb-3 rounded-full bg-navy/10 p-4">
+                <FileText size={25} className="text-navy" />
               </div>
               <p className="font-semibold text-slate-700">
                 Nenhuma fatura encontrada
@@ -1027,7 +1024,7 @@ export default function InvoiceTable({
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                       N.º da fatura
                     </p>
-                    <p className="mt-1 break-words text-sm font-bold leading-5 text-slate-800">
+                    <p className="mt-1 wrap-break-word text-sm font-bold leading-5 text-slate-800">
                       {invoice.invoice_number || "—"}
                     </p>
                   </div>
@@ -1037,7 +1034,7 @@ export default function InvoiceTable({
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                         Fornecedor
                       </p>
-                      <p className="mt-1 break-words text-sm text-slate-600">
+                      <p className="mt-1 wrap-break-word text-sm text-slate-600">
                         {invoice.supplier || "—"}
                       </p>
                     </div>
@@ -1078,7 +1075,7 @@ export default function InvoiceTable({
 
         {/* Tabela para desktop. */}
         <div className="hidden w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain xl:block">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-225 text-left text-sm">
             <thead
               className="text-xs uppercase tracking-wider text-white transition-colors duration-200"
               style={{ backgroundColor: HEADER_COLOR }}
@@ -1102,7 +1099,7 @@ export default function InvoiceTable({
                   >
                     <RefreshCw
                       size={20}
-                      className="mx-auto mb-2 animate-spin text-[#1C3557]"
+                      className="mx-auto mb-2 animate-spin text-navy"
                     />
                     A carregar faturas...
                   </td>
@@ -1111,8 +1108,8 @@ export default function InvoiceTable({
                 <tr>
                   <td colSpan="6" className="px-5 py-14 text-center">
                     <div className="flex flex-col items-center">
-                      <div className="mb-3 rounded-full bg-[#1C3557]/10 p-4">
-                        <FileText size={25} className="text-[#1C3557]" />
+                      <div className="mb-3 rounded-full bg-navy/10 p-4">
+                        <FileText size={25} className="text-navy" />
                       </div>
                       <p className="font-semibold text-slate-700">
                         Nenhuma fatura encontrada
@@ -1185,26 +1182,29 @@ export default function InvoiceTable({
               {" faturas"}
             </p>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {" "}
               <button
                 type="button"
                 onClick={() => setCurrentPage(Math.max(1, page - 1))}
                 disabled={page === 1}
+                aria-label="Página anterior"
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-[#583D69]/30 hover:bg-[#583D69]/5 hover:text-[#583D69] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft size={16} />
-                Anterior
+                <span className="hidden sm:inline">Anterior</span>
               </button>
-              <span className="min-w-[90px] text-center text-sm font-semibold text-slate-700">
+              <span className="min-w-22.5 text-center text-sm font-semibold text-slate-700">
                 Página {page} / {totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setCurrentPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
+                aria-label="Página seguinte"
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-[#583D69]/30 hover:bg-[#583D69]/5 hover:text-[#583D69] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Seguinte
+                <span className="hidden sm:inline">Seguinte</span>
                 <ChevronRight size={16} />
               </button>
             </div>
