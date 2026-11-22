@@ -21,10 +21,9 @@ class PropertyService
         private AssistanceRequestService $requests,
     ) {}
 
-    #region CRUD
-    #region Get Types
     public function getPropertyForms(): array
     {
+        // seeded lookup lists that don't change at runtime, so a day of cache is safe
         return Cache::remember('properties.form_options', now()->addDay(), function () {
             return [
                 'propertyTypes' => PropertyType::select('id', 'type')->get(),
@@ -33,9 +32,7 @@ class PropertyService
             ];
         });
     }
-    #endregion
 
-    #region Get Properties
     /**
      * Loads what the home screens show: address, type, typology and the active contract with its type.
      */
@@ -62,13 +59,12 @@ class PropertyService
                 'propertyTypology:id,typology',
                 'contracts' => fn($query) => $query->active()->with('residentType:id,type'),
             ])
-            ->latest() // order by latest
+            ->latest()
             ->latest('id')
             ->paginate($perPage)
             ->withQueryString();
     }
 
-    #endregion
     public function createResidentProperty(User $user, array $propertyData, array $contractData, array $addressData): Property
     {
         return DB::transaction(function () use ($propertyData, $contractData, $addressData, $user) {
@@ -128,5 +124,4 @@ class PropertyService
             $this->eraser->eraseProperty($property);
         });
     }
-    #endregion
 }

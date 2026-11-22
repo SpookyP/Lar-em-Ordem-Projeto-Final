@@ -8,19 +8,12 @@ use Illuminate\Validation\Rule;
 
 class StorePropertyRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return $this->user()?->resident !== null;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    /** @return array<string, ValidationRule|array<mixed>|string> */
     public function rules(): array
     {
         return [
@@ -35,7 +28,7 @@ class StorePropertyRequest extends FormRequest
             'start_date'           => ['required', 'date'],
             'end_date'             => ['nullable', 'date', 'after_or_equal:start_date'],
 
-            // Address (Required if address_id is not provided)
+            // Address
             'address'              => ['required', 'array'],
             'address.street'       => ['required_with:address', 'string', 'max:255'],
             'address.postal_code'  => ['required_with:address', 'string', 'max:20'],
@@ -55,9 +48,6 @@ class StorePropertyRequest extends FormRequest
         ];
     }
 
-    /**
-     * Extract only Property data.
-     */
     public function propertyData(): array
     {
         return $this->safe()->only([
@@ -77,9 +67,6 @@ class StorePropertyRequest extends FormRequest
         ];
     }
 
-    /**
-     * Extract only Contract data.
-     */
     public function contractData(): array
     {
         return $this->safe()->only([
@@ -89,9 +76,6 @@ class StorePropertyRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Extract only Address data.
-     */
     public function addressData(): ?array
     {
         return $this->validated('address');
