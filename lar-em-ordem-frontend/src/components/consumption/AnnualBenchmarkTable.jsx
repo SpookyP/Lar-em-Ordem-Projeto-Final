@@ -81,20 +81,19 @@ function isMigrationError(err) {
 
   const migrationCode =
     /MIGRATIONS?_PENDING|MIGRATION_REQUIRED|SCHEMA_NOT_UP_TO_DATE|DATABASE_SCHEMA_OUTDATED/.test(
-      errorCode
+      errorCode,
     );
 
   const schemaSqlCode =
-    /\b(42P01|42703|42S02|42S22|3F000|1146|1054|207|208)\b/i.test(
-      errorCode
-    ) || /SQLSTATE\[(42P01|42703|42S02|42S22|3F000)\]/i.test(errorText);
+    /\b(42P01|42703|42S02|42S22|3F000|1146|1054|207|208)\b/i.test(errorCode) ||
+    /SQLSTATE\[(42P01|42703|42S02|42S22|3F000)\]/i.test(errorText);
 
   const missingSchemaObject =
     /no such (table|column)/i.test(errorText) ||
     /unknown column/i.test(errorText) ||
     /undefined_(table|column)/i.test(errorText) ||
     /(relation|table|column|schema)\s+["'`\w.]+["'`\s]*\s+(does not exist|doesn't exist|not found)/i.test(
-      errorText
+      errorText,
     ) ||
     /invalid object name/i.test(errorText);
 
@@ -148,9 +147,9 @@ function getServiceTheme(option) {
       Icon: Zap,
       kind: "electricity",
       color: "#1C3557",
-      iconClass: "text-[#1C3557]",
-      selectedClass: "border-white bg-white text-[#1C3557] shadow-sm",
-      chipClass: "border-[#1C3557]/20 bg-[#1C3557]/5 text-[#1C3557]",
+      iconClass: "text-navy",
+      selectedClass: "border-white bg-white text-navy shadow-sm",
+      chipClass: "border-navy/20 bg-navy/5 text-navy",
     };
   }
 
@@ -212,7 +211,7 @@ function EstimateInfo({ entries, general = false }) {
 
       const left = Math.max(
         12,
-        Math.min(anchor.left, window.innerWidth - popupWidth - 12)
+        Math.min(anchor.left, window.innerWidth - popupWidth - 12),
       );
 
       const below = anchor.bottom + 8;
@@ -275,7 +274,7 @@ function EstimateInfo({ entries, general = false }) {
           <div
             ref={popupRef}
             role="tooltip"
-            className="fixed z-[1000] max-h-[70vh] overflow-y-auto rounded-lg border border-slate-200 bg-white p-3 text-left shadow-lg"
+            className="fixed z-1000 max-h-[70vh] overflow-y-auto rounded-lg border border-slate-200 bg-white p-3 text-left shadow-lg"
             style={{
               top: position?.top ?? -1000,
               left: position?.left ?? -1000,
@@ -291,7 +290,7 @@ function EstimateInfo({ entries, general = false }) {
               <div className="mt-2 space-y-2">
                 {entries.map((entry, index) => {
                   const theme = getServiceTheme(
-                    entry.option ?? { label: entry.label }
+                    entry.option ?? { label: entry.label },
                   );
                   const Icon = theme.Icon;
 
@@ -323,7 +322,7 @@ function EstimateInfo({ entries, general = false }) {
                       </strong>{" "}
                       {detail.text}
                     </p>
-                  ))
+                  )),
                 )}
               </div>
             )}
@@ -336,7 +335,7 @@ function EstimateInfo({ entries, general = false }) {
               Fechar
             </button>
           </div>,
-          document.body
+          document.body,
         )
       : null;
 
@@ -409,18 +408,19 @@ function getUserBarColor(service) {
 function AnnualCostsChart({ rows, service }) {
   // Ordena os anos e prepara os valores para o gráfico.
   const chartRows = [...rows]
-  .sort((a, b) => Number(a.year) - Number(b.year))
-  .map((row) => ({
-    ...row,
-    user_total: Number(row.user_total) || 0,
-    benchmark_total: Number(row.benchmark_total) || 0,
-  }));
+    .sort((a, b) => Number(a.year) - Number(b.year))
+    .map((row) => ({
+      ...row,
+      user_total: Number(row.user_total) || 0,
+      benchmark_total: Number(row.benchmark_total) || 0,
+    }));
 
   if (chartRows.length === 0) return null;
 
   const userBarColor = getUserBarColor(service);
   const latest = chartRows[chartRows.length - 1];
-  const previous = chartRows.length > 1 ? chartRows[chartRows.length - 2] : null;
+  const previous =
+    chartRows.length > 1 ? chartRows[chartRows.length - 2] : null;
 
   // Calcula a variação percentual em relação ao ano anterior.
   const trendPercentage =
@@ -573,7 +573,7 @@ function getAnnualRowPresentation(row, isGeneralView, options) {
         ? "bg-red-50 text-red-700"
         : "bg-slate-100 text-slate-600";
 
-  const estimatedServices = isGeneralView ? row.estimated_services ?? [] : [];
+  const estimatedServices = isGeneralView ? (row.estimated_services ?? []) : [];
 
   const hasRowEstimate = isGeneralView
     ? estimatedServices.length > 0
@@ -581,14 +581,12 @@ function getAnnualRowPresentation(row, isGeneralView, options) {
 
   const estimateEntries = isGeneralView
     ? estimatedServices.map((detail) => {
-        const option =
-          options.find(
-            (item) =>
-              String(item.value) === String(detail.consumption_type_id)
-          ) ?? {
-            value: String(detail.consumption_type_id),
-            label: detail.consumption_type ?? "Serviço",
-          };
+        const option = options.find(
+          (item) => String(item.value) === String(detail.consumption_type_id),
+        ) ?? {
+          value: String(detail.consumption_type_id),
+          label: detail.consumption_type ?? "Serviço",
+        };
 
         return {
           label: option.label,
@@ -682,7 +680,10 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
       })
       .catch((err) => {
         // Mantém o erro técnico na consola e apresenta apenas uma mensagem segura.
-        console.error("[AnnualBenchmarkTable] Erro ao carregar o benchmark:", err);
+        console.error(
+          "[AnnualBenchmarkTable] Erro ao carregar o benchmark:",
+          err,
+        );
 
         if (!cancelled) {
           setFetched({
@@ -704,7 +705,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
   const hasGeneralOption = options.some(isGeneralService);
 
   const requestedServiceIsAvailable = options.some(
-    (option) => String(option.value) === String(requestedService)
+    (option) => String(option.value) === String(requestedService),
   );
 
   // Seleciona um serviço válido caso a opção anterior já não esteja disponível.
@@ -712,15 +713,15 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
     result && !requestedServiceIsAvailable
       ? hasGeneralOption
         ? "all"
-        : options.find((option) => !isGeneralService(option))?.value ?? "all"
+        : (options.find((option) => !isGeneralService(option))?.value ?? "all")
       : requestedService;
 
   const isGeneralView = isGeneralService({ value: activeService });
 
   // Obtém os dados gerais ou os dados específicos do serviço selecionado.
   const rows = isGeneralView
-    ? result?.data ?? []
-    : result?.services?.[String(activeService)]?.data ?? [];
+    ? (result?.data ?? [])
+    : (result?.services?.[String(activeService)]?.data ?? []);
 
   // Atualiza o filtro sem alterar os dados recebidos da API.
   function selectService(value) {
@@ -897,7 +898,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="rounded-lg bg-[#1C3557]/10 px-3 py-1.5 text-base font-bold tabular-nums text-[#1C3557]">
+                      <span className="rounded-lg bg-navy/10 px-3 py-1.5 text-base font-bold tabular-nums text-navy">
                         {row.year}
                       </span>
                       {hasRowEstimate && (
@@ -917,7 +918,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                       <p className="text-xs font-semibold uppercase leading-4 tracking-wide text-slate-500">
                         Gasto da habitação
                       </p>
-                      <p className="mt-1 break-words text-base font-bold tabular-nums text-slate-900">
+                      <p className="mt-1 wrap-break-word text-base font-bold tabular-nums text-slate-900">
                         {money.format(Number(row.user_total))}
                       </p>
                     </div>
@@ -926,7 +927,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                       <p className="text-xs font-semibold uppercase leading-4 tracking-wide text-slate-500">
                         Benchmark médio
                       </p>
-                      <p className="mt-1 break-words text-base font-bold tabular-nums text-slate-800">
+                      <p className="mt-1 wrap-break-word text-base font-bold tabular-nums text-slate-800">
                         {money.format(Number(row.benchmark_total))}
                       </p>
                       {row.sample_size != null && (
@@ -952,7 +953,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                           className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums ${differencePillStyle}`}
                         >
                           {signedPercent.format(
-                            Number(row.difference_percentage)
+                            Number(row.difference_percentage),
                           )}
                           %
                         </span>
@@ -979,9 +980,13 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
               >
                 <tr className="text-xs font-semibold uppercase tracking-wide text-white">
                   <th className="px-5 py-4 text-left sm:px-6">Ano</th>
-                  <th className="px-4 py-4 text-right">Gasto da habitação (€)</th>
+                  <th className="px-4 py-4 text-right">
+                    Gasto da habitação (€)
+                  </th>
                   <th className="px-4 py-4 text-right">Benchmark médio (€)</th>
-                  <th className="px-5 py-4 text-right sm:px-6">Diferença (€)</th>
+                  <th className="px-5 py-4 text-right sm:px-6">
+                    Diferença (€)
+                  </th>
                 </tr>
               </thead>
 
@@ -1039,7 +1044,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                               className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums ${differencePillStyle}`}
                             >
                               {signedPercent.format(
-                                Number(row.difference_percentage)
+                                Number(row.difference_percentage),
                               )}
                               %
                             </span>
@@ -1060,8 +1065,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
           <footer className="border-t border-slate-100 px-5 py-4 sm:px-6">
             <p className="mb-3 text-sm leading-relaxed text-slate-500">
               Uma diferença negativa significa que a habitação gastou menos do
-              que o benchmark. Uma diferença positiva significa que gastou
-              mais.
+              que o benchmark. Uma diferença positiva significa que gastou mais.
             </p>
 
             <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
@@ -1074,11 +1078,11 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                 <span className="font-semibold text-slate-700">
                   Valores indicativos.
                 </span>{" "}
-                Os benchmarks são médias de habitações semelhantes e não
-                valores exatos. Os anos ainda incompletos podem incluir
-                projeções anuais, tanto nos consumos como nos benchmarks, pelo
-                que os totais podem diferir dos custos efetivamente registados
-                nas faturas.
+                Os benchmarks são médias de habitações semelhantes e não valores
+                exatos. Os anos ainda incompletos podem incluir projeções
+                anuais, tanto nos consumos como nos benchmarks, pelo que os
+                totais podem diferir dos custos efetivamente registados nas
+                faturas.
               </p>
             </div>
           </footer>

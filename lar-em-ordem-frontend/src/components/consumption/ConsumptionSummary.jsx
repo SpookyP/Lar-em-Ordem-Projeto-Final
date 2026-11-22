@@ -7,7 +7,7 @@ const CONSUMPTION_CONFIG = {
   1: {
     name: "Eletricidade",
     icon: Zap,
-    iconColor: "bg-[#1C3557] text-white",
+    iconColor: "bg-navy text-white",
     unit: "kWh",
   },
   2: {

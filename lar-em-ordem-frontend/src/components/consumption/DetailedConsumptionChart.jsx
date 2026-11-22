@@ -503,7 +503,7 @@ export default function DetailedConsumptionChart({
           <div className="mt-6 grid w-full min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)]">
             {/* Gráfico circular e totais por serviço. */}
             <div className="min-w-0">
-              <div className="relative h-[320px] sm:h-[350px] xl:h-[380px]">
+              <div className="relative h-80 sm:h-87.5 xl:h-95">
                 {chartItems.length > 0 ? (
                   <>
                     {/* Desenha o gráfico com os custos dos consumos. */}
@@ -553,10 +553,10 @@ export default function DetailedConsumptionChart({
                       className="pointer-events-none absolute inset-0 flex items-center justify-center"
                       style={{ zIndex: 1 }}
                     >
-                      <div className="flex w-[180px] max-w-[48%] flex-col items-center text-center">
+                      <div className="flex w-45 max-w-[48%] flex-col items-center text-center">
                         {selectedItem ? (
                           <>
-                            <span className="line-clamp-3 break-words text-base leading-5 text-slate-500">
+                            <span className="line-clamp-3 wrap-break-word text-base leading-5 text-slate-500">
                               {selectedItem.name}
                             </span>
 
@@ -631,7 +631,7 @@ export default function DetailedConsumptionChart({
 
             {/* Lista detalhada dos itens agrupados por serviço. */}
             <div className="min-w-0">
-              <div className="max-h-[400px] min-w-0 space-y-3 overflow-y-auto overscroll-contain pr-1 sm:max-h-[440px] sm:pr-2 [scrollbar-gutter:stable]">
+              <div className="max-h-100 min-w-0 space-y-3 overflow-y-auto overscroll-contain pr-1 sm:max-h-110 sm:pr-2 scrollbar-gutter-stable">
                 {groups.map((group) => {
                   const groupTotal = group.items.reduce(
                     (sum, item) => sum + item.cost,
