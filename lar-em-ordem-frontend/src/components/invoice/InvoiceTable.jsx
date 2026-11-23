@@ -1081,12 +1081,12 @@ export default function InvoiceTable({
               style={{ backgroundColor: HEADER_COLOR }}
             >
               <tr>
-                <th className="px-5 py-4 font-semibold">Serviço</th>
-                <th className="px-5 py-4 font-semibold">N.º da Fatura</th>
-                <th className="px-5 py-4 font-semibold">Fornecedor</th>
-                <th className="px-5 py-4 font-semibold">Período</th>
-                <th className="px-5 py-4 font-semibold">Valor Total</th>
-                <th className="px-5 py-4 text-right font-semibold">Ações</th>
+                <th className="px-5 py-4 font-semibold pl-10">Serviço</th>
+                <th className="px-5 py-4 font-semibold text-center">N.º da Fatura</th>
+                <th className="px-5 py-4 font-semibold text-center">Fornecedor</th>
+                <th className="px-5 py-4 font-semibold text-center">Período</th>
+                <th className="px-5 py-4 font-semibold text-center">Valor Total</th>
+                <th className="px-5 py-4 font-semibold text-center">Ações</th>
               </tr>
             </thead>
 
@@ -1129,20 +1129,20 @@ export default function InvoiceTable({
                     <td className="px-5 py-4">
                       <InvoiceTypeBadge invoice={invoice} />
                     </td>
-                    <td className="px-5 py-4 font-semibold text-slate-700">
+                    <td className="px-5 py-4 font-semibold text-slate-700 text-center">
                       {invoice.invoice_number || "—"}
                     </td>
-                    <td className="px-5 py-4 text-slate-600">
+                    <td className="px-5 py-4 text-slate-600 text-center">
                       {invoice.supplier || "—"}
                     </td>
-                    <td className="px-5 py-4 text-slate-600">
+                    <td className="px-5 py-4 text-slate-600 text-center">
                       <div className="whitespace-nowrap">
                         {formatDate(invoice.period_start)}
                         <span className="mx-1.5 text-slate-400">—</span>
                         {formatDate(invoice.period_end)}
                       </div>
                     </td>
-                    <td className="px-5 py-4 font-bold text-slate-900">
+                    <td className="px-5 py-4 font-bold text-slate-900 text-center">
                       {formatCurrency(invoice.total_amount)}
                     </td>
                     <td className="px-5 py-4">
