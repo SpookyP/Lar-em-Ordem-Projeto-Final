@@ -23,37 +23,15 @@ import {
   Zap,
 } from "lucide-react";
 import { fetchAnnualBenchmarks } from "../../services/api/invoiceService";
+import {
+  formatMoney,
+  formatMoneySigned,
+  formatCompact,
+  formatNumber,
+} from "../../utils/format";
 
-// Cor fixa dos cabeçalhos.
 const HEADER_COLOR = "#1C3557";
 
-// Formatadores de valores e percentagens.
-const money = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
-});
-
-const compactMoney = new Intl.NumberFormat("pt-PT", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
-const signedMoney = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
-  signDisplay: "exceptZero",
-});
-
-const signedPercent = new Intl.NumberFormat("pt-PT", {
-  maximumFractionDigits: 1,
-  signDisplay: "exceptZero",
-});
-
-const percent = new Intl.NumberFormat("pt-PT", {
-  maximumFractionDigits: 1,
-});
-
-// Identifica falhas de esquema que normalmente indicam migrations em falta.
 function isMigrationError(err) {
   const payload = err?.response?.data ?? {};
   const errorCode = [
@@ -100,7 +78,6 @@ function isMigrationError(err) {
   return migrationCode || schemaSqlCode || missingSchemaObject;
 }
 
-// Converte erros técnicos em mensagens adequadas para o utilizador.
 function getErrorPresentation(err) {
   if (isMigrationError(err)) {
     return {
@@ -119,7 +96,6 @@ function getErrorPresentation(err) {
   };
 }
 
-// Define o ícone e as cores de cada tipo de serviço.
 function getServiceTheme(option) {
   const value = String(option?.value ?? "").toLowerCase();
   const label = String(option?.label ?? "").toLowerCase();
@@ -185,12 +161,10 @@ function getServiceTheme(option) {
   };
 }
 
-// Verifica se a opção corresponde à visão geral dos serviços.
 function isGeneralService(option) {
   return getServiceTheme(option).kind === "all";
 }
 
-// Informação sobre os valores estimados, apresentada numa janela flutuante.
 function EstimateInfo({ entries, general = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState(null);
@@ -230,7 +204,6 @@ function EstimateInfo({ entries, general = false }) {
 
     const frame = window.requestAnimationFrame(updatePosition);
 
-    // Fecha quando se toca fora do botão ou da janela.
     const handleOutsideClick = (event) => {
       const target = event.target;
 
@@ -244,7 +217,6 @@ function EstimateInfo({ entries, general = false }) {
       setIsOpen(false);
     };
 
-    // Fecha com Escape.
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setIsOpen(false);
@@ -357,7 +329,6 @@ function EstimateInfo({ entries, general = false }) {
   );
 }
 
-// Personaliza a informação apresentada ao passar o rato sobre o gráfico.
 function AnnualChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
 
@@ -378,14 +349,14 @@ function AnnualChartTooltip({ active, payload, label }) {
         <div className="flex items-center justify-between gap-4">
           <span className="text-slate-500">Gasto da habitação</span>
           <strong className="tabular-nums text-slate-800">
-            {money.format(Number(row.user_total))}
+            {formatMoney(row.user_total)}
           </strong>
         </div>
 
         <div className="flex items-center justify-between gap-4">
           <span className="text-slate-500">Benchmark médio</span>
           <strong className="tabular-nums text-slate-800">
-            {money.format(Number(row.benchmark_total))}
+            {formatMoney(row.benchmark_total)}
           </strong>
         </div>
       </div>
@@ -399,14 +370,11 @@ function AnnualChartTooltip({ active, payload, label }) {
   );
 }
 
-// Obtém a cor das barras de acordo com o serviço selecionado.
 function getUserBarColor(service) {
   return getServiceTheme({ value: service }).color;
 }
 
-// Gráfico com a evolução dos gastos e a comparação com o benchmark.
 function AnnualCostsChart({ rows, service }) {
-  // Ordena os anos e prepara os valores para o gráfico.
   const chartRows = [...rows]
     .sort((a, b) => Number(a.year) - Number(b.year))
     .map((row) => ({
@@ -422,13 +390,11 @@ function AnnualCostsChart({ rows, service }) {
   const previous =
     chartRows.length > 1 ? chartRows[chartRows.length - 2] : null;
 
-  // Calcula a variação percentual em relação ao ano anterior.
   const trendPercentage =
     previous && Number(previous.user_total) > 0
       ? ((latest.user_total - previous.user_total) / previous.user_total) * 100
       : null;
 
-  // O último ano pode ainda estar incompleto (valores estimados ou projetados).
   const partialLatest =
     Number(latest.estimated_months_count) > 0 ||
     latest.benchmark_estimated === true;
@@ -476,9 +442,9 @@ function AnnualCostsChart({ rows, service }) {
             ) : null}
 
             {increased
-              ? `Aumento de ${percent.format(trendPercentage)}% face a ${previous.year}`
+              ? `Aumento de ${formatNumber(trendPercentage, { decimals: 1 })}% face a ${previous.year}`
               : decreased
-                ? `Redução de ${percent.format(Math.abs(trendPercentage))}% face a ${previous.year}`
+                ? `Redução de ${formatNumber(Math.abs(trendPercentage), { decimals: 1 })}% face a ${previous.year}`
                 : `Sem alteração (0%) face a ${previous.year}`}
 
             {partialLatest && (
@@ -510,7 +476,11 @@ function AnnualCostsChart({ rows, service }) {
             />
             <YAxis
               width={76}
-              tickFormatter={(value) => `${compactMoney.format(value)} €`}
+              tickFormatter={(value) =>
+                value >= 10000
+                  ? `${formatCompact(value)} €`
+                  : `${formatNumber(value, { decimals: 0 })} €`
+              }
               tick={{ fill: "#64748b", fontSize: 12 }}
               tickLine={false}
               axisLine={false}
@@ -553,7 +523,6 @@ function AnnualCostsChart({ rows, service }) {
   );
 }
 
-// Prepara os valores e a informação de estimativas de cada ano.
 function getAnnualRowPresentation(row, isGeneralView, options) {
   const userEstimated = Number(row.estimated_months_count) > 0;
   const benchmarkEstimated = row.benchmark_estimated === true;
@@ -631,21 +600,17 @@ function getAnnualRowPresentation(row, isGeneralView, options) {
   };
 }
 
-// Tabela principal de comparação anual por habitação e serviço.
 export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
-  // Guarda o filtro selecionado para cada habitação.
   const [serviceSelection, setServiceSelection] = useState({
     propertyId: null,
     value: "all",
   });
 
-  // Permite repetir manualmente um pedido que falhou.
   const [retryCount, setRetryCount] = useState(0);
 
   const requestedService =
     serviceSelection.propertyId === propertyId ? serviceSelection.value : "all";
 
-  // Resultado do último pedido, identificado pela habitação e atualização.
   const [fetched, setFetched] = useState({
     key: null,
     propertyId: null,
@@ -656,17 +621,14 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
   const requestKey = `${propertyId ?? ""}-${refreshKey ?? 0}-${retryCount}`;
   const current = propertyId && fetched.key === requestKey ? fetched : null;
 
-  // Durante uma atualização da mesma habitação, mantém os dados anteriores visíveis.
   const display =
     current ??
     (propertyId && fetched.propertyId === propertyId ? fetched : null);
 
-  // Valores derivados: sem setState síncrono dentro do efeito.
   const result = display?.data ?? null;
   const error = current?.error ?? null;
   const loading = Boolean(propertyId) && current === null;
 
-  // Carrega os dados anuais quando a habitação ou a atualização muda.
   useEffect(() => {
     if (!propertyId) return undefined;
 
@@ -679,7 +641,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
         }
       })
       .catch((err) => {
-        // Mantém o erro técnico na consola e apresenta apenas uma mensagem segura.
         console.error(
           "[AnnualBenchmarkTable] Erro ao carregar o benchmark:",
           err,
@@ -700,7 +661,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
     };
   }, [propertyId, requestKey]);
 
-  // Prepara as opções de serviço e verifica a disponibilidade do filtro.
   const options = result?.service_options ?? [];
   const hasGeneralOption = options.some(isGeneralService);
 
@@ -708,7 +668,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
     (option) => String(option.value) === String(requestedService),
   );
 
-  // Seleciona um serviço válido caso a opção anterior já não esteja disponível.
   const activeService =
     result && !requestedServiceIsAvailable
       ? hasGeneralOption
@@ -718,12 +677,10 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
   const isGeneralView = isGeneralService({ value: activeService });
 
-  // Obtém os dados gerais ou os dados específicos do serviço selecionado.
   const rows = isGeneralView
     ? (result?.data ?? [])
     : (result?.services?.[String(activeService)]?.data ?? []);
 
-  // Atualiza o filtro sem alterar os dados recebidos da API.
   function selectService(value) {
     setServiceSelection({
       propertyId,
@@ -731,12 +688,10 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
     });
   }
 
-  // Repete o pedido à API após uma falha genérica.
   function retryRequest() {
     setRetryCount((count) => count + 1);
   }
 
-  // Oculta a secção só quando não há dados nem filtros para alternar.
   if (
     propertyId &&
     !loading &&
@@ -919,7 +874,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         Gasto da habitação
                       </p>
                       <p className="mt-1 wrap-break-word text-base font-bold tabular-nums text-slate-900">
-                        {money.format(Number(row.user_total))}
+                        {formatMoney(row.user_total)}
                       </p>
                     </div>
 
@@ -928,7 +883,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         Benchmark médio
                       </p>
                       <p className="mt-1 wrap-break-word text-base font-bold tabular-nums text-slate-800">
-                        {money.format(Number(row.benchmark_total))}
+                        {formatMoney(row.benchmark_total)}
                       </p>
                       {row.sample_size != null && (
                         <p className="mt-1 text-xs leading-4 text-slate-400">
@@ -946,15 +901,16 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                       <span
                         className={`text-base font-bold tabular-nums ${differenceStyle}`}
                       >
-                        {signedMoney.format(difference)}
+                        {formatMoneySigned(difference)}
                       </span>
                       {row.difference_percentage != null && (
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums ${differencePillStyle}`}
                         >
-                          {signedPercent.format(
-                            Number(row.difference_percentage),
-                          )}
+                          {formatNumber(row.difference_percentage, {
+                            decimals: 1,
+                            signed: true,
+                          })}
                           %
                         </span>
                       )}
@@ -1020,11 +976,11 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                       </td>
 
                       <td className="px-4 py-5 text-right font-semibold tabular-nums text-slate-900">
-                        {money.format(Number(row.user_total))}
+                        {formatMoney(row.user_total)}
                       </td>
 
                       <td className="px-4 py-5 text-right font-semibold tabular-nums text-slate-800">
-                        {money.format(Number(row.benchmark_total))}
+                        {formatMoney(row.benchmark_total)}
                         {row.sample_size != null && (
                           <p className="mt-1 text-sm font-normal text-slate-400">
                             Amostra de {row.sample_size} habitações
@@ -1036,16 +992,17 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
                         <span
                           className={`font-semibold tabular-nums ${differenceStyle}`}
                         >
-                          {signedMoney.format(difference)}
+                          {formatMoneySigned(difference)}
                         </span>
                         {row.difference_percentage != null && (
                           <div className="mt-1.5">
                             <span
                               className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums ${differencePillStyle}`}
                             >
-                              {signedPercent.format(
-                                Number(row.difference_percentage),
-                              )}
+                              {formatNumber(row.difference_percentage, {
+                                decimals: 1,
+                                signed: true,
+                              })}
                               %
                             </span>
                           </div>

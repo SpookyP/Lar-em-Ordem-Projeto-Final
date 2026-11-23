@@ -1,22 +1,16 @@
 import { useMemo, useState } from "react";
 import { PieChart, Pie, ResponsiveContainer, Sector } from "recharts";
 import { ChevronRight } from "lucide-react";
+import { formatMoney } from "../../utils/format";
 
-// Mapeamento visual das utilidades domésticas.
 const UTILITIES = {
   1: { name: "Eletricidade", color: "#1C3557" },
   2: { name: "Água", color: "#0F766E" },
   3: { name: "Gás", color: "#EA580C" },
 };
 
-const money = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
-});
-
 const EMPTY_TOTALS = { 1: 0, 2: 0, 3: 0 };
 
-// Possíveis nomes das relações que guardam os itens de consumo.
 const ITEM_KEYS = [
   "items",
   "consumption_items",
@@ -25,7 +19,6 @@ const ITEM_KEYS = [
   "lines",
 ];
 
-// Utilitários de conversão e normalização de dados.
 function asNumber(value) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -35,7 +28,6 @@ function asNumber(value) {
 
   let text = String(value).trim().replace(/\s/g, "").replace(/[€]/g, "");
 
-  // Converte números no formato português, por exemplo 1.234,56.
   if (text.includes(",")) {
     text = text.replace(/\./g, "").replace(",", ".");
   }
@@ -45,15 +37,12 @@ function asNumber(value) {
   return Number.isFinite(result) ? result : 0;
 }
 
-// Obtém os consumos associados a uma fatura.
 function getConsumptions(invoice) {
   const list = invoice?.consumptions ?? invoice?.utilities ?? [];
 
   return Array.isArray(list) ? list : [];
 }
 
-// Obtém os itens de um consumo, dando prioridade à primeira lista
-// que contenha efetivamente elementos.
 function getConsumptionItems(consumption) {
   const possibleItems = ITEM_KEYS.map((key) => consumption?.[key]);
 
@@ -64,7 +53,6 @@ function getConsumptionItems(consumption) {
   );
 }
 
-// Identifica o tipo de serviço associado a um consumo.
 function getTypeId(consumption) {
   const raw =
     consumption?.consumption_type_id ??
@@ -78,7 +66,6 @@ function getTypeId(consumption) {
 
   if (UTILITIES[id]) return id;
 
-  // Quando não existe um ID reconhecido, tenta identificar pelo nome.
   const name = String(
     consumption?.consumption_type?.name ??
       consumption?.consumptionType?.name ??
@@ -102,7 +89,6 @@ function getTypeId(consumption) {
   return null;
 }
 
-// Obtém o custo de um item através dos campos disponíveis.
 function getItemCost(item) {
   return asNumber(
     item?.cost ??
@@ -114,8 +100,6 @@ function getItemCost(item) {
   );
 }
 
-// Obtém o custo total de um consumo.
-// Dá prioridade ao custo total registado no próprio consumo.
 function getConsumptionCost(consumption) {
   if (consumption?.cost != null) {
     return asNumber(consumption.cost);
@@ -129,7 +113,6 @@ function getConsumptionCost(consumption) {
     return asNumber(consumption.totalCost);
   }
 
-  // Na ausência de um custo total, soma os custos dos itens.
   const items = getConsumptionItems(consumption);
 
   if (items.length > 0) {
@@ -139,7 +122,6 @@ function getConsumptionCost(consumption) {
   return 0;
 }
 
-// Agrupa os custos por tipo de serviço.
 function normalizeInvoices(invoices) {
   const totals = { ...EMPTY_TOTALS };
   const invoiceList = Array.isArray(invoices) ? invoices : [];
@@ -166,8 +148,6 @@ function normalizeInvoices(invoices) {
     .filter((item) => item.value !== 0);
 }
 
-// Converte datas para objetos Date, evitando problemas de fuso horário
-// nas datas recebidas no formato YYYY-MM-DD.
 function parseDate(value) {
   if (!value) return null;
 
@@ -188,7 +168,6 @@ function parseDate(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-// Obtém a data representativa da fatura para a filtragem temporal.
 function getInvoiceDate(invoice) {
   return (
     invoice?.period_start ??
@@ -201,7 +180,6 @@ function getInvoiceDate(invoice) {
   );
 }
 
-// Calcula a data inicial do período selecionado.
 function getPeriodStart(period) {
   const now = new Date();
   const months = Number(period);
@@ -220,7 +198,6 @@ export default function ConsumptionChart({
 }) {
   const [focusedId, setFocusedId] = useState(null);
 
-  // Filtragem das faturas pelo período selecionado.
   const filteredInvoices = useMemo(() => {
     const startDate = getPeriodStart(period);
     const endDate = new Date();
@@ -234,22 +211,18 @@ export default function ConsumptionChart({
     });
   }, [invoices, period]);
 
-  // Preparação dos valores para o gráfico circular.
   const data = useMemo(
     () => normalizeInvoices(filteredInvoices),
     [filteredInvoices],
   );
 
-  // Calcula o total dos custos apresentados.
   const total = useMemo(
     () => data.reduce((sum, item) => sum + item.value, 0),
     [data],
   );
 
-  // Obtém a categoria atualmente destacada.
   const focusedItem = data.find((item) => item.id === focusedId) ?? null;
 
-  // Conteúdo apresentado no centro do gráfico.
   const center = focusedItem
     ? {
         label: focusedItem.name,
@@ -260,13 +233,11 @@ export default function ConsumptionChart({
         value: total,
       };
 
-  // Identifica a categoria com o maior custo.
   const biggest = data.reduce(
     (max, item) => (!max || item.value > max.value ? item : max),
     null,
   );
 
-  // Estado de carregamento.
   if (loading) {
     return (
       <div className="flex min-h-40 items-center justify-center">
@@ -275,7 +246,6 @@ export default function ConsumptionChart({
     );
   }
 
-  // Estado de erro.
   if (error) {
     return (
       <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
@@ -284,7 +254,6 @@ export default function ConsumptionChart({
     );
   }
 
-  // Estado sem dados.
   if (data.length === 0 || total === 0) {
     return (
       <div className="py-10 text-center">
@@ -299,7 +268,6 @@ export default function ConsumptionChart({
     );
   }
 
-  // Renderização do gráfico Recharts e da lista interativa.
   return (
     <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
       {/* Gráfico circular com o total ou a categoria selecionada. */}
@@ -346,7 +314,7 @@ export default function ConsumptionChart({
           </p>
 
           <p className="mt-1 text-3xl font-bold leading-none text-slate-900">
-            {money.format(center.value)}
+            {formatMoney(center.value)}
           </p>
         </div>
       </div>
@@ -359,7 +327,7 @@ export default function ConsumptionChart({
             <p className="text-sm text-slate-500">Maior gasto do período</p>
 
             <p className="mb-5 mt-1 text-2xl font-bold text-slate-900">
-              {biggest.name} · {money.format(biggest.value)}
+              {biggest.name} · {formatMoney(biggest.value)}
             </p>
           </>
         )}
@@ -406,7 +374,7 @@ export default function ConsumptionChart({
                 <span className="text-sm text-slate-500">{percentage}%</span>
 
                 <span className="w-24 text-right text-sm font-semibold text-slate-900">
-                  {money.format(item.value)}
+                  {formatMoney(item.value)}
                 </span>
 
                 {onCategoryClick && (

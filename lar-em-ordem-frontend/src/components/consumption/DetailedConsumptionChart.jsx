@@ -7,18 +7,16 @@ import {
   getTypeId,
   itemCost,
 } from "../../utils/invoiceTimelineUtils";
+import { formatMoney, formatNumber } from "../../utils/format";
 
-// Define a cor principal do cabeçalho.
 const HEADER_COLOR = "#1C3557";
 
-// Define os tipos de consumo e respetivas cores.
 const UTILITIES = {
   1: { name: "Eletricidade", color: "#1C3557" },
   2: { name: "Água", color: "#0F766E" },
   3: { name: "Gás", color: "#EA580C" },
 };
 
-// Define as opções de filtro disponíveis.
 const FILTERS = [
   { id: "all", label: "Geral", color: "#583D69" },
   { id: "1", label: "Eletricidade", color: "#1C3557" },
@@ -26,7 +24,6 @@ const FILTERS = [
   { id: "3", label: "Gás", color: "#EA580C" },
 ];
 
-// Traduz as categorias dos itens.
 const CATEGORY_LABELS = {
   consumption: "Consumo",
   fixed_fee: "Tarifa fixa",
@@ -35,30 +32,16 @@ const CATEGORY_LABELS = {
   other: "Outro",
 };
 
-// Formata os valores monetários em euros.
-const money = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
-});
-
-// Formata os valores numéricos.
-const number = new Intl.NumberFormat("pt-PT", {
-  maximumFractionDigits: 3,
-});
-
-// Obtém a quantidade de um item.
 function itemAmount(item) {
   return asNumber(item?.amount ?? item?.quantity ?? item?.consumption ?? 0);
 }
 
-// Obtém a unidade de medida de um item.
 function itemUnit(item) {
   return String(
     item?.unit ?? item?.measurement_unit ?? item?.unit_of_measure ?? "",
   ).trim();
 }
 
-// Obtém o nome de um item.
 function itemName(item, index) {
   return String(
     item?.name ??
@@ -70,7 +53,6 @@ function itemName(item, index) {
   ).trim();
 }
 
-// Constrói a descrição de um item.
 function itemDescription(item) {
   const description = String(
     item?.description ??
@@ -87,7 +69,9 @@ function itemDescription(item) {
   const unit = itemUnit(item);
 
   const quantityText =
-    amount !== 0 ? `${number.format(amount)}${unit ? ` ${unit}` : ""}` : "";
+    amount !== 0
+      ? `${formatNumber(amount, { decimals: 3 })}${unit ? ` ${unit}` : ""}`
+      : "";
 
   const name = String(item?.name ?? "").trim();
 
@@ -101,7 +85,6 @@ function itemDescription(item) {
     .join(" · ");
 }
 
-// Normaliza nomes para facilitar a comparação.
 function normalizeItemName(name) {
   return String(name ?? "")
     .trim()
@@ -109,11 +92,9 @@ function normalizeItemName(name) {
     .replace(/\s+/g, " ");
 }
 
-// Organiza e agrupa os consumos das faturas.
 function normalizeInvoices(invoices) {
   const result = [];
 
-  // Percorre todas as faturas e respetivos consumos.
   (invoices ?? []).forEach((invoice, invoiceIndex) => {
     const consumptions = invoice?.consumptions ?? invoice?.utilities ?? [];
 
@@ -121,7 +102,6 @@ function normalizeInvoices(invoices) {
 
     const invoiceKey = String(invoice?.id ?? `invoice-${invoiceIndex}`);
 
-    // Percorre os consumos de cada fatura.
     consumptions.forEach((consumption, consumptionIndex) => {
       const typeId = getTypeId(consumption);
 
@@ -130,7 +110,6 @@ function normalizeInvoices(invoices) {
       const utility = UTILITIES[typeId];
       const items = getItems(consumption);
 
-      // Adiciona um item normalizado à lista.
       const pushItem = (item, itemIndex, cost, fallback = false) => {
         const amount = fallback
           ? asNumber(consumption?.amount ?? consumption?.quantity)
@@ -153,7 +132,7 @@ function normalizeInvoices(invoices) {
             : itemName(item, itemIndex),
           description: fallback
             ? amount !== 0
-              ? `${number.format(amount)}${unit ? ` ${unit}` : ""} · Total do consumo`
+              ? `${formatNumber(amount, { decimals: 3 })}${unit ? ` ${unit}` : ""} · Total do consumo`
               : "Total do consumo"
             : itemDescription(item),
           categoryLabel: fallback
@@ -167,7 +146,6 @@ function normalizeInvoices(invoices) {
         });
       };
 
-      // Adiciona os itens ou o total do consumo.
       if (items.length) {
         items.forEach((item, itemIndex) => {
           pushItem(item, itemIndex, itemCost(item));
@@ -188,7 +166,6 @@ function normalizeInvoices(invoices) {
     });
   });
 
-  // Agrupa itens com o mesmo tipo e nome.
   const grouped = new Map();
 
   result.forEach((item) => {
@@ -218,12 +195,11 @@ function normalizeInvoices(invoices) {
     }
   });
 
-  // Prepara os dados finais para apresentação.
   return Array.from(grouped.values())
     .map((item) => {
       const quantityText =
         item.amount !== 0
-          ? `${number.format(item.amount)}${item.unit ? ` ${item.unit}` : ""}`
+          ? `${formatNumber(item.amount, { decimals: 3 })}${item.unit ? ` ${item.unit}` : ""}`
           : "";
 
       const descriptionParts = [
@@ -250,7 +226,6 @@ function normalizeInvoices(invoices) {
             ) === index,
         );
 
-      // Remove os campos auxiliares que não são necessários na apresentação.
       const groupedItem = { ...item };
       delete groupedItem.invoiceKeys;
       delete groupedItem.invoiceKey;
@@ -271,7 +246,6 @@ function normalizeInvoices(invoices) {
     );
 }
 
-// Apresenta os detalhes de cada item ao passar sobre o gráfico.
 function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
 
@@ -295,7 +269,7 @@ function ChartTooltip({ active, payload }) {
           item.isCredit ? "text-emerald-700" : "text-slate-900"
         }`}
       >
-        {money.format(item.cost)}
+        {formatMoney(item.cost)}
         {item.isCredit ? " · Crédito" : ""}
       </p>
 
@@ -309,7 +283,6 @@ function ChartTooltip({ active, payload }) {
   );
 }
 
-// Componente principal do gráfico de consumos.
 export default function DetailedConsumptionChart({
   invoices: invoicesProp,
   propertyId,
@@ -317,14 +290,12 @@ export default function DetailedConsumptionChart({
   filter: filterProp,
   onFilterChange,
 }) {
-  // Guarda as faturas carregadas e possíveis erros.
   const [fetched, setFetched] = useState({
     key: null,
     invoices: [],
     error: "",
   });
 
-  // Controla o filtro e o item selecionado.
   const [internalFilter, setInternalFilter] = useState("all");
   const [activeItemId, setActiveItemId] = useState(null);
 
@@ -335,7 +306,6 @@ export default function DetailedConsumptionChart({
   const hasInvoicesProp = Array.isArray(invoicesProp);
   const requestKey = `${propertyId ?? ""}-${refreshKey}`;
 
-  // Carrega as faturas quando não são recebidas por propriedades.
   useEffect(() => {
     if (hasInvoicesProp) return undefined;
 
@@ -368,15 +338,12 @@ export default function DetailedConsumptionChart({
     };
   }, [hasInvoicesProp, propertyId, requestKey]);
 
-  // Define os dados, o estado de carregamento e os erros.
   const invoices = hasInvoicesProp ? invoicesProp : fetched.invoices;
   const loading = !hasInvoicesProp && fetched.key !== requestKey;
   const error = hasInvoicesProp || loading ? "" : fetched.error;
 
-  // Normaliza os consumos das faturas.
   const allItems = useMemo(() => normalizeInvoices(invoices), [invoices]);
 
-  // Aplica o filtro selecionado aos consumos.
   const visibleItems = useMemo(
     () =>
       filter === "all"
@@ -385,10 +352,8 @@ export default function DetailedConsumptionChart({
     [allItems, filter],
   );
 
-  // Calcula o total dos consumos visíveis.
   const total = visibleItems.reduce((sum, item) => sum + item.cost, 0);
 
-  // Prepara os dados apresentados no gráfico circular.
   const chartItems = useMemo(
     () =>
       visibleItems
@@ -401,7 +366,6 @@ export default function DetailedConsumptionChart({
     [visibleItems],
   );
 
-  // Agrupa os itens por tipo de serviço.
   const groups = [1, 2, 3]
     .filter((id) => filter === "all" || filter === String(id))
     .map((id) => ({
@@ -411,11 +375,9 @@ export default function DetailedConsumptionChart({
     }))
     .filter((group) => group.items.length > 0);
 
-  // Identifica o item atualmente selecionado.
   const selectedItem = visibleItems.find((item) => item.id === activeItemId);
   const activeId = selectedItem ? selectedItem.id : null;
 
-  // Atualiza o filtro e limpa a seleção anterior.
   function selectFilter(id) {
     if (!controlled) {
       setInternalFilter(id);
@@ -425,7 +387,6 @@ export default function DetailedConsumptionChart({
     setActiveItemId(null);
   }
 
-  // Apresenta o estado de carregamento.
   if (loading) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-6">
@@ -434,7 +395,6 @@ export default function DetailedConsumptionChart({
     );
   }
 
-  // Renderiza o gráfico e a lista de consumos.
   return (
     <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       {/* Cabeçalho com título e filtros. */}
@@ -561,7 +521,7 @@ export default function DetailedConsumptionChart({
                             </span>
 
                             <strong className="mt-1 text-2xl text-slate-900">
-                              {money.format(selectedItem.cost)}
+                              {formatMoney(selectedItem.cost)}
                             </strong>
 
                             <span className="mt-1 text-sm text-slate-500">
@@ -575,7 +535,7 @@ export default function DetailedConsumptionChart({
                             </span>
 
                             <strong className="mt-1 text-2xl text-slate-900">
-                              {money.format(total)}
+                              {formatMoney(total)}
                             </strong>
 
                             <span className="mt-1 text-sm text-slate-500">
@@ -621,7 +581,7 @@ export default function DetailedConsumptionChart({
                           groupTotal < 0 ? "text-emerald-700" : "text-slate-800"
                         }`}
                       >
-                        {money.format(groupTotal)}
+                        {formatMoney(groupTotal)}
                       </strong>
                     </div>
                   );
@@ -660,7 +620,7 @@ export default function DetailedConsumptionChart({
                               : "text-slate-900"
                           }`}
                         >
-                          {money.format(groupTotal)}
+                          {formatMoney(groupTotal)}
                         </strong>
                       </div>
 
@@ -743,7 +703,7 @@ export default function DetailedConsumptionChart({
                                     : "text-slate-900"
                                 }`}
                               >
-                                {money.format(item.cost)}
+                                {formatMoney(item.cost)}
                               </strong>
                             </div>
                           );
@@ -767,7 +727,7 @@ export default function DetailedConsumptionChart({
                 total < 0 ? "text-emerald-700" : "text-slate-900"
               }`}
             >
-              {money.format(total)}
+              {formatMoney(total)}
             </strong>
           </div>
         </>
