@@ -6,6 +6,7 @@ import {
   getDocumentCategories,
 } from "../../services/api/documentService";
 import { TextInput, SearchSelect, FileInput, DatePicker } from "../form";
+import { todayISO } from "../../utils/date";
 
 export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
   const [file, setFile] = useState(null);
@@ -56,7 +57,7 @@ export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
     label: c.name,
   }));
 
-  const today = new Date().toLocaleDateString("sv-SE");
+  const today = todayISO();
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

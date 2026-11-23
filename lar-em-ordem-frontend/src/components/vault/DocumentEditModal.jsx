@@ -6,6 +6,7 @@ import {
   getDocumentCategories,
 } from "../../services/api/documentService";
 import { TextInput, SearchSelect, FileInput, DatePicker } from "../form";
+import { todayISO } from "../../utils/date";
 
 export function DocumentEditModal({ doc, onClose, onSaved }) {
   const [name, setName] = useState(doc.name ?? "");
@@ -54,7 +55,7 @@ export function DocumentEditModal({ doc, onClose, onSaved }) {
     }
   }
 
-  const today = new Date().toLocaleDateString("sv-SE");
+  const today = todayISO();
 
   const categoryOptions = [
     ...(doc.category && !categories.some((c) => c.id === doc.category.id)
