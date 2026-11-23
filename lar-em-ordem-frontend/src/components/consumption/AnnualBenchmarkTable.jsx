@@ -1,36 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  AlertTriangle,
-  Droplets,
-  FileText,
-  Flame,
-  Info,
-  RefreshCw,
-  TrendingDown,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, Info, RefreshCw } from "lucide-react";
 import { fetchAnnualBenchmarks } from "../../services/api/invoiceService";
 import {
   formatMoney,
   formatMoneySigned,
-  formatCompact,
   formatNumber,
 } from "../../utils/format";
-
-const HEADER_COLOR = "#1C3557";
+import {
+  HEADER_COLOR,
+  getServiceTheme,
+  isGeneralService,
+} from "./benchmarkShared";
+import { EstimateInfo } from "./EstimateInfo";
+import { AnnualCostsChart } from "./AnnualCostsChart";
 
 function isMigrationError(err) {
   const payload = err?.response?.data ?? {};
@@ -87,440 +69,12 @@ function getErrorPresentation(err) {
         "A comparação anual está temporariamente indisponível porque a estrutura da base de dados precisa de ser atualizada. Contacta o administrador do sistema para concluir esta atualização.",
     };
   }
-
   return {
     type: "general",
     title: "Não foi possível carregar a comparação anual",
     description:
       "Ocorreu um problema ao obter os dados do benchmark. Tenta novamente dentro de alguns instantes.",
   };
-}
-
-function getServiceTheme(option) {
-  const value = String(option?.value ?? "").toLowerCase();
-  const label = String(option?.label ?? "").toLowerCase();
-
-  const raw = `${value} ${label}`
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
-  if (
-    /^(all|general|geral|todos)$/.test(value) ||
-    /\b(all|general|geral|todos)\b/.test(raw)
-  ) {
-    return {
-      Icon: FileText,
-      kind: "all",
-      color: "#583D69",
-      iconClass: "text-[#583D69]",
-      selectedClass: "border-white bg-white text-[#583D69] shadow-sm",
-      chipClass: "border-slate-200 bg-slate-50 text-slate-700",
-    };
-  }
-
-  if (value === "1" || /eletric|electric|energia/.test(raw)) {
-    return {
-      Icon: Zap,
-      kind: "electricity",
-      color: "#1C3557",
-      iconClass: "text-navy",
-      selectedClass: "border-white bg-white text-navy shadow-sm",
-      chipClass: "border-navy/20 bg-navy/5 text-navy",
-    };
-  }
-
-  if (value === "2" || /agua|water/.test(raw)) {
-    return {
-      Icon: Droplets,
-      kind: "water",
-      color: "#0F766E",
-      iconClass: "text-[#0F766E]",
-      selectedClass: "border-white bg-white text-[#0F766E] shadow-sm",
-      chipClass: "border-[#0F766E]/20 bg-[#0F766E]/5 text-[#0F766E]",
-    };
-  }
-
-  if (value === "3" || /gas/.test(raw)) {
-    return {
-      Icon: Flame,
-      kind: "gas",
-      color: "#EA580C",
-      iconClass: "text-[#EA580C]",
-      selectedClass: "border-white bg-white text-[#EA580C] shadow-sm",
-      chipClass: "border-[#EA580C]/20 bg-[#EA580C]/5 text-[#EA580C]",
-    };
-  }
-
-  return {
-    Icon: FileText,
-    kind: "other",
-    color: "#64748b",
-    iconClass: "text-slate-500",
-    selectedClass: "border-white bg-white text-slate-600 shadow-sm",
-    chipClass: "border-slate-200 bg-slate-50 text-slate-700",
-  };
-}
-
-function isGeneralService(option) {
-  return getServiceTheme(option).kind === "all";
-}
-
-function EstimateInfo({ entries, general = false }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState(null);
-
-  const buttonRef = useRef(null);
-  const popupRef = useRef(null);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    const updatePosition = () => {
-      const anchor = buttonRef.current?.getBoundingClientRect();
-
-      if (!anchor) return;
-
-      const popupWidth = Math.min(340, window.innerWidth - 24);
-      const popupHeight = popupRef.current?.offsetHeight ?? 100;
-
-      const left = Math.max(
-        12,
-        Math.min(anchor.left, window.innerWidth - popupWidth - 12),
-      );
-
-      const below = anchor.bottom + 8;
-
-      const top =
-        below + popupHeight <= window.innerHeight - 12
-          ? below
-          : Math.max(12, anchor.top - popupHeight - 8);
-
-      setPosition({
-        top,
-        left,
-        width: popupWidth,
-      });
-    };
-
-    const frame = window.requestAnimationFrame(updatePosition);
-
-    const handleOutsideClick = (event) => {
-      const target = event.target;
-
-      if (
-        buttonRef.current?.contains(target) ||
-        popupRef.current?.contains(target)
-      ) {
-        return;
-      }
-
-      setIsOpen(false);
-    };
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("pointerdown", handleOutsideClick);
-    document.addEventListener("keydown", handleKeyDown);
-
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      document.removeEventListener("pointerdown", handleOutsideClick);
-      document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
-    };
-  }, [isOpen]);
-
-  if (!entries?.length) return null;
-
-  const popup =
-    isOpen && typeof document !== "undefined"
-      ? createPortal(
-          <div
-            ref={popupRef}
-            role="tooltip"
-            className="fixed z-1000 max-h-[70vh] overflow-y-auto rounded-lg border border-slate-200 bg-white p-3 text-left shadow-lg"
-            style={{
-              top: position?.top ?? -1000,
-              left: position?.left ?? -1000,
-              width: position?.width ?? 340,
-              visibility: position ? "visible" : "hidden",
-            }}
-          >
-            <p className="text-base font-semibold text-slate-800">
-              {general ? "Serviços com estimativas" : "Estimativas"}
-            </p>
-
-            {general ? (
-              <div className="mt-2 space-y-2">
-                {entries.map((entry, index) => {
-                  const theme = getServiceTheme(
-                    entry.option ?? { label: entry.label },
-                  );
-                  const Icon = theme.Icon;
-
-                  return (
-                    <div
-                      key={`${entry.label}-${index}`}
-                      className="flex items-center gap-2 text-base font-medium text-slate-700"
-                    >
-                      <Icon
-                        size={18}
-                        className={theme.iconClass}
-                        aria-hidden="true"
-                      />
-                      <span>{entry.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="mt-2 space-y-1.5">
-                {entries.flatMap((entry, entryIndex) =>
-                  entry.details.map((detail, detailIndex) => (
-                    <p
-                      key={`${entry.label ?? "estimate"}-${entryIndex}-${detailIndex}`}
-                      className="text-base leading-snug text-slate-600"
-                    >
-                      <strong className="font-semibold text-slate-800">
-                        {detail.label}:
-                      </strong>{" "}
-                      {detail.text}
-                    </p>
-                  )),
-                )}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="mt-3 w-full rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200"
-            >
-              Fechar
-            </button>
-          </div>,
-          document.body,
-        )
-      : null;
-
-  return (
-    <div className="inline-flex">
-      <button
-        ref={buttonRef}
-        type="button"
-        aria-label="Informação sobre estimativas"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((current) => !current)}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
-      >
-        <Info size={19} strokeWidth={2} aria-hidden="true" />
-      </button>
-
-      {popup}
-    </div>
-  );
-}
-
-function AnnualChartTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
-
-  const row = payload[0]?.payload;
-
-  if (!row) return null;
-
-  const estimated =
-    Number(row.estimated_months_count) > 0 ||
-    row.benchmark_estimated === true ||
-    (row.estimated_services ?? []).length > 0;
-
-  return (
-    <div className="min-w-47.5 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
-      <p className="mb-2 text-base font-semibold text-slate-900">{label}</p>
-
-      <div className="space-y-1.5 text-sm">
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-slate-500">Gasto da habitação</span>
-          <strong className="tabular-nums text-slate-800">
-            {formatMoney(row.user_total)}
-          </strong>
-        </div>
-
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-slate-500">Benchmark médio</span>
-          <strong className="tabular-nums text-slate-800">
-            {formatMoney(row.benchmark_total)}
-          </strong>
-        </div>
-      </div>
-
-      {estimated && (
-        <p className="mt-2 border-t border-slate-100 pt-2 text-xs text-amber-700">
-          Inclui valores estimados.
-        </p>
-      )}
-    </div>
-  );
-}
-
-function getUserBarColor(service) {
-  return getServiceTheme({ value: service }).color;
-}
-
-function AnnualCostsChart({ rows, service }) {
-  const chartRows = [...rows]
-    .sort((a, b) => Number(a.year) - Number(b.year))
-    .map((row) => ({
-      ...row,
-      user_total: Number(row.user_total) || 0,
-      benchmark_total: Number(row.benchmark_total) || 0,
-    }));
-
-  if (chartRows.length === 0) return null;
-
-  const userBarColor = getUserBarColor(service);
-  const latest = chartRows[chartRows.length - 1];
-  const previous =
-    chartRows.length > 1 ? chartRows[chartRows.length - 2] : null;
-
-  const trendPercentage =
-    previous && Number(previous.user_total) > 0
-      ? ((latest.user_total - previous.user_total) / previous.user_total) * 100
-      : null;
-
-  const partialLatest =
-    Number(latest.estimated_months_count) > 0 ||
-    latest.benchmark_estimated === true;
-
-  const increased = trendPercentage !== null && trendPercentage > 0;
-  const decreased = trendPercentage !== null && trendPercentage < 0;
-
-  return (
-    <section
-      className="border-t-4 px-5 py-5 sm:px-6"
-      style={{ borderTopColor: HEADER_COLOR }}
-    >
-      {/* Cabeçalho do gráfico com indicador de evolução. */}
-      <div
-        className="relative -mx-5 -mt-5 mb-4 flex flex-col gap-2 overflow-hidden px-5 py-4 sm:-mx-6 sm:flex-row sm:items-start sm:justify-between sm:px-6"
-        style={{ backgroundColor: HEADER_COLOR }}
-      >
-        <div className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-white/10" />
-        <div className="pointer-events-none absolute -bottom-16 right-1/3 h-32 w-32 rounded-full bg-black/10" />
-        <div className="pointer-events-none absolute right-1/4 top-4 h-12 w-12 rounded-full border border-white/10" />
-
-        <div className="relative z-10">
-          <h3 className="text-base font-semibold text-white">
-            Evolução anual dos custos
-          </h3>
-          <p className="mt-1 text-sm text-white/75">
-            Gastos da habitação comparados com o benchmark médio.
-          </p>
-        </div>
-
-        {trendPercentage !== null && (
-          <div
-            className={`relative z-10 inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold ${
-              increased
-                ? "bg-red-50 text-red-700"
-                : decreased
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-slate-100 text-slate-600"
-            }`}
-          >
-            {increased ? (
-              <TrendingUp size={17} aria-hidden="true" />
-            ) : decreased ? (
-              <TrendingDown size={17} aria-hidden="true" />
-            ) : null}
-
-            {increased
-              ? `Aumento de ${formatNumber(trendPercentage, { decimals: 1 })}% face a ${previous.year}`
-              : decreased
-                ? `Redução de ${formatNumber(Math.abs(trendPercentage), { decimals: 1 })}% face a ${previous.year}`
-                : `Sem alteração (0%) face a ${previous.year}`}
-
-            {partialLatest && (
-              <span className="font-normal opacity-80">· ano incompleto</span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Representação dos custos anuais em barras. */}
-      <div className="h-65 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartRows}
-            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-            barGap={6}
-            barCategoryGap="24%"
-          >
-            <CartesianGrid
-              stroke="#e2e8f0"
-              strokeDasharray="3 3"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="year"
-              tick={{ fill: "#64748b", fontSize: 14 }}
-              tickLine={false}
-              axisLine={{ stroke: "#e2e8f0" }}
-            />
-            <YAxis
-              width={76}
-              tickFormatter={(value) =>
-                value >= 10000
-                  ? `${formatCompact(value)} €`
-                  : `${formatNumber(value, { decimals: 0 })} €`
-              }
-              tick={{ fill: "#64748b", fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
-              allowDecimals={false}
-            />
-            <Tooltip
-              content={<AnnualChartTooltip />}
-              cursor={{ fill: "#f8fafc" }}
-            />
-            <Legend
-              verticalAlign="bottom"
-              height={36}
-              iconType="circle"
-              iconSize={9}
-              formatter={(value) => (
-                <span className="text-sm text-slate-600">{value}</span>
-              )}
-            />
-            <Bar
-              dataKey="user_total"
-              name="Gasto da habitação"
-              radius={[5, 5, 0, 0]}
-              maxBarSize={42}
-            >
-              {chartRows.map((row) => (
-                <Cell key={`user-${row.year}`} fill={userBarColor} />
-              ))}
-            </Bar>
-            <Bar
-              dataKey="benchmark_total"
-              name="Benchmark médio"
-              fill="#cbd5e1"
-              radius={[5, 5, 0, 0]}
-              maxBarSize={42}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </section>
-  );
 }
 
 function getAnnualRowPresentation(row, isGeneralView, options) {
@@ -590,7 +144,6 @@ function getAnnualRowPresentation(row, isGeneralView, options) {
           ],
         },
       ];
-
   return {
     difference,
     differenceStyle,
@@ -607,7 +160,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
   });
 
   const [retryCount, setRetryCount] = useState(0);
-
   const requestedService =
     serviceSelection.propertyId === propertyId ? serviceSelection.value : "all";
 
@@ -631,7 +183,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
   useEffect(() => {
     if (!propertyId) return undefined;
-
     let cancelled = false;
 
     fetchAnnualBenchmarks(propertyId)
@@ -645,7 +196,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
           "[AnnualBenchmarkTable] Erro ao carregar o benchmark:",
           err,
         );
-
         if (!cancelled) {
           setFetched({
             key: requestKey,
@@ -663,7 +213,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
   const options = result?.service_options ?? [];
   const hasGeneralOption = options.some(isGeneralService);
-
   const requestedServiceIsAvailable = options.some(
     (option) => String(option.value) === String(requestedService),
   );
@@ -676,7 +225,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
       : requestedService;
 
   const isGeneralView = isGeneralService({ value: activeService });
-
   const rows = isGeneralView
     ? (result?.data ?? [])
     : (result?.services?.[String(activeService)]?.data ?? []);
@@ -691,7 +239,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
   function retryRequest() {
     setRetryCount((count) => count + 1);
   }
-
   if (
     propertyId &&
     !loading &&
@@ -712,7 +259,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
           borderColor: "rgba(255,255,255,0.2)",
         }}
       >
-        {/* Elementos decorativos do cabeçalho. */}
         <div className="pointer-events-none absolute -right-8 -top-12 h-40 w-40 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-20 right-1/3 h-36 w-36 rounded-full bg-black/10" />
         <div className="pointer-events-none absolute right-1/4 top-5 h-16 w-16 rounded-full border border-white/10" />
@@ -728,7 +274,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
             </p>
           </div>
 
-          {/* Botões de filtro alinhados à direita no cabeçalho. */}
           {options.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {options.map((option) => {
@@ -759,7 +304,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
         </div>
       </header>
 
-      {/* Estado de erro apresentado sem expor mensagens SQL ou detalhes internos. */}
       {error && (
         <div className="px-5 pt-5 pb-5 sm:px-6" role="alert" aria-live="polite">
           <div
@@ -810,14 +354,12 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
         </div>
       )}
 
-      {/* Mensagem apresentada quando não existe uma habitação selecionada. */}
       {!propertyId && !error && (
         <div className="px-5 py-12 text-center text-base text-slate-500 sm:px-6">
           Seleciona uma casa para ver a comparação anual.
         </div>
       )}
 
-      {/* Indicador de carregamento dos dados. */}
       {propertyId && loading && rows.length === 0 && (
         <div className="flex items-center justify-center gap-2 px-5 py-12 text-base text-slate-500 sm:px-6">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-slate-600" />
@@ -825,7 +367,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
         </div>
       )}
 
-      {/* Estado vazio do serviço selecionado (os filtros continuam disponíveis). */}
       {propertyId && !loading && !error && rows.length === 0 && (
         <div className="px-5 py-12 text-center text-base text-slate-500 sm:px-6">
           Ainda não existem dados anuais para este serviço.
@@ -835,7 +376,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
       {/* Tabela e gráfico apresentados quando existem dados. */}
       {rows.length > 0 && (
         <>
-          {/* Cartões de comparação para telemóveis e tablets. */}
           <div className="space-y-3 px-4 py-4 lg:hidden">
             {rows.map((row) => {
               const {
@@ -921,7 +461,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
             })}
           </div>
 
-          {/* Tabela tradicional para ecrãs maiores. */}
           <div className="hidden w-full overflow-x-auto lg:block">
             <table className="w-full min-w-155 border-collapse text-base">
               <thead
@@ -1017,8 +556,6 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
           {/* Gráfico anual de barras. */}
           <AnnualCostsChart rows={rows} service={activeService} />
-
-          {/* Notas explicativas e aviso sobre os valores apresentados. */}
           <footer className="border-t border-slate-100 px-5 py-4 sm:px-6">
             <p className="mb-3 text-sm leading-relaxed text-slate-500">
               Uma diferença negativa significa que a habitação gastou menos do
