@@ -3,9 +3,10 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { FormField } from "./FormField";
 import { cx, inputClass } from "./styles";
+import { todayISO } from "../../utils/date";
 
 const LOCALE = "pt-PT";
-const WEEKDAYS = ["S", "T", "Q", "Q", "S", "S", "D"]; // Monday first
+const WEEKDAYS = ["S", "T", "Q", "Q", "S", "S", "D"];
 const WEEKDAY_NAMES = [
   "segunda",
   "terça",
@@ -16,13 +17,11 @@ const WEEKDAY_NAMES = [
   "domingo",
 ];
 
-// dates travel as "YYYY-MM-DD" (local day), like a native date input
 const pad = (n) => String(n).padStart(2, "0");
 const toKey = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
-const todayKey = () => new Date().toLocaleDateString("sv-SE");
 
 function parse(key) {
-  const [y, m] = (key || todayKey()).split("-").map(Number);
+  const [y, m] = (key || todayISO()).split("-").map(Number);
   return { year: y, month: m - 1 };
 }
 
@@ -50,10 +49,10 @@ function monthGrid(year, month) {
 
 function Calendar({ value, min, max, onPick }) {
   const [view, setView] = useState(() =>
-    parse(value || (min && min > todayKey() ? min : "")),
+    parse(value || (min && min > todayISO() ? min : "")),
   );
   const [pickingYear, setPickingYear] = useState(false);
-  const today = todayKey();
+  const today = todayISO();
 
   const title = new Date(view.year, view.month, 1).toLocaleDateString(LOCALE, {
     month: "long",
@@ -197,7 +196,7 @@ export function DatePicker({
   placeholder = "Escolher data",
   clearable = !required,
 }) {
-  const today = todayKey();
+  const today = todayISO();
   const todayAllowed = (!min || today >= min) && (!max || today <= max);
 
   return (

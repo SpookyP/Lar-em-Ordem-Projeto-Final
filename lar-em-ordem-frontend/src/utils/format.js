@@ -3,13 +3,50 @@ const euro = new Intl.NumberFormat("pt-PT", {
   currency: "EUR",
 });
 
+// shows an explicit "+" on positive values, so a difference reads as a gain or a saving
+const euroSigned = new Intl.NumberFormat("pt-PT", {
+  style: "currency",
+  currency: "EUR",
+  signDisplay: "exceptZero",
+});
+
+// compact notation for chart axis labels, e.g. 1500 -> "1,5 mil" (no currency symbol)
+const compactNumber = new Intl.NumberFormat("pt-PT", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
 export function formatMoney(value) {
   const amount = Number(value);
   return Number.isFinite(amount) ? euro.format(amount) : "";
 }
 
+export function formatMoneySigned(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? euroSigned.format(amount) : "";
+}
+
+export function formatCompact(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? compactNumber.format(amount) : "";
+}
+
+export function formatNumber(value, { decimals = 2, signed = false } = {}) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "";
+  return amount.toLocaleString("pt-PT", {
+    maximumFractionDigits: decimals,
+    signDisplay: signed ? "exceptZero" : "auto",
+  });
+}
+
 export function formatAddress(address) {
-  const parts = [address.street, address.postal_code, address.location, address.county].filter(Boolean);
+  const parts = [
+    address.street,
+    address.postal_code,
+    address.location,
+    address.county,
+  ].filter(Boolean);
   return [...new Set(parts)].join(", ") || "Morada removida";
 }
 

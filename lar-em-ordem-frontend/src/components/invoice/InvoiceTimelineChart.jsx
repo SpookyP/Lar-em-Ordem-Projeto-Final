@@ -17,6 +17,7 @@ import {
   monthsBetween,
   asNumber,
 } from "../../utils/invoiceTimelineUtils";
+import { formatMoney, formatNumber } from "../../utils/format";
 
 const MONTHS = [
   "Janeiro",
@@ -86,15 +87,6 @@ const PRESETS = [
   { label: "Últimos 12 meses", months: 12 },
 ];
 
-const money = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
-});
-
-const percent = new Intl.NumberFormat("pt-PT", {
-  maximumFractionDigits: 1,
-});
-
 const monthLabel = (key) => MONTHS_SHORT[keyToIndex(key) % 12];
 
 const monthLongLabel = (key) =>
@@ -160,7 +152,7 @@ function TimelineTooltip({
         />
         {serviceLabel}:{" "}
         <strong>
-          {row.mine == null ? "sem dados" : money.format(row.mine)}
+          {row.mine == null ? "sem dados" : formatMoney(row.mine)}
         </strong>
       </p>
 
@@ -170,7 +162,7 @@ function TimelineTooltip({
             className="h-0.5 w-3"
             style={{ backgroundColor: benchmarkColor }}
           />
-          Média similar: <strong>{money.format(row.benchmark)}</strong>
+          Média similar: <strong>{formatMoney(row.benchmark)}</strong>
         </p>
       )}
     </div>
@@ -759,12 +751,13 @@ export default function InvoiceTimelineChart({
                 : comparison.percentageDifference === 0
                   ? "Em linha com a média"
                   : comparison.percentageDifference < 0
-                    ? `▼ ${percent.format(
+                    ? `▼ ${formatNumber(
                         Math.abs(comparison.percentageDifference),
+                        { decimals: 1 },
                       )}% abaixo da média`
-                    : `▲ ${percent.format(
-                        comparison.percentageDifference,
-                      )}% acima da média`}
+                    : `▲ ${formatNumber(comparison.percentageDifference, {
+                        decimals: 1,
+                      })}% acima da média`}
             </span>
           )}
         </div>

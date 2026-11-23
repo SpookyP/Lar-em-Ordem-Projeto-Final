@@ -1,14 +1,13 @@
 import { useMemo } from "react";
 import { Wallet, Zap, Droplets, Flame } from "lucide-react";
+import { formatMoney } from "../../utils/format";
 
-// Associa cada tipo de consumo ao respetivo serviço.
 const SERVICE_TYPES = {
   1: "electricity",
   2: "water",
   3: "gas",
 };
 
-// Define as cores mais escuras dos cartões.
 const DARKER_COLORS = {
   "#583D69": "#402C4D",
   "#1C3557": "#142840",
@@ -16,7 +15,6 @@ const DARKER_COLORS = {
   "#EA580C": "#B84508",
 };
 
-// Converte valores recebidos para números.
 function toNumber(value) {
   if (value === null || value === undefined || value === "") return 0;
 
@@ -34,18 +32,14 @@ function toNumber(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
-// Identifica o tipo de serviço associado ao consumo.
 function getTypeId(consumption) {
   const id =
-    consumption?.consumption_type_id ??
-    consumption?.consumption_type?.id;
+    consumption?.consumption_type_id ?? consumption?.consumption_type?.id;
 
   if (id && SERVICE_TYPES[id]) return Number(id);
 
   const name = String(
-    consumption?.consumption_type?.name ??
-    consumption?.type ??
-    ""
+    consumption?.consumption_type?.name ?? consumption?.type ?? "",
   ).toLowerCase();
 
   if (name.includes("eletric") || name.includes("electric")) return 1;
@@ -55,7 +49,6 @@ function getTypeId(consumption) {
   return null;
 }
 
-// Obtém a lista de itens associados ao consumo.
 function getConsumptionItems(consumption) {
   const possibleItems = [
     consumption?.items,
@@ -66,20 +59,15 @@ function getConsumptionItems(consumption) {
   ];
 
   return (
-    possibleItems.find(
-      (items) => Array.isArray(items) && items.length > 0
-    ) ??
+    possibleItems.find((items) => Array.isArray(items) && items.length > 0) ??
     possibleItems.find(Array.isArray) ??
     []
   );
 }
 
-// Calcula o custo total de um consumo.
 function getConsumptionCost(consumption) {
   const directCost =
-    consumption?.cost ??
-    consumption?.total_cost ??
-    consumption?.totalCost;
+    consumption?.cost ?? consumption?.total_cost ?? consumption?.totalCost;
 
   if (directCost != null && directCost !== "") {
     return toNumber(directCost);
@@ -87,17 +75,16 @@ function getConsumptionCost(consumption) {
 
   const items = getConsumptionItems(consumption);
 
-  // Soma os custos dos itens quando não existe um total direto.
   if (items.length > 0) {
     return items.reduce((total, item) => {
       return (
         total +
         toNumber(
           item?.cost ??
-          item?.total_cost ??
-          item?.totalCost ??
-          item?.amount_cost ??
-          item?.price
+            item?.total_cost ??
+            item?.totalCost ??
+            item?.amount_cost ??
+            item?.price,
         )
       );
     }, 0);
@@ -106,21 +93,11 @@ function getConsumptionCost(consumption) {
   return 0;
 }
 
-// Formata os valores monetários em euros.
-function formatCurrency(value) {
-  return new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-  }).format(value);
-}
-
-// Componente responsável por apresentar os cartões de despesas.
 export default function InvoiceCard({
   invoices = [],
   loading = false,
   error = "",
 }) {
-  // Calcula os totais gerais e por tipo de serviço.
   const totals = useMemo(() => {
     const result = {
       total: 0,
@@ -129,7 +106,6 @@ export default function InvoiceCard({
       gas: 0,
     };
 
-    // Percorre as faturas para calcular os valores acumulados.
     invoices.forEach((invoice) => {
       result.total += toNumber(invoice?.total_amount);
 
@@ -137,7 +113,6 @@ export default function InvoiceCard({
         ? invoice.consumptions
         : [];
 
-      // Soma os custos de cada tipo de consumo.
       consumptions.forEach((consumption) => {
         const typeId = getTypeId(consumption);
         const service = SERVICE_TYPES[typeId];
@@ -151,7 +126,6 @@ export default function InvoiceCard({
     return result;
   }, [invoices]);
 
-  // Define os dados e os ícones dos cartões.
   const cards = [
     {
       title: "Despesa Total",
@@ -179,7 +153,6 @@ export default function InvoiceCard({
     },
   ];
 
-  // Renderiza os cartões com os totais das despesas.
   return (
     <div>
       {/* Apresenta uma mensagem quando ocorre um erro. */}
@@ -196,7 +169,6 @@ export default function InvoiceCard({
           const darkerColor = DARKER_COLORS[card.color];
 
           return (
-            // Cartão individual de cada tipo de despesa.
             <div
               key={card.title}
               className="group relative overflow-hidden rounded-2xl border border-white/10 p-5 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -223,11 +195,7 @@ export default function InvoiceCard({
               {/* Apresenta o valor acumulado da despesa. */}
               <div className="mt-5">
                 <p className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                  {loading
-                    ? "..."
-                    : error
-                      ? "—"
-                      : formatCurrency(card.value)}
+                  {loading ? "..." : error ? "—" : formatMoney(card.value)}
                 </p>
 
                 <div className="mt-3 flex items-center gap-2">

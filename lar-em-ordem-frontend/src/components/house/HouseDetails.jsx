@@ -13,11 +13,12 @@ import {
 import { useFetch } from "../../hooks/useFetch";
 import { LoadingState } from "../ui/LoadingState";
 import { EmptyState } from "../ui/EmptyState";
+import { formatDate as formatPtDate } from "../../utils/date";
 
 function formatDate(value) {
   if (!value) return null;
   const d = new Date(value);
-  return isNaN(d) ? value : d.toLocaleDateString("pt-PT");
+  return isNaN(d) ? value : formatPtDate(value);
 }
 
 function Tile({ icon: Icon, label, value }) {

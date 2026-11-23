@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Droplet, Zap, Flame } from "lucide-react";
 import { SummaryCard } from "../ui/SummaryCard";
+import { formatNumber } from "../../utils/format";
 
-// Configuração visual e unidades de cada tipo de consumo.
 const CONSUMPTION_CONFIG = {
   1: {
     name: "Eletricidade",
@@ -26,7 +26,6 @@ const CONSUMPTION_CONFIG = {
 
 const EMPTY_TOTALS = { 1: 0, 2: 0, 3: 0 };
 
-// Converte valores numéricos, incluindo formatos decimais portugueses.
 function parseAmount(value) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -45,7 +44,6 @@ function parseAmount(value) {
   return Number.isFinite(amount) ? amount : 0;
 }
 
-// Converte datas para objetos Date e rejeita valores inválidos.
 function parseDate(value) {
   if (!value) return null;
 
@@ -64,7 +62,6 @@ function parseDate(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-// Obtém a melhor data disponível para cada consumo.
 function getConsumptionDate(consumption, invoice) {
   return (
     consumption?.period_start ??
@@ -79,14 +76,12 @@ function getConsumptionDate(consumption, invoice) {
   );
 }
 
-// Determina a data inicial com base no período selecionado.
 function getPeriodStart(period) {
   const now = new Date();
 
   return new Date(now.getFullYear(), now.getMonth() - Number(period), 1);
 }
 
-// Identifica o tipo de consumo através do ID ou do nome.
 function getConsumptionTypeId(consumption) {
   const raw =
     consumption?.consumption_type_id ??
@@ -116,7 +111,6 @@ function getConsumptionTypeId(consumption) {
   return null;
 }
 
-// Obtém a quantidade consumida, considerando os diferentes formatos da API.
 function getConsumptionAmount(consumption) {
   return parseAmount(
     consumption?.amount ??
@@ -132,7 +126,6 @@ export default function ConsumptionSummary({
   loading = false,
   error = "",
 }) {
-  // Calcula os totais físicos de cada tipo de consumo no período selecionado.
   const totals = useMemo(() => {
     const newTotals = { ...EMPTY_TOTALS };
 
@@ -147,7 +140,6 @@ export default function ConsumptionSummary({
       consumptions.forEach((consumption) => {
         const date = parseDate(getConsumptionDate(consumption, invoice));
 
-        // Ignora consumos sem data válida ou fora do período.
         if (!date || date < startDate || date > endDate) return;
 
         const typeId = getConsumptionTypeId(consumption);
@@ -161,7 +153,6 @@ export default function ConsumptionSummary({
     return newTotals;
   }, [invoices, period]);
 
-  // Apresenta os totais calculados nos cartões de cada utilidade.
   return (
     <>
       {[1, 2, 3].map((typeId) => {
@@ -178,9 +169,7 @@ export default function ConsumptionSummary({
                 ? "..."
                 : error
                   ? "—"
-                  : `${totals[typeId].toLocaleString("pt-PT", {
-                      maximumFractionDigits: 2,
-                    })} ${config.unit}`
+                  : `${formatNumber(totals[typeId])} ${config.unit}`
             }
             label={`${config.name} · ${
               period === 1 ? "1 mês" : `${period} meses`
