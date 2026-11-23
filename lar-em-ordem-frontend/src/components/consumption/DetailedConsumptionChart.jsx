@@ -508,7 +508,7 @@ export default function DetailedConsumptionChart({
                   <>
                     {/* Desenha o gráfico com os custos dos consumos. */}
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
+                      <PieChart accessibilityLayer={false}>
                         <Pie
                           data={chartItems}
                           dataKey="sliceValue"
@@ -529,8 +529,8 @@ export default function DetailedConsumptionChart({
                               <Cell
                                 key={item.id}
                                 fill={item.color}
-                                stroke={active ? "#0f172a" : "#ffffff"}
-                                strokeWidth={active ? 4 : 2}
+                                stroke="#ffffff"
+                                strokeWidth={2}
                                 opacity={activeId && !active ? 0.28 : 1}
                               />
                             );
