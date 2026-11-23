@@ -12,8 +12,9 @@ import { SearchSelect } from "../form/SearchSelect";
 import { TextArea } from "../form/TextArea";
 import { TextInput } from "../form/TextInput";
 import { asNumber } from "../../utils/invoiceTimelineUtils";
+import { formatMoney } from "../../utils/format";
+import { getErrorMessage } from "../../utils/apiError";
 
-// Define a estrutura inicial dos itens e as opções disponíveis.
 const emptyItem = () => ({
   name: "",
   category: "consumption",
@@ -22,18 +23,15 @@ const emptyItem = () => ({
   cost: "",
 });
 
-// Interpreta números, incluindo o formato português (1.234,56).
 const numberValue = (v) => asNumber(v);
 
 const isBlank = (v) => v == null || String(v).trim() === "";
 
-// Converte valores extraídos do PDF para o formato dos campos numéricos (ponto decimal).
 const toInputValue = (v) => (isBlank(v) ? "" : String(asNumber(v)));
 
 const sumInputs = (a, b) =>
   String(Number((asNumber(a) + asNumber(b)).toFixed(4)));
 
-// Obtém o identificador da habitação ativa através do localStorage.
 const readActiveHouseId = () => {
   if (typeof window === "undefined") return "";
 
@@ -55,7 +53,6 @@ const readActiveHouseId = () => {
   }
 };
 
-// Define as categorias disponíveis para os itens da fatura.
 const itemCategoryOptions = [
   { value: "consumption", label: "Consumo" },
   { value: "fixed_fee", label: "Tarifa fixa" },
@@ -66,12 +63,7 @@ const itemCategoryOptions = [
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_PERIOD_DAYS = 400;
-const eur = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
-});
 
-// Valida os dados antes do envio; devolve a mensagem de erro ou null.
 function validateInvoice({
   formData,
   selectedTypeIds,
@@ -114,7 +106,6 @@ function validateInvoice({
       return `Preenche a quantidade e o custo total de ${name}.`;
     }
 
-    // Os gráficos somam os itens quando existem: têm de bater certo com o custo total.
     if (showItems[id]) {
       const items = (itemsData[id] || []).filter((item) => item.name.trim());
 
@@ -126,7 +117,7 @@ function validateInvoice({
         const consumptionCost = numberValue(data.cost);
 
         if (Math.abs(itemsTotal - consumptionCost) > 0.05) {
-          return `Os itens de ${name} somam ${eur.format(itemsTotal)}, mas o custo total indicado é ${eur.format(consumptionCost)}.`;
+          return `Os itens de ${name} somam ${formatMoney(itemsTotal)}, mas o custo total indicado é ${formatMoney(consumptionCost)}.`;
         }
       }
     }
@@ -135,7 +126,6 @@ function validateInvoice({
   return null;
 }
 
-// Componente principal responsável pelo registo de novas faturas.
 export default function InvoiceForm({ onInvoiceSaved }) {
   // Guarda os tipos de consumo disponíveis.
   const [consumptionTypes, setConsumptionTypes] = useState([
@@ -144,24 +134,20 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     { id: 3, name: "Gás", unit_of_measure: "kWh" },
   ]);
 
-  // Guarda os consumos selecionados e os respetivos detalhes.
   const [selectedTypeIds, setSelectedTypeIds] = useState([]);
   const [consumptionsData, setConsumptionsData] = useState({});
   const [showItems, setShowItems] = useState({});
   const [itemsData, setItemsData] = useState({});
 
-  // Controla o carregamento do ficheiro e o envio da fatura.
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formMessage, setFormMessage] = useState(null);
 
-  // Impede carregamentos e submissões duplicadas.
   const uploadLock = useRef(false);
   const submitLock = useRef(false);
 
-  // Guarda os dados principais da fatura.
   const [formData, setFormData] = useState({
     property_id: readActiveHouseId(),
     supplier: "",
@@ -172,7 +158,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     total_amount: "",
   });
 
-  // Atualiza um campo específico dos dados da fatura.
   const updateFormField = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -180,7 +165,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     }));
   };
 
-  // Carrega os tipos de consumo disponíveis através da API.
   useEffect(() => {
     getConsumptionTypes()
       .then((data) => {
@@ -197,7 +181,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       .catch(() => null);
   }, []);
 
-  // Carrega o PDF e preenche automaticamente os dados extraídos.
   const handleFileUpload = async (file) => {
     if (!file) {
       if (uploadLock.current || submitLock.current) return;
@@ -220,13 +203,11 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       const data = new FormData();
       data.append("file", file);
 
-      // a API só lê o PDF: o ficheiro é guardado quando a fatura for registada
       const body = await uploadInvoiceFile(data);
       const result = body?.data || body;
 
       setUploadSuccess(true);
 
-      // Preenche os dados principais com a informação extraída do PDF.
       const extracted = result.extracted || result.invoice_data;
 
       if (extracted) {
@@ -242,7 +223,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
             : toInputValue(extracted.total_amount),
         }));
 
-        // Preenche os consumos e os respetivos itens extraídos.
         if (Array.isArray(extracted.consumptions)) {
           const selected = [];
           const consumptionValues = {};
@@ -253,7 +233,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
             const id = Number(c.consumption_type_id);
             selected.push(id);
 
-            // Se o PDF trouxer o mesmo tipo mais do que uma vez, os valores são somados.
             const previous = consumptionValues[id];
 
             consumptionValues[id] = {
@@ -295,15 +274,9 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         });
       }
     } catch (err) {
-      // Apresenta uma mensagem caso ocorra um erro no carregamento.
       setFormMessage({
         type: "error",
-        text:
-          err.response?.status === 429
-            ? "Foram feitos demasiados pedidos. Aguarda um pouco antes de tentares novamente."
-            : err.response?.data?.message ||
-              err.message ||
-              "Erro ao carregar o ficheiro.",
+        text: getErrorMessage(err, "Erro ao carregar o ficheiro."),
       });
     } finally {
       uploadLock.current = false;
@@ -311,7 +284,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     }
   };
 
-  // Seleciona ou remove um tipo de consumo e os respetivos dados.
   const toggleType = (rawId, checked) => {
     const id = Number(rawId);
 
@@ -357,7 +329,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     });
   };
 
-  // Atualiza a quantidade ou o custo de um consumo.
   const changeConsumption = (id, field, value) =>
     setConsumptionsData((prev) => ({
       ...prev,
@@ -367,7 +338,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       },
     }));
 
-  // Atualiza um campo de um item individual da fatura.
   const changeItem = (id, index, field, value) =>
     setItemsData((prev) => {
       const list = [...(prev[id] || [])];
@@ -380,21 +350,18 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       return { ...prev, [id]: list };
     });
 
-  // Adiciona uma nova linha de detalhe ao consumo selecionado.
   const addItem = (id) =>
     setItemsData((prev) => ({
       ...prev,
       [id]: [...(prev[id] || []), emptyItem()],
     }));
 
-  // Remove um item individual da lista de consumos.
   const removeItem = (id, index) =>
     setItemsData((prev) => ({
       ...prev,
       [id]: (prev[id] || []).filter((_, i) => i !== index),
     }));
 
-  // Valida os dados e envia a fatura e os consumos para a API.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -405,7 +372,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     setFormMessage(null);
 
     try {
-      // Verifica se existe uma habitação selecionada.
       const propertyId = readActiveHouseId() || formData.property_id;
 
       if (!propertyId) {
@@ -416,7 +382,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         return;
       }
 
-      // Valida o preenchimento das datas obrigatórias.
       if (
         !formData.issue_date ||
         !formData.period_start ||
@@ -429,7 +394,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         return;
       }
 
-      // Valida os restantes campos, o período e a coerência dos custos.
       const validationError = validateInvoice({
         formData,
         selectedTypeIds,
@@ -444,7 +408,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         return;
       }
 
-      // Prepara os consumos e os respetivos itens para envio.
       const consumptions = selectedTypeIds.map((id) => {
         const entry = {
           consumption_type_id: id,
@@ -467,7 +430,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         return entry;
       });
 
-      // Constrói o objeto com todos os dados da fatura.
       const payload = {
         property_id: propertyId,
         invoice_number: formData.invoice_number,
@@ -479,7 +441,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         consumptions,
       };
 
-      // Regista a fatura (com o PDF, se houver) e apresenta uma mensagem de sucesso.
       await createInvoice(payload, selectedFile);
       onInvoiceSaved?.();
 
@@ -488,7 +449,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         text: "Fatura e consumos registados com sucesso!",
       });
 
-      // Limpa os campos após o registo bem-sucedido.
       setFormData((prev) => ({
         ...prev,
         supplier: "",
@@ -506,14 +466,9 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       setSelectedFile(null);
       setUploadSuccess(false);
     } catch (err) {
-      // Apresenta os erros devolvidos pela API.
-      const errors = err.response?.data?.errors;
-
       setFormMessage({
         type: "error",
-        text: errors
-          ? Object.values(errors).flat().join(" ")
-          : err.response?.data?.message || "Erro ao guardar a fatura.",
+        text: getErrorMessage(err, "Erro ao guardar a fatura."),
       });
     } finally {
       submitLock.current = false;
@@ -521,7 +476,6 @@ export default function InvoiceForm({ onInvoiceSaved }) {
     }
   };
 
-  // Apresenta a estrutura visual e os campos principais do formulário.
   return (
     <section className="space-y-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       {/* Cabeçalho e descrição do formulário. */}
@@ -549,7 +503,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
             ? "A carregar PDF..."
             : uploadSuccess
               ? "PDF lido com sucesso!"
-              : "Opcional: anexa o documento original."
+              : undefined
         }
         value={selectedFile}
         onChange={handleFileUpload}
@@ -569,9 +523,15 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         onSubmit={handleSubmit}
         className="space-y-6 border-t border-slate-100 pt-4"
       >
-        <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
-          Dados principais da fatura
-        </h3>
+        <div className="space-y-1">
+          <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
+            Dados principais da fatura
+          </h3>
+          <p className="text-xs text-muted">
+            Os campos marcados com <span className="text-red">*</span> são
+            obrigatórios.
+          </p>
+        </div>
 
         {/* Apresenta mensagens de sucesso ou erro. */}
         {formMessage && (
@@ -660,7 +620,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
               return (
                 <div
                   key={id}
-                  className="rounded-xl border border-navy/30avy/5 p-3"
+                  className="rounded-xl border border-navy/30 bg-navy/5 p-3"
                 >
                   <Checkbox
                     checked={selectedTypeIds.includes(id)}

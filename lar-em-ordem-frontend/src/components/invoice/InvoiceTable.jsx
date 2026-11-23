@@ -21,19 +21,17 @@ import {
   Zap,
   Droplets,
   Flame,
-  ChevronLeft,
-  ChevronRight,
   AlertTriangle,
 } from "lucide-react";
+import { Pager } from "../ui/Pager";
+import { formatMoney } from "../../utils/format";
 
 const PAGE_SIZE = 10;
 const NO_INVOICES = [];
 
-// Cor fixa dos cabeçalhos e dos elementos principais dos modais.
 const HEADER_COLOR = "#1C3557";
 const HEADER_DARK_COLOR = "#142840";
 
-// Tipos de serviço apresentados nas etiquetas e nos filtros.
 const SERVICE_TYPES = {
   1: {
     name: "Eletricidade",
@@ -65,20 +63,14 @@ const DARKER_SERVICE_COLORS = {
   3: "#B84508",
 };
 
-// Devolve os tipos de serviço sem repetições.
 function getInvoiceTypes(invoice) {
   return [...new Set(getConsumptions(invoice).map(getTypeId).filter(Boolean))];
 }
 
-// Formata um valor como moeda em euros.
 function formatCurrency(value) {
-  return new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-  }).format(toNumber(value));
+  return formatMoney(toNumber(value));
 }
 
-// Formata datas ISO ou no formato habitual em Portugal.
 function formatDate(value) {
   if (!value) return "—";
 
@@ -108,7 +100,6 @@ function formatDate(value) {
   return new Intl.DateTimeFormat("pt-PT").format(date);
 }
 
-// Converte uma data num índice mensal para facilitar as pesquisas por período.
 function getMonthIndex(value) {
   if (!value) return null;
 
@@ -133,7 +124,6 @@ function getMonthIndex(value) {
   return year * 12 + month - 1;
 }
 
-// Verifica se o período da fatura corresponde ao ano ou mês pesquisado.
 function matchesDateSearch(invoice, query) {
   const normalizedQuery = query.trim().replace(/\s+/g, "");
   if (!normalizedQuery) return true;
@@ -153,7 +143,6 @@ function matchesDateSearch(invoice, query) {
       ? Math.max(startIndex, endIndex)
       : (startIndex ?? endIndex);
 
-  // Pesquisa por ano: 2026.
   if (/^\d{4}$/.test(normalizedQuery)) {
     const year = Number(normalizedQuery);
     const yearStart = year * 12;
@@ -161,7 +150,6 @@ function matchesDateSearch(invoice, query) {
     return periodStart <= yearEnd && periodEnd >= yearStart;
   }
 
-  // Pesquisa por mês/ano: 09/2026 ou 09-2026.
   const monthYearMatch = normalizedQuery.match(/^(\d{1,2})[/-](\d{4})$/);
 
   if (monthYearMatch) {
@@ -173,7 +161,6 @@ function matchesDateSearch(invoice, query) {
     return searchedIndex >= periodStart && searchedIndex <= periodEnd;
   }
 
-  // Pesquisa por ano/mês: 2026-09 ou 2026/09.
   const yearMonthMatch = normalizedQuery.match(/^(\d{4})[/-](\d{1,2})$/);
 
   if (yearMonthMatch) {
@@ -188,7 +175,6 @@ function matchesDateSearch(invoice, query) {
   return false;
 }
 
-// Mostra os serviços associados à fatura.
 function InvoiceTypeBadge({ invoice }) {
   const types = getInvoiceTypes(invoice);
 
@@ -225,7 +211,6 @@ function InvoiceTypeBadge({ invoice }) {
   );
 }
 
-// Reutiliza os botões de ação nos cartões e na tabela.
 function InvoiceActions({
   invoice,
   onDetails,
@@ -271,7 +256,6 @@ function InvoiceActions({
   );
 }
 
-// Mostra a confirmação antes de eliminar uma fatura.
 function DeleteConfirmationModal({
   invoice,
   confirmed,
@@ -280,7 +264,6 @@ function DeleteConfirmationModal({
   onClose,
   onConfirm,
 }) {
-  // Fecha com Escape (exceto durante a eliminação).
   useEffect(() => {
     if (!invoice || loading) return undefined;
 
@@ -378,9 +361,7 @@ function DeleteConfirmationModal({
   );
 }
 
-// Apresenta todos os dados e consumos da fatura selecionada.
 function InvoiceDetailsModal({ invoice, onClose }) {
-  // Fecha com Escape.
   useEffect(() => {
     if (!invoice) return undefined;
 
@@ -660,7 +641,6 @@ export default function InvoiceTable({
   const [filter, setFilter] = useState("all");
   const [actionLoading, setActionLoading] = useState("");
 
-  // Associa o estado da interface à lista atual, sem sincronização via useEffect.
   const [paginationState, setPaginationState] = useState({
     source: invoiceList,
     page: 1,
@@ -673,7 +653,6 @@ export default function InvoiceTable({
     setPaginationState({ source: invoiceList, page });
   };
 
-  // Fecha automaticamente os detalhes quando a lista de faturas muda.
   const [selectedInvoiceState, setSelectedInvoiceState] = useState({
     source: invoiceList,
     value: null,
@@ -688,7 +667,6 @@ export default function InvoiceTable({
     setSelectedInvoiceState({ source: invoiceList, value });
   };
 
-  // Fecha automaticamente a confirmação quando a lista muda.
   const [deleteInvoiceState, setDeleteInvoiceState] = useState({
     source: invoiceList,
     value: null,
@@ -701,7 +679,6 @@ export default function InvoiceTable({
     setDeleteInvoiceState({ source: invoiceList, value });
   };
 
-  // A confirmação também é reiniciada quando chega uma nova lista.
   const [deleteConfirmedState, setDeleteConfirmedState] = useState({
     source: invoiceList,
     value: false,
@@ -716,7 +693,6 @@ export default function InvoiceTable({
     setDeleteConfirmedState({ source: invoiceList, value });
   };
 
-  // Aplica a pesquisa e o filtro de serviço.
   const filteredInvoices = useMemo(() => {
     return invoiceList.filter((invoice) => {
       const query = search.trim().toLowerCase();
@@ -740,22 +716,18 @@ export default function InvoiceTable({
     Math.ceil(filteredInvoices.length / PAGE_SIZE),
   );
 
-  // Garante que a página apresentada nunca ultrapassa o total disponível.
   const page = Math.min(currentPage, totalPages);
 
-  // Obtém apenas as faturas da página atual.
   const paginatedInvoices = filteredInvoices.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
 
-  // Reinicia a paginação quando a pesquisa muda.
   const changeSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
   };
 
-  // Reinicia a paginação quando o filtro muda.
   const changeFilter = (value) => {
     setFilter(value);
     setCurrentPage(1);
@@ -798,7 +770,6 @@ export default function InvoiceTable({
     },
   ];
 
-  // Carrega os dados completos da fatura para o modal.
   const handleDetails = async (invoice) => {
     setActionLoading(`details-${invoice.id}`);
 
@@ -816,7 +787,6 @@ export default function InvoiceTable({
     }
   };
 
-  // Obtém o PDF como Blob e abre-o numa nova janela.
   const handleDownload = async (invoice) => {
     if (!invoice?.has_file) {
       alert("Esta fatura não tem nenhum PDF associado.");
@@ -825,7 +795,6 @@ export default function InvoiceTable({
 
     setActionLoading(`file-${invoice.id}`);
 
-    // Abre o separador logo no clique (antes do pedido) para evitar o bloqueio de pop-ups.
     const pdfWindow = window.open("", "_blank");
 
     try {
@@ -843,7 +812,6 @@ export default function InvoiceTable({
         link.click();
       }
 
-      // Liberta o URL temporário depois de dar tempo para abrir o documento.
       window.setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
       pdfWindow?.close();
@@ -858,20 +826,17 @@ export default function InvoiceTable({
     }
   };
 
-  // Abre a confirmação de eliminação.
   const openDeleteConfirmation = (invoice) => {
     setDeleteInvoice(invoice);
     setDeleteConfirmed(false);
   };
 
-  // Fecha a confirmação, exceto durante a eliminação.
   const closeDeleteConfirmation = () => {
     if (actionLoading === "delete") return;
     setDeleteInvoice(null);
     setDeleteConfirmed(false);
   };
 
-  // Elimina a fatura e atualiza a listagem.
   const confirmDelete = async () => {
     if (!deleteInvoice || !deleteConfirmed) return;
 
@@ -908,7 +873,6 @@ export default function InvoiceTable({
         className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
         style={{ contain: "inline-size" }}
       >
-        {/* Cabeçalho principal e filtros de serviço. */}
         <header
           className="relative flex flex-col gap-4 overflow-hidden border-b border-white/20 p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-6"
           style={{ backgroundColor: HEADER_COLOR }}
@@ -961,7 +925,6 @@ export default function InvoiceTable({
           </div>
         </header>
 
-        {/* Campo de pesquisa. */}
         <div className="w-full min-w-0 p-5">
           <div className="relative w-full min-w-0">
             <Search
@@ -1082,10 +1045,16 @@ export default function InvoiceTable({
             >
               <tr>
                 <th className="px-5 py-4 font-semibold pl-10">Serviço</th>
-                <th className="px-5 py-4 font-semibold text-center">N.º da Fatura</th>
-                <th className="px-5 py-4 font-semibold text-center">Fornecedor</th>
+                <th className="px-5 py-4 font-semibold text-center">
+                  N.º da Fatura
+                </th>
+                <th className="px-5 py-4 font-semibold text-center">
+                  Fornecedor
+                </th>
                 <th className="px-5 py-4 font-semibold text-center">Período</th>
-                <th className="px-5 py-4 font-semibold text-center">Valor Total</th>
+                <th className="px-5 py-4 font-semibold text-center">
+                  Valor Total
+                </th>
                 <th className="px-5 py-4 font-semibold text-center">Ações</th>
               </tr>
             </thead>
@@ -1163,7 +1132,6 @@ export default function InvoiceTable({
           </table>
         </div>
 
-        {/* Controlos de paginação. */}
         {!loading && filteredInvoices.length > 0 && (
           <div className="flex min-w-0 flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500">
@@ -1182,37 +1150,16 @@ export default function InvoiceTable({
               {" faturas"}
             </p>
 
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {" "}
-              <button
-                type="button"
-                onClick={() => setCurrentPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                aria-label="Página anterior"
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-[#583D69]/30 hover:bg-[#583D69]/5 hover:text-[#583D69] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronLeft size={16} />
-                <span className="hidden sm:inline">Anterior</span>
-              </button>
-              <span className="min-w-22.5 text-center text-sm font-semibold text-slate-700">
-                Página {page} / {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(Math.min(totalPages, page + 1))}
-                disabled={page === totalPages}
-                aria-label="Página seguinte"
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-[#583D69]/30 hover:bg-[#583D69]/5 hover:text-[#583D69] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <span className="hidden sm:inline">Seguinte</span>
-                <ChevronRight size={16} />
-              </button>
-            </div>
+            <Pager
+              page={page}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+              bordered={false}
+            />
           </div>
         )}
       </div>
 
-      {/* Modal de confirmação da eliminação. */}
       <DeleteConfirmationModal
         invoice={deleteInvoice}
         confirmed={deleteConfirmed}
@@ -1222,7 +1169,6 @@ export default function InvoiceTable({
         onConfirm={confirmDelete}
       />
 
-      {/* Modal com os detalhes completos da fatura. */}
       <InvoiceDetailsModal
         invoice={selectedInvoice}
         onClose={() => setSelectedInvoice(null)}
