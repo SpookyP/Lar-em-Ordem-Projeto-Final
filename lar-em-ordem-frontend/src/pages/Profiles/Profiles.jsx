@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ProfileCard } from "../../components/account/ProfileCard";
 import { useAuth } from "../../hooks/useAuth";
-import { ROLE_INFO } from "../../data/roleInfo";
+import { ROLE_INFO, homePath } from "../../data/roleInfo";
 import { getPropertiesPage } from "../../services/api/propertyService";
 import { HouseList } from "../../components/house/HouseList";
 import { AuthSplit } from "../../components/layout/AuthSplit";
@@ -38,7 +38,6 @@ export default function Profiles() {
   const [openProfile, setOpenProfile] = useState(null);
   const [deciding, setDeciding] = useState(true);
 
-  //construir os perfis de acordo com as roles do utilizador autenticado
   const profiles = (user?.roles ?? []).map((roleName) => ({
     name: roleName,
     label: ROLE_INFO[roleName]?.label ?? roleName,
@@ -61,7 +60,7 @@ export default function Profiles() {
 
   function enter(profile, house) {
     selectProfile(profile, house);
-    navigate(ROLE_INFO[profile.name]?.home ?? "/dashboard");
+    navigate(homePath(profile.name));
   }
 
   async function handleLogout() {
@@ -69,19 +68,25 @@ export default function Profiles() {
     navigate("/login");
   }
 
-  //Decidir, uma vez por utilizador, se há perfis ou casas para escolher, se não houver, não passa pelo /profiles
-  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  // Intentionally depends only on [user]: this decision runs once per user, and
+  // profiles/preselectedProfile/enter are derived from the user, so listing them
+  // would re-run the effect every render for nothing.
   useEffect(() => {
     if (!user) return;
 
     if (preselectedProfile) {
+      if (!preselectedProfile.hasHouses) {
+        enter(preselectedProfile, null);
+        return;
+      }
+      // a preselected profile needs no auto-decision, so stop deciding now
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDeciding(false);
       return;
     }
 
     async function decideEntry() {
       try {
-        //vários perfis
         if (profiles.length !== 1) {
           setDeciding(false);
           return;
@@ -115,8 +120,8 @@ export default function Profiles() {
     }
 
     decideEntry();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   if (deciding) {
     return (
