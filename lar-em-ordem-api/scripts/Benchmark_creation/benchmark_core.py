@@ -1,13 +1,13 @@
 """
-Núcleo do cálculo de benchmarks de consumo.
+Core of the consumption benchmark calculation.
 
-Ideia geral:
- 1. Vai buscar à BD os consumos que tocam o período (mês ou ano) a processar.
- 2. Para cada propriedade e tipo de consumo, calcula quanto consumiu nesse período
-    (repartindo faturas que cruzam meses proporcionalmente aos dias).
- 3. Agrupa propriedades parecidas (mesmo tipo de consumo, tipo de propriedade,
-    tipologia e região) e calcula a média de cada grupo.
- 4. Grava a média em consumption_benchmarks (só se o grupo tiver propriedades suficientes).
+Overview:
+ 1. Fetches from the DB the consumptions that touch the period (month or year) being processed.
+ 2. For each property and consumption type, works out how much was consumed in that period
+    (invoices that cross months are split proportionally by days).
+ 3. Groups similar properties (same consumption type, property type, typology and region)
+    and averages each group.
+ 4. Saves the average in consumption_benchmarks (only if the group has enough properties).
 """
 
 import os
@@ -20,27 +20,28 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL
 
 # ============================================================
-# CONFIGURAÇÃO
+# CONFIGURATION
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 load_dotenv(BASE_DIR / ".env")
 
-# Valores recomendados em produção (definir no .env):
+# Recommended values in production (set them in .env):
 #   BENCHMARK_MIN_SAMPLE=5
 #   BENCHMARK_MIN_COVERAGE_MONTHLY=0.90
 #   BENCHMARK_MIN_COVERAGE_ANNUAL=0.75
-# Para testes com poucos dados, baixar estes valores no .env local.
+# For tests with little data, lower these values in the local .env.
 
-# Mínimo de propriedades por grupo para o benchmark ser gravado.
+# Minimum number of properties in a group for its benchmark to be saved.
 MIN_SAMPLE = int(os.getenv("BENCHMARK_MIN_SAMPLE", "3"))
 
-# Percentagem mínima do período que tem de estar coberta por faturas.
+# Minimum share of the period that invoices must cover.
 MIN_COVERAGE = {
     "monthly": float(os.getenv("BENCHMARK_MIN_COVERAGE_MONTHLY", "0.90")),
     "annual": float(os.getenv("BENCHMARK_MIN_COVERAGE_ANNUAL", "0.75")),
 }
 
+# Column of addresses that defines the region. It goes into the SQL text below, hence the check.
 REGION_COLUMN = os.getenv("BENCHMARK_REGION_COLUMN", "district")
 
 if not REGION_COLUMN.replace("_", "").isalnum():
@@ -75,8 +76,9 @@ engine = create_engine(
 # QUERIES
 # ============================================================
 
-# Consumos que se sobrepõem à janela [window_start, window_end),
-# já com as características da propriedade (tipo, tipologia, região).
+# Consumptions that overlap the window [window_start, window_end), together with the property's
+# type, typology and region. Only homes with an active contract whose resident's latest
+# 'data_sharing' consent is granted are included.
 FETCH = text(f"""
     SELECT
         c.property_id,
@@ -115,7 +117,8 @@ FETCH = text(f"""
       )
 """)
 
-# Apaga o benchmark anterior do mesmo período (é isto que permite reprocessar sem duplicar)
+# Deletes the previous benchmark of the same period: this is what allows
+# reprocessing without duplicates.
 DELETE = text("""
     DELETE FROM consumption_benchmarks
     WHERE reference_period = :reference_period
@@ -135,7 +138,7 @@ INSERT = text("""
 
 
 # ============================================================
-# DATAS
+# DATES
 # ============================================================
 
 def month_start(d: date) -> date:
@@ -143,6 +146,7 @@ def month_start(d: date) -> date:
 
 
 def next_month(d: date) -> date:
+    # Day 28 plus 4 days always falls in the next month, whatever the month's length.
     return (d.replace(day=28) + timedelta(days=4)).replace(day=1)
 
 
@@ -151,17 +155,17 @@ def _to_date(value):
 
 
 # ============================================================
-# CÁLCULO DOS BENCHMARKS
+# BENCHMARK CALCULATION
 # ============================================================
 
 def build_benchmarks(window_start: date, window_end: date, reference_period: str) -> int:
-    """Calcula e grava os benchmarks do intervalo [window_start, window_end).
-    Devolve o número de grupos gravados."""
+    """Calculates and saves the benchmarks for the interval [window_start, window_end).
+    Returns the number of groups saved."""
 
     expected_days = (window_end - window_start).days
     min_coverage = MIN_COVERAGE[reference_period]
 
-    # (property_id, consumption_type_id) -> [valor, custo, dias_consumo, dias_custo]
+    # (property_id, consumption_type_id) -> [value, cost, consumption_days, cost_days]
     property_consumption = defaultdict(lambda: [0.0, 0.0, 0, 0])
     property_data = {}
 
@@ -214,6 +218,8 @@ def build_benchmarks(window_start: date, window_end: date, reference_period: str
         cost_covered_days,
     ) in property_consumption.items():
 
+        # Properties with too little invoiced time are left out; the others are scaled
+        # up to the whole period, so their values are comparable.
         if covered_days < expected_days * min_coverage:
             continue
 
@@ -248,6 +254,7 @@ def build_benchmarks(window_start: date, window_end: date, reference_period: str
             if len(values) < MIN_SAMPLE:
                 continue
 
+            # Not every consumption has a cost, so the cost average has its own minimum sample.
             average_cost = (
                 round(sum(costs) / len(costs), 2)
                 if len(costs) >= MIN_SAMPLE

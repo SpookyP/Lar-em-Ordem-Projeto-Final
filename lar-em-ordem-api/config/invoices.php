@@ -1,12 +1,12 @@
 <?php
 
 return [
-    // Executável Python
+    // Python executable
     'python_bin' => env('PYTHON_PATH', 'python'),
 
-    // Script de extração, relativo à raiz do projeto
+    // extraction script, relative to the project root
     'extract_script' => 'scripts/Invoice_extract/InvoiceExtract.py',
 
-    // Tempo máximo (segundos) que a extração pode demorar
+    // seconds the extraction may take; if it times out, the user fills the form by hand
     'extract_timeout' => 20,
 ];

@@ -93,7 +93,7 @@ class CondominiumNoticeTest extends TestCase
         $this->assertFalse(collect($this->sino())->firstWhere('title', 'Pintura da fachada')['read']);
     }
 
-        public function test_o_texto_do_aviso_nao_vira_link_no_email(): void
+    public function test_o_texto_do_aviso_nao_vira_link_no_email(): void
     {
         Notification::fake();
 

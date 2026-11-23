@@ -21,15 +21,16 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Ponto único para criar, atualizar e remover os perfis de um utilizador (residente, prestador, parceiro, administrador de condomínio).
- * Este service decide QUE perfil; o service de cada módulo decide COMO (role, relações, transações).
+ * Single entry point to create, update and remove a user's profiles (resident, service provider, partner,
+ * condominium admin). This service decides WHICH profile; each module's service decides HOW
+ * (role, relations, transactions).
  */
 class ProfileService
 {
-    /** Roles com perfil próprio  */
+    /** Roles that have a profile of their own. */
     public const ROLES =  ['resident', 'service_provider', 'partner', 'condominium_admin'];
 
-    /** Perfil estritamente profissional: não pode existir com nenhum outro perfil na mesma conta. */
+    /** Strictly professional profile: it can't share an account with any other profile. */
     public const EXCLUSIVE_ROLE = 'partner';
 
     /** Portuguese name of each profile, for the 403 in get(). */
@@ -79,11 +80,7 @@ class ProfileService
     }
 
     /**
-     * Devolve o perfil do utilizador para um role, ou null se não o tiver.
-     *
-     * @param User $user Utilizador.
-     * @param string $role Um dos ROLES.
-     * @return Model|null
+     * The user's profile for one of the ROLES, or null if they don't have it.
      */
     public function find(User $user, string $role): ?Model
     {
@@ -97,10 +94,6 @@ class ProfileService
 
     /**
      * The user's profile for a role, for controllers that act as that profile; 403 if they don't have it.
-     *
-     * @param User $user Authenticated user.
-     * @param string $role One of the ROLES.
-     * @return Model
      */
     public function get(User $user, string $role): Model
     {
@@ -109,12 +102,7 @@ class ProfileService
     }
 
     /**
-     * Cria o perfil (e atribui a role). Falha (422) se o utilizador já o tiver.
-     *
-     * @param User $user Dono do perfil.
-     * @param string $role Um dos ROLES.
-     * @param array $data Dados validados do perfil.
-     * @return Model O perfil criado.
+     * Creates the profile and assigns its role; 422 if the user already has it.
      */
     public function create(User $user, string $role, array $data): Model
     {
@@ -135,12 +123,7 @@ class ProfileService
     }
 
     /**
-     * Atualiza o perfil com os dados validados. Falha (422) se o utilizador não o tiver.
-     *
-     * @param User $user Dono do perfil.
-     * @param string $role Um dos ROLES.
-     * @param array $data Dados validados do perfil (sem name, email, role).
-     * @return Model O perfil atualizado.
+     * Updates the profile with validated data (without name, email or role); 422 if the user doesn't have it.
      */
     public function update(User $user, string $role, array $data): Model
     {
@@ -155,11 +138,7 @@ class ProfileService
     }
 
     /**
-     * Remove o perfil (e retira a role). Falha (422) se não o tiver ou se for o único perfil da conta.
-     *
-     * @param User $user Dono do perfil.
-     * @param string $role Um dos ROLES.
-     * @return void
+     * Removes the profile and its role; 422 if the user doesn't have it or it's the account's only profile.
      */
     public function delete(User $user, string $role): void
     {
@@ -175,11 +154,9 @@ class ProfileService
     }
     
     /**
-     * Remove todos os perfis da conta (usado ao apagar a conta): cada módulo faz a sua limpeza.
-     * Não tem a regra do "único perfil". Se um módulo recusar (ex.: administrador com condomínios), nada é apagado.
-     *
-     * @param User $user Conta a limpar.
-     * @return void
+     * Removes every profile of the account (used when the account is deleted), each module doing its own clean-up.
+     * The "only profile" rule doesn't apply. If a module refuses (e.g. an admin who still manages condominiums),
+     * nothing is deleted.
      */
     public function deleteAll(User $user): void
     {
@@ -194,7 +171,7 @@ class ProfileService
         });
     }
 
-    /** O service de cada módulo decide COMO o perfil é removido. */
+    /** Each module's service decides how its profile is removed. */
     private function matchDeleteProfile(string $role, Model $profile): void
     {
         match ($role) {
@@ -213,8 +190,8 @@ class ProfileService
     }
 
      /**
-     * O perfil de parceiro é exclusivo: uma conta de parceiro não pode ter outros perfis,
-     * e uma conta com outros perfis não pode passar a ter o de parceiro (422).
+     * The partner profile is exclusive: a partner account can't have other profiles,
+     * and an account with other profiles can't become a partner (422).
      */
     private function assertExclusiveRole(User $user, string $role): void
     {

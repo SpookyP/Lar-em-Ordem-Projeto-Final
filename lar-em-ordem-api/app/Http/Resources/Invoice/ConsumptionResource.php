@@ -9,9 +9,6 @@ use App\Http\Resources\Invoice\ConsumptionTypeResource;
 
 class ConsumptionResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray(Request $request): array
     {
         return [

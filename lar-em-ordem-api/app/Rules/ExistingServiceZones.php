@@ -7,14 +7,14 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
- * Todos os ids da lista têm de ser zonas existentes. Uma só query para a lista inteira.
- * Valores que não são números e repetidos ficam para as regras 'integer' e 'distinct' de zone_ids.*.
+ * Every id in the list must be an existing zone, checked with a single query for the whole list.
+ * Non-numeric and repeated values are left to the 'integer' and 'distinct' rules on zone_ids.*.
  */
 class ExistingServiceZones implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        // ids inteiros (que chegam como texto, ex.: "101" num multipart)
+        // integer ids, which arrive as text in a multipart request (e.g. "101")
         $ids = array_unique(array_filter(
             array_map(fn ($id) => filter_var($id, FILTER_VALIDATE_INT), (array) $value),
             fn ($id) => $id !== false

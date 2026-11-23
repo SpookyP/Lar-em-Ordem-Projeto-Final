@@ -15,17 +15,10 @@ use Throwable;
 
 class InvoiceService
 {
-    // Categoria utilizada para identificar os ficheiros das faturas.
     public const FILE_CATEGORY = 'invoices';
 
-    public function __construct(private FileStorageService $files)
-    {
-    }
+    public function __construct(private FileStorageService $files){}
 
-    /**
-     * Obter as faturas de um residente,
-     * opcionalmente filtradas por propriedade.
-     */
     public function getInvoicesByResident(
         string $residentId,
         int $perPage = 15,
@@ -34,7 +27,6 @@ class InvoiceService
         $query = Invoice::query()
             ->where('resident_id', $residentId);
 
-        // Aplicar o filtro da propriedade apenas quando é fornecido.
         if ($propertyId !== null) {
             $query->where('property_id', $propertyId);
         }
@@ -52,8 +44,7 @@ class InvoiceService
     }
 
     /**
-     * Obter uma fatura específica pelo ID,
-     * garantindo que pertence ao residente.
+     * The resident's invoice with that id; a 404 if it doesn't exist or belongs to someone else.
      */
     public function getInvoiceById(
         string $invoiceId,
@@ -78,9 +69,9 @@ class InvoiceService
     }
 
     /**
-     * Registar uma fatura com os consumos e, se vier, o PDF.
-     * O PDF só é guardado no R2 neste momento, quando a fatura é registada.
-     * Se o registo falhar, o PDF é apagado: não ficam ficheiros sem fatura.
+     * Registers an invoice with its consumptions and, if one came, the PDF.
+     * The PDF is only stored in R2 now, when the invoice is registered.
+     * If registering fails the PDF is deleted, so no file is left without an invoice.
      */
     public function createInvoiceWithConsumptions(
         User $user,
@@ -106,8 +97,7 @@ class InvoiceService
     }
 
     /**
-     * Criar uma fatura e os respetivos consumos
-     * dentro de uma transação.
+     * Creates the invoice and its consumptions in one transaction.
      */
     private function saveInvoice(
         string $residentId,
@@ -119,7 +109,6 @@ class InvoiceService
             $invoiceData,
             $consumptionsData
         ) {
-            // Associar a fatura ao residente autenticado.
             $invoiceData['resident_id'] = $residentId;
 
             $invoice = Invoice::create($invoiceData);
@@ -128,6 +117,7 @@ class InvoiceService
             if (!empty($consumptionsData)) {
                 foreach ($consumptionsData as $item) {
                     $consumption = $invoice->consumptions()->create([
+                        // a consumption copies the invoice's home and period: the benchmarks read them from it
                         'property_id' => $invoice->property_id,
                         'consumption_type_id' => $item['consumption_type_id'],
                         'period_start' => $invoice->period_start,
@@ -136,7 +126,6 @@ class InvoiceService
                         'cost' => $item['cost'],
                     ]);
 
-                    // Criar os itens individuais de cada consumo.
                     if (!empty($item['items'])) {
                         foreach ($item['items'] as $subItem) {
                             $consumption->items()->create([
@@ -151,7 +140,6 @@ class InvoiceService
                 }
             }
 
-            // Devolver a fatura com as respetivas relações carregadas.
             return $invoice->load([
                 'property',
                 'file',
@@ -162,36 +150,29 @@ class InvoiceService
     }
 
     /**
-     * Apagar uma fatura e os consumos associados.
+     * Deletes an invoice with its consumptions and items, and then its PDF.
+     * A failure deleting the PDF is only reported: the invoice is already gone.
      */
     public function deleteInvoice(
         string $invoiceId,
         string $residentId
     ): bool {
-        // Confirmar que a fatura pertence ao residente.
         $invoice = $this->getInvoiceById($invoiceId, $residentId);
 
-        // Guardar a referência ao ficheiro antes de eliminar a fatura.
         $file = $invoice->file;
 
-        // Eliminar os registos dentro de uma única transação.
         $deleted = DB::transaction(function () use ($invoice) {
-            // Garantir que os consumos e respetivos itens estão carregados.
             $invoice->loadMissing('consumptions.items');
 
             foreach ($invoice->consumptions as $consumption) {
-                // Apagar primeiro os itens associados ao consumo.
                 $consumption->items()->delete();
 
-                // Apagar depois o próprio consumo.
                 $consumption->delete();
             }
 
-            // Por fim, apagar a fatura.
             return $invoice->delete();
         });
 
-        // Depois de apagar a fatura, eliminar o ficheiro associado.
         if ($deleted && $file) {
             try {
                 $this->files->deleteFile($file);
@@ -204,18 +185,15 @@ class InvoiceService
     }
 
     /**
-     * Apagar todas as faturas de um residente
-     * e os ficheiros de faturas que já não estejam associados.
+     * Deletes all of a resident's invoices and the invoice files left without an invoice
+     * (RGPD erasure).
      */
     public function deleteAllForResident(Resident $resident): void
     {
-        // Apagar todas as faturas do residente.
         Invoice::query()
             ->where('resident_id', $resident->id)
             ->delete();
 
-        // Apagar os ficheiros da categoria invoices
-        // que já não estejam associados a nenhuma fatura.
         File::query()
             ->where('user_id', $resident->user_id)
             ->where('category', self::FILE_CATEGORY)
@@ -225,8 +203,7 @@ class InvoiceService
     }
     
     /**
-     * Apagar todas as faturas de uma propriedade (os consumos vão em cascata)
-     * e os respetivos ficheiros.
+     * Deletes all invoices of a property (the consumptions cascade) and their files.
      */
     public function deleteAllForProperty(Property $property): void
     {

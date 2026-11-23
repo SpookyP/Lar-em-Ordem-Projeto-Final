@@ -19,9 +19,6 @@ class PropertyController extends Controller
         $this->authorizeResource(Property::class, 'property');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(PerPageRequest $request)
     {
         $properties = $this->service->getResidentProperties(
@@ -32,9 +29,6 @@ class PropertyController extends Controller
         return PropertyListResource::collection($properties);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StorePropertyRequest $request): JsonResponse
     {
         $property = $this->service->createResidentProperty(
@@ -49,17 +43,11 @@ class PropertyController extends Controller
             ->setStatusCode(201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Property $property): JsonResponse
     {
         return PropertyResource::make($this->service->withDetails($property))->response();
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdatePropertyRequest $request, Property $property)
     {
         $updatedProperty = $this->service->updateResidentProperty(
@@ -74,9 +62,6 @@ class PropertyController extends Controller
             ->response();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Property $property)
     {
         $this->service->deleteResidentProperty($property);
@@ -84,7 +69,7 @@ class PropertyController extends Controller
     }
 
     /**
-     * Displays forms data.
+     * Options for the home form: property types, typologies and resident types.
      */
     public function formOptions(): JsonResponse
     {

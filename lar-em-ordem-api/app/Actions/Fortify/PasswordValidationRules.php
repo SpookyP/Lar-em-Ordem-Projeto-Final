@@ -28,7 +28,7 @@ trait PasswordValidationRules
     }
 
     /**
-     * Mensagens em português para as regras acima (senão vinham as do Laravel, em inglês).
+     * Translated rules messages.
      *
      * @return array<string, string>
      */
