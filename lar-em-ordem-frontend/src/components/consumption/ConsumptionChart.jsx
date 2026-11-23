@@ -305,7 +305,7 @@ export default function ConsumptionChart({
       {/* Gráfico circular com o total ou a categoria selecionada. */}
       <div className="relative shrink-0" style={{ width: 260, height: 260 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart accessibilityLayer={false}>
             <Pie
               data={data}
               dataKey="value"

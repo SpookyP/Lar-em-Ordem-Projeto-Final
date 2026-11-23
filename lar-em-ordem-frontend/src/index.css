@@ -51,4 +51,7 @@ textarea {
   button:not(:disabled) {
     cursor: pointer;
   }
+  .recharts-wrapper :focus {
+    outline: none;
+  }
 }
