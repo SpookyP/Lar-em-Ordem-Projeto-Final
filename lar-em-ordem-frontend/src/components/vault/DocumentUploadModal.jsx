@@ -1,37 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import {
-  uploadDocument,
-  getDocumentCategories,
-} from "../../services/api/documentService";
+import { uploadDocument } from "../../services/api/documentService";
+import { getErrorMessage } from "../../utils/apiError";
 import { TextInput, SearchSelect, FileInput, DatePicker } from "../form";
-import { todayISO } from "../../utils/date";
 
-export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
+// "initialCategoryId" and "initialName" fill the form when the upload starts from a checklist item
+export function DocumentUploadModal({
+  propertyId,
+  categories = [],
+  initialCategoryId,
+  initialName = "",
+  onClose,
+  onUploaded,
+}) {
   const [file, setFile] = useState(null);
-  const [name, setName] = useState("");
-  const [documentCategoryId, setDocumentCategoryId] = useState("");
+  const [name, setName] = useState(initialName);
+  const [documentCategoryId, setDocumentCategoryId] = useState(
+    initialCategoryId ? String(initialCategoryId) : "",
+  );
   const [description, setDescription] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    getDocumentCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]));
-  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (!file) return setError("Escolhe um ficheiro.");
-    if (!name.trim()) return setError("Dá um nome ao documento.");
-    if (!documentCategoryId) return setError("Escolhe uma categoria.");
+    if (!file) return setError("Escolha um ficheiro.");
+    if (!name.trim()) return setError("Dê um nome ao documento.");
+    if (!documentCategoryId) return setError("Escolha uma categoria.");
 
     setSaving(true);
     try {
@@ -45,8 +45,13 @@ export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
       });
       onUploaded();
       onClose();
-    } catch {
-      setError("Não foi possível carregar o documento. Tente novamente.");
+    } catch (err) {
+      setError(
+        getErrorMessage(
+          err,
+          "Não foi possível carregar o documento. Tente novamente.",
+        ),
+      );
     } finally {
       setSaving(false);
     }
@@ -57,7 +62,7 @@ export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
     label: c.name,
   }));
 
-  const today = todayISO();
+  const today = new Date().toLocaleDateString("sv-SE");
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -104,7 +109,7 @@ export function DocumentUploadModal({ propertyId, onClose, onUploaded }) {
             options={categoryOptions}
             value={documentCategoryId}
             onChange={setDocumentCategoryId}
-            placeholder="Escolhe uma categoria…"
+            placeholder="Escolha uma categoria…"
           />
 
           <TextInput
