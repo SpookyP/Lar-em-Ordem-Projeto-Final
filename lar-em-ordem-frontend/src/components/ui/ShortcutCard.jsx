@@ -11,12 +11,12 @@ export function ShortcutCard({ icon: Icon, iconColor, title, description, to }) 
         <Icon size={22} />
       </div>
 
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <p className="font-medium text-navy">{title}</p>
         <p className="text-sm text-muted">{description}</p>
       </div>
 
-      <ChevronRight size={20} className="text-muted" />
+      <ChevronRight size={20} className="shrink-0 text-muted" />
     </Link>
   );
 }

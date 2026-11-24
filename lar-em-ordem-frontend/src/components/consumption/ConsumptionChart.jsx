@@ -262,15 +262,15 @@ export default function ConsumptionChart({
         </p>
 
         <p className="mt-1 text-sm text-slate-500">
-          Adiciona uma fatura para consultar a distribuição dos custos.
+          Adicione uma fatura para consultar a distribuição dos custos.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
-      {/* Gráfico circular com o total ou a categoria selecionada. */}
+    <div className="flex flex-col items-center gap-8 @xl:flex-row @xl:gap-8">
+      {/* Pie Chart with total or category selected. */}
       <div className="relative shrink-0" style={{ width: 260, height: 260 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart accessibilityLayer={false}>
@@ -388,7 +388,7 @@ export default function ConsumptionChart({
         {/* Indicação de que as categorias permitem abrir detalhes. */}
         {onCategoryClick && (
           <p className="mt-5 text-xs text-slate-500">
-            Clica numa categoria para consultar o detalhe.
+            Clique numa categoria para consultar o detalhe.
           </p>
         )}
       </div>

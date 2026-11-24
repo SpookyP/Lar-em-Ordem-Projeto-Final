@@ -7,7 +7,7 @@ export function useCondominiumNoticesPage(condominiumId, { perPage = 5 } = {}) {
     { condominiumId, perPage },
     {
       enabled: Boolean(condominiumId),
-      errorMessage: "Não foi possível carregar os avisos. Tenta de novo dentro de um minuto.",
+      errorMessage: "Não foi possível carregar os avisos. Tente de novo dentro de um minuto.",
     },
   );
 }

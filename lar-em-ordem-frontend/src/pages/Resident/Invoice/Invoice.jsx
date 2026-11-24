@@ -17,7 +17,7 @@ export default function Invoice() {
           <h1 className="font-display text-3xl text-slate-900">Faturas</h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Consulta e acompanha as faturas da tua casa.
+            Consulte e acompanhe as faturas da sua casa.
           </p>
         </div>
 

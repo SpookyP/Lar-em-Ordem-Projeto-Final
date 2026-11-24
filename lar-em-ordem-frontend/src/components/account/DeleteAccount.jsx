@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { deleteAccount } from "../../services/api/accountService";
+import { getErrorMessage } from "../../utils/apiError";
 import { accountTypes } from "../../data/registerFields";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 
@@ -38,9 +39,7 @@ export function DeleteAccount() {
     } catch (err) {
       setStatus(null);
       setConfirming(false);
-      setError(
-        err.response?.data?.message ?? "Não foi possível apagar a conta.",
-      );
+      setError(getErrorMessage(err, "Não foi possível apagar a conta."));
     }
   }
 

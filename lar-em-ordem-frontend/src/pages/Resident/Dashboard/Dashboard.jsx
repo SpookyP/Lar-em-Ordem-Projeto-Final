@@ -8,7 +8,9 @@ import { NotificationBell } from "../../../components/notification/NotificationB
 import { OfferRecommendations } from "../../../components/offer/OfferRecommendations";
 import useInvoices from "../../../hooks/useInvoices";
 import { useAuth } from "../../../hooks/useAuth";
+import { useVaultDocuments } from "../../../hooks/useVaultDocuments";
 import { isOwnerHouse } from "../../../utils/ownerHouse";
+import { getVaultSummaryText } from "../../../utils/vaultDocuments";
 
 const periods = [
   { label: "1 mês", value: 1 },
@@ -26,6 +28,8 @@ export default function Dashboard() {
   const { activeHouse } = useAuth();
   const isOwner = isOwnerHouse(activeHouse);
 
+  const vault = useVaultDocuments(isOwner ? (activeHouse?.id ?? null) : null);
+
   const handleAddInvoice = () => {
     navigate("/consumos", {
       state: { scrollToInvoiceForm: true },
@@ -42,7 +46,7 @@ export default function Dashboard() {
         <NotificationBell />
       </header>
 
-      <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
         <div className="min-w-0 flex-1">
           <div className="rounded-2xl bg-card p-4 shadow-sm sm:p-8">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -73,12 +77,14 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <ConsumptionChart
-              invoices={invoices}
-              loading={loading}
-              error={error}
-              period={period}
-            />
+            <div className="@container">
+              <ConsumptionChart
+                invoices={invoices}
+                loading={loading}
+                error={error}
+                period={period}
+              />
+            </div>
 
             <p className="mt-6 text-xs text-muted">
               * Conversões: Água — 1 m³ = 1 000 L | Gás — 1 kWh ≈ 0,076–0,087 m³
@@ -86,7 +92,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex w-full flex-col gap-3 lg:w-80">
+        <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-80 xl:shrink-0 xl:grid-cols-1">
           <ConsumptionSummary
             invoices={invoices}
             loading={loading}
@@ -99,7 +105,7 @@ export default function Dashboard() {
               icon={FolderClosed}
               iconColor="bg-navy/10 text-navy"
               title="Cofre Digital"
-              description="1 documento a expirar"
+              description={getVaultSummaryText(vault)}
               to="/vault"
             />
           )}

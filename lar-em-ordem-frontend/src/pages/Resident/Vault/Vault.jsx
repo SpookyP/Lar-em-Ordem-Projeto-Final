@@ -1,19 +1,27 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Search, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react";
 import { DocumentCard } from "../../../components/vault/DocumentCard";
-import {
-  getPropertyDocuments,
-  deleteDocument,
-  getDocumentDownloadUrl,
-} from "../../../services/api/documentService";
-import { useAuth } from "../../../hooks/useAuth";
-import { Navigate } from "react-router-dom";
-import { isOwnerHouse } from "../../../utils/ownerHouse";
+import { DocumentChecklist } from "../../../components/vault/DocumentChecklist";
 import { DocumentUploadModal } from "../../../components/vault/DocumentUploadModal";
 import { DocumentEditModal } from "../../../components/vault/DocumentEditModal";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { LoadingState } from "../../../components/ui/LoadingState";
 import { EmptyState } from "../../../components/ui/EmptyState";
+import {
+  deleteDocument,
+  getDocumentDownloadUrl,
+} from "../../../services/api/documentService";
+import { useAuth } from "../../../hooks/useAuth";
+import { useDocumentCategories } from "../../../hooks/useDocumentCategories";
+import { useVaultDocuments } from "../../../hooks/useVaultDocuments";
+import { getErrorMessage } from "../../../utils/apiError";
+import { isOwnerHouse } from "../../../utils/ownerHouse";
+import {
+  buildChecklist,
+  summarizeChecklist,
+} from "../../../utils/vaultChecklist";
+import { getVaultSummaryText } from "../../../utils/vaultDocuments";
 
 const FILTERS = [
   { value: "all", label: "Todos" },
@@ -29,43 +37,28 @@ export default function Vault() {
   const isOwner = isOwnerHouse(activeHouse);
   const propertyId = isOwner ? (activeHouse?.id ?? null) : null;
 
-  const [docs, setDocs] = useState([]);
-  const [error, setError] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [uploadOpen, setUploadOpen] = useState(false);
+  const {
+    documents: docs,
+    summary,
+    loading,
+    error: loadError,
+    reload,
+  } = useVaultDocuments(propertyId);
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useDocumentCategories();
+
+  const [actionError, setActionError] = useState("");
+  // null while closed; "category" is the checklist item the upload started from, if any
+  const [upload, setUpload] = useState(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const scrollRef = useRef(null);
   const [editingDoc, setEditingDoc] = useState(null);
   const [deletingDoc, setDeletingDoc] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [loadedKey, setLoadedKey] = useState(null);
-
-  //loading derivado: estamos a carregar enquanto o resultado que temos não for o do pedido atual
-  const requestKey = propertyId ? `${propertyId}|${refreshKey}` : null;
-  const loading = Boolean(propertyId) && loadedKey !== requestKey;
-
-  useEffect(() => {
-    if (!propertyId) return;
-    let active = true;
-    getPropertyDocuments({ propertyId, perPage: 15 })
-      .then((res) => {
-        if (active) {
-          setDocs(res.items);
-          setError("");
-          setLoadedKey(requestKey);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setError("Não foi possível carregar os documentos.");
-          setLoadedKey(requestKey);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [propertyId, refreshKey, requestKey]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -86,15 +79,17 @@ export default function Vault() {
       );
   }, [docs, query, filter]);
 
+  const checklist = useMemo(
+    () => buildChecklist(categories, docs),
+    [categories, docs],
+  );
+  const checklistSummary = useMemo(
+    () => summarizeChecklist(checklist),
+    [checklist],
+  );
+
   if (!isOwner) {
     return <Navigate to="/dashboard" replace />;
-  }
-
-  const total = docs.length;
-  const attention = docs.filter((d) => d.status !== "valid").length;
-
-  function reload() {
-    setRefreshKey((k) => k + 1);
   }
 
   function scroll(dir) {
@@ -107,37 +102,42 @@ export default function Vault() {
   async function confirmDelete() {
     if (!deletingDoc) return;
     setDeleting(true);
+    setActionError("");
     try {
       await deleteDocument(deletingDoc.id);
       setDeletingDoc(null);
       reload();
-    } catch {
-      setError("Não foi possível apagar o documento.");
+    } catch (err) {
+      setActionError(
+        getErrorMessage(err, "Não foi possível apagar o documento."),
+      );
     } finally {
       setDeleting(false);
     }
   }
 
   async function handleOpen(doc) {
+    setActionError("");
     const win = window.open("", "_blank");
     try {
       const url = await getDocumentDownloadUrl(doc.id);
       if (url && win) win.location.href = url;
       else if (win) win.close();
-    } catch {
+    } catch (err) {
       if (win) win.close();
-      setError("Não foi possível abrir o documento.");
+      setActionError(getErrorMessage(err, "Não foi possível abrir o documento."));
     }
   }
 
+  const checklistReady =
+    Boolean(propertyId) && !loading && !loadError && !categoriesLoading;
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex w-full min-w-0 flex-col gap-8">
       <div>
         <h1 className="font-display text-4xl text-navy">Cofre Digital</h1>
         <p className="mt-1 text-muted">
-          {total}{" "}
-          {total === 1 ? "documento arquivado" : "documentos arquivados"} ·{" "}
-          {attention} a precisar de atenção
+          {getVaultSummaryText({ loading, error: loadError, summary })}
         </p>
       </div>
 
@@ -196,12 +196,14 @@ export default function Vault() {
           </div>
         </div>
 
+        {actionError && <p className="text-sm text-red">{actionError}</p>}
+
         {!propertyId ? (
           <EmptyState message="Nenhuma casa selecionada." />
         ) : loading ? (
           <LoadingState label="A carregar documentos..." />
-        ) : error ? (
-          <p className="text-sm text-red">{error}</p>
+        ) : loadError ? (
+          <p className="text-sm text-red">{loadError}</p>
         ) : filtered.length === 0 ? (
           <EmptyState
             message={
@@ -213,7 +215,7 @@ export default function Vault() {
         ) : (
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory md:snap-none"
+            className="flex min-w-0 gap-4 overflow-x-auto pb-2 snap-x snap-mandatory md:snap-none"
           >
             {filtered.map((doc) => (
               <DocumentCard
@@ -228,6 +230,16 @@ export default function Vault() {
         )}
       </section>
 
+      {categoriesError && <p className="text-sm text-red">{categoriesError}</p>}
+
+      {checklistReady && (
+        <DocumentChecklist
+          items={checklist}
+          summary={checklistSummary}
+          onAttach={(item) => setUpload({ category: item })}
+        />
+      )}
+
       <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-border p-8 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface text-navy">
           <UploadCloud size={24} />
@@ -241,17 +253,20 @@ export default function Vault() {
         </div>
         <button
           type="button"
-          onClick={() => setUploadOpen(true)}
+          onClick={() => setUpload({ category: null })}
           className="rounded-xl bg-navy px-5 py-2.5 font-semibold text-white transition hover:bg-navy-light"
         >
           Escolher ficheiro
         </button>
       </div>
 
-      {uploadOpen && (
+      {upload && (
         <DocumentUploadModal
           propertyId={propertyId}
-          onClose={() => setUploadOpen(false)}
+          categories={categories}
+          initialCategoryId={upload.category?.id}
+          initialName={upload.category?.name}
+          onClose={() => setUpload(null)}
           onUploaded={reload}
         />
       )}
@@ -267,7 +282,7 @@ export default function Vault() {
       {deletingDoc && (
         <ConfirmDialog
           title="Apagar documento"
-          message={`Queres mesmo apagar "${deletingDoc.name}"? Esta ação não pode ser desfeita.`}
+          message={`Quer mesmo apagar "${deletingDoc.name}"? Esta ação não pode ser desfeita.`}
           confirmLabel="Apagar"
           loadingLabel="A apagar…"
           danger

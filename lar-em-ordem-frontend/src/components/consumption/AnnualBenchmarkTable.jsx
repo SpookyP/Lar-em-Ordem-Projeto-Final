@@ -66,14 +66,14 @@ function getErrorPresentation(err) {
       type: "migration",
       title: "Atualização da base de dados necessária",
       description:
-        "A comparação anual está temporariamente indisponível porque a estrutura da base de dados precisa de ser atualizada. Contacta o administrador do sistema para concluir esta atualização.",
+        "A comparação anual está temporariamente indisponível porque a estrutura da base de dados precisa de ser atualizada. Contacte o administrador do sistema para concluir esta atualização.",
     };
   }
   return {
     type: "general",
     title: "Não foi possível carregar a comparação anual",
     description:
-      "Ocorreu um problema ao obter os dados do benchmark. Tenta novamente dentro de alguns instantes.",
+      "Ocorreu um problema ao obter os dados do benchmark. Tente novamente dentro de alguns instantes.",
   };
 }
 
@@ -356,7 +356,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
       {!propertyId && !error && (
         <div className="px-5 py-12 text-center text-base text-slate-500 sm:px-6">
-          Seleciona uma casa para ver a comparação anual.
+          Selecione uma casa para ver a comparação anual.
         </div>
       )}
 

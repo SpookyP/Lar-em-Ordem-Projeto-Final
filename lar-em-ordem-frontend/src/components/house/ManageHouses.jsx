@@ -110,7 +110,7 @@ export function ManageHouses() {
       )}
       {loading && <LoadingState />}
       {!loading && !listError && total === 0 && (
-        <EmptyState message="Ainda não tens habitações." />
+        <EmptyState message="Ainda não tem habitações." />
       )}
 
       <ul className="flex flex-col gap-2">

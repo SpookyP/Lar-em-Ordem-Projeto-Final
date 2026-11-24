@@ -39,7 +39,7 @@ export function OfferForm({ offer = null, onSaved, readOnly = false }) {
       !form.description ||
       !form.start_date
     ) {
-      setError("Preenche todos os campos obrigatórios.");
+      setError("Preencha todos os campos obrigatórios.");
       return;
     }
 
@@ -106,7 +106,7 @@ export function OfferForm({ offer = null, onSaved, readOnly = false }) {
         options={categoryOptions}
         value={form.offer_category_id}
         onChange={(v) => setField("offer_category_id", v)}
-        placeholder="Escolhe uma categoria…"
+        placeholder="Escolha uma categoria…"
         disabled={readOnly}
       />
 

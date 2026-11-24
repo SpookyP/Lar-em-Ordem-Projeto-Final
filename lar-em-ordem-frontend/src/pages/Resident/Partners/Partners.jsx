@@ -83,7 +83,7 @@ export default function Partners() {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h1 className="font-display text-4xl text-teal">Parceiros</h1>
         <p className="font-display text-xl italic text-muted translate-y-6 sm:text-right">
-          Empresas parceiras com vantagens para a tua casa.
+          Empresas parceiras com vantagens para a sua casa.
         </p>
       </div>
 

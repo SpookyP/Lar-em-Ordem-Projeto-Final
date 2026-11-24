@@ -32,7 +32,7 @@ export function DocumentEditModal({ doc, onClose, onSaved }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!name.trim()) return setError("Dá um nome ao documento.");
+    if (!name.trim()) return setError("Dê um nome ao documento.");
 
     setSaving(true);
     try {
@@ -94,7 +94,7 @@ export function DocumentEditModal({ doc, onClose, onSaved }) {
             options={categoryOptions}
             value={documentCategoryId}
             onChange={setDocumentCategoryId}
-            placeholder="Escolhe uma categoria…"
+            placeholder="Escolha uma categoria…"
           />
 
           <TextInput

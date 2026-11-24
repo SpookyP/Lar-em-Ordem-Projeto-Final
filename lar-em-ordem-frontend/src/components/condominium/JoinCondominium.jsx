@@ -49,7 +49,7 @@ export function JoinCondominium({ propertyId, onJoined }) {
           setError("");
         }}
         error={error}
-        hint="Pede-o à administração do teu prédio."
+        hint="Peça-o à administração do seu prédio."
         placeholder="CAPELA23"
         maxLength={CODE_LENGTH}
         autoComplete="off"

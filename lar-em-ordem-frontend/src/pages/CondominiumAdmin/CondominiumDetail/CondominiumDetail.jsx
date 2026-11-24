@@ -388,7 +388,7 @@ export default function CondominiumDetail() {
 
                 <Card
                   title="Transferir condomínio"
-                  description="Passa a administração para outra pessoa ou empresa, com um código válido durante 7 dias."
+                  description="Passe a administração para outra pessoa ou empresa, com um código válido durante 7 dias."
                 >
                   <TransferCondominium
                     condominiumId={id}

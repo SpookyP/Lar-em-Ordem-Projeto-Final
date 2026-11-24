@@ -128,7 +128,7 @@ export default function Settings() {
               </button>
             )}
             {section === null && (
-              <p className="text-sm text-muted">Seleciona uma opção.</p>
+              <p className="text-sm text-muted">Selecione uma opção.</p>
             )}
             {section === "account" && <AccountForm />}
             {section === "password" && <PasswordForm />}

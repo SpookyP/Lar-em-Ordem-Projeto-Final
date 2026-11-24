@@ -1,11 +1,11 @@
 /*importar fontes usadas no figma*/
-@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap");
 @import "tailwindcss";
 
 /*design tokens = as cores e fontes que o cliente aprovou no projeto Figma*/
 
 @theme {
-  --font-display: "DM Serif Display", Georgia, serif;
+  --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
@@ -48,6 +48,11 @@ textarea {
 }
 
 @layer base {
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
   button:not(:disabled) {
     cursor: pointer;
   }

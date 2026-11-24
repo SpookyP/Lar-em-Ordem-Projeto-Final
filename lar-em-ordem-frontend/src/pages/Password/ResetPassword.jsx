@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { PasswordRequirements } from "../../components/account/PasswordRequirements";
 import { isPasswordValid } from "../../utils/passwordValidation";
 import { resetPassword } from "../../services/api/authService";
+import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import { PasswordField } from "../../components/form";
 
 export default function ResetPassword() {
@@ -30,17 +31,16 @@ export default function ResetPassword() {
       setStatus("success");
     } catch (requestError) {
       setStatus("error");
-      const errors = requestError.response?.data?.errors;
-      if (errors?.password) {
+      const fieldErrors = getFieldErrors(requestError);
+      if (fieldErrors.password) {
         setError(
           "A password escolhida não é segura. Por favor, escolha outra.",
         );
-      } else if (errors?.email || errors?.token) {
+      } else if (fieldErrors.email || fieldErrors.token) {
         setError("O link de reposição é inválido ou já expirou. Peça um novo.");
       } else {
         setError(
-          requestError.response?.data?.message ??
-            "Não foi possível repor a password.",
+          getErrorMessage(requestError, "Não foi possível repor a password."),
         );
       }
     }

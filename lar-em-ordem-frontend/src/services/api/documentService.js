@@ -53,6 +53,30 @@ export async function getPropertyDocuments({
   return toPage(response, toDocument);
 }
 
+const DOCUMENTS_PAGE_SIZE = 15;
+const DOCUMENTS_MAX_PAGES = 20;
+
+export async function getAllPropertyDocuments(propertyId) {
+  const first = await getPropertyDocuments({
+    propertyId,
+    page: 1,
+    perPage: DOCUMENTS_PAGE_SIZE,
+  });
+
+  const lastPage = Math.min(first.lastPage, DOCUMENTS_MAX_PAGES);
+  const others = await Promise.all(
+    Array.from({ length: Math.max(lastPage - 1, 0) }, (_, index) =>
+      getPropertyDocuments({
+        propertyId,
+        page: index + 2,
+        perPage: DOCUMENTS_PAGE_SIZE,
+      }),
+    ),
+  );
+
+  return [first, ...others].flatMap((page) => page.items);
+}
+
 export async function uploadDocument(
   propertyId,
   { name, documentCategoryId, description, file, expirationDate, issueDate },

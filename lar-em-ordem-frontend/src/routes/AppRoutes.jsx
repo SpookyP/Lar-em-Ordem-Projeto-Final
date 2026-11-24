@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { ScrollToTop } from "../components/layout/ScrollToTop"
 import { PrivateRoute } from "./PrivateRoute";
 import { GuestRoute } from "./GuestRoute";
 import { AppLayout } from "../components/layout/AppLayout";
@@ -212,6 +213,7 @@ function AppRoutesInner() {
 export function AppRoutes() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AppRoutesInner />
       <SessionTimeout />
     </BrowserRouter>

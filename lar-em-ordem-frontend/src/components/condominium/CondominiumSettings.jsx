@@ -13,7 +13,7 @@ export function CondominiumSettings() {
   const [message, setMessage] = useState("");
 
   if (!activeHouse) {
-    return <EmptyState message="Escolhe uma casa para gerir o condomínio." />;
+    return <EmptyState message="Escolha uma casa para gerir o condomínio." />;
   }
 
   return (
@@ -21,8 +21,8 @@ export function CondominiumSettings() {
       <div>
         <h2 className="font-display text-2xl text-navy">Condomínio</h2>
         <p className="mt-1 text-sm text-muted">
-          Liga a casa ativa ao condomínio do prédio para receberes os avisos e
-          veres os documentos, como atas e regulamento.
+          Ligue a casa ativa ao condomínio do prédio para receber os avisos e
+          ver os documentos, como atas e regulamento.
         </p>
       </div>
 
@@ -41,7 +41,7 @@ export function CondominiumSettings() {
         <JoinCondominium
           propertyId={activeHouse.id}
           onJoined={(joined) => {
-            setMessage(`A tua casa está agora ligada a ${joined.name}.`);
+            setMessage(`A sua casa está agora ligada a ${joined.name}.`);
             // the menu shows "Condomínio" once the full condominium comes back
             refreshCondominium();
           }}
@@ -75,7 +75,7 @@ export function CondominiumSettings() {
               condominium={activeCondominium}
               propertyId={activeHouse.id}
               onLeft={() => {
-                setMessage(`A tua casa saiu de ${activeCondominium.name}.`);
+                setMessage(`A sua casa saiu de ${activeCondominium.name}.`);
                 refreshCondominium();
               }}
             />

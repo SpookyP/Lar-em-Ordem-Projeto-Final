@@ -8,7 +8,7 @@ export function usePropertyDocumentsPage(propertyId, { categoryId = "", perPage 
     { propertyId, categoryId, perPage },
     {
       enabled: Boolean(propertyId),
-      errorMessage: "Não foi possível carregar os documentos. Tenta de novo dentro de um minuto.",
+      errorMessage: "Não foi possível carregar os documentos. Tente de novo dentro de um minuto.",
     },
   );
 }

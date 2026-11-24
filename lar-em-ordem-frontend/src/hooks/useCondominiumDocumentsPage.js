@@ -7,7 +7,7 @@ export function useCondominiumDocumentsPage(condominiumId, { categoryId = "", pe
     { condominiumId, categoryId, perPage },
     {
       enabled: Boolean(condominiumId),
-      errorMessage: "Não foi possível carregar os documentos. Tenta de novo dentro de um minuto.",
+      errorMessage: "Não foi possível carregar os documentos. Tente de novo dentro de um minuto.",
     },
   );
 }

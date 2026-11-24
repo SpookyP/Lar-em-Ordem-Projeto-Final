@@ -59,11 +59,11 @@ export function validateInvoice({
   consumptionTypes,
 }) {
   if (isBlank(formData.supplier) || isBlank(formData.invoice_number)) {
-    return "Preenche o fornecedor e o número da fatura.";
+    return "Preencha o fornecedor e o número da fatura.";
   }
 
   if (isBlank(formData.total_amount)) {
-    return "Preenche o valor total da fatura.";
+    return "Preencha o valor total da fatura.";
   }
 
   const start = Date.parse(formData.period_start);
@@ -75,12 +75,12 @@ export function validateInvoice({
     }
 
     if ((end - start) / DAY_MS > MAX_PERIOD_DAYS) {
-      return `O período de faturação não pode exceder ${MAX_PERIOD_DAYS} dias. Confirma as datas.`;
+      return `O período de faturação não pode exceder ${MAX_PERIOD_DAYS} dias. Confirme as datas.`;
     }
   }
 
   if (selectedTypeIds.length === 0) {
-    return "Seleciona pelo menos um tipo de consumo.";
+    return "Selecione pelo menos um tipo de consumo.";
   }
 
   for (const id of selectedTypeIds) {
@@ -89,7 +89,7 @@ export function validateInvoice({
     const data = consumptionsData[id] ?? {};
 
     if (isBlank(data.amount) || isBlank(data.cost)) {
-      return `Preenche a quantidade e o custo total de ${name}.`;
+      return `Preencha a quantidade e o custo total de ${name}.`;
     }
 
     if (showItems[id]) {

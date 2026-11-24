@@ -146,7 +146,7 @@ export default function CondominiumDocuments() {
             message={
               categoryId
                 ? "Não há documentos nesta categoria."
-                : "Ainda não carregaste nenhum documento."
+                : "Ainda não carregou nenhum documento."
             }
           />
         </div>

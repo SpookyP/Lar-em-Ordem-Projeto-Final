@@ -22,8 +22,8 @@ function toDay(iso) {
 
 function validate(form) {
   const errors = {};
-  if (!form.title.trim()) errors.title = "Indica o título do aviso.";
-  if (!form.message.trim()) errors.message = "Escreve a mensagem do aviso.";
+  if (!form.title.trim()) errors.title = "Indique o título do aviso.";
+  if (!form.message.trim()) errors.message = "Escreva a mensagem do aviso.";
   if (form.expires_on && form.expires_on < todayISO()) {
     errors.expires_at = "A data de fim do aviso tem de ser hoje ou depois.";
   }
