@@ -262,7 +262,7 @@ export default function ConsumptionChart({
         </p>
 
         <p className="mt-1 text-sm text-slate-500">
-          Adiciona uma fatura para consultar a distribuição dos custos.
+          Adicione uma fatura para consultar a distribuição dos custos.
         </p>
       </div>
     );
@@ -388,7 +388,7 @@ export default function ConsumptionChart({
         {/* Indicação de que as categorias permitem abrir detalhes. */}
         {onCategoryClick && (
           <p className="mt-5 text-xs text-slate-500">
-            Clica numa categoria para consultar o detalhe.
+            Clique numa categoria para consultar o detalhe.
           </p>
         )}
       </div>

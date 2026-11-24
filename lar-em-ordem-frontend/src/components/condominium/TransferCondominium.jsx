@@ -80,7 +80,7 @@ export function TransferCondominium({ condominiumId, expiresAt, onChange }) {
         <div className="flex flex-col gap-2 rounded-xl bg-surface p-3">
           <p className="text-muted">
             Quem usar o código passa a gerir este condomínio, com os avisos, os documentos e as
-            frações. Tu deixas de ter acesso.
+            frações. Você deixa de ter acesso.
             {pending && " O código anterior deixa de funcionar."}
           </p>
           <div className="flex items-center gap-3">

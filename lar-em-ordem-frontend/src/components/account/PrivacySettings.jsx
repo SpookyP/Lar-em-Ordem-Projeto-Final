@@ -30,7 +30,7 @@ export function PrivacySettings() {
       patchUser({ privacy });
       setSaved(true);
     } catch (err) {
-      setError(getErrorMessage(err, "Não foi possível guardar a tua escolha. Tenta novamente."));
+      setError(getErrorMessage(err, "Não foi possível guardar a sua escolha. Tente novamente."));
     } finally {
       setSaving(false);
     }
@@ -50,7 +50,7 @@ export function PrivacySettings() {
       // give the browser a moment to start the download before freeing the file
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (err) {
-      setDownloadError(getErrorMessage(err, "Não foi possível descarregar os teus dados. Tenta novamente."));
+      setDownloadError(getErrorMessage(err, "Escolha como usamos os seus dados."));
     } finally {
       setDownloading(false);
     }
@@ -60,7 +60,7 @@ export function PrivacySettings() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="font-medium text-navy">Privacidade</h2>
-        <p className="mt-1 text-sm text-muted">Escolhe como usamos os teus dados.</p>
+        <p className="mt-1 text-sm text-muted">Escolha como usamos os seus dados.</p>
       </div>
 
       <Toggle
@@ -68,7 +68,7 @@ export function PrivacySettings() {
         onChange={handleSharingChange}
         disabled={saving}
         label="Partilhar os meus consumos"
-        description="Os teus consumos entram, de forma anónima, nas médias de casas semelhantes. Se desligares, deixam de contar a partir do próximo cálculo."
+        description="Os seus consumos entram, de forma anónima, nas médias de casas semelhantes. Se desligar, deixam de contar a partir do próximo cálculo."
       />
 
       {saved && (
@@ -85,7 +85,7 @@ export function PrivacySettings() {
       <p className="rounded-xl border border-border p-4 text-sm text-muted">
         {policy ? (
           <>
-            Aceitaste a{" "}
+            Aceitou a{" "}
             <Link to="/privacy" className="font-medium text-navy underline">
               Política de Privacidade
             </Link>{" "}
@@ -93,7 +93,7 @@ export function PrivacySettings() {
           </>
         ) : (
           <>
-            Consulta a{" "}
+            Consulte a{" "}
             <Link to="/privacy" className="font-medium text-navy underline">
               Política de Privacidade
             </Link>
@@ -103,9 +103,9 @@ export function PrivacySettings() {
       </p>
 
       <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
-        <p className="text-sm font-medium text-navy">Os teus dados</p>
+        <p className="text-sm font-medium text-navy">Os seus dados</p>
         <p className="text-sm text-muted">
-          Descarrega uma cópia de tudo o que guardamos sobre ti (conta, casas, faturas, documentos, pedidos e
+          Descarregue uma cópia de tudo o que guardamos sobre si (conta, casas, faturas, documentos, pedidos e
           consentimentos), num ficheiro JSON.
         </p>
         <button

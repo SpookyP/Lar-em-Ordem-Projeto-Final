@@ -30,7 +30,7 @@ export function LeaveCondominium({ condominium, propertyId, onLeft }) {
       {confirming ? (
         <div className="flex flex-col gap-2 rounded-xl bg-surface p-3">
           <p className="text-muted">
-            A tua casa deixa de ver os avisos e os documentos de {condominium.name}. Podes voltar a
+            A sua casa deixa de ver os avisos e os documentos de {condominium.name}. Pode voltar a
             entrar com o código de convite.
           </p>
           <div className="flex items-center gap-3">

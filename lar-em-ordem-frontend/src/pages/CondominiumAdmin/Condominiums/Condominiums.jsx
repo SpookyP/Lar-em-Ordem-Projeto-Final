@@ -307,7 +307,7 @@ export default function Condominiums() {
                 </button>
               </div>
               <p className="mt-1 mb-5 text-sm text-muted">
-                Passas a gerir o condomínio, com os avisos, os documentos e as
+                Passa a gerir o condomínio, com os avisos, os documentos e as
                 frações.
               </p>
               <ClaimCondominium

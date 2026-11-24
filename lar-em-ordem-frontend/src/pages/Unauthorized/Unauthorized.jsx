@@ -28,7 +28,7 @@ export default function Unauthorized() {
         <p className="text-sm font-semibold text-muted">Erro 403</p>
         <h1 className="mt-1 font-display text-3xl text-navy">Acesso negado</h1>
         <p className="mt-3 text-sm text-muted">
-          Não tens permissão para aceder a esta página
+          Não tem permissão para aceder a esta página
           {activeProfile ? ` com o perfil "${activeProfile.label}"` : ""}.
         </p>
 

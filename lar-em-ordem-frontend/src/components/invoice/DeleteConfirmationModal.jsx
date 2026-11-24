@@ -41,7 +41,7 @@ export function DeleteConfirmationModal({
                 Eliminar fatura
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                Confirma que pretendes continuar.
+                Confirme que pretende continuar.
               </p>
             </div>
           </div>

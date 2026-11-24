@@ -21,20 +21,20 @@ function validate(form, isEdit) {
   const errors = {};
 
   if (!isEdit) {
-    if (!form.file) errors.file = "Escolhe o ficheiro do documento.";
+    if (!form.file) errors.file = "Escolha o ficheiro do documento.";
     else if (!ALLOWED.includes(form.file.type))
       errors.file = "O documento tem de ser PDF, JPG ou PNG.";
     else if (form.file.size > MAX_BYTES)
       errors.file = "O documento não pode ter mais de 15 MB.";
   }
-  if (!form.title.trim()) errors.title = "Indica o título do documento.";
-  if (!form.document_date) errors.document_date = "Indica a data do documento.";
+  if (!form.title.trim()) errors.title = "Indique o título do documento.";
+  if (!form.document_date) errors.document_date = "Indique a data do documento.";
   else if (form.document_date > todayISO()) {
     errors.document_date = "A data do documento não pode ser no futuro.";
   }
   if (!form.category_id)
     errors.condominium_document_category_id =
-      "Escolhe a categoria do documento.";
+      "Escolha a categoria do documento.";
 
   return errors;
 }

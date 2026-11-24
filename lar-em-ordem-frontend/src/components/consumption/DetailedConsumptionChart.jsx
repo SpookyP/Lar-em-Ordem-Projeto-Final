@@ -185,7 +185,7 @@ export default function DetailedConsumptionChart({
           </p>
 
           <p className="mt-1 text-sm text-slate-500">
-            Guarda uma fatura para consultar os seus detalhes.
+            Guarde uma fatura para consultar os seus detalhes.
           </p>
         </div>
       ) : (

@@ -40,7 +40,7 @@ export default function Offers() {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <h1 className="font-display text-4xl text-teal">Ofertas</h1>
         <p className="font-display text-xl italic text-muted translate-y-6 sm:text-right">
-          Vantagens exclusivas dos nossos parceiros para a tua casa.
+          Vantagens exclusivas dos nossos parceiros para a sua casa.
         </p>
       </div>
 

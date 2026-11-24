@@ -7,7 +7,7 @@ export function useMyCondominiumsPage({ perPage = 6 } = {}) {
     { perPage },
     {
       errorMessage:
-        "Não foi possível carregar os condomínios. Tenta de novo dentro de um minuto.",
+        "Não foi possível carregar os condomínios. Tente de novo dentro de um minuto.",
     },
   );
 }

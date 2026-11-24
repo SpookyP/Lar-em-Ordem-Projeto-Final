@@ -112,7 +112,7 @@ export default function MyOffers() {
         <LoadingState />
       ) : isEmptyAll ? (
         <div className="rounded-2xl bg-card p-8 text-center shadow-sm">
-          <EmptyState message="Ainda não tens ofertas." />
+          <EmptyState message="Ainda não tem ofertas." />
           <Link
             to="/partner/offers/new"
             className="mt-3 inline-block font-semibold text-navy hover:underline"

@@ -363,7 +363,7 @@ export default function InvoiceTimelineChart({
         </p>
 
         <p className="mt-1 text-base text-slate-500">
-          Guarda uma fatura com período de faturação para ver a linha temporal.
+          Guarde uma fatura com período de faturação para ver a linha temporal.
         </p>
       </section>
     );
@@ -440,7 +440,7 @@ export default function InvoiceTimelineChart({
             </h2>
 
             <p className="mt-1 text-sm text-white/75">
-              Acompanha a evolução dos custos ao longo do tempo.
+              Acompanhe a evolução dos custos ao longo do tempo.
             </p>
           </div>
 

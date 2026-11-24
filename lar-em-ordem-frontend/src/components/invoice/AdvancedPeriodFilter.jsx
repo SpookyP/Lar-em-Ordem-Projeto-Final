@@ -88,8 +88,7 @@ export function AdvancedPeriodFilter({
           </span>
 
           <span className="mt-1 block text-sm leading-relaxed text-slate-500">
-            Define um intervalo personalizado para explorar a evolução dos teus
-            consumos.
+            Defina um intervalo personalizado para explorar a evolução dos seus consumos.
           </span>
         </span>
 
@@ -139,7 +138,7 @@ export function AdvancedPeriodFilter({
                   </p>
 
                   <p className="mt-0.5 text-sm text-slate-500">
-                    Escolhe as datas que queres comparar.
+                    Escolha as datas que quer comparar.
                   </p>
                 </div>
               </div>
@@ -187,7 +186,7 @@ export function AdvancedPeriodFilter({
               </span>
 
               <p className="text-[13px] leading-relaxed text-slate-600">
-                Podes selecionar qualquer mês e ano desde 1900 até ao mês atual.
+                Pode selecionar qualquer mês e ano desde 1900 até ao mês atual.
                 O intervalo máximo é de{" "}
                 <strong className="font-semibold text-slate-800">
                   25 meses de calendário, contando o mês inicial e o final

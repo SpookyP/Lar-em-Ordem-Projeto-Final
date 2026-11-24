@@ -438,7 +438,7 @@ export default function InvoiceTable({
                 Nenhuma fatura encontrada
               </p>
               <p className="mt-1 text-sm text-slate-400">
-                Experimenta alterar os filtros ou a pesquisa.
+                Experimente alterar os filtros ou a pesquisa.
               </p>
             </div>
           ) : (
@@ -558,7 +558,7 @@ export default function InvoiceTable({
                         Nenhuma fatura encontrada
                       </p>
                       <p className="mt-1 text-sm text-slate-400">
-                        Experimenta alterar os filtros ou a pesquisa.
+                        Experimente alterar os filtros ou a pesquisa.
                       </p>
                     </div>
                   </td>

@@ -30,12 +30,12 @@ const STEPS = [
 ];
 
 const REQUIRED = {
-  name: "Indica o nome do condomínio.",
-  "address.street": "Indica a rua.",
-  "address.postal_code": "Indica o código postal.",
-  "address.district": "Escolhe o distrito.",
-  "address.county": "Escolhe o concelho.",
-  "address.location": "Escolhe a localidade.",
+  name: "Indique o nome do condomínio.",
+  "address.street": "Indique a rua.",
+  "address.postal_code": "Indique o código postal.",
+  "address.district": "Escolha o distrito.",
+  "address.county": "Escolha o concelho.",
+  "address.location": "Escolha a localidade.",
 };
 
 const toOptions = (names, current = "") =>
@@ -320,7 +320,7 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
                 placeholder={
                   form.district
                     ? "Escolher concelho..."
-                    : "Escolhe primeiro o distrito"
+                    : "Escolha primeiro o distrito"
                 }
                 disabled={!form.district}
               />
@@ -334,7 +334,7 @@ export function CondominiumForm({ condominium = null, onSaved, onClose }) {
                 placeholder={
                   form.county
                     ? "Escolher localidade..."
-                    : "Escolhe primeiro o concelho"
+                    : "Escolha primeiro o concelho"
                 }
                 disabled={!form.county}
               />

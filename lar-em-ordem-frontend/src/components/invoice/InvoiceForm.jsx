@@ -167,7 +167,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       } else {
         setFormMessage({
           type: "success",
-          text: "PDF carregado. Preenche os dados manualmente.",
+          text: "PDF carregado. Preencha os dados manualmente.",
         });
       }
     } catch (err) {
@@ -274,7 +274,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       if (!propertyId) {
         setFormMessage({
           type: "error",
-          text: "Seleciona uma habitação antes de guardar a fatura.",
+          text: "Selecione uma habitação antes de guardar a fatura.",
         });
         return;
       }
@@ -286,7 +286,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
       ) {
         setFormMessage({
           type: "error",
-          text: "Preenche a data de emissão, o início e o fim do período.",
+          text: "Preencha a data de emissão, o início e o fim do período.",
         });
         return;
       }
@@ -386,7 +386,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         <div className="relative z-10">
           <h2 className="text-xl font-bold">Registar Nova Fatura</h2>
           <p className="mt-1 text-sm text-white/80">
-            Carrega o PDF para preencher automaticamente ou introduz os dados
+            Carregue o PDF para preencher automaticamente ou introduza os dados
             manualmente.
           </p>
         </div>
@@ -507,7 +507,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           </h3>
 
           <p className="text-sm text-slate-500">
-            Seleciona todos os tipos de consumo incluídos nesta fatura.
+            Selecione todos os tipos de consumo incluídos nesta fatura.
           </p>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -614,7 +614,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                       {/* Informa quando ainda não existem itens adicionados. */}
                       {items.length === 0 && (
                         <p className="rounded-lg border border-dashed border-navy/30 bg-navy/5 p-3 text-sm text-slate-500">
-                          Sem itens. Adiciona uma linha ou carrega um PDF com
+                          Sem itens. Adicione uma linha ou carregue um PDF com
                           detalhe.
                         </p>
                       )}

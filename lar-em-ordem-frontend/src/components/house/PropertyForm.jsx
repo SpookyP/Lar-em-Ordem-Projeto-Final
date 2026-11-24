@@ -118,7 +118,7 @@ export function PropertyForm({
 
     if (stepIndex === 0) {
       if (isMissing(STEP1_FIELDS)) {
-        setErrorMsg("Preenche todos os campos obrigatórios.");
+        setErrorMsg("Preencha todos os campos obrigatórios.");
         setStatus("error");
         return;
       }
@@ -128,13 +128,13 @@ export function PropertyForm({
     }
 
     if (isMissing(STEP1_FIELDS)) {
-      setErrorMsg("Preenche todos os campos obrigatórios.");
+      setErrorMsg("Preencha todos os campos obrigatórios.");
       setStatus("error");
       setStepIndex(0);
       return;
     }
     if (isMissing(STEP2_FIELDS)) {
-      setErrorMsg("Preenche todos os campos obrigatórios.");
+      setErrorMsg("Preencha todos os campos obrigatórios.");
       setStatus("error");
       return;
     }

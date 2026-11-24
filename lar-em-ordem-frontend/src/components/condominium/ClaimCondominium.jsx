@@ -47,7 +47,7 @@ export function ClaimCondominium({ onClaimed, onCancel }) {
           setError("");
         }}
         error={error}
-        hint="O código que o administrador atual te deu. É válido durante 7 dias."
+        hint="O código que o administrador atual lhe deu. É válido durante 7 dias."
         maxLength={CODE_LENGTH}
         autoComplete="off"
         spellCheck={false}
