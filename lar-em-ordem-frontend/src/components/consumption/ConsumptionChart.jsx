@@ -269,8 +269,8 @@ export default function ConsumptionChart({
   }
 
   return (
-    <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
-      {/* Gráfico circular com o total ou a categoria selecionada. */}
+    <div className="flex flex-col items-center gap-8 @xl:flex-row @xl:gap-8">
+      {/* Pie Chart with total or category selected. */}
       <div className="relative shrink-0" style={{ width: 260, height: 260 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart accessibilityLayer={false}>
