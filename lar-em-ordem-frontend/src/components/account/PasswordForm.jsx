@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { updatePassword } from "../../services/api/accountService";
+import { getErrorMessage, getFieldErrors } from "../../utils/apiError";
 import { PasswordField } from "../form";
 import { isPasswordValid } from "../../utils/passwordValidation";
 import { PasswordRequirements } from "./PasswordRequirements";
@@ -28,15 +29,13 @@ export function PasswordForm() {
       });
     } catch (error) {
       setStatus("error");
-      const errors = error.response?.data?.errors;
-      if (errors?.password) {
+      if (getFieldErrors(error).password) {
         setErrorMsg(
           "A password escolhida não é segura. Por favor, escolha outra.",
         );
       } else {
         setErrorMsg(
-          error.response?.data?.message ??
-            "Não foi possível alterar a password.",
+          getErrorMessage(error, "Não foi possível alterar a password."),
         );
       }
     }

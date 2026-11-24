@@ -8,6 +8,7 @@ import { useHouses } from "../../hooks/useHouses";
 import { ZoneSelect } from "../ui/ZoneSelect";
 import { TextInput, SearchSelect, DatePicker, StepProgress } from "../form";
 import { todayISO } from "../../utils/date";
+import { getErrorMessage } from "../../utils/apiError";
 import { useFetch } from "../../hooks/useFetch";
 import { LoadingState } from "../ui/LoadingState";
 
@@ -192,7 +193,12 @@ export function PropertyForm({
     } catch (error) {
       setStatus("error");
       setErrorMsg(
-        error.response?.data?.message ?? "Não foi possível criar a habitação.",
+        getErrorMessage(
+          error,
+          isEditing
+            ? "Não foi possível guardar as alterações."
+            : "Não foi possível criar a habitação.",
+        ),
       );
     }
   }

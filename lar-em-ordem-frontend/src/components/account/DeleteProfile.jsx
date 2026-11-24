@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { deleteProfile } from "../../services/api/accountService";
+import { getErrorMessage } from "../../utils/apiError";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { EmptyState } from "../ui/EmptyState";
 
@@ -25,11 +26,7 @@ export function DeleteProfile() {
     } catch (err) {
       setStatus(null);
       setConfirming(false);
-      setError(
-        err.response?.data?.errors?.role?.[0] ??
-          err.response?.data?.message ??
-          "Não foi possível apagar o perfil.",
-      );
+      setError(getErrorMessage(err, "Não foi possível apagar o perfil."));
     }
   }
 
