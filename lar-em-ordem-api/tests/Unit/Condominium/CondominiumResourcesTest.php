@@ -19,12 +19,12 @@ use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 /**
- * O que os resources do condomínio mostram a cada utilizador, sem base de dados.
- * O código de convite, as frações e a transferência só aparecem a quem gere o condomínio.
+ * What the condominium resources show each user, without a database.
+ * The invite code, fractions and transfer only show to whoever manages the condominium.
  */
 class CondominiumResourcesTest extends TestCase
 {
-    /** Utilizador em memória; $adminId = id do perfil de administrador (null = não é administrador). */
+    /** In-memory user; $adminId = id of the admin profile (null = not an admin). */
     private function utilizador(?string $adminId = null, array $roles = []): User
     {
         $user = new User();
@@ -67,7 +67,7 @@ class CondominiumResourcesTest extends TestCase
         return (new CondominiumResource($condominio))->resolve($this->pedidoHttp($user));
     }
 
-    // ------------------------------------------------------- dados de gestão
+    // ------------------------------------------------------- management data
 
     public function test_o_administrador_ve_o_codigo_de_convite_e_a_transferencia(): void
     {
@@ -105,7 +105,7 @@ class CondominiumResourcesTest extends TestCase
         $this->assertArrayNotHasKey('invite_code', $dados);
     }
 
-    // ------------------------------------------------------------- frações
+    // ------------------------------------------------------------- fractions
 
     public function test_as_fracoes_so_aparecem_a_quem_gere_e_se_foram_carregadas(): void
     {
@@ -116,7 +116,7 @@ class CondominiumResourcesTest extends TestCase
 
         $condominio = $this->condominio();
 
-        // sem as casas carregadas: nem o administrador as vê
+        // without the properties loaded, not even the admin sees them
         $this->assertArrayNotHasKey('properties', $this->dados($condominio, $this->utilizador('admin-1')));
 
         $condominio->setRelation('properties', collect([$casa]));
@@ -124,7 +124,7 @@ class CondominiumResourcesTest extends TestCase
         $fracoes = $this->dados($condominio, $this->utilizador('admin-1'))['properties'];
         $this->assertSame([['id' => 'casa-1', 'door' => 'Nº 153', 'fraction' => '2º Esq']], $fracoes->all());
         
-        // o residente nunca as vê
+        // the resident never sees them
         $this->assertArrayNotHasKey('properties', $this->dados($condominio, $this->utilizador()));
     }
 
@@ -146,7 +146,7 @@ class CondominiumResourcesTest extends TestCase
         $this->assertSame('Matosinhos', $dados['address']['county']);
     }
 
-    // ---------------------------------------------------------------- avisos
+    // ---------------------------------------------------------------- notices
 
     public function test_o_aviso_so_mostra_read_e_readers_count_quando_existem(): void
     {
@@ -156,7 +156,7 @@ class CondominiumResourcesTest extends TestCase
         $this->assertArrayNotHasKey('read', $dados);
         $this->assertArrayNotHasKey('readers_count', $dados);
 
-        // sino do residente (withExists) e administrador (withCount)
+        // resident bell (withExists) and admin (withCount)
         $aviso->setAttribute('read', 1);
         $aviso->setAttribute('readers_count', 3);
 
@@ -165,7 +165,7 @@ class CondominiumResourcesTest extends TestCase
         $this->assertSame(3, $dados['readers_count']);
     }
 
-    // ------------------------------------------------------------ documentos
+    // ------------------------------------------------------------ documents
 
     public function test_o_documento_mostra_a_data_sem_hora_e_o_ficheiro_sem_link(): void
     {

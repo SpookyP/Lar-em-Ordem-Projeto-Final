@@ -9,25 +9,25 @@ class CondominiumPolicy
 {
 
 
-    /** A listagem já filtra pelo que o utilizador pode ver (scopeVisibleTo). */
+    /** The list already filters to the condominiums the user manages (scopeManagedBy). */
     public function viewAny(User $user): bool
     {
         return true;
     }
 
-    /** Ver o condomínio pelo id: só o administrador. O residente vê-o pela casa (GET /properties/{id}/condominium). */
+    /** View a condominium by id: admin only. Residents see it through their property (GET /properties/{id}/condominium). */
     public function view(User $user, Condominium $condominium): bool
     {
         return $condominium->isManagedBy($user);
     }
 
-    /** Só quem tem perfil de administrador de condomínio. */
+    /** Only users with a condominium admin profile. */
     public function create(User $user): bool
     {
         return $user->condominium_admin !== null;
     }
 
-    /** Editar (inclui gerar novo código de convite). */
+    /** Edit (includes generating a new invite code). */
     public function update(User $user, Condominium $condominium): bool
     {
         return $condominium->isManagedBy($user);
@@ -38,19 +38,19 @@ class CondominiumPolicy
         return $condominium->isManagedBy($user);
     }
 
-    /** Ligar uma casa a um condomínio (por código de convite). */
+    /** Link a property to a condominium (with an invite code). */
     public function join(User $user): bool
     {
         return $user->resident !== null;
     }
 
-    /** Retirar uma casa: o administrador (qualquer casa) ou o residente (a sua). */
+    /** Remove a property: the admin (any property) or the resident (their own). */
     public function leave(User $user, Condominium $condominium): bool
     {
         return $condominium->isManagedBy($user) || $condominium->hasMember($user);
     }
     
-    /** Aceitar uma transferência: quem tem perfil de administrador de condomínio. */
+    /** Accept a transfer: users with a condominium admin profile. */
     public function claim(User $user): bool
     {
         return $user->condominium_admin !== null;

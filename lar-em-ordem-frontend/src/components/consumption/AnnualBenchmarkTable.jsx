@@ -251,7 +251,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
 
   return (
     <section className="w-full min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {/* Cabeçalho principal com os filtros de serviço integrados. */}
+      {/* Main header with the service filters built in. */}
       <header
         className="relative -mb-px overflow-hidden border-b border-white/20 px-5 py-5 sm:px-6"
         style={{
@@ -373,7 +373,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
         </div>
       )}
 
-      {/* Tabela e gráfico apresentados quando existem dados. */}
+      {/* Table and chart, shown when there is data. */}
       {rows.length > 0 && (
         <>
           <div className="space-y-3 px-4 py-4 lg:hidden">
@@ -554,7 +554,7 @@ export default function AnnualBenchmarkTable({ propertyId, refreshKey }) {
             </table>
           </div>
 
-          {/* Gráfico anual de barras. */}
+          {/* Annual bar chart. */}
           <AnnualCostsChart rows={rows} service={activeService} />
           <footer className="border-t border-slate-100 px-5 py-4 sm:px-6">
             <p className="mb-3 text-sm leading-relaxed text-slate-500">

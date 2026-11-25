@@ -26,9 +26,9 @@ class CondominiumController extends Controller
     ) {}
 
     /**
-     * Lista os condomínios que o utilizador administra.
+     * Lists the condominiums the user manages.
      *
-     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
+     * @param PerPageRequest $request HTTP request with the validated page size.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(PerPageRequest $request)
@@ -41,9 +41,9 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Cria um condomínio gerido pelo administrador autenticado.
+     * Creates a condominium managed by the authenticated admin.
      *
-     * @param StoreCondominiumRequest $request Dados validados.
+     * @param StoreCondominiumRequest $request Validated data.
      * @return \Illuminate\Http\JsonResponse 201 (Created).
      */
     public function store(StoreCondominiumRequest $request)
@@ -58,10 +58,10 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Devolve um condomínio ao administrador: frações ligadas, código e avisos em vigor
-     * (com quantos residentes já viram cada um). O residente usa GET /properties/{id}/condominium.
+     * Returns a condominium to its admin: linked fractions, invite code and current notices
+     * (with how many residents have seen each one). Residents use GET /properties/{id}/condominium.
      *
-     * @param Condominium $condominium Condomínio.
+     * @param Condominium $condominium Condominium.
      * @return CondominiumResource
      */
     public function show(Condominium $condominium)
@@ -75,15 +75,15 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Página do condomínio do residente (só leitura): o condomínio da casa ativa e os avisos em vigor.
-     * Casa sem condomínio: data null.
+     * Read-only condominium page for the resident: the active property's condominium and its current notices.
+     * A property with no condominium gets data null.
      *
-     * @param Property $property Casa ativa do residente.
+     * @param Property $property The resident's active property.
      * @return CondominiumResource|\Illuminate\Http\JsonResponse
      */
     public function showForProperty(Property $property)
     {
-        // reutiliza PropertyPolicy::view → contrato ativo nesta casa
+        // reuses PropertyPolicy::view → active contract on this property
         Gate::authorize('view', $property);
 
         $condominium = $property->condominium;
@@ -99,10 +99,10 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Atualiza o condomínio (e/ou gera novo código de convite). Só o administrador.
+     * Updates the condominium (and/or generates a new invite code). Admin only.
      *
-     * @param UpdateCondominiumRequest $request Dados validados.
-     * @param Condominium $condominium Condomínio.
+     * @param UpdateCondominiumRequest $request Validated data.
+     * @param Condominium $condominium Condominium.
      * @return CondominiumResource
      */
     public function update(UpdateCondominiumRequest $request, Condominium $condominium)
@@ -113,9 +113,9 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Remove o condomínio e desliga as casas. Só o administrador.
+     * Removes the condominium and unlinks its properties. Admin only.
      *
-     * @param Condominium $condominium Condomínio.
+     * @param Condominium $condominium Condominium.
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Condominium $condominium)
@@ -128,9 +128,9 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Liga uma casa do residente ao condomínio do código de convite.
+     * Links one of the resident's properties to the condominium of the invite code.
      *
-     * @param JoinCondominiumRequest $request Dados validados (invite_code, property_id).
+     * @param JoinCondominiumRequest $request Validated data (invite_code, property_id).
      * @return CondominiumResource
      */
     public function join(JoinCondominiumRequest $request)
@@ -145,10 +145,10 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Retira uma casa do condomínio (o residente a sua, o administrador qualquer uma).
+     * Removes a property from the condominium (residents their own, the admin any of them).
      *
-     * @param LeaveCondominiumRequest $request Dados validados (property_id).
-     * @param Condominium $condominium Condomínio.
+     * @param LeaveCondominiumRequest $request Validated data (property_id).
+     * @param Condominium $condominium Condominium.
      * @return \Illuminate\Http\JsonResponse
      */
     public function leave(LeaveCondominiumRequest $request, Condominium $condominium)
@@ -161,9 +161,9 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Gera o código de transferência (mostrado só nesta resposta). Só o administrador atual.
+     * Generates the transfer code (only shown in this response). Current admin only.
      *
-     * @param Condominium $condominium Condomínio a transferir.
+     * @param Condominium $condominium Condominium to transfer.
      * @return \Illuminate\Http\JsonResponse 201 (Created).
      */
     public function startTransfer(Condominium $condominium)
@@ -182,9 +182,9 @@ class CondominiumController extends Controller
     }
 
     /**
-     * Cancela a transferência pendente. Só o administrador atual.
+     * Cancels the pending transfer. Current admin only.
      *
-     * @param Condominium $condominium Condomínio.
+     * @param Condominium $condominium Condominium.
      * @return \Illuminate\Http\JsonResponse
      */
     public function cancelTransfer(Condominium $condominium)
@@ -197,10 +197,10 @@ class CondominiumController extends Controller
     }
 
     /**
-     * O novo administrador aceita a transferência com o código recebido.
+     * The new admin accepts the transfer with the code they received.
      *
-     * @param ClaimCondominiumRequest $request Dados validados (transfer_code).
-     * @return CondominiumResource O condomínio, já gerido por quem aceitou.
+     * @param ClaimCondominiumRequest $request Validated data (transfer_code).
+     * @return CondominiumResource The condominium, now managed by whoever accepted.
      */
     public function claim(ClaimCondominiumRequest $request)
     {

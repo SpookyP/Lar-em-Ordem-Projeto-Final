@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Tests\TestCase;
 
 /**
- * O que os resources dos parceiros e das ofertas mostram, sem base de dados.
+ * What the partner and offer resources show, without a database.
  */
 class PartnerOfferResourcesTest extends TestCase
 {
@@ -40,7 +40,7 @@ class PartnerOfferResourcesTest extends TestCase
         return $parceiro;
     }
 
-    // ------------------------------------------------------- NIF do parceiro
+    // ------------------------------------------------------- partner NIF
 
     public function test_o_proprio_parceiro_ve_o_nif(): void
     {
@@ -69,7 +69,7 @@ class PartnerOfferResourcesTest extends TestCase
         $oferta = new Offer(['title' => 'Desconto', 'start_date' => '2026-10-01', 'active' => true]);
         $oferta->setRelation('partner', $this->parceiro());
 
-        // toResponse() converte também os resources dentro do resource (o partner), como a API faz
+        // toResponse() also converts the resources nested in the resource (the partner), as the API does
         $json = (new OfferResource($oferta))
             ->toResponse($this->pedidoHttp($this->utilizador('morador')))
             ->getData(true);
@@ -78,7 +78,7 @@ class PartnerOfferResourcesTest extends TestCase
         $this->assertArrayNotHasKey('nif', $json['data']['partner']);
     }
 
-    // --------------------------------------------------- formato da oferta
+    // --------------------------------------------------- offer format
 
     public function test_a_oferta_mostra_as_datas_sem_hora_e_end_date_pode_ser_null(): void
     {

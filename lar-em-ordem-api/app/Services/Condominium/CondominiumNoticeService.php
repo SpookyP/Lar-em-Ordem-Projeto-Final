@@ -16,10 +16,10 @@ use Illuminate\Database\Eloquent\Collection;
 class CondominiumNoticeService
 {
     /**
-     * Histórico de avisos do condomínio (inclui expirados), com o nº de residentes que já os viram.
+     * Condominium notice history (expired ones included), with how many residents have seen each one.
      *
-     * @param Condominium $condominium Condomínio.
-     * @param int $perPage Número de avisos por página.
+     * @param Condominium $condominium Condominium.
+     * @param int $perPage Notices per page.
      * @return LengthAwarePaginator
      */
     public function listForAdmin(Condominium $condominium, int $perPage = 5): LengthAwarePaginator
@@ -33,11 +33,11 @@ class CondominiumNoticeService
     }
 
     /**
-     * Carrega no condomínio os avisos em vigor (página do residente e show do administrador).
-     * O administrador recebe também quantos residentes já viram cada aviso.
+     * Loads the current notices onto the condominium (resident page and admin show).
+     * The admin also gets how many residents have seen each notice.
      *
-     * @param Condominium $condominium Condomínio.
-     * @param bool $canManage Se quem pede gere o condomínio.
+     * @param Condominium $condominium Condominium.
+     * @param bool $canManage Whether the requester manages the condominium.
      * @return Condominium
      */
     public function loadCurrent(Condominium $condominium, bool $canManage): Condominium
@@ -50,10 +50,10 @@ class CondominiumNoticeService
     }
 
     /**
-     * Publica um aviso e envia-o por email (uma única vez) aos residentes com casa no condomínio.
+     * Publishes a notice and emails it (once) to the residents with a property in the condominium.
      *
-     * @param Condominium $condominium Condomínio.
-     * @param array $data Dados validados.
+     * @param Condominium $condominium Condominium.
+     * @param array $data Validated data.
      * @return CondominiumNotice
      */
     public function create(Condominium $condominium, array $data): CondominiumNotice
@@ -70,11 +70,11 @@ class CondominiumNoticeService
     }
 
     /**
-     * Edita um aviso. Se alguma coisa mudou e o aviso ainda está em vigor, volta a ficar
-     * "por ler" para todos e o email é reenviado (como atualização).
+     * Edits a notice. If anything changed and the notice is still current, it becomes
+     * unread again for everyone and the email is sent again (as an update).
      *
-     * @param CondominiumNotice $notice Aviso.
-     * @param array $data Dados validados.
+     * @param CondominiumNotice $notice Notice.
+     * @param array $data Validated data.
      * @return CondominiumNotice
      */
     public function update(CondominiumNotice $notice, array $data): CondominiumNotice
@@ -86,7 +86,7 @@ class CondominiumNoticeService
                 return false;
             }
 
-            $notice->readers()->detach(); // volta a aparecer como por ler
+            $notice->readers()->detach(); // shows up as unread again
 
             return true;
         });
@@ -99,9 +99,9 @@ class CondominiumNoticeService
     }
 
     /**
-     * Apaga um aviso (e os "vistos", por cascade).
+     * Deletes a notice (its reads go with it by cascade).
      *
-     * @param CondominiumNotice $notice Aviso.
+     * @param CondominiumNotice $notice Notice.
      * @return void
      */
     public function delete(CondominiumNotice $notice): void
@@ -110,10 +110,10 @@ class CondominiumNoticeService
     }
 
     /**
-     * Marca o aviso como visto pelo residente. Repetir não altera a data do primeiro visto.
+     * Marks the notice as seen by the resident. Repeating it keeps the date of the first time.
      *
-     * @param CondominiumNotice $notice Aviso.
-     * @param User $user Residente autenticado.
+     * @param CondominiumNotice $notice Notice.
+     * @param User $user Authenticated resident.
      * @return CondominiumNotice
      */
     public function markRead(CondominiumNotice $notice, User $user): CondominiumNotice
@@ -128,11 +128,11 @@ class CondominiumNoticeService
     }
 
     /**
-     * Avisos para o "sino" do residente: em vigor e não eliminados por ele, com "read".
-     * Mais recentes primeiro.
+     * Notices for the resident's bell: current and not dismissed by them, with "read".
+     * Most recent first.
      *
-     * @param Condominium $condominium Condomínio da casa ativa.
-     * @param User $user Residente autenticado.
+     * @param Condominium $condominium Condominium of the active property.
+     * @param User $user Authenticated resident.
      * @return Collection
      */
     public function listForBell(Condominium $condominium, User $user): Collection
@@ -151,11 +151,11 @@ class CondominiumNoticeService
     }
 
     /**
-     * Marcar tudo como lido no "sino": todos os avisos em vigor que o residente ainda não viu.
+     * Mark all as read in the bell: every current notice the resident hasn't seen yet.
      *
-     * @param Condominium $condominium Condomínio da casa ativa.
-     * @param User $user Residente autenticado.
-     * @return int Quantos avisos foram marcados.
+     * @param Condominium $condominium Condominium of the active property.
+     * @param User $user Authenticated resident.
+     * @return int How many notices were marked.
      */
     public function markAllRead(Condominium $condominium, User $user): int
     {
@@ -178,11 +178,11 @@ class CondominiumNoticeService
     }
 
     /**
-     * O residente elimina o aviso do seu "sino" (fica também marcado como lido).
-     * O aviso não é apagado: continua para os outros e na página do condomínio.
+     * The resident dismisses the notice from their bell (it is also marked as read).
+     * The notice itself stays, for the other residents and on the condominium page.
      *
-     * @param CondominiumNotice $notice Aviso.
-     * @param User $user Residente autenticado.
+     * @param CondominiumNotice $notice Notice.
+     * @param User $user Authenticated resident.
      * @return void
      */
     public function dismiss(CondominiumNotice $notice, User $user): void
@@ -198,7 +198,7 @@ class CondominiumNoticeService
     }
 
     /**
-     * Utilizadores com contrato ativo numa casa do condomínio (destinatários do email).
+     * Users with an active contract on a property in the condominium (the email recipients).
      */
     private function recipients(Condominium $condominium)
     {
@@ -209,7 +209,7 @@ class CondominiumNoticeService
     }
 
     /**
-     * Avisa os residentes do condomínio: email + tempo real (canal de cada casa).
+     * Notifies the condominium's residents: email plus real time (one channel per property).
      */
     private function notifyResidents(CondominiumNotice $notice, bool $updated = false): void
     {

@@ -10,11 +10,11 @@ import { lazy, Suspense } from "react";
 import { RequireHouse } from "./RequireHouse";
 import { LoadingState } from "../components/ui/LoadingState";
 
-//Login fica eager: é a página de entrada, evita loading no arranque
+// Login loads eagerly: it is the entry page, so there is no loading screen at startup
 import Login from "../pages/Login/Login";
 
-//Lazy :devolve um componente que só pede o código quando é preciso renderizá-lo
-//Públicas
+// Lazy: returns a component that only fetches its code when it has to render
+// Public
 const Register = lazy(() => import("../pages/Register/Register"));
 const ForgotPassword = lazy(() => import("../pages/Password/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/Password/ResetPassword"));
@@ -24,12 +24,12 @@ const VerifyEmail = lazy(() => import("../pages/VerifyEmail/VerifyEmail"));
 const Privacy = lazy(() => import("../pages/Privacy/Privacy"));
 const SitePage = lazy(() => import("../pages/SitePage/SitePage"));
 
-//Partilhadas
+// Shared
 const Profiles = lazy(() => import("../pages/Profiles/Profiles"));
 const Settings = lazy(() => import("../pages/Settings/Settings"));
 const Onboarding = lazy(() => import("../pages/Onboarding/Onboarding"));
 
-//Morador
+// Resident
 const Dashboard = lazy(() => import("../pages/Resident/Dashboard/Dashboard"));
 const Assistance = lazy(
   () => import("../pages/Resident/Assistance/Assistance"),
@@ -51,7 +51,7 @@ const Consumption = lazy(
 const Invoice = lazy(() => import("../pages/Resident/Invoice/Invoice"));
 const Vault = lazy(() => import("../pages/Resident/Vault/Vault"));
 
-//Prestador
+// Service provider
 const JobListing = lazy(
   () => import("../pages/ServiceProvider/JobListing/JobListing"),
 );
@@ -63,13 +63,13 @@ const ProposalFormPage = lazy(
   () => import("../pages/ServiceProvider/ProposalFormPage/ProposalFormPage"),
 );
 
-//Parceiro
+// Partner
 const MyOffers = lazy(() => import("../pages/Partner/MyOffers/MyOffers"));
 const OfferFormPage = lazy(
   () => import("../pages/Partner/OfferFormPage/OfferFormPage"),
 );
 
-//Administrador de condominio
+// Condominium admin
 const Condominiums = lazy(
   () => import("../pages/CondominiumAdmin/Condominiums/Condominiums"),
 );
@@ -95,13 +95,13 @@ function RouteFallback() {
 
 function AppRoutesInner() {
   const location = useLocation();
-  //pagina de fundo ofertas
+  // background page for the offers
   const background = location.state?.background;
 
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes location={background || location}>
-        {/* Rota publica com restricao de sessao: se o user tiver sessao, redireciona para a pagina principal */}
+        {/* Public route limited to guests: a user with a session is sent to their home page */}
         <Route element={<GuestRoute />}>
           <Route element={<SiteLayout flush />}>
             <Route path="/" element={<Login />} />
@@ -110,11 +110,11 @@ function AppRoutesInner() {
           </Route>
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
-        {/* Rota publica: qualquer um pode aceder */}
+        {/* Public route: anyone can open it */}
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
 
-        {/* Rota publica, mas com a sidebar para quem tem sessao */}
+        {/* Public route, with the sidebar for users with a session */}
         <Route element={<SiteLayout />}>
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/about" element={<SitePage page="about" />} />
@@ -122,7 +122,7 @@ function AppRoutesInner() {
           <Route path="/terms" element={<SitePage page="terms" />} />
         </Route>
 
-        {/* Rotas protegidas: so quem tem login */}
+        {/* Protected routes: logged-in users only */}
         <Route element={<PrivateRoute />}>
           <Route path="/unauthorized" element={<Unauthorized />} />
 
@@ -197,7 +197,7 @@ function AppRoutesInner() {
           </Route>
         </Route>
 
-        {/* 404: nao corresponde a nenhuma */}
+        {/* 404: no route matches */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 

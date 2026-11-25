@@ -102,7 +102,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ServiceZoneSeeder::class);
         $this->call(ProblemCategorySeeder::class);
 
-         // Módulos 5, 6 e 7: precisam das zonas, das categorias e dos parceiros criados acima
+         // Modules 5, 6 and 7: they need the zones, categories and partners created above
         $this->call([
             ServiceProviderSeeder::class,
             AssistanceRequestSeeder::class,

@@ -5,8 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Índices para as consultas mais frequentes da API.
- * Cada índice segue a ordem do WHERE (igualdades primeiro) e termina na coluna do ORDER BY / intervalo.
+ * Indexes for the API's most frequent queries.
+ * Each index follows the WHERE order (equalities first) and ends with the ORDER BY / range column.
  */
 return new class extends Migration
 {
@@ -63,7 +63,7 @@ return new class extends Migration
             $table->index(['service_provider_id', 'status', 'created_at'], 'proposals_provider_status_created_index');
         });
 
-        // parcerias 
+        // partnerships
 
         Schema::table('offers', function (Blueprint $table) {
             $table->index(['active', 'start_date'], 'offers_active_start_index');
@@ -74,7 +74,7 @@ return new class extends Migration
             $table->index('company_name', 'partners_company_name_index');
         });
 
-        // conduminuim
+        // condominium
 
         Schema::table('condominium_notices', function (Blueprint $table) {
             $table->index(['condominium_id', 'published_at'], 'condo_notices_condo_published_index');

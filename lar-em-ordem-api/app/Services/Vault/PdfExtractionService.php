@@ -8,7 +8,7 @@ use Symfony\Component\Process\Process;
 class PdfExtractionService
 {
     /**
-     * Extrai dados de um PDF usando o caminho local do ficheiro.
+     * Extracts data from a PDF using the file's local path.
      */
     public function extractInfo(string $absolutePath): array
     {

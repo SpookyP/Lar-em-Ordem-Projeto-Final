@@ -18,12 +18,12 @@ class CondominiumDocumentService
     public function __construct(private FileStorageService $fileStorage) {}
 
     /**
-     * Documentos do condomínio, mais recentes primeiro, com filtro opcional por categoria.
-     * Sem condomínio (casa que não pertence a nenhum): página vazia, com o mesmo formato (links/meta).
+     * Condominium documents, most recent first, with an optional category filter.
+     * With no condominium (a property that doesn't belong to one) it returns an empty page in the same format (links/meta).
      *
-     * @param Condominium|null $condominium Condomínio (null = casa sem condomínio).
-     * @param int|null $categoryId Categoria (opcional).
-     * @param int $perPage Número de documentos por página.
+     * @param Condominium|null $condominium Condominium (null = property with no condominium).
+     * @param int|null $categoryId Category (optional).
+     * @param int $perPage Documents per page.
      * @return LengthAwarePaginator
      */
     public function list(?Condominium $condominium, ?int $categoryId = null, int $perPage = 5): LengthAwarePaginator
@@ -44,7 +44,7 @@ class CondominiumDocumentService
     }
 
     /**
-     * Catálogo de categorias (para os filtros e para o formulário do administrador).
+     * Category catalog (for the filters and the admin form).
      *
      * @return Collection
      */
@@ -54,11 +54,11 @@ class CondominiumDocumentService
     }
 
     /**
-     * Carrega o ficheiro no R2 (em nome do administrador atual) e cria o documento.
-     * Se a gravação na base de dados falhar, o ficheiro é apagado do R2.
+     * Uploads the file to R2 (under the current admin) and creates the document.
+     * If the database insert fails, the file is deleted from R2 again.
      *
-     * @param Condominium $condominium Condomínio.
-     * @param array $data Dados validados (inclui 'file').
+     * @param Condominium $condominium Condominium.
+     * @param array $data Validated data (includes 'file').
      * @return CondominiumDocument
      */
     public function create(Condominium $condominium, array $data): CondominiumDocument
@@ -80,7 +80,7 @@ class CondominiumDocumentService
                 'file_id'        => $file->id,
             ])->save();
         } catch (\Throwable $e) {
-            $this->fileStorage->deleteFile($file); // não deixar ficheiros órfãos no R2
+            $this->fileStorage->deleteFile($file); // don't leave orphan files in R2
             throw $e;
         }
 
@@ -88,10 +88,10 @@ class CondominiumDocumentService
     }
 
     /**
-     * Atualiza os dados do documento (o ficheiro não muda).
+     * Updates the document's details (the file stays the same).
      *
-     * @param CondominiumDocument $document Documento.
-     * @param array $data Dados validados.
+     * @param CondominiumDocument $document Document.
+     * @param array $data Validated data.
      * @return CondominiumDocument
      */
     public function update(CondominiumDocument $document, array $data): CondominiumDocument
@@ -102,9 +102,9 @@ class CondominiumDocumentService
     }
 
     /**
-     * Apaga o ficheiro do R2 e o registo em files; o documento sai em cascata (file_id).
+     * Deletes the file from R2 and its row in files; the document goes with it by cascade (file_id).
      *
-     * @param CondominiumDocument $document Documento.
+     * @param CondominiumDocument $document Document.
      * @return void
      */
     public function delete(CondominiumDocument $document): void

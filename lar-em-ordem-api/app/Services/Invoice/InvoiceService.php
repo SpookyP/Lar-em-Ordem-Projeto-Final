@@ -113,7 +113,7 @@ class InvoiceService
 
             $invoice = Invoice::create($invoiceData);
 
-            // Criar os consumos associados à fatura.
+            // Create the invoice's consumptions.
             if (!empty($consumptionsData)) {
                 foreach ($consumptionsData as $item) {
                     $consumption = $invoice->consumptions()->create([

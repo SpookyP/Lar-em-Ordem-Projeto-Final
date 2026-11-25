@@ -12,12 +12,12 @@ use App\Support\Search;
 class OfferService
 {
     /**
-     * Devolve as ofertas de um parceiro (uso do próprio parceiro), da data de início mais recente
-     * para a mais antiga, paginadas. Opcionalmente só as de um estado (Offer::scopeStatus).
+     * Returns a partner's own offers, newest start date first, paginated.
+     * Optionally only the offers in one status (Offer::scopeStatus).
      *
-     * @param Partner $partner Instância do parceiro cujas ofertas queremos listar.
-     * @param int $perPage Número de ofertas por página.
-     * @param string|null $status current|scheduled|expired|inactive ou null para todas.
+     * @param Partner $partner Partner whose offers to list.
+     * @param int $perPage Offers per page.
+     * @param string|null $status current|scheduled|expired|inactive, or null for all.
      * @return LengthAwarePaginator
      */
     public function listByPartner(Partner $partner, int $perPage = 5, ?string $status = null): LengthAwarePaginator
@@ -32,10 +32,10 @@ class OfferService
     }
 
     /**
-     * Cria uma nova oferta, associando-a automaticamente ao ID do parceiro.
+     * Creates a new offer, linked to the partner's id.
      *
-     * @param array $data Dados validados para a criação da oferta.
-     * @param Partner $partner Instância do parceiro que está a criar a oferta.
+     * @param array $data Validated data for the new offer.
+     * @param Partner $partner Partner creating the offer.
      * @return Offer
      */
     public function create(array $data, Partner $partner): Offer
@@ -46,10 +46,10 @@ class OfferService
     }
 
     /**
-     * Atualiza os dados de uma oferta existente.
+     * Updates an existing offer.
      *
-     * @param Offer $offer Instância da oferta a ser atualizada.
-     * @param array $data Dados validados para a atualização.
+     * @param Offer $offer Offer to update.
+     * @param array $data Validated data for the update.
      * @return Offer
      */
     public function update(Offer $offer, array $data): Offer
@@ -60,9 +60,9 @@ class OfferService
     }
 
     /**
-     * Remove uma oferta.
+     * Removes an offer.
      *
-     * @param Offer $offer Instância da oferta a ser removida.
+     * @param Offer $offer Offer to remove.
      * @return void
      */
     public function delete(Offer $offer): void
@@ -71,10 +71,10 @@ class OfferService
     }
 
     /**
-     * Carrega o parceiro e o tipo de uma oferta existente.
+     * Loads an existing offer's partner and type.
      *
-     * @param Offer $offer Instância da oferta.
-     * @return Offer A mesma instância, com 'partner' e 'category' carregados.
+     * @param Offer $offer The offer.
+     * @return Offer The same instance, with 'partner' and 'category' loaded.
      */
     public function loadWithPartner(Offer $offer): Offer
     {
@@ -82,12 +82,12 @@ class OfferService
     }
 
     /**
-     * Devolve as ofertas em vigor hoje de todos os parceiros, com o parceiro e o tipo, paginadas.
-     * A pesquisa procura no título, na descrição e no nome do parceiro.
+     * Returns today's current offers of every partner, with the partner and the type, paginated.
+     * The search looks in the title, the description and the partner's name.
      *
-     * @param int $perPage Número de ofertas por página.
-     * @param string|null $search Texto a procurar.
-     * @param int|null $categoryId Tipo de oferta.
+     * @param int $perPage Offers per page.
+     * @param string|null $search Text to search for.
+     * @param int|null $categoryId Offer type.
      * @return LengthAwarePaginator
      */
     public function listActiveOffers(int $perPage = 5, ?string $search = null, ?int $categoryId = null): LengthAwarePaginator
@@ -108,7 +108,7 @@ class OfferService
     }
 
     /**
-     * Catálogo de tipos de oferta (filtros das recomendações e formulário do parceiro).
+     * Offer type catalog (recommendation filters and the partner form).
      *
      * @return Collection
      */

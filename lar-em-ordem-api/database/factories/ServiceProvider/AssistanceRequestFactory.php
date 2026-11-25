@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AssistanceRequestFactory extends Factory
 {
-        /** Pedidos realistas: [categoria (ProblemCategorySeeder), título, descrição]. */
+        /** Realistic requests: [category (ProblemCategorySeeder), title, description]. */
     private const CATALOG = [
         ['Canalização', 'Torneira da cozinha a pingar', 'A torneira não fecha bem e pinga a noite toda.'],
         ['Canalização', 'Autoclismo sempre a correr', 'O autoclismo não para de encher e a conta da água subiu.'],
@@ -43,7 +43,7 @@ class AssistanceRequestFactory extends Factory
     }
     
     /**
-     * Pedido fechado (o residente aceitou uma proposta).
+     * Closed request (the resident accepted a proposal).
      */
     public function closed(): static
     {
@@ -59,7 +59,7 @@ class AssistanceRequestFactory extends Factory
     }
 
     /**
-     * Pedido cancelado pelo residente.
+     * Request cancelled by the resident.
      */
     public function cancelled(): static
     {

@@ -11,11 +11,11 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * Propostas (módulo 5): o prestador envia, edita e retira; o residente aceita ou rejeita.
- * Usa os dados do AssistanceRequestSeeder:
- * - "Fuga de água" aberta e sem propostas;
- * - "Tomada da sala" aberta, com propostas pendentes do "Serviços Lda" e do "Serviçinhos Lda" e uma rejeitada;
- * - "Sanita entupida" fechada, com a proposta do "Serviços Lda" aceite.
+ * Proposals (module 5): the provider sends, edits and withdraws; the resident accepts or rejects.
+ * Uses the AssistanceRequestSeeder data:
+ * - "Fuga de água" open with no proposals;
+ * - "Tomada da sala" open, with pending proposals from "Serviços Lda" and "Serviçinhos Lda" and one rejected;
+ * - "Sanita entupida" closed, with the "Serviços Lda" proposal accepted.
  */
 class ProposalTest extends TestCase
 {
@@ -45,7 +45,7 @@ class ProposalTest extends TestCase
         return AssistanceRequest::where('title', $titulo)->firstOrFail();
     }
 
-    /** Proposta de um prestador num pedido (pelo título do pedido). */
+    /** A provider's proposal on a request (by the request title). */
     private function proposta(User $prestador, string $titulo): Proposal
     {
         return $this->pedido($titulo)->proposals()
@@ -111,7 +111,7 @@ class ProposalTest extends TestCase
 
     public function test_nao_e_possivel_propor_a_um_pedido_que_nao_esta_disponivel(): void
     {
-        // a "Fuga" é de canalização e aqui o "Serviçinhos Lda" só faz eletricidade
+        // "Fuga" is plumbing and here "Serviçinhos Lda" only does electricity
         $specialty = ServiceSpecialty::where('name', 'Quadros elétricos')->firstOrFail();
         $this->servicinhos->service_provider->specialties()->create([
             'problem_category_id'  => $specialty->problem_category_id,
@@ -156,7 +156,7 @@ class ProposalTest extends TestCase
 
     public function test_o_prestador_ve_as_suas_propostas_com_o_pedido(): void
     {
-        // "Serviços Lda": Tomada (pendente), Sanita (aceite), Esquentador (aceite)
+        // "Serviços Lda": Tomada (pending), Sanita (accepted), Esquentador (accepted)
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/proposals/mine')
             ->assertOk()
@@ -181,7 +181,7 @@ class ProposalTest extends TestCase
 
     public function test_as_propostas_do_prestador_filtram_por_estado(): void
     {
-        // "Serviços Lda": Tomada (pendente), Sanita e Esquentador (aceites)
+        // "Serviços Lda": Tomada (pending), Sanita and Esquentador (accepted)
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/proposals/mine?status=pending')
             ->assertOk()
@@ -300,15 +300,15 @@ class ProposalTest extends TestCase
             ->where('service_provider_id', '!=', $prestador->id)
             ->firstOrFail();
 
-        $this->servicos->assignRole('resident'); // para não ser o único perfil da conta
+        $this->servicos->assignRole('resident'); // so it isn't the account's only profile
 
         $this->actingAs($this->servicos)
             ->deleteJson('/api/user/profile', ['role' => 'service_provider'])
             ->assertOk();
 
         $this->assertSame('withdrawn', $pendente->fresh()->status);
-        $this->assertSame('accepted', $aceite->fresh()->status);       // o trabalho combinado fica no histórico
-        $this->assertSame('pending', $outraPendente->fresh()->status); // as propostas de outros prestadores não mudam
+        $this->assertSame('accepted', $aceite->fresh()->status);       // the agreed job stays in the history
+        $this->assertSame('pending', $outraPendente->fresh()->status); // other providers' proposals don't change
     }
     // ----------------------------------------------------------------- accept
 
@@ -329,7 +329,7 @@ class ProposalTest extends TestCase
         $this->assertSame('closed', $tomada->status);
         $this->assertNotNull($tomada->closed_at);
 
-        // o prestador aceite passa a ver a morada
+        // the accepted provider can now see the address
         $this->actingAs($this->servicos)
             ->getJson("/api/v1/assistance-requests/{$tomada->id}")
             ->assertJsonPath('data.property.street', 'Rua Brito Capelo');
@@ -425,7 +425,7 @@ class ProposalTest extends TestCase
         $expirada->update(['validity' => now()->subDay()->toDateString()]);
         $valida = $this->proposta($this->servicinhos, 'Tomada da sala sem corrente');
 
-        // o morador vê-a como expirada; a outra continua válida
+        // the resident sees it as expired; the other one is still valid
         $propostas = collect($this->actingAs($this->morador)
             ->getJson("/api/v1/assistance-requests/{$tomada->id}")
             ->assertOk()
@@ -435,7 +435,7 @@ class ProposalTest extends TestCase
         $this->assertTrue($propostas[$expirada->id]['is_expired']);
         $this->assertFalse($propostas[$valida->id]['is_expired']);
 
-        // o prestador também
+        // so does the provider
         $minhas = collect($this->actingAs($this->servicos)->getJson('/api/v1/proposals/mine?per_page=15')->json('data'))->keyBy('id');
         $this->assertTrue($minhas[$expirada->id]['is_expired']);
     }
@@ -500,13 +500,13 @@ class ProposalTest extends TestCase
             'available_date' => now()->addDays(5)->toDateString(),
         ]);
 
-        // só a validade, depois da disponibilidade guardada
+        // only the validity, after the stored available date
         $this->actingAs($this->servicos)
             ->patchJson("/api/v1/proposals/{$proposta->id}", ['validity' => now()->addDays(6)->toDateString()])
             ->assertStatus(422)
             ->assertJsonValidationErrors('validity');
 
-        // só a disponibilidade, antes da validade guardada
+        // only the available date, before the stored validity
         $this->actingAs($this->servicos)
             ->patchJson("/api/v1/proposals/{$proposta->id}", ['available_date' => now()->addDays(2)->toDateString()])
             ->assertStatus(422)

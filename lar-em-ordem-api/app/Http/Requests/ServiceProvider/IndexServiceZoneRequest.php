@@ -12,7 +12,7 @@ class IndexServiceZoneRequest extends FormRequest
     }
 
     /**
-     * Filtros opcionais da listagem: ?district=Porto&county=Matosinhos
+     * Optional list filters: ?district=Porto&county=Matosinhos
      */
     public function rules(): array
     {

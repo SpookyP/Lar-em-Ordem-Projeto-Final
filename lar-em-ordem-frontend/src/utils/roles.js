@@ -1,4 +1,4 @@
-//roles do sistema: 4 tipos de utilizador que fazem login
+// system roles: the 4 kinds of user that log in
 
 export const ROLES = {
     RESIDENT: 'resident',

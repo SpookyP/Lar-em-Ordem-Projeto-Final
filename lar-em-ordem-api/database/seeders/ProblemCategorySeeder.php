@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class ProblemCategorySeeder extends Seeder
 {
     /**
-     * Catálogo de categorias de problemas e respetivas especialidades.
+     * Problem category catalog with their specialties.
      */
     public function run(): void
     {
@@ -77,13 +77,13 @@ class ProblemCategorySeeder extends Seeder
         ];
 
         foreach ($catalog as $categoryName => $data) {
-            // 1. Cria (ou reaproveita) a categoria
+            // 1. Create (or reuse) the category
             $category = ProblemCategory::firstOrCreate(
                 ['name' => $categoryName],
                 ['description' => $data['description']]
             );
 
-            // 2. Cria as especialidades já ligadas a essa categoria
+            // 2. Create the specialties already linked to that category
             foreach ($data['specialties'] as $specialtyName => $description) {
                 $category->specialties()->firstOrCreate(
                     ['name' => $specialtyName],

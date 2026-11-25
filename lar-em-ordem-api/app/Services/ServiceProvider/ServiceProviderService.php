@@ -10,19 +10,19 @@ use Illuminate\Support\Facades\DB;
 
 class ServiceProviderService {
 
-    /** Campos do pedido que não são colunas do prestador (são relações). */
+    /** Request fields that aren't provider columns (they are relations). */
     private const RELATION_KEYS = ['zone_ids', 'service_specialty_ids', 'custom_specialties'];
 
     public function __construct(private ProviderSpecialtyService $specialtyService,  private PersonalDataEraser $eraser) {}
 
     /**
-     * Cria o perfil de prestador de um utilizador e atribui-lhe a role 'service_provider'.
-     * Pode receber logo as zonas e as especialidades (da lista e próprias).
-     * Transação.
+     * Creates a user's service provider profile and assigns the 'service_provider' role.
+     * It can take the zones and specialties (catalog and custom) straight away.
+     * Runs in a transaction.
      *
-     * @param array $data Dados validados (inclui opcionalmente zone_ids, service_specialty_ids, custom_specialties).
-     * @param User $owner Utilizador dono do perfil.
-     * @return ServiceProviderModel O prestador com zonas e especialidades carregadas.
+     * @param array $data Validated data (optionally zone_ids, service_specialty_ids, custom_specialties).
+     * @param User $owner User who owns the profile.
+     * @return ServiceProviderModel The provider with zones and specialties loaded.
      */
     public function create(array $data, User $owner): ServiceProviderModel
     {
@@ -42,12 +42,12 @@ class ServiceProviderService {
     }
 
     /**
-     * Atualiza os dados de um prestador e, se enviadas, as zonas e as especialidades.
-     * Cada lista enviada substitui a anterior; as que não forem enviadas ficam iguais. Transação.
+     * Updates a provider and, when sent, their zones and specialties.
+     * Each list sent replaces the previous one; lists not sent stay as they are. Runs in a transaction.
      *
-     * @param ServiceProviderModel $serviceProvider Instância do prestador a ser atualizado.
-     * @param array $data Dados validados para a atualização.
-     * @return ServiceProviderModel O prestador com zonas e especialidades carregadas.
+     * @param ServiceProviderModel $serviceProvider Provider to update.
+     * @param array $data Validated data for the update.
+     * @return ServiceProviderModel The provider with zones and specialties loaded.
      */
     public function update(ServiceProviderModel $serviceProvider, array $data): ServiceProviderModel
     {
@@ -61,10 +61,10 @@ class ServiceProviderService {
     }
 
     /**
-     * Remove um prestador, retira as suas propostas pendentes (passam a 'withdrawn')
-     * e retira a role 'service_provider' ao utilizador. Tudo numa transação.
+     * Removes a provider, withdraws their pending proposals (they become 'withdrawn')
+     * and takes the 'service_provider' role from the user. All in one transaction.
      *
-     * @param ServiceProviderModel $serviceProvider Instância do prestador a ser removido.
+     * @param ServiceProviderModel $serviceProvider Provider to remove.
      * @return void
      */
      public function delete(ServiceProviderModel $serviceProvider): void
@@ -81,10 +81,10 @@ class ServiceProviderService {
     }
 
     /**
-     * Carrega as zonas e as especialidades (com categoria e especialidade do catálogo) de um prestador.
+     * Loads a provider's zones and specialties (with the category and the catalog specialty).
      *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @return ServiceProviderModel A mesma instância, com as relações carregadas.
+     * @param ServiceProviderModel $provider The provider.
+     * @return ServiceProviderModel The same instance, with the relations loaded.
      */
    public function loadFull(ServiceProviderModel $provider): ServiceProviderModel
     {
@@ -92,10 +92,10 @@ class ServiceProviderService {
     }
 
     /**
-     * Substitui as zonas e/ou as especialidades do prestador, só as listas que vierem nos dados.
+     * Replaces the provider's zones and/or specialties, only the lists present in the data.
      *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @param array $data Dados validados.
+     * @param ServiceProviderModel $provider The provider.
+     * @param array $data Validated data.
      * @return void
      */
     private function syncRelations(ServiceProviderModel $provider, array $data): void

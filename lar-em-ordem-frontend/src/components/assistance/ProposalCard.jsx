@@ -3,7 +3,7 @@ import { proposalStatus } from "../../data/assistanceInfo";
 import { formatDay } from "../../utils/date";
 import { formatMoney } from "../../utils/format";
 
-//proposta vista pelo morador
+// proposal as the resident sees it
 export function ProposalCard({
   proposal,
   canRespond,
@@ -49,7 +49,7 @@ export function ProposalCard({
         </span>
       </div>
 
-      {/* contactos so depois de aceitar */}
+      {/* contact details only after accepting */}
       {proposal.status === "accepted" && provider && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-lg bg-green-light px-3 py-2 text-xs text-green">
           {provider.phone && <span>Telefone: {provider.phone}</span>}

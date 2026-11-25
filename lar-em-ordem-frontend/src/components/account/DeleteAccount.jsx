@@ -33,7 +33,7 @@ export function DeleteAccount() {
       try {
         await logout();
       } catch {
-        //Conta já apagada: se o logout falhar, ignoramos e seguimos para o login
+        // The account is already deleted: if the logout fails, ignore it and go to the login
       }
       navigate("/login");
     } catch (err) {

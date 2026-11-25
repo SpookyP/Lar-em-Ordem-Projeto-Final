@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
  */
 class ServiceProviderFactory extends Factory
 {
-    /** Empresas de serviços para a casa (fictícias): nome => descrição. */
+    /** Fictional home service companies: name => description. */
     private const CATALOG = [
         'Canalizações Ribeiro'         => 'Reparação de fugas, desentupimentos e substituição de canalizações.',
         'Eletro Rápido'                => 'Avarias elétricas, quadros e instalação de tomadas e iluminação.',

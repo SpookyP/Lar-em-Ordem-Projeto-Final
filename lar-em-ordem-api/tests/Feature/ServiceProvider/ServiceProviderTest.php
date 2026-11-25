@@ -12,10 +12,10 @@ use Tests\TestCase;
 use Illuminate\Support\Facades\DB;      
 
 /**
- * Prestadores de serviços (módulo 6): perfil próprio (GET /service-providers/me).
- * A criação, a edição (com zonas e especialidades num só pedido) e a remoção do perfil passam pelos
- * endpoints dos perfis (POST/DELETE /api/user/profile e PUT /user/profile-information), que usam o ServiceProviderService.
- * Usa os dados do ServiceProviderSeeder ("Serviços Lda" = prestador@example.com).
+ * Service providers (module 6): own profile (GET /service-providers/me).
+ * Creating, editing (with zones and specialties in one request) and removing the profile go through the
+ * profile endpoints (POST/DELETE /api/user/profile and PUT /user/profile-information), which use ServiceProviderService.
+ * Uses the ServiceProviderSeeder data ("Serviços Lda" = prestador@example.com).
  */
 class ServiceProviderTest extends TestCase
 {
@@ -63,14 +63,14 @@ class ServiceProviderTest extends TestCase
         return $this->servicos->service_provider->id;
     }
 
-    /** Edita o perfil de prestador do "Serviços Lda" (o Fortify responde 200 sem corpo). */
+    /** Edits the "Serviços Lda" provider profile (Fortify answers 200 with no body). */
     private function editar(array $dados)
     {
         return $this->actingAs($this->servicos)
             ->putJson('/user/profile-information', ['role' => 'service_provider'] + $dados);
     }
 
-    /** O perfil do "Serviços Lda" tal como a API o mostra. */
+    /** The "Serviços Lda" profile as the API shows it. */
     private function meuPerfil()
     {
         return $this->actingAs($this->servicos)->getJson('/api/v1/service-providers/me')->assertOk();
@@ -101,7 +101,7 @@ class ServiceProviderTest extends TestCase
             ->assertJsonMissingPath('data.active');
     }
 
-    // ------------------------------------------ criação (POST /api/user/profile)
+    // ------------------------------------------ create (POST /api/user/profile)
 
     public function test_cria_o_perfil_sem_zonas_nem_especialidades(): void
     {
@@ -203,7 +203,7 @@ class ServiceProviderTest extends TestCase
     public function test_um_distrito_inteiro_de_zonas_e_validado_com_uma_so_query(): void
     {
         $user = User::factory()->create();
-        $porto = ServiceZone::where('district', 'Porto')->pluck('id')->all(); // centenas de freguesias
+        $porto = ServiceZone::where('district', 'Porto')->pluck('id')->all(); // hundreds of parishes
 
         DB::enableQueryLog();
 
@@ -218,7 +218,7 @@ class ServiceProviderTest extends TestCase
             ])
             ->assertCreated();
 
-        // validação: uma só query às zonas (antes era uma por zona)
+        // validation: a single query for the zones (it used to be one per zone)
         $zoneQueries = collect(DB::getQueryLog())
             ->filter(fn ($q) => preg_match('/^select count\(\*\) as aggregate from [`"]service_zones[`"]/', $q['query']));
         $this->assertCount(1, $zoneQueries);
@@ -226,7 +226,7 @@ class ServiceProviderTest extends TestCase
         $this->assertCount(count($porto), $user->fresh()->service_provider->zones);
     }
 
-    // ---------------------------------- edição (PUT /user/profile-information)
+    // ---------------------------------- edit (PUT /user/profile-information)
 
     public function test_mudar_so_um_campo_nao_mexe_nas_listas(): void
     {
@@ -262,7 +262,7 @@ class ServiceProviderTest extends TestCase
     {
         $prestador = $this->servicos->service_provider;
 
-        // o "Serviços Lda" já tem "Desentupimentos"; o id dessa linha deve manter-se
+        // "Serviços Lda" already has "Desentupimentos"; that row's id must stay the same
         $desentupimentos = ServiceSpecialty::where('name', 'Desentupimentos')->value('id');
         $idAntes = $prestador->specialties()->where('service_specialty_id', $desentupimentos)->value('id');
 
@@ -317,19 +317,19 @@ class ServiceProviderTest extends TestCase
 
     public function test_so_se_edita_um_perfil_de_prestador_que_se_tem(): void
     {
-        // o morador não é prestador
+        // the resident isn't a provider
         $this->actingAs($this->morador)
             ->putJson('/user/profile-information', ['role' => 'service_provider', 'phone' => '900000000'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['role']);
     }
 
-    // ---------------------------------------- remoção (DELETE /api/user/profile)
+    // ---------------------------------------- remove (DELETE /api/user/profile)
 
     public function test_o_dono_apaga_o_perfil_e_perde_a_role(): void
     {
         $id = $this->idServicos();
-        $this->servicos->assignRole('resident'); // para não ser o único perfil da conta
+        $this->servicos->assignRole('resident'); // so it isn't the account's only profile
 
         $this->actingAs($this->servicos)
             ->deleteJson('/api/user/profile', ['role' => 'service_provider'])
@@ -338,7 +338,7 @@ class ServiceProviderTest extends TestCase
         $this->assertSoftDeleted('service_providers', ['id' => $id]);
         $this->assertFalse($this->servicos->fresh()->hasRole('service_provider'));
 
-        // deixa de ter perfil de prestador para a API
+        // the API no longer sees a provider profile
         $this->actingAs($this->servicos->fresh())->getJson('/api/v1/service-providers/me')->assertForbidden();
     }
 
@@ -352,7 +352,7 @@ class ServiceProviderTest extends TestCase
         $this->assertNotNull($this->servicos->fresh()->service_provider);
     }
 
-    // ------------------------------------------------------- rotas removidas
+    // ------------------------------------------------------- removed routes
 
     public function test_as_rotas_antigas_ja_nao_existem(): void
     {
@@ -362,11 +362,11 @@ class ServiceProviderTest extends TestCase
         $this->actingAs($this->servicos)->putJson("/api/v1/service-providers/{$id}/zones", ['zone_ids' => []])->assertNotFound();
         $this->actingAs($this->servicos)->postJson("/api/v1/service-providers/{$id}/specialties", [])->assertNotFound();
 
-        // a lista e o detalhe de outros prestadores saíram: expunham os contactos de todos
+        // the list and detail of other providers were removed: they exposed everyone's contacts
         $this->actingAs($this->morador)->getJson('/api/v1/service-providers')->assertNotFound();
         $this->actingAs($this->morador)->getJson("/api/v1/service-providers/{$id}")->assertNotFound();
 
-        // criar, editar e apagar o perfil passou para os endpoints dos perfis
+        // creating, editing and deleting the profile moved to the profile endpoints
         $this->actingAs($this->servicos)->postJson('/api/v1/service-providers', [])->assertNotFound();
         $this->actingAs($this->servicos)->patchJson("/api/v1/service-providers/{$id}", ['phone' => '900000000'])->assertNotFound();
         $this->actingAs($this->servicos)->deleteJson("/api/v1/service-providers/{$id}")->assertNotFound();

@@ -11,10 +11,10 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * Ofertas (módulo 7): as ofertas do parceiro (paginadas, filtro ?status=), criação com tipo,
- * detalhe (o dono vê sempre, os outros só as em vigor), edição/pausa, remoção,
- * recomendações (em vigor, paginadas, ?search= e ?category_id=) e catálogo de tipos.
- * Usa os dados do OfferSeeder: o "Parceiro Lda" tem 3 ofertas em vigor, 1 expirada, 1 futura e 1 inativa.
+ * Offers (module 7): the partner's offers (paginated, ?status= filter), creating with a type,
+ * detail (the owner always sees it, others only current ones), edit/pause, removal,
+ * recommendations (current, paginated, ?search= and ?category_id=) and the type catalog.
+ * Uses the OfferSeeder data: "Parceiro Lda" has 3 current offers, 1 expired, 1 upcoming and 1 inactive.
  */
 class OfferTest extends TestCase
 {
@@ -63,7 +63,7 @@ class OfferTest extends TestCase
 
     public function test_o_parceiro_ve_as_suas_ofertas_paginadas(): void
     {
-        // por defeito, 5 por página
+        // 5 per page by default
         $this->actingAs($this->parceiro)
             ->getJson('/api/v1/offers')
             ->assertOk()
@@ -77,7 +77,7 @@ class OfferTest extends TestCase
             ->assertJsonCount(6, 'data')
             ->assertJsonStructure(['data' => [['id', 'title', 'category' => ['id', 'name'], 'active']]]);
 
-        // da data de início mais recente para a mais antiga
+        // newest start date first
         $datas = collect($resposta->json('data'))->pluck('start_date')->all();
         $this->assertSame(collect($datas)->sortDesc()->values()->all(), $datas);
     }
@@ -103,7 +103,7 @@ class OfferTest extends TestCase
 
     public function test_cada_oferta_esta_num_so_estado(): void
     {
-        // uma oferta pausada continua "inactive" mesmo que esteja dentro das datas, expirada ou agendada
+        // a paused offer stays "inactive" even if it is within its dates, expired or scheduled
         $pausadas = [
             Offer::factory()->inactive()->create(['partner_id' => $this->parceiro->partner->id]),
             Offer::factory()->inactive()->expired()->create(['partner_id' => $this->parceiro->partner->id]),
@@ -241,7 +241,7 @@ class OfferTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.active', false);
 
-        // pausada: sai das recomendações e deixa de ser visível para os outros
+        // paused: leaves the recommendations and is no longer visible to others
         $this->actingAs($this->morador)->getJson("/api/v1/offers/{$oferta->id}")->assertNotFound();
         $this->actingAs($this->morador)
             ->getJson('/api/v1/offers/recommendations?search=Avaliação gratuita do imóvel')
@@ -327,7 +327,7 @@ class OfferTest extends TestCase
             $this->assertTrue($oferta['active']);
         }
 
-        // as fora de vigor do "Parceiro Lda" nunca aparecem
+        // "Parceiro Lda" offers that aren't current never show
         foreach (['Campanha de verão', 'Campanha de Natal', 'Oferta desativada'] as $titulo) {
             $this->actingAs($this->morador)
                 ->getJson("/api/v1/offers/recommendations?search={$titulo}")
@@ -337,17 +337,17 @@ class OfferTest extends TestCase
 
     public function test_as_recomendacoes_pesquisam_no_titulo_na_descricao_e_no_parceiro(): void
     {
-        // título
+        // title
         $this->actingAs($this->morador)
             ->getJson('/api/v1/offers/recommendations?search=avaliação gratuita do imóvel')
             ->assertJsonPath('meta.total', 1);
 
-        // descrição ("Avaliação de mercado sem custos nem compromisso.")
+        // description ("Avaliação de mercado sem custos nem compromisso.")
         $this->actingAs($this->morador)
             ->getJson('/api/v1/offers/recommendations?search=sem custos nem compromisso')
             ->assertJsonPath('meta.total', 1);
 
-        // nome do parceiro: as 3 em vigor do "Parceiro Lda"
+        // partner name: the 3 current offers of "Parceiro Lda"
         $ofertas = $this->actingAs($this->morador)
             ->getJson('/api/v1/offers/recommendations?search=Parceiro Lda&per_page=15')
             ->assertJsonPath('meta.total', 3)
@@ -368,7 +368,7 @@ class OfferTest extends TestCase
         $this->assertNotEmpty($ofertas);
         $this->assertSame(['Seguros'], array_values(array_unique(array_column(array_column($ofertas, 'category'), 'name'))));
 
-        // pesquisa e tipo juntos
+        // search and type together
         $this->actingAs($this->morador)
             ->getJson("/api/v1/offers/recommendations?category_id={$seguros}&search=Parceiro Lda")
             ->assertJsonPath('meta.total', 1)
@@ -403,7 +403,7 @@ class OfferTest extends TestCase
         $this->assertFalse($emVigor->contains($comecaAmanha->id));
     }
 
-    // ------------------------------------------------------------------- tipos
+    // ------------------------------------------------------------------- types
 
     public function test_o_catalogo_de_tipos_esta_disponivel_para_o_formulario(): void
     {
@@ -425,7 +425,7 @@ class OfferTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors('start_date');
 
-        // a enviar também o novo fim, já é aceite
+        // sending the new end date too, it is accepted
         $this->actingAs($this->parceiro)
             ->patchJson("/api/v1/offers/{$oferta->id}", ['start_date' => $depoisDoFim, 'end_date' => null])
             ->assertOk();

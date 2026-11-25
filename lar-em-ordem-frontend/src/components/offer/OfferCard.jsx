@@ -18,7 +18,7 @@ export function OfferCard({
 }) {
   return (
     <div className="flex flex-col sm:flex-row rounded-xl bg-surface">
-      {/* corpo do ticket */}
+      {/* ticket body */}
       <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3">
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconColor}`}
@@ -41,7 +41,7 @@ export function OfferCard({
               <Clock size={12} />
               {postedAt}
             </span>
-            {/* so mostra se a API enviar o numero de propostas */}
+            {/* only shows when the API sends the number of proposals */}
             {offers != null && (
               <span className="flex items-center gap-1">
                 <Users size={12} />
@@ -54,7 +54,7 @@ export function OfferCard({
         </div>
       </div>
 
-      {/* talao (parte destacavel do ticket) */}
+      {/* stub (the tear-off part of the ticket) */}
       <div className="flex items-center justify-between gap-4 border-t sm:border-t-0 sm:border-l border-dashed border-navy/20 px-4 py-3">
         <Link
           to={to}

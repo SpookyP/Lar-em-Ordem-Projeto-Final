@@ -14,7 +14,7 @@ class StoreServiceProviderRequest extends FormRequest
     }
 
     /**
-     * Dados do prestador + opcional (zonas, especialidades da lista e especialidades próprias).
+     * Provider details plus optional zones, catalog specialties and custom specialties.
      */
     public function rules(): array
     {

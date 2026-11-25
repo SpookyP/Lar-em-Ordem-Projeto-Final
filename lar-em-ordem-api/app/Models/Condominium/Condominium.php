@@ -58,7 +58,7 @@ class Condominium extends Model
         return $this->hasMany(CondominiumDocument::class);
     }
 
-    /** O utilizador é o administrador deste condomínio? */
+    /** Is the user this condominium's admin? */
     public function isManagedBy(?User $user): bool
     {
         $adminId = $user?->condominium_admin?->id;
@@ -66,7 +66,7 @@ class Condominium extends Model
         return $adminId !== null && $this->condominium_admin_id === $adminId;
     }
 
-    /** O utilizador tem contrato ativo numa casa deste condomínio? */
+    /** Does the user have an active contract on a property in this condominium? */
     public function hasMember(?User $user): bool
     {
         $residentId = $user?->resident?->id;
@@ -78,12 +78,12 @@ class Condominium extends Model
             ->exists();
     }
 
-    /** Condomínios que o utilizador administra. */
+    /** Condominiums the user manages. */
     public function scopeManagedBy(Builder $query, User $user): Builder
     {
         $adminId = $user->condominium_admin?->id;
 
-        // sem perfil de administrador: nenhum (um where com null virava "is null")
+        // no admin profile: none (a where with null would turn into "is null")
         return $adminId
             ? $query->where('condominium_admin_id', $adminId)
             : $query->whereRaw('0 = 1');

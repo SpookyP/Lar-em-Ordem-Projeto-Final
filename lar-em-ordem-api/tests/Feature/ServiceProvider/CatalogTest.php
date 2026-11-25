@@ -11,8 +11,8 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * Catálogos (módulo 6), preenchidos pelos seeders: categorias de problemas com as especialidades
- * e zonas de serviço (distrito → concelho → localidade).
+ * Catalogs (module 6), filled by the seeders: problem categories with their specialties
+ * and service zones (district → county → locality).
  */
 class CatalogTest extends TestCase
 {
@@ -54,7 +54,7 @@ class CatalogTest extends TestCase
             ->assertJsonCount(ProblemCategory::count(), 'data')
             ->assertJsonStructure(['data' => [['id', 'name', 'description', 'specialties' => [['id', 'problem_category_id', 'name']]]]]);
 
-        // a ordem é comparada com a da própria base de dados (acentos ordenam de forma diferente em MySQL e SQLite)
+        // the order is compared with the database's own (accents sort differently in MySQL and SQLite)
         $this->assertSame(
             ProblemCategory::orderBy('name')->pluck('name')->all(),
             collect($resposta->json('data'))->pluck('name')->all()
@@ -63,7 +63,7 @@ class CatalogTest extends TestCase
         foreach ($resposta->json('data') as $categoria) {
             $especialidades = collect($categoria['specialties']);
 
-            // todas pertencem a esta categoria e vêm por ordem alfabética
+            // all belong to this category and come in alphabetical order
             $this->assertTrue($especialidades->every(fn($e) => $e['problem_category_id'] === $categoria['id']));
             $this->assertSame(
                 ServiceSpecialty::where('problem_category_id', $categoria['id'])->orderBy('name')->pluck('name')->all(),
@@ -117,7 +117,7 @@ class CatalogTest extends TestCase
             ->assertJsonCount(ServiceZone::count(), 'data')
             ->assertJsonStructure(['data' => [['id', 'district', 'county', 'location']]]);
 
-        // ordenado por distrito, concelho e localidade (comparado com a ordem da base de dados)
+        // sorted by district, county and locality (compared with the database order)
         $esperado = ServiceZone::orderBy('district')->orderBy('county')->orderBy('location')->pluck('id')->all();
 
         $this->assertSame($esperado, collect($resposta->json('data'))->pluck('id')->all());

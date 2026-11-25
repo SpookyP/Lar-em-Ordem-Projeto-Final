@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
- * Avisos do condomínio (módulo 8): publicação com email, edição, histórico do administrador
- * e o "sino" do residente (lido, marcar tudo, eliminar).
- * Usa o CondominiumSeeder: no "Edifício Brito Capelo" há "Corte de água" (alta, por ler),
- * "Limpeza das escadas" (normal, lida pelo morador) e "Manutenção do elevador" (expirado).
+ * Condominium notices (module 8): publishing with email, editing, the admin's history
+ * and the resident's bell (read, mark all, dismiss).
+ * Uses CondominiumSeeder: "Edifício Brito Capelo" has "Corte de água" (high, unread),
+ * "Limpeza das escadas" (normal, read by the resident) and "Manutenção do elevador" (expired).
  */
 class CondominiumNoticeTest extends TestCase
 {
@@ -68,7 +68,7 @@ class CondominiumNoticeTest extends TestCase
         return $user;
     }
 
-    // ------------------------------------------------------------- publicar
+    // ------------------------------------------------------------- publish
 
     public function test_publicar_envia_email_so_aos_residentes_do_predio(): void
     {
@@ -89,7 +89,7 @@ class CondominiumNoticeTest extends TestCase
         Notification::assertNotSentTo($this->residente, CondominiumNoticePublished::class);
         Notification::assertSentTimes(CondominiumNoticePublished::class, 1);
 
-        // aparece no sino por ler
+        // shows in the bell as unread
         $this->assertFalse(collect($this->sino())->firstWhere('title', 'Pintura da fachada')['read']);
     }
 
@@ -137,7 +137,7 @@ class CondominiumNoticeTest extends TestCase
         $this->actingAs($this->outroAdmin())->postJson($url, $dados)->assertForbidden();
     }
 
-    // ------------------------------------------------------------- histórico
+    // ------------------------------------------------------------- history
 
     public function test_o_historico_inclui_os_expirados_e_quantos_leram(): void
     {
@@ -159,7 +159,7 @@ class CondominiumNoticeTest extends TestCase
             ->assertForbidden();
     }
 
-    // ---------------------------------------------------------------- editar
+    // ---------------------------------------------------------------- edit
 
     public function test_editar_sem_alteracoes_nao_reenvia_nem_limpa_as_leituras(): void
     {
@@ -222,13 +222,13 @@ class CondominiumNoticeTest extends TestCase
         }
     }
 
-    // ------------------------------------------------------------------ sino
+    // ------------------------------------------------------------------ bell
 
     public function test_o_sino_mostra_os_avisos_em_vigor_com_read(): void
     {
         $sino = $this->sino();
 
-        // mais recentes primeiro; o expirado não aparece
+        // newest first; the expired one doesn't show
         $this->assertSame(['Corte de água', 'Limpeza das escadas'], array_column($sino, 'title'));
         $this->assertSame([false, true], array_column($sino, 'read'));
     }
@@ -268,7 +268,7 @@ class CondominiumNoticeTest extends TestCase
 
         $this->assertSame(['Limpeza das escadas'], array_column($this->sino(), 'title'));
 
-        // continua na página do condomínio e no histórico (já como lido)
+        // still on the condominium page and in the history (now as read)
         $this->actingAs($this->morador)
             ->getJson("/api/v1/properties/{$this->casa}/condominium")
             ->assertJsonCount(2, 'data.notices');

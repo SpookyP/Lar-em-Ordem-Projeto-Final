@@ -21,7 +21,7 @@ class StoreCondominiumRequest extends FormRequest
             'address.street'      => ['required', 'string', 'max:255'],
             'address.postal_code' => ['required', 'string', 'max:20'],
             'address.door'        => ['nullable', 'string', 'max:10'],
-           // o par distrito + concelho tem de existir no catálogo de zonas (nomes iguais aos dos prestadores)
+           // the district + county pair must exist in the zone catalog (same names the service providers use)
             'address.county'      => [
                 'required', 'string', 'max:100',
                 Rule::exists('service_zones', 'county')

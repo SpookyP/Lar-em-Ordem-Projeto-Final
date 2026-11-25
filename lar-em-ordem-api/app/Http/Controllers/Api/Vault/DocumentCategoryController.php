@@ -10,7 +10,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class DocumentCategoryController extends Controller
 {
     /**
-     * Lista todas as categorias de documentos do Cofre Digital.
+     * Lists every Digital Vault document category.
      */
     public function index(): AnonymousResourceCollection
     {

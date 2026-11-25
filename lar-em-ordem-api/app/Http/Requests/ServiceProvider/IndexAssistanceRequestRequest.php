@@ -8,9 +8,9 @@ use App\Http\Requests\PerPageRequest;
 class IndexAssistanceRequestRequest extends PerPageRequest
 {
     /**
-     * Filtragem para o morador (GET /assistance-requests)
-     * Casa obrigatória (a casa onde o morador está), filtro opcional por estado e paginação:
-     * ?property_id=01...&status=open&per_page=5 (por defeito 5 por página, máximo 15)
+     * Filters for the resident (GET /assistance-requests)
+     * Property required (the one the resident is in), optional status filter and pagination:
+     * ?property_id=01...&status=open&per_page=5 (5 per page by default, 15 at most)
      */
     public function rules(): array
     {

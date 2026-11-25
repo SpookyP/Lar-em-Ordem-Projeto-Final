@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CondominiumNoticeFactory extends Factory
 {
-    /** [título, mensagem, prioridade] */
+    /** [title, message, priority] */
     private const CATALOG = [
         ['Corte de água', 'Por obras na rede pública, a água vai estar cortada na terça-feira, das 9h às 13h.', 'high'],
         ['Assembleia geral de condóminos', 'A assembleia geral realiza-se no dia 15, às 21h, na sala do condomínio. A ordem de trabalhos está afixada na entrada.', 'high'],
@@ -41,13 +41,13 @@ class CondominiumNoticeFactory extends Factory
         return $this->state(['priority' => $priority]);
     }
 
-    /** Sem data de fim (fica em vigor até ser apagado). */
+    /** No end date (current until deleted). */
     public function permanent(): static
     {
         return $this->state(['expires_at' => null]);
     }
 
-    /** Já terminou: só aparece no histórico do administrador. */
+    /** Already ended: only shows in the admin's history. */
     public function expired(): static
     {
         return $this->state(fn () => [

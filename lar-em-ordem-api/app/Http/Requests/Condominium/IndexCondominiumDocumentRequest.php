@@ -5,7 +5,7 @@ namespace App\Http\Requests\Condominium;
 use App\Http\Requests\PerPageRequest;
 
 /**
- * Listagem dos documentos: ?per_page= (1–15) e ?category_id= opcional.
+ * Document list: ?per_page= (1 to 15) and an optional ?category_id=.
  */
 class IndexCondominiumDocumentRequest extends PerPageRequest
 {

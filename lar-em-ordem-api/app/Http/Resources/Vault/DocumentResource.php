@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class DocumentResource extends JsonResource
 {
     /**
-     * Transforma o Model Document num array estruturado para o frontend.
+     * Turns the Document model into a structured array for the frontend.
      */
     public function toArray(Request $request): array
     {

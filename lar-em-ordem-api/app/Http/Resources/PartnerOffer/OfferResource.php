@@ -21,7 +21,7 @@ class OfferResource extends JsonResource
             'start_date'         => $this->start_date->toDateString(),
             'end_date'           => $this->end_date?->toDateString(),
             'active'             => $this->active,
-            // Como a relação devolve um único objeto/modelo, instanciamos um único Resource.
+            // The relation returns a single model, so we wrap it in a single Resource.
             'partner'            => new PartnerResource($this->whenLoaded('partner')),
         ];
     }

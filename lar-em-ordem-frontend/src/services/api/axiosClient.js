@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-//Instancia unica do axios.
-//Todos os services importam este ficheiro
+// Single axios instance.
+// Every service imports this file
 
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL, //.env
@@ -14,7 +14,7 @@ const axiosClient = axios.create({
     },
 });
 
-//le o valor de um cookie pelo nome (procura-o na lista de cookies do browser)
+// reads a cookie's value by name (looks it up in the browser's cookie list)
 function lerCookie(nome) {
     const valor = document.cookie
         .split('; ')
@@ -22,7 +22,7 @@ function lerCookie(nome) {
     return valor ? decodeURIComponent(valor.split('=')[1]) : null;
 }
 
-//intercetor de pedido: antes do pedido, le o cookie XSRF-TOKEN e cola no header X-XSRF-TOKEN
+// request interceptor: before each request, reads the XSRF-TOKEN cookie and puts it in the X-XSRF-TOKEN header
 axiosClient.interceptors.request.use((config) => {
     const token = lerCookie('XSRF-TOKEN');
     if (token) {
@@ -31,10 +31,10 @@ axiosClient.interceptors.request.use((config) => {
     return config;
 });
 
-// Se a sessão for invalida ou expirar manda para o login
+// If the session is invalid or expired, send the user to the login
 const ROTAS_SEM_LOGOUT_FORCADO = ['/login', '/logout', '/register', '/forgot-password', '/reset-password'];
 
-//intercetor de resposta: corre depois de cada resposta entrar
+// response interceptor: runs after each response comes in
 axiosClient.interceptors.response.use(
     (response) => response,
     (error) => {

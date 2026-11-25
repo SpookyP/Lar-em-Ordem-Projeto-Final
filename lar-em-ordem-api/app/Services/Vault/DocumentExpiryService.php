@@ -10,7 +10,7 @@ use Carbon\Carbon;
 class DocumentExpiryService
 {
     /**
-     * Verifica todos os documentos com data de validade definida (usado pelo Job diário).
+     * Checks every document with an expiry date (used by the daily job).
      */
     public function checkAllDocuments(): int
     {
@@ -29,11 +29,11 @@ class DocumentExpiryService
     }
 
     /**
-     * Avalia a validade de um único documento e cria notificação se estiver nos escalões de alerta.
+     * Checks one document's expiry and creates a notification when it is inside an alert window.
      */
     public function checkSingleDocument(Document $document): ?Notification
     {
-        // Se o documento não tiver data de validade, limpa eventuais alertas antigos deste document_id
+        // No expiry date: clear any old alerts for this document_id
         if (!$document->expiration_date) {
             Notification::where('document_id', $document->id)->delete();
             return null;
@@ -41,9 +41,9 @@ class DocumentExpiryService
 
         $today = Carbon::today();
         $expiryDate = Carbon::parse($document->expiration_date)->startOfDay();
-        $daysLeft = $today->diffInDays($expiryDate, false); // Negativo se já expirou
+        $daysLeft = $today->diffInDays($expiryDate, false); // Negative if it already expired
 
-        // Definir o escalão de alerta
+        // Pick the alert window
         if ($daysLeft < 0) {
             $type = 'expired';
             $title = "Documento Expirado: {$document->name}";
@@ -57,17 +57,17 @@ class DocumentExpiryService
             $title = "Aviso: {$document->name} expira em {$daysLeft} dias";
             $message = "Renove o documento '{$document->name}' antes de {$expiryDate->format('d/m/Y')}.";
         } else {
-            // Mais de 30 dias de validade: apaga alertas antigos deste documento (ex: se foi renovado)
+            // More than 30 days left: delete this document's old alerts (e.g. it was renewed)
             Notification::where('document_id', $document->id)->delete();
             return null;
         }
 
-        // Limpa notificações antigas DESTE documento que sejam de OUTRO escalão
+        // Clear old notifications of THIS document that belong to ANOTHER window
         Notification::where('document_id', $document->id)
             ->where('type', '!=', $type)
             ->delete();
 
-        // firstOrCreate evita criar notificações repetidas para o mesmo documento e escalão
+        // firstOrCreate avoids duplicate notifications for the same document and window
         $notification = Notification::firstOrCreate(
             [
                 'property_id' => $document->property_id,
@@ -82,7 +82,7 @@ class DocumentExpiryService
             ]
         );
 
-        // Só envia pelo WebSocket se a notificação acabou de ser criada agora
+        // Only broadcast over the WebSocket when the notification was just created
         if ($notification->wasRecentlyCreated) {
             VaultNotificationBroadcast::dispatch($notification);
         }

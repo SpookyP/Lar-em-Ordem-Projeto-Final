@@ -43,9 +43,9 @@ class AssistanceRequest extends Model
     }
 
     /**
-     * O pedido é deste utilizador? (compara com o perfil de residente dele)
+     * Does the request belong to this user? (compared with their resident profile)
      *
-     * @param User|null $user Utilizador autenticado.
+     * @param User|null $user Authenticated user.
      * @return bool
      */
     public function isOwnedBy(?User $user): bool
@@ -56,7 +56,7 @@ class AssistanceRequest extends Model
     }
     
     /**
-     * A proposta aceite deste pedido (no máximo uma).
+     * The accepted proposal of this request (at most one).
      */
     public function acceptedProposal()
     {
@@ -82,7 +82,7 @@ class AssistanceRequest extends Model
     ];
 
     /**
-     * Indica se o pedido tem status 'open'.
+     * Whether the request status is 'open'.
      *
      * @return bool
      */
@@ -91,14 +91,14 @@ class AssistanceRequest extends Model
          return $this->status === 'open';
     }
     /**
-     * Pedidos que um prestador pode ver e responder:
-     * abertos, não abertos por ele próprio, sem proposta dele,
-     * nas categorias das suas especialidades e nos concelhos das suas zonas.
-     * Sem especialidades = todas as categorias; sem zonas = todos os concelhos.
-     * Uso: AssistanceRequest::availableFor($provider)->get()
+     * Requests a service provider can see and answer:
+     * open, not opened by the provider, with no proposal of theirs,
+     * in the categories of their specialties and the counties of their zones.
+     * No specialties = every category; no zones = every county.
+     * Usage: AssistanceRequest::availableFor($provider)->get()
      *
-     * @param Builder $query Query a que se aplicam os filtros.
-     * @param ServiceProviderModel $provider Prestador para quem se procuram pedidos.
+     * @param Builder $query Query the filters apply to.
+     * @param ServiceProviderModel $provider Provider to look up requests for.
      * @return Builder
      */
     public function scopeAvailableFor(Builder $query, ServiceProviderModel $provider): Builder
@@ -112,9 +112,9 @@ class AssistanceRequest extends Model
         return $query->where('status', 'open')
             ->whereHas('resident', fn (Builder $r) => $r->where('user_id', '!=', $provider->user_id))
             ->whereDoesntHave('proposals', fn (Builder $q) => $q->where('service_provider_id', $provider->id))
-            // sem especialidades: todas as categorias
+            // no specialties: every category
             ->when($categoryIds->isNotEmpty(), fn (Builder $q) => $q->whereIn('problem_category_id', $categoryIds))
-            // sem zonas: todos os concelhos
+            // no zones: every county
             ->when($counties->isNotEmpty(), fn (Builder $q) => $q->whereHas('property.address', function (Builder $address) use ($counties) {
                 $address->where(function (Builder $any) use ($counties) {
                     foreach ($counties as $zone) {

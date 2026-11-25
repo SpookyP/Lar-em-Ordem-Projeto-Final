@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('region', 100);
             $table->string('reference_period', 10);
             $table->date('period_start');
-            $table->decimal('average_value', 10, 3); // Consumo médio (kWh, m³)
-            $table->decimal('average_cost', 10, 3)->nullable(); // Custo médio em euros
+            $table->decimal('average_value', 10, 3); // Average consumption (kWh, m³)
+            $table->decimal('average_cost', 10, 3)->nullable(); // Average cost in euros
             $table->unsignedInteger('sample_size');
 
             $table->unique([

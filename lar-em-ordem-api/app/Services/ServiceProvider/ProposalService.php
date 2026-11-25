@@ -13,14 +13,14 @@ class ProposalService
 {
 
      /**
-     * Devolve as propostas enviadas por um prestador, da mais recente para a mais antiga,
-     * com o pedido a que respondem, paginadas. Opcionalmente só as de um estado.
-     *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @param int $perPage Número de propostas por página.
-     * @param string|null $status Estado (pending/accepted/rejected/withdrawn) ou null para todas.
-     * @return LengthAwarePaginator
-     */
+      * Returns the proposals a provider sent, newest first,
+      * with the request each one answers, paginated. Optionally only one status.
+      *
+      * @param ServiceProviderModel $provider The provider.
+      * @param int $perPage Proposals per page.
+      * @param string|null $status Status (pending/accepted/rejected/withdrawn), or null for all.
+      * @return LengthAwarePaginator
+      */
     public function listByProvider(ServiceProviderModel $provider, int $perPage = 5, ?string $status = null): LengthAwarePaginator
     {
         return $provider->proposals()
@@ -37,12 +37,12 @@ class ProposalService
     }
 
     /**
-     * Envia uma proposta a um pedido.
-     * O prestador só pode enviar uma por pedido, e o pedido tem de estar disponível para ele.
+     * Sends a proposal to a request.
+     * A provider can only send one per request, and the request has to be available to them.
      *
-     * @param AssistanceRequest $assistanceRequest Pedido a que responde.
-     * @param ServiceProviderModel $provider Prestador que envia a proposta.
-     * @param array $data Dados validados da proposta.
+     * @param AssistanceRequest $assistanceRequest Request being answered.
+     * @param ServiceProviderModel $provider Provider sending the proposal.
+     * @param array $data Validated proposal data.
      * @return Proposal
      */
     public function create(AssistanceRequest $assistanceRequest, ServiceProviderModel $provider, array $data): Proposal
@@ -75,10 +75,10 @@ class ProposalService
     }
 
     /**
-     * Edita uma proposta. Só é possível enquanto estiver pendente.
+     * Edits a proposal. Only while it is pending.
      *
-     * @param Proposal $proposal Proposta a editar.
-     * @param array $data Dados validados para a atualização.
+     * @param Proposal $proposal Proposal to edit.
+     * @param array $data Validated data for the update.
      * @return Proposal
      */
     public function update(Proposal $proposal, array $data): Proposal
@@ -91,9 +91,9 @@ class ProposalService
     }
 
     /**
-     * Retira uma proposta pendente.
+     * Withdraws a pending proposal.
      *
-     * @param Proposal $proposal Proposta a retirar.
+     * @param Proposal $proposal Proposal to withdraw.
      * @return Proposal
      */
     public function withdraw(Proposal $proposal): Proposal
@@ -106,11 +106,11 @@ class ProposalService
     }
 
     /**
-     * Aceita uma proposta: as outras pendentes do mesmo pedido são rejeitadas
-     * e o pedido passa a 'closed'. Tudo numa transação, com o pedido bloqueado:
-     * se duas propostas forem aceites ao mesmo tempo, a segunda já encontra o pedido fechado.
+     * Accepts a proposal: the other pending proposals of the same request are rejected
+     * and the request becomes 'closed'. All in one transaction with the request locked,
+     * so if two proposals are accepted at the same time the second one finds the request closed.
      *
-     * @param Proposal $proposal Proposta a aceitar.
+     * @param Proposal $proposal Proposal to accept.
      * @return Proposal
      */
     public function accept(Proposal $proposal): Proposal
@@ -152,9 +152,9 @@ class ProposalService
     }
 
     /**
-     * Rejeita uma proposta pendente sem aceitar outra: o pedido continua aberto.
+     * Rejects a pending proposal without accepting another one: the request stays open.
      *
-     * @param Proposal $proposal Proposta a rejeitar.
+     * @param Proposal $proposal Proposal to reject.
      * @return Proposal
      */
     public function reject(Proposal $proposal): Proposal
@@ -170,10 +170,10 @@ class ProposalService
     }
 
     /**
-     * Garante que a proposta está pendente.
+     * Makes sure the proposal is pending.
      *
-     * @param Proposal $proposal Instância da proposta.
-     * @param string $message Mensagem de erro a devolver.
+     * @param Proposal $proposal The proposal.
+     * @param string $message Error message to return.
      * @return void
      */
     private function ensurePending(Proposal $proposal, string $message): void

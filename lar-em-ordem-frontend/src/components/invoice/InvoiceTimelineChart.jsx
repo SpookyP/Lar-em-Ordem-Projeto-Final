@@ -423,7 +423,7 @@ export default function InvoiceTimelineChart({
 
   return (
     <section className="w-full min-w-0 max-w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      {/* Cabeçalho principal com o serviço e a comparação com a média. */}
+      {/* Main header with the service and the comparison with the average. */}
       <div
         className="relative -mx-4 -mt-4 mb-4 flex flex-col gap-3 overflow-hidden rounded-t-2xl p-5 text-white shadow-sm sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-center sm:justify-between sm:p-6"
         style={{ backgroundColor: HEADER_COLOR }}
@@ -444,7 +444,7 @@ export default function InvoiceTimelineChart({
             </p>
           </div>
 
-          {/* Indicador da diferença entre a habitação e a média. */}
+          {/* Difference between the property and the average. */}
           {comparison != null && (
             <span
               className={`rounded-full px-2.5 py-1 text-sm font-semibold ${
@@ -468,7 +468,7 @@ export default function InvoiceTimelineChart({
             </span>
           )}
         </div>
-        {/* Legenda das linhas apresentadas no gráfico. */}
+        {/* Legend for the chart lines. */}
         <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/90">
           <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-2.5 py-1 font-semibold text-white">
             {style.label}
@@ -487,7 +487,7 @@ export default function InvoiceTimelineChart({
         </div>
       </div>
 
-      {/* Intervalo ativo e opções de seleção rápida. */}
+      {/* Active range and quick selection options. */}
       <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="text-base text-slate-500">
           <span
@@ -525,14 +525,14 @@ export default function InvoiceTimelineChart({
         )}
       </div>
 
-      {/* Gráfico com deslocamento horizontal para navegar pelos meses. */}
+      {/* Chart with horizontal scrolling to move through the months. */}
       <div
         ref={wrapRef}
         className="mt-4 w-full min-w-0 max-w-full overflow-x-auto rounded-xl border border-slate-200"
         style={{ contain: "inline-size" }}
       >
         <div style={{ width: chartWidth, minWidth: chartWidth }}>
-          {/* Cabeçalho dos anos alinhado com os meses do gráfico. */}
+          {/* Year header aligned with the chart months. */}
           <div
             className="flex h-7 items-center border-b border-slate-100"
             style={{ width: chartWidth }}
@@ -555,7 +555,7 @@ export default function InvoiceTimelineChart({
             ))}
           </div>
 
-          {/* Linhas dos consumos e dos benchmarks. */}
+          {/* Consumption and benchmark lines. */}
           <LineChart
             width={chartWidth}
             height={CHART_HEIGHT}
@@ -588,7 +588,7 @@ export default function InvoiceTimelineChart({
               axisLine={false}
               tick={{ fontSize: 13, fill: "#94a3b8" }}
             />
-            {/* Destaca visualmente o intervalo temporal selecionado. */}
+            {/* Highlights the selected time range. */}
             <ReferenceArea
               x1={chartRange.start}
               x2={chartRange.end}
@@ -606,7 +606,7 @@ export default function InvoiceTimelineChart({
               stroke={RANGE_COLOR}
               strokeWidth={2}
             />
-            {/* Informação detalhada ao passar o rato sobre os pontos. */}
+            {/* Detailed info when hovering the points. */}
             <Tooltip
               content={
                 <TimelineTooltip
@@ -617,7 +617,7 @@ export default function InvoiceTimelineChart({
               }
             />
 
-            {/* Linha de benchmark, apresentada quando existem valores disponíveis. */}
+            {/* Benchmark line, shown when there are values. */}
             {benchmarkMap.size > 0 && (
               <>
                 <Line
@@ -650,7 +650,7 @@ export default function InvoiceTimelineChart({
                 />
               </>
             )}
-            {/* Linha dos custos efetivos da habitação. */}
+            {/* Line with the property's actual costs. */}
             <Line
               dataKey="mine"
               type="monotone"

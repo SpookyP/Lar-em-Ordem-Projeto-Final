@@ -12,10 +12,10 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * Condomínio (módulo 8): CRUD do administrador, código de convite (join/leave),
- * página do residente, transferência de administrador e perfil de administrador.
- * Usa o CondominiumSeeder: condominio@example.com administra o "Edifício Brito Capelo" (código CAPELA23),
- * onde está a casa de Matosinhos do morador@example.com.
+ * Condominium (module 8): admin CRUD, invite code (join/leave),
+ * resident page, admin transfer and the admin profile.
+ * Uses CondominiumSeeder: condominio@example.com manages "Edifício Brito Capelo" (code CAPELA23),
+ * where morador@example.com's Matosinhos property is.
  */
 class CondominiumTest extends TestCase
 {
@@ -27,8 +27,8 @@ class CondominiumTest extends TestCase
     private User $morador;
     private User $residente;
     private Condominium $condominio;
-    private string $casa;       // casa do morador no prédio
-    private string $outraCasa;  // outra casa do morador, sem condomínio
+    private string $casa;       // the resident's property in the building
+    private string $outraCasa;  // the resident's other property, with no condominium
 
     protected function setUp(): void
     {
@@ -68,7 +68,7 @@ class CondominiumTest extends TestCase
         ];
     }
 
-    // ----------------------------------------------------------------- criar
+    // ----------------------------------------------------------------- create
 
     public function test_o_administrador_cria_um_condominio_com_codigo_de_convite(): void
     {
@@ -108,13 +108,13 @@ class CondominiumTest extends TestCase
 
     public function test_a_morada_tem_de_existir_nas_zonas(): void
     {
-        // concelho de outro distrito
+        // county from another district
         $this->actingAs($this->admin)
             ->postJson('/api/v1/condominiums', ['name' => 'X', 'address' => $this->morada(['county' => 'Matosinhos', 'district' => 'Lisboa'])])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['address.county' => 'O concelho indicado não existe nesse distrito.']);
 
-        // distrito inventado
+        // made-up district
         $this->actingAs($this->admin)
             ->postJson('/api/v1/condominiums', ['name' => 'X', 'address' => $this->morada(['district' => 'Bairrada'])])
             ->assertStatus(422)
@@ -128,11 +128,11 @@ class CondominiumTest extends TestCase
             ->assertForbidden();
     }
 
-    // ------------------------------------------------------------ listar/ver
+    // ------------------------------------------------------------ list/show
 
     public function test_o_administrador_lista_so_os_seus_condominios(): void
     {
-        Condominium::factory()->create(); // de outro administrador
+        Condominium::factory()->create(); // from another admin
 
         $this->actingAs($this->admin)
             ->getJson('/api/v1/condominiums')
@@ -149,9 +149,9 @@ class CondominiumTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.invite_code', 'CAPELA23')
             ->assertJsonPath('data.properties.0.id', $this->casa)
-            ->assertJsonCount(2, 'data.notices'); // o expirado não aparece
+            ->assertJsonCount(2, 'data.notices'); // the expired one doesn't show
 
-        // prioridade alta primeiro; o administrador vê quantos residentes já leram
+        // high priority first; the admin sees how many residents have read it
         $this->assertSame('Corte de água', $resposta->json('data.notices.0.title'));
         $this->assertSame(1, $resposta->json('data.notices.1.readers_count'));
     }
@@ -193,7 +193,7 @@ class CondominiumTest extends TestCase
             ->assertForbidden();
     }
 
-    // ---------------------------------------------------------------- editar
+    // ---------------------------------------------------------------- edit
 
     public function test_gerar_novo_codigo_invalida_o_antigo(): void
     {
@@ -204,7 +204,7 @@ class CondominiumTest extends TestCase
 
         $this->assertNotSame('CAPELA23', $novo);
 
-        // a casa que já estava continua; o código antigo deixa de funcionar
+        // the property already linked stays; the old code stops working
         $this->assertSame($this->condominio->id, Property::find($this->casa)->condominium_id);
         $this->actingAs($this->morador)
             ->postJson('/api/v1/condominiums/join', ['invite_code' => 'CAPELA23', 'property_id' => $this->outraCasa])
@@ -221,7 +221,7 @@ class CondominiumTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['address.county']);
 
-        // só o concelho, sem o distrito
+        // only the county, without the district
         $this->actingAs($this->admin)
             ->patchJson($url, ['address' => ['county' => 'Porto']])
             ->assertStatus(422)
@@ -254,7 +254,7 @@ class CondominiumTest extends TestCase
         $this->actingAs($outro)->deleteJson($url)->assertForbidden();
     }
 
-    // ---------------------------------------------------------------- apagar
+    // ---------------------------------------------------------------- delete
 
    public function test_apagar_o_condominio_desliga_as_casas_e_anonimiza_o_que_fica(): void
     {
@@ -267,20 +267,20 @@ class CondominiumTest extends TestCase
         $this->assertSoftDeleted($this->condominio);
         $this->assertNull(Property::find($this->casa)->condominium_id);
 
-        // o morador deixa de ver o condomínio
+        // the resident no longer sees the condominium
         $this->actingAs($this->morador)
             ->getJson("/api/v1/properties/{$this->casa}/condominium")
             ->assertOk()
             ->assertJsonPath('data', null);
 
-        // o que fica na base de dados não identifica o prédio
+        // what stays in the database doesn't identify the building
         $condominio = Condominium::withTrashed()->find($this->condominio->id);
         $this->assertSame('Condomínio removido', $condominio->name);
         $this->assertSame('Morada removida', $condominio->address()->withTrashed()->first()->street);
         $this->assertSame(0, $condominio->notices()->where('title', '!=', 'Aviso removido')->count());
         $this->assertSame('', $aviso->fresh()->message);
 
-        // links antigos de avisos: 404 em vez de erro
+        // old notice links: 404 instead of an error
         $this->actingAs($this->morador)->patchJson("/api/v1/condominium-notices/{$aviso->id}/read")->assertNotFound();
         $this->actingAs($this->admin)->patchJson("/api/v1/condominium-notices/{$aviso->id}", ['title' => 'x'])->assertNotFound();
     }
@@ -288,7 +288,7 @@ class CondominiumTest extends TestCase
 
     public function test_o_residente_junta_uma_casa_com_o_codigo(): void
     {
-        // o código não distingue maiúsculas/minúsculas
+        // the code is case insensitive
         $this->actingAs($this->morador)
             ->postJson('/api/v1/condominiums/join', ['invite_code' => 'capela23', 'property_id' => $this->outraCasa])
             ->assertOk()
@@ -337,7 +337,7 @@ class CondominiumTest extends TestCase
 
         $this->assertNull(Property::find($this->casa)->condominium_id);
 
-        // uma casa que não é do condomínio
+        // a property that isn't in the condominium
         $this->actingAs($this->admin)
             ->patchJson("/api/v1/condominiums/{$this->condominio->id}/leave", ['property_id' => $this->outraCasa])
             ->assertStatus(422)
@@ -353,7 +353,7 @@ class CondominiumTest extends TestCase
         $this->assertSame($this->condominio->id, Property::find($this->casa)->condominium_id);
     }
 
-    // ---------------------------------------------------------- transferência
+    // ---------------------------------------------------------- transfer
 
     public function test_transferencia_passa_o_condominio_e_os_ficheiros_para_o_novo_administrador(): void
     {
@@ -378,7 +378,7 @@ class CondominiumTest extends TestCase
         $this->assertNull($condominio->transfer_expires_at);
         $this->assertSame($novo->id, $documento->file->fresh()->user_id);
 
-        // o antigo deixa de ter acesso
+        // the old admin loses access
         $this->actingAs($this->admin)
             ->getJson("/api/v1/condominiums/{$this->condominio->id}")
             ->assertForbidden();
@@ -429,11 +429,11 @@ class CondominiumTest extends TestCase
             ->assertForbidden();
     }
 
-    // ------------------------------------------------------------------ perfil
+    // ------------------------------------------------------------------ profile
 
     public function test_o_perfil_de_administrador_so_sai_depois_de_transferir_ou_apagar_os_condominios(): void
     {
-        // o morador também passa a administrar um prédio (tem dois perfis)
+        // the resident also starts managing a building (two profiles)
         $this->actingAs($this->morador)
             ->postJson('/api/user/profile', ['role' => 'condominium_admin', 'contact' => '912345678', 'admin_type' => 'resident'])
             ->assertCreated();

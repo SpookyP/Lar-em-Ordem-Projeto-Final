@@ -6,7 +6,7 @@ use App\Models\ServiceProvider\ProblemCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Categorias realistas que não existem no ProblemCategorySeeder (para não repetir as do seed).
+ * Realistic categories that aren't in ProblemCategorySeeder (so the seed ones don't repeat).
  *
  * @extends Factory<ProblemCategory>
  */

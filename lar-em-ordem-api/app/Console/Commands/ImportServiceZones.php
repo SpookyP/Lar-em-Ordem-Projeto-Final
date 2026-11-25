@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Gera database/data/service_zones.json (distrito, concelho, freguesia) a partir da GEO API PT,
- * que usa a Carta Administrativa Oficial de Portugal (CAOP).
- * Só é preciso correr quando a CAOP muda; o seeder lê o ficheiro e não precisa de internet.
+ * Builds database/data/service_zones.json (district, county, parish) from the GEO API PT,
+ * which uses the official administrative map of Portugal (CAOP).
+ * Only needs to run when the CAOP changes; the seeder reads the file and needs no internet.
  */
 class ImportServiceZones extends Command
 {
@@ -17,10 +17,10 @@ class ImportServiceZones extends Command
 
     protected $description = 'Gera o ficheiro das zonas (distritos, concelhos e freguesias) a partir da GEO API PT';
 
-    /** Todos os concelhos, cada um com o código INE e as freguesias, num só pedido. */
+    /** Every county, each with its INE code and parishes, in a single request. */
     private const SOURCE = 'https://json.geoapi.pt/municipios/freguesias';
 
-    /** Códigos INE dos distritos (os 2 primeiros dígitos do código do concelho). */
+    /** INE codes of the districts (the first 2 digits of the county code). */
     private const DISTRICTS = [
         '01' => 'Aveiro', '02' => 'Beja', '03' => 'Braga', '04' => 'Bragança', '05' => 'Castelo Branco',
         '06' => 'Coimbra', '07' => 'Évora', '08' => 'Faro', '09' => 'Guarda', '10' => 'Leiria',
@@ -52,7 +52,7 @@ class ImportServiceZones extends Command
             }
         }
 
-        // ordenado por distrito, concelho e freguesia: o ficheiro fica legível e as diferenças no git são claras
+        // sorted by district, county and parish so the file stays readable and git diffs stay clear
         usort($zones, fn ($a, $b) => [$a['district'], $a['county'], $a['location']]
             <=> [$b['district'], $b['county'], $b['location']]);
 
@@ -68,8 +68,8 @@ class ImportServiceZones extends Command
     }
 
     /**
-     * Distrito a partir do código INE do concelho. Açores e Madeira não têm distritos (têm ilhas):
-     * ficam como "Açores" e "Madeira", como no catálogo anterior.
+     * District from the county's INE code. The Azores and Madeira have islands instead of districts,
+     * so they are stored as "Açores" and "Madeira", as in the previous catalog.
      */
     private function district(string $ineCode): string
     {
@@ -84,7 +84,7 @@ class ImportServiceZones extends Command
     }
 
     /**
-     * Tira o prefixo das uniões de freguesias, em todas as variantes da CAOP
+     * Removes the prefix of merged parishes, in every CAOP variant
      * ("União das/de freguesias de/do/da/dos/das …"): "União das freguesias de Alvega e Concavada" → "Alvega e Concavada".
      */
     private function parishName(string $name): string

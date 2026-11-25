@@ -8,8 +8,8 @@ use Illuminate\Database\Seeder;
 class OfferCategorySeeder extends Seeder
 {
     /**
-     * Catálogo de tipos de oferta (base provisória: o cliente ainda não fechou a lista).
-     * Para mudar ou acrescentar, basta alterar esta lista.
+     * Offer type catalog (provisional: the client hasn't settled the list yet).
+     * To change or add types, edit this list.
      */
     public function run(): void
     {

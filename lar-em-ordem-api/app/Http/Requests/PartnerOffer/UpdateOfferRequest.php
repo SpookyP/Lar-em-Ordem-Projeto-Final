@@ -17,11 +17,11 @@ class UpdateOfferRequest extends FormRequest
 
      public function rules(): array
     {
-        // Se não vier start_date no pedido, compara com o da oferta guardada
+        // If the request has no start_date, compare with the stored offer's
         $startDate = $this->input('start_date')
             ?? $this->route('offer')->start_date->toDateString();
         
-        // Se não vier end_date no pedido, compara com o da oferta guardada (sem fim: sem limite)
+        // If the request has no end_date, compare with the stored offer's (no end means no limit)
         $endDate = $this->exists('end_date')
             ? $this->input('end_date')
             : $this->route('offer')->end_date?->toDateString();

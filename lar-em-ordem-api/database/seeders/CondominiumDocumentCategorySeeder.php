@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class CondominiumDocumentCategorySeeder extends Seeder
 {
     /**
-     * Catálogo de categorias dos documentos do condomínio.
+     * Condominium document category catalog.
      */
     public function run(): void
     {

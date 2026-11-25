@@ -22,7 +22,7 @@ class UpdateCondominiumRequest extends FormRequest
             'address.street'      => ['sometimes', 'required', 'string', 'max:255'],
             'address.postal_code' => ['sometimes', 'required', 'string', 'max:20'],
             'address.door'        => ['sometimes', 'nullable', 'string', 'max:10'],
-            // concelho e distrito vêm juntos (para validar o par no catálogo de zonas)
+            // county and district come together (to validate the pair against the zone catalog)
             'address.county'      => [
                 'required_with:address.district', 'string', 'max:100',
                 Rule::exists('service_zones', 'county')

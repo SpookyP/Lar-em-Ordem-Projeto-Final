@@ -8,21 +8,21 @@ const ITEM_KEYS = [
   "lines",
 ];
 
-// Converte um ano e mês num identificador no formato YYYY-MM.
+// Turns a year and month into a YYYY-MM key.
 export const monthKey = (year, monthIndex) =>
   `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
-// Converte um identificador de mês num índice cronológico.
+// Turns a month key into a chronological index.
 export const keyToIndex = (key) => {
   const [year, month] = key.split("-").map(Number);
   return year * 12 + month - 1;
 };
 
-// Converte um índice cronológico no formato YYYY-MM.
+// Turns a chronological index into YYYY-MM.
 export const indexToKey = (index) =>
   monthKey(Math.floor(index / 12), index % 12);
 
-// Cria uma lista de meses entre duas datas, incluindo os extremos.
+// Builds the list of months between two dates, both included.
 export function monthsBetween(startKey, endKey) {
   const result = [];
 
@@ -37,7 +37,7 @@ export function monthsBetween(startKey, endKey) {
   return result;
 }
 
-// Converte datas YYYY-MM-DD (ou DD/MM/YYYY) para timestamp UTC; devolve null se forem inválidas.
+// Turns YYYY-MM-DD (or DD/MM/YYYY) dates into a UTC timestamp; returns null when invalid.
 function parseDay(value) {
   if (!value) return null;
 
@@ -60,7 +60,7 @@ function parseDay(value) {
   const time = Date.UTC(year, month - 1, day);
   const date = new Date(time);
 
-  // Rejeita datas inexistentes (ex.: 31/02), que o Date normalizaria.
+  // Rejects dates that don't exist (e.g. 31/02), which Date would roll over.
   if (
     date.getUTCFullYear() !== year ||
     date.getUTCMonth() !== month - 1 ||
@@ -72,13 +72,13 @@ function parseDay(value) {
   return time;
 }
 
-// Obtém o identificador do mês a partir de um timestamp.
+// Gets the month key from a timestamp.
 const keyOfTime = (time) => {
   const date = new Date(time);
   return monthKey(date.getUTCFullYear(), date.getUTCMonth());
 };
 
-// Calcula o primeiro e o último dia de um mês.
+// Works out the first and last day of a month.
 function monthBounds(key) {
   const [year, month] = key.split("-").map(Number);
   const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -89,7 +89,7 @@ function monthBounds(key) {
   ];
 }
 
-// Calcula quantos dias dois períodos têm em comum.
+// Works out how many days two periods share.
 function overlapDays(aStart, aEnd, bStart, bEnd) {
   const start = Math.max(aStart, bStart);
   const end = Math.min(aEnd, bEnd);
@@ -97,7 +97,7 @@ function overlapDays(aStart, aEnd, bStart, bEnd) {
   return end < start ? 0 : Math.round((end - start) / DAY) + 1;
 }
 
-// Converte valores numéricos, incluindo formatos monetários portugueses.
+// Converts numeric values, Portuguese money formats included.
 export function asNumber(value) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -118,13 +118,13 @@ export function asNumber(value) {
   return Number.isFinite(result) ? result : 0;
 }
 
-// Obtém os consumos associados a uma fatura.
+// Gets an invoice's consumptions.
 export function getConsumptions(invoice) {
   const list = invoice?.consumptions ?? invoice?.utilities ?? [];
   return Array.isArray(list) ? list : [];
 }
 
-// Obtém os detalhes ou linhas de um consumo.
+// Gets a consumption's details or lines.
 export function getItems(consumption) {
   const possibleItems = ITEM_KEYS.map(
     (key) => consumption?.[key]
@@ -139,15 +139,15 @@ export function getItems(consumption) {
   );
 }
 
-// Padrões usados para identificar o serviço pelo nome (sem acentos).
+// Patterns used to identify the service by name (without accents).
 const TYPE_NAME_PATTERNS = [
   [1, /eletric|electric|energia/],
   [2, /agua|water/],
   [3, /\bgas\b/],
 ];
 
-// Identifica o tipo de serviço (1 = eletricidade, 2 = água, 3 = gás).
-// Fonte única para todos os componentes: primeiro o ID, depois o nome.
+// Identifies the service type (1 = electricity, 2 = water, 3 = gas).
+// Single source for every component: the id first, then the name.
 export function getTypeId(consumption) {
   const raw =
     consumption?.consumption_type_id ??
@@ -181,7 +181,7 @@ export function getTypeId(consumption) {
   );
 }
 
-// Obtém o custo de uma linha de consumo.
+// Gets the cost of a consumption line.
 export function itemCost(item) {
   return asNumber(
     item?.cost ??
@@ -193,7 +193,7 @@ export function itemCost(item) {
   );
 }
 
-// Calcula o custo total de um consumo.
+// Works out a consumption's total cost.
 function getConsumptionCost(consumption) {
   const items = getItems(consumption);
 
@@ -212,7 +212,7 @@ function getConsumptionCost(consumption) {
   );
 }
 
-// Determina o período de faturação.
+// Works out the billing period.
 function getPeriod(invoice, consumption) {
   const start = parseDay(
     consumption?.period_start ??
@@ -232,7 +232,7 @@ function getPeriod(invoice, consumption) {
 }
 
 /**
- * Distribui os custos das faturas pelos meses correspondentes.
+ * Spreads the invoice costs over their months.
  */
 export function buildMonthlySeries(invoices, serviceFilter = "all") {
   const totals = new Map();
@@ -243,7 +243,7 @@ export function buildMonthlySeries(invoices, serviceFilter = "all") {
 
       if (!typeId) return;
 
-      // Aplica o filtro de serviço.
+      // Applies the service filter.
       if (
         serviceFilter !== "all" &&
         Number(serviceFilter) !== typeId
@@ -259,7 +259,7 @@ export function buildMonthlySeries(invoices, serviceFilter = "all") {
       const totalDays = Math.round((end - start) / DAY) + 1;
       const cost = getConsumptionCost(consumption);
 
-      // Distribui proporcionalmente o custo pelos meses abrangidos.
+      // Spreads the cost proportionally over the months it covers.
       monthsBetween(keyOfTime(start), keyOfTime(end)).forEach(
         (key) => {
           const [monthStart, monthEnd] = monthBounds(key);
@@ -286,7 +286,7 @@ export function buildMonthlySeries(invoices, serviceFilter = "all") {
 }
 
 /**
- * Ajusta proporcionalmente os consumos ao intervalo selecionado.
+ * Scales the consumptions to the selected range.
  */
 export function scaleInvoicesToRange(invoices, range) {
   if (!range?.start || !range?.end) return invoices ?? [];
@@ -343,7 +343,7 @@ export function scaleInvoicesToRange(invoices, range) {
               asNumber(scaled[consumptionCostKey]) * factor;
           }
 
-          // Ajusta os custos dos itens individuais.
+          // Scales the individual items' costs.
           ITEM_KEYS.forEach((key) => {
             if (Array.isArray(scaled[key])) {
               scaled[key] = scaled[key].map((item) => {

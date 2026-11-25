@@ -42,7 +42,7 @@ export function AdvancedPeriodFilter({
           </svg>
         </span>
 
-        {/* Ativa ou desativa a seleção personalizada de datas. */}
+        {/* Turns the custom date selection on or off. */}
         <input
           type="checkbox"
           checked={advancedEnabled}
@@ -107,7 +107,7 @@ export function AdvancedPeriodFilter({
         </svg>
       </label>
 
-      {/* Seletores de datas apresentados quando o filtro avançado está ativo. */}
+      {/* Date pickers, shown when the advanced filter is on. */}
       {advancedEnabled && (
         <div className="relative mt-3 overflow-hidden rounded-2xl border border-navy/15 bg-linear-to-br from-navy/5.5 via-white to-navy/[0.035] p-4 shadow-sm sm:p-5">
           <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-navy/6 blur-2xl" />
@@ -168,7 +168,7 @@ export function AdvancedPeriodFilter({
               onChange={updateRange}
             />
 
-            {/* Informação sobre os limites de seleção do período. */}
+            {/* Notes on the period selection limits. */}
             <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-white/90 bg-white/75 px-3.5 py-3 shadow-sm">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-navy/10 text-navy">
                 <svg

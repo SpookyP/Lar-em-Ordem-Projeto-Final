@@ -28,7 +28,7 @@ class InvoiceExtractionService
         ]);
 
         $process->setTimeout(config('invoices.extract_timeout'));
-        $process->setInput($types->toJson(JSON_UNESCAPED_UNICODE)); // via stdin, evita problemas de aspas no Windows
+        $process->setInput($types->toJson(JSON_UNESCAPED_UNICODE)); // through stdin, avoids quoting problems on Windows
 
         try {
             $process->run();

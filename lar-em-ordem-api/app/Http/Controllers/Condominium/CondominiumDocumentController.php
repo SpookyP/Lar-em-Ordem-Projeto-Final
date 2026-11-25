@@ -18,10 +18,10 @@ class CondominiumDocumentController extends Controller
     public function __construct(private CondominiumDocumentService $service) {}
 
     /**
-     * Documentos do condomínio (administrador), com as categorias para os filtros e o formulário.
+     * Condominium documents (admin), with the categories for the filters and the form.
      *
-     * @param IndexCondominiumDocumentRequest $request Pedido validado (per_page, category_id).
-     * @param Condominium $condominium Condomínio.
+     * @param IndexCondominiumDocumentRequest $request Validated request (per_page, category_id).
+     * @param Condominium $condominium Condominium.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(IndexCondominiumDocumentRequest $request, Condominium $condominium)
@@ -32,26 +32,26 @@ class CondominiumDocumentController extends Controller
     }
 
     /**
-     * Documentos do condomínio da casa ativa (residente), com as categorias para os filtros.
-     * Casa sem condomínio: página vazia (mesmo formato).
+     * Documents of the active property's condominium (resident), with the categories for the filters.
+     * A property with no condominium gets an empty page in the same format.
      *
-     * @param IndexCondominiumDocumentRequest $request Pedido validado (per_page, category_id).
-     * @param Property $property Casa ativa do residente.
+     * @param IndexCondominiumDocumentRequest $request Validated request (per_page, category_id).
+     * @param Property $property The resident's active property.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function indexForProperty(IndexCondominiumDocumentRequest $request, Property $property)
     {
-        // reutiliza PropertyPolicy::view → contrato ativo nesta casa
+        // reuses PropertyPolicy::view → active contract on this property
         Gate::authorize('view', $property);
 
         return $this->listing($property->condominium, $request);
     }
 
     /**
-     * Carrega um documento (multipart). Só o administrador.
+     * Uploads a document (multipart). Admin only.
      *
-     * @param StoreCondominiumDocumentRequest $request Dados validados (com o ficheiro).
-     * @param Condominium $condominium Condomínio.
+     * @param StoreCondominiumDocumentRequest $request Validated data (with the file).
+     * @param Condominium $condominium Condominium.
      * @return \Illuminate\Http\JsonResponse 201 (Created).
      */
     public function store(StoreCondominiumDocumentRequest $request, Condominium $condominium)
@@ -64,10 +64,10 @@ class CondominiumDocumentController extends Controller
     }
 
     /**
-     * Corrige os dados do documento (não troca o ficheiro). Só o administrador.
+     * Fixes the document's details (the file stays the same). Admin only.
      *
-     * @param UpdateCondominiumDocumentRequest $request Dados validados.
-     * @param CondominiumDocument $condominiumDocument Documento.
+     * @param UpdateCondominiumDocumentRequest $request Validated data.
+     * @param CondominiumDocument $condominiumDocument Document.
      * @return CondominiumDocumentResource
      */
     public function update(UpdateCondominiumDocumentRequest $request, CondominiumDocument $condominiumDocument)
@@ -78,9 +78,9 @@ class CondominiumDocumentController extends Controller
     }
 
     /**
-     * Apaga o documento e o ficheiro. Só o administrador.
+     * Deletes the document and its file. Admin only.
      *
-     * @param CondominiumDocument $condominiumDocument Documento.
+     * @param CondominiumDocument $condominiumDocument Document.
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(CondominiumDocument $condominiumDocument)
@@ -103,7 +103,7 @@ class CondominiumDocumentController extends Controller
     }
 
     /**
-     * Lista paginada + catálogo de categorias, no mesmo pedido.
+     * Paginated list plus the category catalog, in the same request.
      */
     private function listing(?Condominium $condominium, IndexCondominiumDocumentRequest $request)
     {

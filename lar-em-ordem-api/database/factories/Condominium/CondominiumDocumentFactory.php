@@ -10,13 +10,13 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * Documento com um registo em files (o ficheiro em si não existe no R2: nos testes usar Storage::fake('r2')).
+ * Document with a row in files (the file itself doesn't exist in R2: use Storage::fake('r2') in tests).
  *
  * @extends Factory<CondominiumDocument>
  */
 class CondominiumDocumentFactory extends Factory
 {
-    /** categoria (CondominiumDocumentCategorySeeder) => [título, descrição] */
+    /** category (CondominiumDocumentCategorySeeder) => [title, description] */
     private const CATALOG = [
         'Atas de assembleia'                  => ['Ata da assembleia geral ordinária', 'Aprovação das contas do ano anterior e do orçamento.'],
         'Regulamento interno'                 => ['Regulamento interno do condomínio', 'Regras de utilização das partes comuns.'],
@@ -35,7 +35,7 @@ class CondominiumDocumentFactory extends Factory
                 ['name' => $category],
                 ['description' => $description]
             )->id,
-            // o ficheiro pertence ao utilizador do administrador do condomínio (como no upload)
+            // the file belongs to the condominium admin's user (as in an upload)
             'file_id'                          => function (array $attributes) use ($title) {
                 $userId = Condominium::find($attributes['condominium_id'])->admin->user_id;
 

@@ -10,19 +10,19 @@ class CondominiumDocumentPolicy
 {
 
 
-    /** Lista pelo condomínio: só o administrador (o residente usa a lista pela casa). */
+    /** List by condominium: admin only (residents use the list by property). */
     public function viewAny(User $user, Condominium $condominium): bool
     {
         return $condominium->isManagedBy($user);
     }
 
-    /** Ver/descarregar: administrador ou residente com casa no condomínio. */
+    /** View/download: the admin or a resident with a property in the condominium. */
     public function view(User $user, CondominiumDocument $document): bool
     {
         return $document->condominium->isManagedBy($user) || $document->condominium->hasMember($user);
     }
 
-    /** Carregar documento: só o administrador. */
+    /** Upload a document: admin only. */
     public function create(User $user, Condominium $condominium): bool
     {
         return $condominium->isManagedBy($user);

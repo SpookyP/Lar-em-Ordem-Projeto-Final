@@ -43,11 +43,11 @@ const STATUS = {
 
 function pickIcon(categoryName) {
   const n = (categoryName ?? "").toLowerCase();
-  //Certificado energético
+  // Energy certificate
   if (n.includes("energ")) return Zap;
-  //Multirriscos / seguro de vida
+  // Home insurance / life insurance
   if (n.includes("seguro") || n.includes("multirriscos")) return ShieldCheck;
-  // Amortizações / juros
+  // Mortgage payments / interest
   if (
     n.includes("amortiz") ||
     n.includes("juros") ||
@@ -55,12 +55,12 @@ function pickIcon(categoryName) {
     n.includes("credito")
   )
     return Banknote;
-  //Contrato de arrendamento
+  // Rental contract
   if (n.includes("arrendamento") || n.includes("contrato"))
     return FileSignature;
-  //Licença de utilização
+  // Occupancy licence
   if (n.includes("licen")) return Landmark;
-  //IMT / IMI / AIMI / Imposto do Selo / Faturas
+  // IMT / IMI / AIMI / stamp duty / invoices
   if (
     n.includes("imi") ||
     n.includes("imt") ||
@@ -69,12 +69,12 @@ function pickIcon(categoryName) {
     n.includes("fatura")
   )
     return Receipt;
-  //Escritura / certidões / declarações
+  // Deed / certificates / declarations
   if (n.includes("escritura") || n.includes("certid") || n.includes("declara"))
     return ScrollText;
-  //Caderneta predial
+  // Property tax record (caderneta predial)
   if (n.includes("caderneta") || n.includes("predial")) return Building2;
-  //Outros
+  // Other
   if (n.includes("condomin")) return Users;
   return FileText;
 }

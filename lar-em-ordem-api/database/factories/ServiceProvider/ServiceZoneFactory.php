@@ -6,7 +6,7 @@ use App\Models\ServiceProvider\ServiceZone;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Zonas com distrito e concelho reais; a localidade tem um sufixo para não repetir as freguesias do seed (CAOP).
+ * Zones with a real district and county; the locality gets a suffix so it doesn't repeat the seed parishes (CAOP).
  *
  * @extends Factory<ServiceZone>
  */

@@ -165,7 +165,7 @@ export function useNotifications() {
         };
     }, [propertyId, isOwner, formatSingleNotification]);
 
-    // Função genérica para evitar repetição nas chamadas otimistas à API
+    // Generic helper so the optimistic API calls aren't repeated
     const runOptimistic = async (updater, apiCall, errorMessage) => {
         setError(null);
         const previousNotifs = notifications;

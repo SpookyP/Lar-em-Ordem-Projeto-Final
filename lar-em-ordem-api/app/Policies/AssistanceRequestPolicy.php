@@ -8,9 +8,9 @@ use App\Models\User\User;
 class AssistanceRequestPolicy
 {
      /**
-     * Pode ver o pedido: o dono; um prestador que já enviou proposta;
-     * ou um prestador para quem o pedido está disponível.
-     */
+      * Who can see the request: the owner, a provider who already sent a proposal,
+      * or a provider the request is available to.
+      */
     public function view(User $user, AssistanceRequest $assistanceRequest): bool
     {
          if ($assistanceRequest->isOwnedBy($user)) {
@@ -34,7 +34,7 @@ class AssistanceRequestPolicy
     }
 
     /**
-     * Só o dono do pedido pode ver as propostas recebidas.
+     * Only the request owner can see the proposals received.
      */
     public function viewProposals(User $user, AssistanceRequest $assistanceRequest): bool
     {
@@ -42,7 +42,7 @@ class AssistanceRequestPolicy
     }
 
     /**
-     * Só residentes podem abrir pedidos.
+     * Only residents can open requests.
      */
     public function create(User $user): bool
     {
@@ -50,7 +50,7 @@ class AssistanceRequestPolicy
     }
 
     /**
-     * Só o dono do pedido o pode editar.
+     * Only the request owner can edit it.
      */
     public function update(User $user, AssistanceRequest $assistanceRequest): bool
     {
@@ -58,7 +58,7 @@ class AssistanceRequestPolicy
     }
 
     /**
-     * Só o dono do pedido o pode cancelar.
+     * Only the request owner can cancel it.
      */
     public function cancel(User $user, AssistanceRequest $assistanceRequest): bool
     {
@@ -66,7 +66,7 @@ class AssistanceRequestPolicy
     }
 
     /**
-     * Só prestadores de serviços podem ver a lista de pedidos disponíveis.
+     * Only service providers can see the list of available requests.
      */
     public function viewAvailable(User $user): bool
     {

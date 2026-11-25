@@ -24,7 +24,7 @@ class CondominiumFactory extends Factory
         'Edifício Miradouro',
     ];
 
-    /** Mesmo alfabeto do CondominiumService (sem 0/O, 1/I/L). */
+    /** Same alphabet as CondominiumService (no 0/O, 1/I/L). */
     private const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
     public function definition(): array
@@ -33,7 +33,7 @@ class CondominiumFactory extends Factory
         
         return [
             'condominium_admin_id' => CondominiumAdmin::factory(),
-            // morada do prédio: sem andar nem fração
+            // building address: no floor or fraction
             'address_id'           => Address::factory()->state([
                 'door'     => null,
                 'fraction' => null,
@@ -48,8 +48,8 @@ class CondominiumFactory extends Factory
     }
 
     /**
-     * Com um código de transferência pendente ($code em claro, guardado como sha256).
-     * $days negativo = código já expirado.
+     * With a pending transfer code ($code in plain text, stored as sha256).
+     * A negative $days means the code already expired.
      */
     public function withTransferCode(string $code = 'TRANSFER2345', int $days = 7): static
     {

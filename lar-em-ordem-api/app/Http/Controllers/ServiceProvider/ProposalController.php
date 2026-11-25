@@ -21,10 +21,10 @@ class ProposalController extends Controller
     ) {}
 
     /**
-     * Lista as propostas enviadas pelo prestador autenticado (opcionalmente por estado).
+     * Lists the proposals sent by the authenticated service provider (optionally by status).
      *
-     * @param IndexProposalRequest $request O pedido HTTP com o estado e o tamanho da página validados.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de propostas (paginada).
+     * @param IndexProposalRequest $request HTTP request with the validated status and page size.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Paginated proposal collection.
      */
     public function listProviderProposals(IndexProposalRequest $request)
     {
@@ -42,11 +42,11 @@ class ProposalController extends Controller
     }
 
     /**
-     * Envia uma proposta a um pedido, em nome do prestador autenticado.
+     * Sends a proposal to a request on behalf of the authenticated service provider.
      *
-     * @param StoreProposalRequest $request Dados validados.
-     * @param AssistanceRequest $assistanceRequest Pedido a que responde.
-     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
+     * @param StoreProposalRequest $request Validated data.
+     * @param AssistanceRequest $assistanceRequest The request being answered.
+     * @return \Illuminate\Http\JsonResponse The created resource with status 201 (Created).
      */
     public function store(StoreProposalRequest $request, AssistanceRequest $assistanceRequest)
     {
@@ -61,11 +61,11 @@ class ProposalController extends Controller
     }
 
     /**
-     * Edita uma proposta pendente. Só o prestador dono da proposta a pode editar.
+     * Edits a pending proposal. Only the provider who owns it can edit it.
      *
-     * @param UpdateProposalRequest $request Dados validados.
-     * @param Proposal $proposal Instância da proposta.
-     * @return ProposalResource Devolve a proposta atualizada.
+     * @param UpdateProposalRequest $request Validated data.
+     * @param Proposal $proposal The proposal.
+     * @return ProposalResource The updated proposal.
      */
     public function update(UpdateProposalRequest $request, Proposal $proposal)
     {
@@ -75,10 +75,10 @@ class ProposalController extends Controller
     }
 
     /**
-     * Retira uma proposta pendente. Só o prestador dono da proposta a pode retirar.
+     * Withdraws a pending proposal. Only the provider who owns it can withdraw it.
      *
-     * @param Proposal $proposal Instância da proposta.
-     * @return ProposalResource Devolve a proposta retirada.
+     * @param Proposal $proposal The proposal.
+     * @return ProposalResource The withdrawn proposal.
      */
     public function withdrawByProvider(Proposal $proposal)
     {
@@ -88,11 +88,11 @@ class ProposalController extends Controller
     }
 
     /**
-     * Aceita uma proposta: rejeita as restantes pendentes e passa o pedido a 'closed'.
-     * Só o dono do pedido a pode aceitar.
+     * Accepts a proposal: rejects the other pending ones and sets the request to 'closed'.
+     * Only the request owner can accept it.
      *
-     * @param Proposal $proposal Instância da proposta.
-     * @return ProposalResource Devolve a proposta aceite.
+     * @param Proposal $proposal The proposal.
+     * @return ProposalResource The accepted proposal.
      */
     public function acceptByResident(Proposal $proposal)
     {
@@ -102,10 +102,10 @@ class ProposalController extends Controller
     }
 
     /**
-    * Rejeita uma proposta pendente; o pedido continua aberto. Só o dono do pedido a pode rejeitar.
+     * Rejects a pending proposal; the request stays open. Only the request owner can reject it.
      *
-     * @param Proposal $proposal Instância da proposta.
-     * @return ProposalResource Devolve a proposta rejeitada.
+     * @param Proposal $proposal The proposal.
+     * @return ProposalResource The rejected proposal.
      */
     public function rejectByResident(Proposal $proposal)
     {

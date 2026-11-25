@@ -20,13 +20,13 @@ class CondominiumAdminFactory extends Factory
         ];
     }
 
-    /** Empresa de gestão de condomínios. */
+    /** Condominium management company. */
     public function professional(): static
     {
         return $this->state(['admin_type' => 'professional']);
     }
 
-    /** Condómino que administra o próprio prédio. */
+    /** Owner who manages their own building. */
     public function resident(): static
     {
         return $this->state(['admin_type' => 'resident']);

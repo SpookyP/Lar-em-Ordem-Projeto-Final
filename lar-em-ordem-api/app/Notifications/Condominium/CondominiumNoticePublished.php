@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Email aos residentes do prédio quando o administrador publica um aviso ou o atualiza.
+ * Email to the building's residents when the admin publishes or updates a notice.
  */
 class CondominiumNoticePublished extends Notification implements ShouldQueue
 {

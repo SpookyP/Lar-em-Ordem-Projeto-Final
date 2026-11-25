@@ -19,7 +19,7 @@ class UpdateProposalRequest extends FormRequest
         $availableUntil = $this->input('available_until')
             ?? substr($this->route('proposal')->available_until, 0, 5);
 
-        // a validade não pode passar a data de disponibilidade (o que não vier no pedido, compara com o guardado)
+        // validity can't go past the available date (a field missing from the request is compared with the stored one)
         $availableDate = $this->input('available_date')
             ?? $this->route('proposal')->available_date->toDateString();
 

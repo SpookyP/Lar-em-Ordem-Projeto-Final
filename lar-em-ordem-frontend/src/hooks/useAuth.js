@@ -1,7 +1,7 @@
 import {useContext} from 'react';
 import {AuthContext} from '../context/authContextObject'
 
-//Hook (atalho) para qualquer componente ler a info da autenticacao
+// Shortcut hook so any component can read the auth info
 export function useAuth() {
     const context = useContext(AuthContext);
 

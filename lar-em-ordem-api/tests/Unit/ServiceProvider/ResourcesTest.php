@@ -16,16 +16,16 @@ use Illuminate\Http\Request;
 use Tests\TestCase;
 
 /**
- * O que os resources mostram a cada utilizador (morada, NIF, formato das horas).
- * Os modelos e as relações são montados em memória: nenhum teste usa a base de dados.
+ * What the resources show each user (address, NIF, time format).
+ * The models and relations are built in memory: no test uses the database.
  */
 class ResourcesTest extends TestCase
 {
     // ---------------------------------------------------------------- helpers
 
     /**
-     * Utilizador em memória, sem roles (o hasRole não precisa de ir à base de dados),
-     * com perfil de residente "res-{id}".
+     * In-memory user with no roles (hasRole doesn't need the database),
+     * with resident profile "res-{id}".
      */
     private function utilizador(string $id): User
     {
@@ -40,7 +40,7 @@ class ResourcesTest extends TestCase
         return $user;
     }
 
-    /** Pedido HTTP feito por $user, como o que chega ao resource. */
+    /** HTTP request made by $user, as it reaches the resource. */
     private function pedidoHttp(?User $user): Request
     {
         $request = Request::create('/');
@@ -49,7 +49,7 @@ class ResourcesTest extends TestCase
         return $request;
     }
 
-    /** Pedido de assistência do dono "dono", numa casa na Rua Brito Capelo, com a proposta aceite de $aceiteDe. */
+    /** Assistance request owned by "dono", on a property in Rua Brito Capelo, with the proposal from $aceiteDe accepted. */
     private function pedidoAssistencia(?string $aceiteDe = null): AssistanceRequest
     {
         $morada = new Address([
@@ -90,7 +90,7 @@ class ResourcesTest extends TestCase
         return $dados['property'];
     }
 
-    // ------------------------------------------------- morada do pedido
+    // ------------------------------------------------- request address
 
     public function test_o_dono_ve_a_morada_completa_e_o_id_da_casa(): void
     {
@@ -140,7 +140,7 @@ class ResourcesTest extends TestCase
         $this->assertArrayNotHasKey('pending_proposals_count', $dados);
     }
 
-    // ---------------------------------------------------- NIF do prestador
+    // ---------------------------------------------------- provider NIF
 
     public function test_o_proprio_prestador_ve_o_nif(): void
     {
@@ -173,7 +173,7 @@ class ResourcesTest extends TestCase
         $this->assertArrayNotHasKey('nif', $dados);
     }
 
-    // ------------------------------------------------- formato da proposta
+    // ------------------------------------------------- proposal format
 
     public function test_a_proposta_mostra_as_horas_em_hh_mm_e_as_datas_sem_hora(): void
     {

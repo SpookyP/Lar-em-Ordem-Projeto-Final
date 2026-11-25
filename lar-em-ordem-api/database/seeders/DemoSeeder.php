@@ -31,13 +31,13 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
 /**
- * Dados para a apresentação, por cima do seed base:
- * - vizinhos do morador no Edifício Brito Capelo e residentes no Porto, em Matosinhos e em Gaia;
- * - mais prestadores, um por área, para todas as categorias terem quem responda;
- * - pedidos de assistência em todos os estados, com propostas pendentes, expiradas, aceites, recusadas e retiradas;
- * - documentos do Cofre com alertas de validade, um segundo condomínio, mais avisos e documentos do condomínio.
- * Os documentos só têm o registo (sem ficheiro no R2): abri-los responde que o ficheiro já não existe.
- * Precisa do CondominiumSeeder; fica fora dos testes, que contam os registos do seed base.
+ * Data for the presentation, on top of the base seed:
+ * - the resident's neighbours in Edifício Brito Capelo and residents in Porto, Matosinhos and Gaia;
+ * - more providers, one per area, so every category has someone to answer;
+ * - assistance requests in every status, with pending, expired, accepted, rejected and withdrawn proposals;
+ * - Vault documents with expiry alerts, a second condominium, more notices and condominium documents.
+ * The documents only have the row (no file in R2): opening one answers that the file no longer exists.
+ * Needs CondominiumSeeder; left out of the tests, which count the base seed's rows.
  */
 class DemoSeeder extends Seeder
 {
@@ -64,7 +64,7 @@ class DemoSeeder extends Seeder
         Event::fakeFor(fn () => $expiry->checkAllDocuments(), [VaultNotificationBroadcast::class]);
     }
 
-    // ------------------------------------------------------------------ prestadores
+    // ------------------------------------------------------------------ providers
 
     private function providers(): void
     {
@@ -108,10 +108,10 @@ class DemoSeeder extends Seeder
         }
     }
 
-    // ------------------------------------------------------------------ residentes e casas
+    // ------------------------------------------------------------------ residents and properties
 
     /**
-     * @return array<string, Property> casas por chave, com o morador em "morador"
+     * @return array<string, Property> properties by key, with the resident under "morador"
      */
     private function residents(Condominium $brito, Condominium $parque): array
     {
@@ -124,16 +124,16 @@ class DemoSeeder extends Seeder
         $parque1200 = ['street' => 'Rua de Costa Cabral', 'postal_code' => '4200-211', 'door' => 'Nº 1200', 'district' => 'Porto', 'county' => 'Porto', 'location' => 'Paranhos'];
 
         $people = [
-            // vizinhos do morador no Edifício Brito Capelo
+            // the resident's neighbours in Edifício Brito Capelo
             'ana'     => ['Ana Ferreira', 'ana.ferreira', $brito153 + ['fraction' => '1º Esq'], 'T3', 112, 'Owner', $brito],
             'rui'     => ['Rui Carvalho', 'rui.carvalho', $brito153 + ['fraction' => '1º Dto'], 'T2', 86, 'Tenant', $brito],
             'marta'   => ['Marta Sousa', 'marta.sousa', $brito153 + ['fraction' => '3º Esq'], 'T2', 90, 'Owner', $brito],
             'joaquim' => ['Joaquim Pinto', 'joaquim.pinto', $brito153 + ['fraction' => 'R/C Dto'], 'T1', 64, 'Owner', $brito],
             'ines'    => ['Inês Moreira', 'ines.moreira', $brito153 + ['fraction' => '3º Dto'], 'T2', 88, 'Tenant', $brito],
-            // Residências do Parque (Paranhos), o segundo prédio do administrador
+            // Residências do Parque (Paranhos), the admin's second building
             'pedro'   => ['Pedro Almeida', 'pedro.almeida', $parque1200 + ['fraction' => '4º B'], 'T3', 120, 'Owner', $parque],
             'helena'  => ['Helena Castro', 'helena.castro', $parque1200 + ['fraction' => '2º A'], 'T2', 95, 'Tenant', $parque],
-            // fora de condomínios
+            // outside any condominium
             'tiago'   => ['Tiago Lopes', 'tiago.lopes', ['street' => 'Rua Roberto Ivens', 'postal_code' => '4450-249', 'door' => 'Nº 640', 'fraction' => '2º Frt'] + self::MATOSINHOS, 'T2', 78, 'Tenant', null],
             'luis'    => ['Luís Teixeira', 'luis.teixeira', ['street' => 'Rua de Vila Franca', 'postal_code' => '4460-302', 'door' => 'Nº 85', 'fraction' => null, 'district' => 'Porto', 'county' => 'Matosinhos', 'location' => 'Senhora da Hora'], 'T4', 180, 'Owner', null, 'House'],
             'carla'   => ['Carla Mendes', 'carla.mendes', ['street' => 'Rua de Cedofeita', 'postal_code' => '4050-180', 'door' => 'Nº 312', 'fraction' => '1º', 'district' => 'Porto', 'county' => 'Porto', 'location' => 'Cedofeita'], 'T1', 58, 'Tenant', null],
@@ -208,16 +208,16 @@ class DemoSeeder extends Seeder
         ]);
     }
 
-    // ------------------------------------------------------------------ pedidos de assistência
+    // ------------------------------------------------------------------ assistance requests
 
     /**
      * @param array<string, Property> $homes
      */
     private function assistanceRequests(array $homes): void
     {
-        // [casa, categoria, título, descrição, estado, há quantos dias foi aberto, propostas: [prestador, valor, estado]]
-        // estados das propostas: pending, expired (pendente fora da validade), accepted, upcoming (aceite, trabalho
-        // ainda por fazer), rejected e withdrawn
+        // [property, category, title, description, status, days since it was opened, proposals: [provider, amount, status]]
+        // proposal statuses: pending, expired (pending past its validity), accepted, upcoming (accepted, work
+        // still to do), rejected and withdrawn
         $requests = [
             ['morador', 'Climatização', 'Ar condicionado do quarto não arrefece', 'Liga e faz barulho, mas o ar sai à temperatura ambiente. Tem uns seis anos.', 'open', 4, [
                 ['climatiza', 85, 'pending'],
@@ -378,7 +378,7 @@ class DemoSeeder extends Seeder
         ]);
     }
 
-    // ------------------------------------------------------------------ condomínios
+    // ------------------------------------------------------------------ condominiums
 
     /**
      * @param array<string, Property> $homes
@@ -464,7 +464,7 @@ class DemoSeeder extends Seeder
         }
     }
 
-    // ------------------------------------------------------------------ cofre digital
+    // ------------------------------------------------------------------ digital vault
 
     private function vaultDocuments(Property $moradorHome): void
     {
@@ -480,7 +480,7 @@ class DemoSeeder extends Seeder
             
         $imi = now()->subMonths(7);
 
-        // [categoria, nome, descrição, emitido, válido até]
+        // [category, name, description, issued, valid until]
         $documents = [
             $moradorHome->id => [
                 ['Escritura', 'Escritura de compra e venda', 'Escritura pública da compra do 2º Esq.', now()->subYears(6)->subMonths(3), null],
@@ -515,7 +515,7 @@ class DemoSeeder extends Seeder
         }
     }
 
-    // ------------------------------------------------------------------ ficheiros
+    // ------------------------------------------------------------------ files
 
     /**
      * The file record only: nothing is uploaded to R2, so opening it answers that the file no longer exists.

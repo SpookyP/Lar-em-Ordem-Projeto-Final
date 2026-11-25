@@ -11,9 +11,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Aviso do condomínio em tempo real: publicado no canal privado de cada casa do prédio
- * (properties.{id}), quando o administrador o publica ou o edita.
- * Vai pela fila: se o Reverb estiver em baixo, publicar o aviso não falha.
+ * Real-time condominium notice, published on the private channel of each property in the building
+ * (properties.{id}) when the admin publishes or edits it.
+ * Queued, so publishing the notice still works when Reverb is down.
  */
 class CondominiumNoticeBroadcast implements ShouldBroadcast
 {
@@ -25,7 +25,7 @@ class CondominiumNoticeBroadcast implements ShouldBroadcast
     ) {}
 
     /**
-     * Um canal por casa do condomínio.
+     * One channel per property in the condominium.
      *
      * @return array<PrivateChannel>
      */
@@ -37,14 +37,14 @@ class CondominiumNoticeBroadcast implements ShouldBroadcast
             ->all();
     }
 
-    /** Nome do evento no frontend: .listen('.condominium.notice', …) */
+    /** Event name on the frontend: .listen('.condominium.notice', …) */
     public function broadcastAs(): string
     {
         return 'condominium.notice';
     }
 
     /**
-     * Os mesmos campos do "sino" (GET /properties/{id}/condominium-notices), mais "updated".
+     * Same fields as the bell (GET /properties/{id}/condominium-notices), plus "updated".
      */
     public function broadcastWith(): array
     {

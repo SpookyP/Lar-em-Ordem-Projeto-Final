@@ -23,11 +23,11 @@ class OfferController extends Controller
     ) {}
 
     /**
-     * Lista as ofertas do parceiro autenticado, paginadas, com filtro opcional por estado
-     * (?status=current|scheduled|expired|inactive; sem status devolve todas).
+     * Lists the authenticated partner's offers, paginated, with an optional status filter
+     * (?status=current|scheduled|expired|inactive; without status it returns all of them).
      *
-     * @param IndexOfferRequest $request O pedido HTTP com o estado e o tamanho da página validados.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas (paginada).
+     * @param IndexOfferRequest $request HTTP request with the validated status and page size.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Paginated offer collection.
      */
     public function index(IndexOfferRequest $request)
     {
@@ -39,10 +39,10 @@ class OfferController extends Controller
     }
 
     /**
-     * Cria uma nova oferta associada ao parceiro do utilizador autenticado.
+     * Creates a new offer for the authenticated user's partner profile.
      *
-     * @param StoreOfferRequest $request Dados validados.
-     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201 (Created).
+     * @param StoreOfferRequest $request Validated data.
+     * @return \Illuminate\Http\JsonResponse The created resource with status 201 (Created).
      */
     public function store(StoreOfferRequest $request)
     {
@@ -57,10 +57,10 @@ class OfferController extends Controller
     }
 
     /**
-     * Devolve os detalhes de uma oferta, incluindo o parceiro que a criou.
-     * O parceiro dono vê sempre; os restantes só veem ofertas em vigor (senão 404).
+     * Returns an offer's details, including the partner who created it.
+     * The owning partner always sees it; everyone else only sees current offers (404 otherwise).
      *
-     * @param Offer $offer Instância da oferta solicitada.
+     * @param Offer $offer The requested offer.
      * @return OfferResource
      */
     public function show(Offer $offer)
@@ -72,11 +72,11 @@ class OfferController extends Controller
 
 
     /**
-     * Atualiza os dados de uma oferta existente.
+     * Updates an existing offer.
      *
-     * @param UpdateOfferRequest $request Dados validados.
-     * @param Offer $offer Instância da oferta.
-     * @return OfferResource Devolve a oferta atualizada.
+     * @param UpdateOfferRequest $request Validated data.
+     * @param Offer $offer The offer.
+     * @return OfferResource The updated offer.
      */
     public function update(UpdateOfferRequest $request, Offer $offer)
     {
@@ -88,10 +88,10 @@ class OfferController extends Controller
     }
 
     /**
-     * Remove uma oferta.
+     * Removes an offer.
      *
-     * @param Offer $offer Instância da oferta.
-     * @return \Illuminate\Http\JsonResponse Confirmação da remoção.
+     * @param Offer $offer The offer.
+     * @return \Illuminate\Http\JsonResponse Removal confirmation.
      */
     public function destroy(Offer $offer)
     {
@@ -103,11 +103,11 @@ class OfferController extends Controller
     }
 
     /**
-     * Devolve as ofertas em vigor de todos os parceiros, paginadas, com pesquisa e filtro por tipo,
-     * e o catálogo de tipos (para os filtros) no mesmo pedido.
+     * Returns the current offers of every partner, paginated, with search and a type filter,
+     * plus the type catalog (for the filters) in the same request.
      *
-     * @param RecommendedOfferRequest $request O pedido HTTP com a pesquisa, o tipo e o tamanho da página validados.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de ofertas (paginada).
+     * @param RecommendedOfferRequest $request HTTP request with the validated search, type and page size.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Paginated offer collection.
      */
     public function listActiveOffers(RecommendedOfferRequest $request)
     {

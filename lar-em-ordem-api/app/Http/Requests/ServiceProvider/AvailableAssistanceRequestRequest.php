@@ -7,9 +7,9 @@ use App\Http\Requests\PerPageRequest;
 class AvailableAssistanceRequestRequest extends PerPageRequest
 {
     /**
-     * Filtragem para o Prestador de Serviços (GET /assistance-requests/available)
-     * Pesquisa opcional e paginação: ?search=caldeira&location=Matosinhos&per_page=5
-     * (search: título/descrição; location: localidade, concelho ou distrito da casa).
+     * Filters for the service provider (GET /assistance-requests/available)
+     * Optional search and pagination: ?search=caldeira&location=Matosinhos&per_page=5
+     * (search: title/description; location: the property's locality, county or district).
      */
     public function rules(): array
     {

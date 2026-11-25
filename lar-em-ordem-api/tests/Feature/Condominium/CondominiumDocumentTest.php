@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * Documentos do condomínio (módulo 8): o administrador carrega (R2), corrige e apaga;
- * os residentes do prédio listam pela casa e pedem um link temporário.
- * Usa o CondominiumSeeder ("Edifício Brito Capelo", sem documentos) e o R2 falso.
+ * Condominium documents (module 8): the admin uploads (R2), fixes and deletes them;
+ * the building's residents list them through their property and read the file through the API.
+ * Uses CondominiumSeeder ("Edifício Brito Capelo", no documents) and the fake R2.
  */
 class CondominiumDocumentTest extends TestCase
 {
@@ -71,7 +71,7 @@ class CondominiumDocumentTest extends TestCase
         ], ['Accept' => 'application/json']);
     }
 
-    // -------------------------------------------------------------- carregar
+    // -------------------------------------------------------------- upload
 
     public function test_o_administrador_carrega_um_documento_para_o_r2(): void
     {
@@ -121,7 +121,7 @@ class CondominiumDocumentTest extends TestCase
         $this->carregar($outro)->assertForbidden();
     }
 
-    // --------------------------------------------------------------- listar
+    // --------------------------------------------------------------- list
 
     public function test_o_administrador_lista_com_as_categorias_e_filtra(): void
     {
@@ -136,7 +136,7 @@ class CondominiumDocumentTest extends TestCase
             ->assertJsonPath('meta.total', 3)
             ->assertJsonCount(4, 'categories');
 
-        // só as atas, da mais recente para a mais antiga
+        // only the minutes, newest first
         $atas = $this->actingAs($this->admin)
             ->getJson("{$url}?category_id={$this->categoria('Atas de assembleia')}")
             ->assertOk()
@@ -202,7 +202,7 @@ class CondominiumDocumentTest extends TestCase
         $this->actingAs($this->residente)->getJson($url)->assertForbidden();
     }
 
-    // ---------------------------------------------------------- editar/apagar
+    // ---------------------------------------------------------- edit/delete
 
     public function test_o_administrador_corrige_os_dados_sem_trocar_o_ficheiro(): void
     {

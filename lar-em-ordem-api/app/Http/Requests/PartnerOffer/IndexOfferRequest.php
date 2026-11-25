@@ -8,8 +8,8 @@ use Illuminate\Validation\Rule;
 class IndexOfferRequest extends PerPageRequest
 {
     /**
-     * Ofertas do parceiro: filtro opcional por estado e paginação.
-     * ?status=current|scheduled|expired|inactive&per_page=5 (sem status devolve todas).
+     * Partner offers: optional status filter and pagination.
+     * ?status=current|scheduled|expired|inactive&per_page=5 (without status it returns all of them).
      */
     public function rules(): array
     {

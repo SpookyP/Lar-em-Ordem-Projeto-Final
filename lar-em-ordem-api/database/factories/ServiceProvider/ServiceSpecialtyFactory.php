@@ -7,7 +7,7 @@ use App\Models\ServiceProvider\ServiceSpecialty;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Especialidades realistas que não existem no ProblemCategorySeeder.
+ * Realistic specialties that aren't in ProblemCategorySeeder.
  *
  * @extends Factory<ServiceSpecialty>
  */

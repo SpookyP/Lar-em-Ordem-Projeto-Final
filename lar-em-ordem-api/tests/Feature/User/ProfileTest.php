@@ -14,8 +14,8 @@ use Tests\TestCase;
 use Tests\Concerns\RegistersWithConfirmation;
 
 /**
- * Perfis (residente, prestador, parceiro) criados, atualizados e removidos pelo ProfileService:
- * registo, POST/DELETE /api/user/profile e PUT /user/profile-information.
+ * Profiles (resident, provider, partner) created, updated and removed by ProfileService:
+ * registration, POST/DELETE /api/user/profile and PUT /user/profile-information.
  */
 class ProfileTest extends TestCase
 {
@@ -30,7 +30,7 @@ class ProfileTest extends TestCase
 
         $this->withoutMiddleware(ThrottleRequests::class);
 
-        // a regra de password "uncompromised" consulta um serviço externo: nos testes não sai para a internet
+        // the "uncompromised" password rule calls an external service: tests don't go out to the internet
         Http::fake();
     }
 
@@ -44,7 +44,7 @@ class ProfileTest extends TestCase
         return 'Lr-' . Str::random(16) . '#9a';
     }
 
-    // ------------------------------------------------------------- criação
+    // ------------------------------------------------------------- create
 
     public function test_adicionar_perfil_de_prestador_grava_zonas_e_especialidades(): void
     {
@@ -59,7 +59,7 @@ class ProfileTest extends TestCase
                 'description'           => 'Pequenas reparações.',
                 'zone_ids'              => $this->zonas(2),
                 'service_specialty_ids' => ServiceSpecialty::limit(2)->pluck('id')->all(),
-                'user_id'               => 'outro', // ignorado
+                'user_id'               => 'outro', // ignored
             ])
             ->assertCreated()
             ->assertJsonPath('user.service_provider.company_name', 'Reparações Lda');
@@ -175,7 +175,7 @@ class ProfileTest extends TestCase
         $this->assertTrue($morador->fresh()->hasRole('condominium_admin'));
     }
 
-    // ---------------------------------------------------------- atualização
+    // ---------------------------------------------------------- update
 
     public function test_atualizar_prestador_grava_zonas_e_ignora_user_id(): void
     {
@@ -188,7 +188,7 @@ class ProfileTest extends TestCase
                 'name'     => 'Novo Nome',
                 'phone'    => '911111111',
                 'zone_ids' => $this->zonas(1),
-                'user_id'  => $morador->id, // ignorado
+                'user_id'  => $morador->id, // ignored
             ])
             ->assertOk();
 
@@ -210,7 +210,7 @@ class ProfileTest extends TestCase
         $this->assertSame('298765432', $morador->resident()->first()->nif);
     }
 
-    // ------------------------------------------------------------- remoção
+    // ------------------------------------------------------------- remove
 
     public function test_nao_se_apaga_o_unico_perfil_nem_um_perfil_que_nao_existe(): void
     {
@@ -227,7 +227,7 @@ class ProfileTest extends TestCase
             ->assertJsonValidationErrors(['role' => 'Não tem um perfil de partner associado a esta conta.']);
     }
 
-    // ------------------------------------------------- perfil de residente
+    // ------------------------------------------------- resident profile
 
     public function test_o_residente_nao_muda_o_proprio_is_active(): void
     {
@@ -242,7 +242,7 @@ class ProfileTest extends TestCase
 
     public function test_os_endpoints_antigos_do_residente_ja_nao_existem(): void
     {
-        // ver, editar e apagar o perfil passou para os endpoints dos perfis
+        // viewing, editing and deleting the profile moved to the profile endpoints
         $morador = User::where('email', 'morador@example.com')->firstOrFail();
 
         $this->actingAs($morador)->getJson('/api/v1/resident/profile')->assertNotFound();
@@ -250,7 +250,7 @@ class ProfileTest extends TestCase
         $this->actingAs($morador)->deleteJson('/api/v1/resident/profile')->assertNotFound();
     }
 
-      // --------------------------------------------------- apagar a conta
+      // --------------------------------------------------- delete the account
 
     public function test_apagar_a_conta_de_parceiro_apaga_o_perfil_e_as_ofertas(): void
     {
@@ -258,7 +258,7 @@ class ProfileTest extends TestCase
         $id = $parceiro->partner->id;
 
         $this->actingAs($parceiro)
-            ->withHeaders(['Referer' => 'http://' . config('sanctum.stateful')[0]]) // o logout precisa da sessão do SPA
+            ->withHeaders(['Referer' => 'http://' . config('sanctum.stateful')[0]]) // the logout needs the SPA session
             ->deleteJson('/api/user')
             ->assertOk();
 

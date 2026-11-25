@@ -415,14 +415,14 @@ export default function InvoiceTable({
           </div>
         </div>
 
-        {/* Mensagem de erro da listagem. */}
+        {/* List error message. */}
         {error && (
           <div className="mx-5 mb-4 min-w-0 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
-        {/* Cartões para mobile e tablets. */}
+        {/* Cards for mobile and tablets. */}
         <div className="px-3 pb-3 xl:hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
@@ -510,7 +510,7 @@ export default function InvoiceTable({
           )}
         </div>
 
-        {/* Tabela para desktop. */}
+        {/* Desktop table. */}
         <div className="hidden w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain xl:block">
           <table className="w-full min-w-225 text-left text-sm">
             <thead

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('consumption_types', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Ex: Eletricidade , Gás, Água
-            $table->string('unit_of_measure'); // Ex: m2, m3, W
+            $table->string('name'); // e.g. Eletricidade, Gás, Água
+            $table->string('unit_of_measure'); // e.g. m2, m3, W
         });
     }
 
