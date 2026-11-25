@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\Vault\DocumentController;
 // Documentos
 Route::get('/properties/{property}/documents', [DocumentController::class, 'index'])
     ->whereUlid('property');
+Route::post('/properties/{property}/documents/extract', [DocumentController::class, 'extract'])
+    ->whereUlid('property')
+    ->middleware('throttle:20,1,vault-extract');
 Route::post('/properties/{property}/documents', [DocumentController::class, 'store'])
     ->whereUlid('property');
 
