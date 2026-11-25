@@ -10,21 +10,26 @@ import {
   Wrench,
 } from "lucide-react";
 
+const WATER = "bg-teal-light text-teal";
+const GAS = "bg-orange-light text-orange";
+const ELECTRICITY = "bg-amber-light text-amber";
+const GENERAL = "bg-sky-light text-sky";
+
 const CATEGORY_INFO = {
-  canalizacao: { icon: Droplet, color: "bg-teal-light text-teal" },
-  eletricidade: { icon: Zap, color: "bg-amber-light text-amber" },
-  climatizacao: { icon: Thermometer, color: "bg-orange-light text-orange" },
-  carpintaria: { icon: Hammer, color: "bg-navy/10 text-navy" },
-  pintura: { icon: PaintRoller, color: "bg-navy/10 text-navy" },
-  eletrodomesticos: { icon: Plug, color: "bg-navy/10 text-navy" },
-  limpezas: { icon: Sparkles, color: "bg-teal-light text-teal" },
-  jardinagem: { icon: Trees, color: "bg-teal-light text-teal" },
+  canalizacao: { icon: Droplet, color: WATER },
+  climatizacao: { icon: Thermometer, color: GAS },
+  eletricidade: { icon: Zap, color: ELECTRICITY },
+  eletrodomesticos: { icon: Plug, color: ELECTRICITY },
+  carpintaria: { icon: Hammer, color: GENERAL },
+  pintura: { icon: PaintRoller, color: GAS },
+  limpezas: { icon: Sparkles, color: WATER },
+  jardinagem: { icon: Trees, color: WATER },
 };
-const FALLBACK = { icon: Wrench, color: "bg-navy/10 text-navy" };
+const FALLBACK = { icon: Wrench, color: GENERAL };
 export const categoryInfo = (slug) => CATEGORY_INFO[slug] ?? FALLBACK;
 
 const STATUS_INFO = {
-  open: { label: "Pendente", style: "bg-amber-light text-amber" },
+  open: { label: "Pendente", style: "bg-sky-light text-sky" },
   closed: { label: "Proposta aceite", style: "bg-green-light text-green" },
   cancelled: { label: "Cancelado", style: "bg-red-light text-red" },
 };
