@@ -125,7 +125,9 @@ export default function Vault() {
       else if (win) win.close();
     } catch (err) {
       if (win) win.close();
-      setActionError(getErrorMessage(err, "Não foi possível abrir o documento."));
+      setActionError(
+        getErrorMessage(err, "Não foi possível abrir o documento."),
+      );
     }
   }
 
@@ -134,11 +136,22 @@ export default function Vault() {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-8">
-      <div>
-        <h1 className="font-display text-4xl text-navy">Cofre Digital</h1>
-        <p className="mt-1 text-muted">
-          {getVaultSummaryText({ loading, error: loadError, summary })}
-        </p>
+      <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-display text-4xl text-navy">Cofre Digital</h1>
+          <p className="mt-1 text-muted">
+            {getVaultSummaryText({ loading, error: loadError, summary })}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setUpload({ category: null })}
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-light"
+        >
+          <UploadCloud size={18} />
+          Adicionar documento
+        </button>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
@@ -239,26 +252,6 @@ export default function Vault() {
           onAttach={(item) => setUpload({ category: item })}
         />
       )}
-
-      <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-border p-8 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface text-navy">
-          <UploadCloud size={24} />
-        </div>
-        <div>
-          <p className="font-semibold text-navy">Carregar Novo Documento</p>
-          <p className="text-sm text-muted">
-            Arraste e solte aqui, ou clique para selecionar · PDF, JPG, PNG
-            (máx. 10 MB)
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setUpload({ category: null })}
-          className="rounded-xl bg-navy px-5 py-2.5 font-semibold text-white transition hover:bg-navy-light"
-        >
-          Escolher ficheiro
-        </button>
-      </div>
 
       {upload && (
         <DocumentUploadModal

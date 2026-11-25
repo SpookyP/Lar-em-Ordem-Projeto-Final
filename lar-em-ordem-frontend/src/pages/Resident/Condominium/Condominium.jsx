@@ -159,9 +159,9 @@ export default function Condominium() {
   }
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="font-display text-2xl text-navy">Condomínio</h1>
+        <h1 className="font-display text-4xl text-navy">Condomínio</h1>{" "}
         <Link
           to="/settings"
           state={{ section: "condominium" }}

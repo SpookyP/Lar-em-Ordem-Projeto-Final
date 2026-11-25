@@ -39,7 +39,7 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex w-full items-center justify-between gap-3">
-        <h1 className="min-w-0 font-display text-2xl text-navy sm:text-3xl">
+        <h1 className="min-w-0 font-display text-4xl text-navy">
           Painel da Habitação
         </h1>
 
