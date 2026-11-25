@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProposalFactory extends Factory
 {
-    /** Descrições realistas de uma proposta. */
+    /** Realistic proposal descriptions. */
     private const DESCRIPTIONS = [
         'Deslocação, diagnóstico e reparação, material incluído.',
         'Visita técnica e orçamento final no local.',
@@ -31,7 +31,7 @@ class ProposalFactory extends Factory
     {
         $hour = fake()->numberBetween(8, 15);
 
-        // a validade vai no máximo até à data de disponibilidade
+        // validity goes up to the available date at most
         $availableDays = fake()->numberBetween(5, 15);
 
         return [
@@ -49,7 +49,7 @@ class ProposalFactory extends Factory
     }
 
     /**
-     * Proposta aceite pelo residente.
+     * Proposal accepted by the resident.
      */
     public function accepted(): static
     {
@@ -60,7 +60,7 @@ class ProposalFactory extends Factory
     }
 
     /**
-     * Proposta recusada pelo residente.
+     * Proposal rejected by the resident.
      */
     public function rejected(): static
     {
@@ -71,7 +71,7 @@ class ProposalFactory extends Factory
     }
 
     /**
-     * Proposta retirada pelo prestador.
+     * Proposal withdrawn by the provider.
      */
     public function withdrawn(): static
     {

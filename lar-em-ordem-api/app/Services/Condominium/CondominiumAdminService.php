@@ -13,11 +13,11 @@ class CondominiumAdminService
     public function __construct(private PersonalDataEraser $eraser) {}
 
     /**
-     * Cria o perfil de administrador e atribui a role 'condominium_admin'.
-     * O "já tem este perfil" é verificado no ProfileService.
+     * Creates the admin profile and assigns the 'condominium_admin' role.
+     * ProfileService checks whether the account already has this profile.
      *
-     * @param array $data Dados validados (contact, admin_type).
-     * @param User $owner Utilizador dono do perfil.
+     * @param array $data Validated data (contact, admin_type).
+     * @param User $owner User who owns the profile.
      * @return CondominiumAdmin
      */
     public function create(array $data, User $owner): CondominiumAdmin
@@ -30,10 +30,10 @@ class CondominiumAdminService
     }
 
     /**
-     * Atualiza os dados do administrador.
+     * Updates the admin's details.
      *
-     * @param CondominiumAdmin $admin Perfil a atualizar.
-     * @param array $data Dados validados.
+     * @param CondominiumAdmin $admin Profile to update.
+     * @param array $data Validated data.
      * @return CondominiumAdmin
      */
     public function update(CondominiumAdmin $admin, array $data): CondominiumAdmin
@@ -44,10 +44,10 @@ class CondominiumAdminService
     }
 
     /**
-     * Remove o perfil e retira a role. Falha (422) se ainda administrar condomínios:
-     * o condomínio não pode ficar sem administrador — tem de ser transferido primeiro.
+     * Removes the profile and the role. Fails (422) while the user still manages condominiums,
+     * because a condominium can't be left without an admin; it has to be transferred first.
      *
-     * @param CondominiumAdmin $admin Perfil a remover.
+     * @param CondominiumAdmin $admin Profile to remove.
      * @return void
      */
     public function delete(CondominiumAdmin $admin): void

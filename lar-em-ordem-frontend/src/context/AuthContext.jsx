@@ -9,7 +9,7 @@ import {
 } from "../services/api/authService";
 import { getPropertyCondominium } from "../services/api/condominiumService";
 
-//Ler um objeto guardado no LocalStorage
+// Read an object stored in localStorage
 function readStored(key) {
   try {
     const raw = localStorage.getItem(key);
@@ -24,7 +24,7 @@ function forgetStoredProfile() {
   localStorage.removeItem("activeHouse");
 }
 
-//Provider vai distribuir a info da autenticacao
+// The provider shares the auth info
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

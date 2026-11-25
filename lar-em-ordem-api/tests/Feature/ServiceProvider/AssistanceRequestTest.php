@@ -17,9 +17,9 @@ use App\Models\ServiceProvider\ServiceZone;
 use App\Models\ServiceProvider\ServiceSpecialty;
 
 /**
- * Pedidos de assistência (módulo 5): listagem por casa, criação e edição com imagens,
- * detalhe, cancelamento e pedidos disponíveis para os prestadores.
- * Usa os dados do AssistanceRequestSeeder (casa do morador em Matosinhos, um pedido em cada estado).
+ * Assistance requests (module 5): list by property, creating and editing with images,
+ * detail, cancelling and the requests available to providers.
+ * Uses the AssistanceRequestSeeder data (the resident's Matosinhos property, one request in each status).
  */
 class AssistanceRequestTest extends TestCase
 {
@@ -73,15 +73,15 @@ class AssistanceRequestTest extends TestCase
         ];
     }
 
-    /** Pedido multipart (com ficheiros), como o frontend faz com FormData. */
+    /** Multipart request (with files), the way the frontend sends FormData. */
     private function multipart(User $user, string $url, array $data)
     {
         return $this->actingAs($user)->post($url, $data, ['Accept' => 'application/json']);
     }
 
     /**
-     * Ficheiro de imagem falso. Usa create() com o tipo MIME em vez de image(),
-     * que precisa da extensão GD com suporte JPEG (não existe no container).
+     * Fake image file. Uses create() with the MIME type instead of image(),
+     * which needs the GD extension with JPEG support (missing in the container).
      */
     private function imagem(string $nome = 'foto.jpg'): UploadedFile
     {
@@ -112,7 +112,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_index_devolve_so_os_pedidos_do_utilizador_nessa_casa(): void
     {
-        // pedido do morador noutra casa
+        // the resident's request on another property
         $outraCasa = Property::factory()->create();
         PropertyContract::factory()->create([
             'resident_id' => $this->morador->resident->id,
@@ -134,7 +134,7 @@ class AssistanceRequestTest extends TestCase
             $this->assertSame($this->casa, $pedido['property']['id']);
         }
 
-        // outro utilizador na mesma casa não vê os pedidos do morador
+        // another user on the same property doesn't see the resident's requests
         $this->actingAs($this->servicos)
             ->getJson("/api/v1/assistance-requests?property_id={$this->casa}")
             ->assertOk()
@@ -152,7 +152,7 @@ class AssistanceRequestTest extends TestCase
 
         $this->assertSame(2, $contagens['Tomada da sala sem corrente']);
         $this->assertSame(0, $contagens['Fuga de água debaixo do lava-loiça']);
-        // uma proposta pendente fora da validade deixa de contar
+        // a pending proposal past its validity no longer counts
         $this->pedido('Tomada da sala sem corrente')->proposals()->where('status', 'pending')->first()
             ->update(['validity' => now()->subDay()->toDateString()]);
         $contagens = collect($this->actingAs($this->morador)
@@ -179,7 +179,7 @@ class AssistanceRequestTest extends TestCase
         $this->assertStringContainsString("property_id={$this->casa}", $next);
         $this->assertStringContainsString('per_page=2', $next);
 
-        // por defeito 5 por página
+        // 5 per page by default
         $this->actingAs($this->morador)
             ->getJson("/api/v1/assistance-requests?property_id={$this->casa}")
             ->assertJsonPath('meta.per_page', 5);
@@ -287,7 +287,7 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonPath('data.property.id', $tomada->property_id)
             ->assertJsonPath('data.property.street', 'Rua Brito Capelo')
             ->assertJsonStructure(['data' => ['proposals' => [['id', 'status', 'service_provider' => ['company_name']]]]])
-            // o NIF do prestador só o próprio o vê
+            // only the provider themselves sees their NIF
             ->assertJsonMissingPath('data.proposals.0.service_provider.nif');
     }
 
@@ -374,7 +374,7 @@ class AssistanceRequestTest extends TestCase
         $id      = $criado->json('data.id');
         $remover = $criado->json('data.attachments.0.id');
 
-        // com imagens: multipart em POST + _method=PATCH
+        // with images: multipart as POST + _method=PATCH
         $resposta = $this->multipart($this->morador, "/api/v1/assistance-requests/{$id}", [
             '_method'               => 'PATCH',
             'images'                => [$this->imagem('c.jpg')],
@@ -487,8 +487,8 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_mostra_os_pedidos_da_categoria_e_zona_do_prestador(): void
     {
-        // "Serviços Lda": canalização + eletricidade, Matosinhos + Porto.
-        // A "Tomada" fica de fora porque já enviou proposta; fechados/cancelados nunca aparecem.
+        // "Serviços Lda": plumbing + electricity, Matosinhos + Porto.
+        // "Tomada" is left out because they already sent a proposal; closed/cancelled requests never show.
         $resposta = $this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available')
             ->assertOk();
@@ -502,7 +502,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_ignora_pedidos_de_outra_categoria(): void
     {
-                // "Serviçinhos Lda" só com eletricidade; a "Fuga" é de canalização e a "Tomada" já tem a sua proposta
+                // "Serviçinhos Lda" only does electricity; "Fuga" is plumbing and "Tomada" already has their proposal
         $this->onlyElectricity($this->servicinhos);
 
         $this->actingAs($this->servicinhos)
@@ -513,7 +513,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_ignora_pedidos_fora_das_zonas_do_prestador(): void
     {
-        // só atua em Lisboa: a "Fuga" (Matosinhos) fica de fora
+        // only works in Lisbon: "Fuga" (Matosinhos) is left out
         $lisboa = ServiceZone::where('county', 'Lisboa')->value('id');
         $this->servicos->service_provider->zones()->sync([$lisboa]);
 
@@ -537,7 +537,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_sem_especialidades_ve_todas_as_categorias(): void
     {
-        // "Serviçinhos Lda" só tem eletricidade; sem especialidades passa a ver também a "Fuga" (canalização)
+        // "Serviçinhos Lda" only has electricity; with no specialties it also sees "Fuga" (plumbing)
         $this->servicinhos->service_provider->specialties()->delete();
 
         $titulos = collect($this->actingAs($this->servicinhos)
@@ -559,13 +559,13 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_pesquisa_no_titulo_e_na_descricao(): void
     {
-        // "Serviços Lda" só tem a "Fuga" disponível
+        // "Serviços Lda" only has "Fuga" available
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available?search=fuga')
             ->assertOk()
             ->assertJsonPath('data.0.title', 'Fuga de água debaixo do lava-loiça');
 
-        // "armário" só existe na descrição
+        // "armário" is only in the description
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available?search=armário')
             ->assertOk()
@@ -579,7 +579,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_o_percento_da_pesquisa_e_procurado_como_texto(): void
     {
-        // sem escapar, o "%" valia "qualquer texto" e mostrava a "Fuga"
+        // unescaped, "%" meant "any text" and showed "Fuga"
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available?search=%25')
             ->assertOk()
@@ -588,7 +588,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_filtra_pela_localizacao_da_casa(): void
     {
-        // casa em Matosinhos (distrito do Porto)
+        // property in Matosinhos (Porto district)
         foreach (['Matosinhos', 'Porto'] as $local) {
             $this->actingAs($this->servicos)
                 ->getJson("/api/v1/assistance-requests/available?location={$local}")
@@ -604,7 +604,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_available_a_pesquisa_so_reduz_o_que_o_prestador_pode_ver(): void
     {
-        // sem zonas vê todos os concelhos, mas o filtro de localização continua a aplicar-se
+        // with no zones it sees every county, but the location filter still applies
         $this->servicos->service_provider->zones()->sync([]);
 
         $this->actingAs($this->servicos)
@@ -612,7 +612,7 @@ class AssistanceRequestTest extends TestCase
             ->assertOk()
             ->assertJsonCount(0, 'data');
 
-        // a "Tomada" (já com proposta dele) não aparece mesmo que a pesquisa lhe corresponda
+        // "Tomada" (already with their proposal) doesn't show even if the search matches it
         $this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available?search=tomada')
             ->assertOk()
@@ -629,7 +629,7 @@ class AssistanceRequestTest extends TestCase
     
     public function test_o_prestador_nao_ve_os_pedidos_que_abriu_como_residente(): void
     {
-        // o "Serviçinhos Lda" (residente@example.com) também é residente: abre um pedido de eletricidade em Matosinhos
+        // "Serviçinhos Lda" (residente@example.com) is also a resident: they open an electricity request in Matosinhos
         $eletricidade = ProblemCategory::where('name', 'Eletricidade')->value('id');
         AssistanceRequest::factory()->create([
             'resident_id'         => $this->servicinhos->resident->id,
@@ -638,12 +638,12 @@ class AssistanceRequestTest extends TestCase
             'title'               => 'Luz da cozinha',
         ]);
 
-        // o "Serviços Lda" (eletricidade, Matosinhos) vê-o
+        // "Serviços Lda" (electricity, Matosinhos) sees it
         $this->assertContains('Luz da cozinha', collect(
             $this->actingAs($this->servicos)->getJson('/api/v1/assistance-requests/available')->json('data')
         )->pluck('title'));
 
-        // o próprio, como prestador, não
+        // they don't see their own, as a provider
         $this->assertNotContains('Luz da cozinha', collect(
             $this->actingAs($this->servicinhos)->getJson('/api/v1/assistance-requests/available')->json('data')
         )->pluck('title'));
@@ -664,11 +664,11 @@ class AssistanceRequestTest extends TestCase
 
         $this->actingAs($this->morador)->deleteJson("/api/v1/properties/{$this->casa}")->assertOk();
 
-        // o pedido aberto é cancelado e as propostas pendentes passam a rejeitadas
+        // the open request is cancelled and its pending proposals become rejected
         $this->assertSame('cancelled', $tomada->fresh()->status);
         $this->assertSame(0, $tomada->proposals()->where('status', 'pending')->count());
 
-         // o fechado fica no histórico do prestador, mas sem a morada da casa apagada
+         // the closed one stays in the provider's history, but without the deleted property's address
         $this->assertSame('closed', $sanita->fresh()->status);
         $this->actingAs($this->servicos)
             ->getJson("/api/v1/assistance-requests/{$sanita->id}")
@@ -676,7 +676,7 @@ class AssistanceRequestTest extends TestCase
             ->assertJsonPath('data.title', 'Sanita entupida')
             ->assertJsonPath('data.property', null);
 
-        // nem um prestador sem zonas vê o pedido da casa apagada nos disponíveis
+        // not even a provider with no zones sees the deleted property's request among the available ones
         $this->servicos->service_provider->zones()->sync([]);
         $titulos = collect($this->actingAs($this->servicos)
             ->getJson('/api/v1/assistance-requests/available?per_page=15')
@@ -686,7 +686,7 @@ class AssistanceRequestTest extends TestCase
 
     public function test_as_propostas_recebidas_sao_paginadas_no_detalhe_do_pedido(): void
     {
-        // "Tomada da sala": 3 propostas (2 pendentes e 1 rejeitada)
+        // "Tomada da sala": 3 proposals (2 pending and 1 rejected)
         $tomada = $this->pedido('Tomada da sala sem corrente');
 
         $this->actingAs($this->morador)
@@ -712,7 +712,7 @@ class AssistanceRequestTest extends TestCase
     {
         $tomada = $this->pedido('Tomada da sala sem corrente');
 
-        // o prestador com proposta vê o pedido, mas não as propostas dos outros
+        // the provider with a proposal sees the request, but not the other providers' proposals
         $this->actingAs($this->servicos)
             ->getJson("/api/v1/assistance-requests/{$tomada->id}")
             ->assertOk()

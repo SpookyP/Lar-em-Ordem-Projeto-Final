@@ -108,7 +108,7 @@ export default function Consumptions() {
 
   return (
     <div className="w-full max-w-none min-w-0 px-3 sm:px-4 lg:px-6 space-y-6 sm:space-y-8 pb-12">
-      {/* Cabeçalho */}
+      {/* Header */}
       <div className="w-full min-w-0">
         <h1 className="font-display text-4xl text-navy wrap-break-word">
           Consumos Inteligentes
@@ -128,7 +128,7 @@ export default function Consumptions() {
         </p>
       )}
 
-      {/* Gráficos */}
+      {/* Charts */}
       {loading ? (
         <p className="py-10 text-center text-sm text-slate-500">
           A carregar consumos...
@@ -156,7 +156,7 @@ export default function Consumptions() {
         </div>
       )}
 
-      {/* Comparação anual */}
+      {/* Annual comparison */}
       <div className="w-full min-w-0">
         <AnnualBenchmarkTable
           propertyId={propertyId}
@@ -164,7 +164,7 @@ export default function Consumptions() {
         />
       </div>
 
-      {/* Formulário de novas faturas */}
+      {/* New invoice form */}
       <div id="invoice-form" className="w-full min-w-0 scroll-mt-6">
         <InvoiceForm onInvoiceSaved={handleInvoiceSaved} />
       </div>

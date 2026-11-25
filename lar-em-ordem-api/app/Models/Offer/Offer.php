@@ -48,10 +48,10 @@ class Offer extends Model
     ];
 
     /**
-     * Ofertas em vigor hoje: ativas, já começaram e ainda não terminaram.
-     * Uso: Offer::current()->get() ou $partner->offers()->current()->get()
+     * Offers current today: active, already started and not yet ended.
+     * Usage: Offer::current()->get() or $partner->offers()->current()->get()
      *
-     * @param Builder $query Query a que se aplicam os filtros.
+     * @param Builder $query Query the filters apply to.
      * @return Builder
      */
     public function scopeCurrent(Builder $query): Builder
@@ -65,11 +65,11 @@ class Offer extends Model
     }
 
     /**
-     * Ofertas num estado (separadores das ofertas do parceiro). Os estados não se sobrepõem:
-     * inactive = pausada pelo parceiro (seja qual for a data); os outros são de ofertas ativas:
-     * scheduled = ainda não começou, expired = já terminou, current = em vigor.
+     * Offers in one status (the partner's offer tabs). The statuses don't overlap:
+     * inactive = paused by the partner (whatever the dates); the rest are active offers:
+     * scheduled = not started yet, expired = already ended, current = running now.
      *
-     * @param Builder $query Query a que se aplica o filtro.
+     * @param Builder $query Query the filter applies to.
      * @param string $status current|scheduled|expired|inactive
      * @return Builder
      */

@@ -33,7 +33,7 @@ export function AccountActions({ onAction }) {
 
   function go(path) {
     navigate(path);
-    onAction?.(); //fecha o drawer no mobile
+    onAction?.(); // closes the drawer on mobile
   }
 
   async function handleLogout() {
@@ -44,7 +44,7 @@ export function AccountActions({ onAction }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Perfil ativo */}
+      {/* Active profile */}
       <div className="flex items-center gap-3 rounded-lg bg-navy-light/50 px-3 py-2">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal text-sm font-bold text-white">
           {getInitials(user?.name)}
@@ -54,7 +54,7 @@ export function AccountActions({ onAction }) {
         </p>
       </div>
 
-      {/* Trocar de casa */}
+      {/* Switch property */}
       {activeProfile?.hasHouses && count > 1 && (
         <SidebarButton
           icon={Home}
@@ -63,7 +63,7 @@ export function AccountActions({ onAction }) {
         />
       )}
 
-      {/* Trocar de perfil */}
+      {/* Switch profile */}
       {profiles.length > 1 && (
         <SidebarButton
           icon={Repeat}

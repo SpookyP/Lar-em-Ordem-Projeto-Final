@@ -10,10 +10,10 @@ const SOCIAL_ERRORS = {
   sessao_expirada: "A sua sessão terminou. Inicie sessão novamente.",
 };
 
-//codigo do URL -> mensagem ("" quando nao ha erro)
+// URL code -> message ("" when there is no error)
 export function socialErrorMessage(code) {
   if (!code) return "";
-  //hasOwn evita que codigos como "constructor" apanhem coisas do Object
+  // hasOwn stops codes such as "constructor" from matching Object's properties
   return Object.hasOwn(SOCIAL_ERRORS, code)
     ? SOCIAL_ERRORS[code]
     : SOCIAL_ERRORS.falhou;

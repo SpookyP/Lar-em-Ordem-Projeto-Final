@@ -18,7 +18,7 @@ class CondominiumDocumentResource extends JsonResource
                 'id'   => $this->category->id,
                 'name' => $this->category->name,
             ]),
-            // dados do ficheiro para mostrar na lista (o link é pedido em /download)
+            // file details to show in the list (the file itself is read through /content)
             'file'          => $this->whenLoaded('file', fn () => [
                 'name'      => $this->file->original_name,
                 'mime_type' => $this->file->mime_type,

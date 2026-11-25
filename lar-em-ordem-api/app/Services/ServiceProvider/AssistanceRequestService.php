@@ -20,14 +20,14 @@ class AssistanceRequestService
     public function __construct(private RequestAttachmentService $attachmentService) {}
 
      /**
-     * Devolve os pedidos de um utilizador numa casa, do mais recente para o mais antigo, paginados.
-     *
-     * @param User $user Dono dos pedidos.
-     * @param string $propertyId Casa onde o morador está.
-     * @param string|null $status (Opcional) Filtro por estado.
-     * @param int $perPage Número de pedidos por página.
-     * @return LengthAwarePaginator
-     */
+      * Returns a user's requests for one property, newest first, paginated.
+      *
+      * @param User $user Owner of the requests.
+      * @param string $propertyId Property the resident is in.
+      * @param string|null $status (Optional) Status filter.
+      * @param int $perPage Requests per page.
+      * @return LengthAwarePaginator
+      */
     public function listRequestsByUser(User $user, string $propertyId, ?string $status = null, int $perPage = 5): LengthAwarePaginator
     {
         return AssistanceRequest::where('resident_id', $user->resident?->id)
@@ -42,15 +42,15 @@ class AssistanceRequestService
     }
     
      /**
-     * Devolve os pedidos disponíveis para um prestador, do mais recente para o mais antigo, paginados.
-     * A pesquisa aplica-se por cima do que o prestador já pode ver (availableFor).
-     *
-     * @param ServiceProviderModel $provider Prestador para quem se procuram pedidos.
-     * @param int $perPage Número de pedidos por página.
-     * @param string|null $search Texto a procurar no título ou na descrição.
-     * @param string|null $location Texto a procurar na localidade, concelho ou distrito da casa.
-     * @return LengthAwarePaginator
-     */
+      * Returns the requests available to a service provider, newest first, paginated.
+      * The search runs on top of what the provider can already see (availableFor).
+      *
+      * @param ServiceProviderModel $provider Provider to look up requests for.
+      * @param int $perPage Requests per page.
+      * @param string|null $search Text to search in the title or description.
+      * @param string|null $location Text to search in the property's locality, county or district.
+      * @return LengthAwarePaginator
+      */
     public function listAvailableFor(
         ServiceProviderModel $provider,
         int $perPage = 5,
@@ -77,19 +77,19 @@ class AssistanceRequestService
     }
 
     /**
-     * Abre um pedido de assistência para uma casa do utilizador, com imagens opcionais (máx. 2).
-     * A casa tem de ter um contrato ativo do utilizador.
-     * Transação: se o upload de uma imagem falhar, o pedido não é criado.
+     * Opens an assistance request for one of the user's properties, with optional images (2 at most).
+     * The property needs an active contract of the user.
+     * Runs in a transaction: if an image upload fails, the request is not created.
      *
-     * @param array $data Dados validados para a criação do pedido (pode incluir 'images').
-     * @param User $owner Residente que abre o pedido.
+     * @param array $data Validated data for the new request (may include 'images').
+     * @param User $owner Resident opening the request.
      * @return AssistanceRequest
      */
     public function create(array $data, User $owner): AssistanceRequest
     {
         $property = Property::findOrFail($data['property_id']);
 
-        // reutiliza PropertyPolicy::view → contrato ativo
+        // reuses PropertyPolicy::view → active contract
         if (Gate::forUser($owner)->denies('view', $property)) {
             throw ValidationException::withMessages([
                 'property_id' => 'Só pode abrir pedidos para casas onde tem um contrato ativo.',
@@ -110,11 +110,11 @@ class AssistanceRequestService
     }
 
     /**
-     * Atualiza um pedido e as suas imagens (junta 'images', remove 'remove_attachment_ids').
-     * Só é possível enquanto estiver aberto. Transação.
+     * Updates a request and its images (adds 'images', removes 'remove_attachment_ids').
+     * Only while it is open. Runs in a transaction.
      *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido a ser atualizado.
-     * @param array $data Dados validados para a atualização.
+     * @param AssistanceRequest $assistanceRequest Request to update.
+     * @param array $data Validated data for the update.
      * @return AssistanceRequest
      */
     public function update(AssistanceRequest $assistanceRequest, array $data): AssistanceRequest
@@ -135,10 +135,10 @@ class AssistanceRequestService
     }
     
     /**
-     * Cancela um pedido aberto e rejeita as propostas que ainda estavam pendentes.
-     * Transação.
+     * Cancels an open request and rejects the proposals that were still pending.
+     * Runs in a transaction.
      *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido a cancelar.
+     * @param AssistanceRequest $assistanceRequest Request to cancel.
      * @return AssistanceRequest
      */
     public function cancel(AssistanceRequest $assistanceRequest): AssistanceRequest
@@ -160,20 +160,20 @@ class AssistanceRequestService
     }
 
     /**
-     * Carrega o pedido para o ecrã de detalhe. Se quem vê for o dono, junta também as propostas
-     * recebidas (com o prestador), da mais recente para a mais antiga, paginadas: a página fica na
-     * relação 'proposals' (o resource mostra-a em data.proposals) e o paginador é devolvido para o meta.
+     * Loads the request for the detail screen. When the viewer is the owner, it also loads the proposals
+     * received (with the provider), newest first and paginated: the page goes in the
+     * 'proposals' relation (the resource shows it in data.proposals) and the paginator is returned for the meta.
      *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @param User $viewer Utilizador que está a ver o pedido.
-     * @param int $perPage Número de propostas por página.
-     * @return LengthAwarePaginator|null Paginador das propostas, ou null se quem vê não pode vê-las.
+     * @param AssistanceRequest $assistanceRequest The request.
+     * @param User $viewer User viewing the request.
+     * @param int $perPage Proposals per page.
+     * @return LengthAwarePaginator|null Proposal paginator, or null when the viewer can't see them.
      */
     public function loadForShow(AssistanceRequest $assistanceRequest, User $viewer, int $perPage = 5): ?LengthAwarePaginator
     {
         $this->loadFull($assistanceRequest);
 
-        // o prestador recebe a sua proposta neste pedido (ou null);
+        // the provider gets their own proposal on this request (or null);
         $provider = $viewer->service_provider;
         if ($provider && ! $assistanceRequest->isOwnedBy($viewer)) {
             $assistanceRequest->setRelation('myProposal', $assistanceRequest->proposals()
@@ -198,11 +198,11 @@ class AssistanceRequestService
     }
     
      /**
-     * Carrega a casa (com morada), a categoria e a proposta aceite (com o prestador) de um pedido.
-     *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @return AssistanceRequest A mesma instância, com as relações carregadas.
-     */
+      * Loads a request's property (with address), category and accepted proposal (with the provider).
+      *
+      * @param AssistanceRequest $assistanceRequest The request.
+      * @return AssistanceRequest The same instance, with the relations loaded.
+      */
     public function loadFull(AssistanceRequest $assistanceRequest): AssistanceRequest
     {
         return $assistanceRequest->load([
@@ -214,10 +214,10 @@ class AssistanceRequestService
     }
 
     /**
-     * Garante que o pedido está aberto; caso contrário lança 422 com a mensagem indicada.
+     * Makes sure the request is open; otherwise throws a 422 with the given message.
      *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @param string $message Mensagem de erro a devolver.
+     * @param AssistanceRequest $assistanceRequest The request.
+     * @param string $message Error message to return.
      * @return void
      */
     private function ensureOpen(AssistanceRequest $assistanceRequest, string $message): void
@@ -230,11 +230,11 @@ class AssistanceRequestService
     }
 
     /**
-     * A casa foi apagada: os pedidos ainda abertos dessa casa são cancelados, e
-     * as propostas pendentes passam a rejeitadas;
-     * Os pedidos fechados ficam como estão (histórico do morador e dos prestadores).
+     * The property was deleted: its open requests are cancelled and
+     * their pending proposals are rejected.
+     * Closed requests stay as they are (history for the resident and the providers).
      *
-     * @param Property $property Casa apagada.
+     * @param Property $property The deleted property.
      * @return void
      */
     public function cancelOpenForProperty(Property $property): void
@@ -252,12 +252,11 @@ class AssistanceRequestService
     }
 
     /**
-     * Eliminação de dados de um residente ao abrigo do RGPD.
-     * As fotografias e o texto escrito pelo residente são sempre eliminados.
-     * Um pedido que tenha recebido propostas é mantido (anonimizado) para que os prestadores
-     * de serviços conservem o seu histórico:
-     * se ainda estiver aberto, é cancelado e as propostas pendentes passam a ser rejeitadas.
-     * Um pedido sem propostas não tem relevância e é eliminado.
+     * Erases a resident's data under the GDPR.
+     * The photos and the text the resident wrote are always erased.
+     * A request that received proposals is kept (anonymised) so the service providers
+     * keep their history: if it is still open, it is cancelled and its pending proposals are rejected.
+     * A request with no proposals is no use to anyone and is deleted.
      */
     public function eraseForResident(Resident $resident): void
     {

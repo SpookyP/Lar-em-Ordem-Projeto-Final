@@ -8,8 +8,8 @@ use App\Models\ServiceProvider\ServiceSpecialty;
 use Tests\TestCase;
 
 /**
- * Métodos dos modelos que não precisam da base de dados.
- * Os modelos são criados só em memória (new ...), nunca gravados.
+ * Model methods that don't need the database.
+ * The models are only built in memory (new ...), never saved.
  */
 class ModelsTest extends TestCase
 {

@@ -307,7 +307,7 @@ export default function ConsumptionChart({
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Valores apresentados no centro do gráfico. */}
+        {/* Values shown in the middle of the chart. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
           <p className="text-xs uppercase tracking-wide text-slate-500">
             {center.label}
@@ -319,9 +319,9 @@ export default function ConsumptionChart({
         </div>
       </div>
 
-      {/* Lista de categorias, percentagens e respetivos custos. */}
+      {/* List of categories, percentages and their costs. */}
       <div className="w-full min-w-0 flex-1">
-        {/* Maior gasto do período. */}
+        {/* Biggest expense of the period. */}
         {biggest && (
           <>
             <p className="text-sm text-slate-500">Maior gasto do período</p>
@@ -385,7 +385,7 @@ export default function ConsumptionChart({
           })}
         </ul>
 
-        {/* Indicação de que as categorias permitem abrir detalhes. */}
+        {/* Hint that the categories open their details. */}
         {onCategoryClick && (
           <p className="mt-5 text-xs text-slate-500">
             Clique numa categoria para consultar o detalhe.

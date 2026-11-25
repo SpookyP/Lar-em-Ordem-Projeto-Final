@@ -5,7 +5,7 @@ namespace App\Http\Requests\Vault;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Pré-leitura de um PDF do cofre.
+ * Reads a vault PDF ahead of saving it.
  */
 class ExtractDocumentRequest extends FormRequest
 {

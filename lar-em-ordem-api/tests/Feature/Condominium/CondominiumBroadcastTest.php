@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 /**
- * Avisos do condomínio em tempo real (Reverb): canal privado por casa e evento ao publicar/editar.
+ * Real-time condominium notices (Reverb): a private channel per property and an event on publish/edit.
  */
 class CondominiumBroadcastTest extends TestCase
 {
@@ -30,7 +30,7 @@ class CondominiumBroadcastTest extends TestCase
 
         $this->withoutMiddleware(ThrottleRequests::class);
 
-        // CondominiumSeeder: a casa de Matosinhos do morador pertence ao "Edifício Brito Capelo"
+        // CondominiumSeeder: the resident's Matosinhos property belongs to "Edifício Brito Capelo"
         $this->morador    = User::where('email', 'morador@example.com')->firstOrFail();
         $this->admin      = User::where('email', 'condominio@example.com')->firstOrFail();
         $condominio       = Condominium::where('name', 'Edifício Brito Capelo')->firstOrFail();
@@ -38,10 +38,10 @@ class CondominiumBroadcastTest extends TestCase
         $this->casa       = $condominio->properties()->value('id');
     }
 
-    /** Pede autorização para o canal privado de uma casa, como o Echo faz. */
+    /** Asks for authorisation to a property's private channel, the way Echo does. */
     private function autorizarCanal(User $user, string $propertyId)
     {
-        // o driver null não assina a autorização: muda para reverb e volta a registar os canais nele
+        // the null driver doesn't sign the authorisation: switch to reverb and register the channels on it again
         config(['broadcasting.default' => 'reverb']);
         require base_path('routes/channels.php');
 
@@ -91,11 +91,11 @@ class CondominiumBroadcastTest extends TestCase
 
         Event::fake([CondominiumNoticeBroadcast::class]);
 
-        // sem alterações: nada
+        // no changes: nothing
         $this->actingAs($this->admin)->patchJson("/api/v1/condominium-notices/{$aviso}", ['title' => 'Corte de água'])->assertOk();
         Event::assertNotDispatched(CondominiumNoticeBroadcast::class);
 
-        // com alterações: evento com updated = true
+        // with changes: event with updated = true
         $this->actingAs($this->admin)->patchJson("/api/v1/condominium-notices/{$aviso}", ['message' => 'Dia 6.'])->assertOk();
         Event::assertDispatched(
             CondominiumNoticeBroadcast::class,

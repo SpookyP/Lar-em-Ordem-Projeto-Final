@@ -8,7 +8,7 @@ use App\Models\User\User;
 class ProposalPolicy
 {
     /**
-     * Só prestadores podem enviar e listar as suas propostas.
+     * Only service providers can send and list their proposals.
      */
     public function create(User $user): bool
     {
@@ -16,7 +16,7 @@ class ProposalPolicy
     }
 
     /**
-     * Só o prestador dono da proposta a pode editar.
+     * Only the provider who owns the proposal can edit it.
      */
     public function update(User $user, Proposal $proposal): bool
     {
@@ -24,7 +24,7 @@ class ProposalPolicy
     }
 
     /**
-     * Só o prestador dono da proposta a pode retirar.
+     * Only the provider who owns the proposal can withdraw it.
      */
     public function withdraw(User $user, Proposal $proposal): bool
     {
@@ -32,7 +32,7 @@ class ProposalPolicy
     }
 
     /**
-     * Só o dono do pedido pode aceitar uma proposta.
+     * Only the request owner can accept a proposal.
      */
     public function accept(User $user, Proposal $proposal): bool
     {
@@ -40,7 +40,7 @@ class ProposalPolicy
     }
 
     /**
-     * Só o dono do pedido pode rejeitar uma proposta.
+     * Only the request owner can reject a proposal.
      */
      public function reject(User $user, Proposal $proposal): bool
     {

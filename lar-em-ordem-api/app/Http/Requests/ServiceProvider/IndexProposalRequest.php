@@ -8,8 +8,8 @@ use Illuminate\Validation\Rule;
 class IndexProposalRequest extends PerPageRequest
 {
     /**
-     * Filtro opcional por estado e paginação: ?status=pending&per_page=5
-     * (sem status devolve todas).
+     * Optional status filter and pagination: ?status=pending&per_page=5
+     * (without status it returns all of them).
      */
     public function rules(): array
     {

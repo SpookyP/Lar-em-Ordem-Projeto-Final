@@ -31,7 +31,7 @@ class DocumentService
             $originalFileName = $file->getClientOriginalName();
         }
 
-        // Hierarquia de datas: Input manual > Detetado pelo Python > Fallback
+        // Date priority: manual input > detected by Python > fallback
         $issueDate = $validatedData['issue_date']
             ?? ($extractedData['issue_date'] ?? null)
             ?? now()->toDateString();
@@ -39,7 +39,7 @@ class DocumentService
         $expirationDate = $validatedData['expiration_date']
             ?? ($extractedData['expiration_date'] ?? null);
 
-        // Nome inteligente: Input manual > Python > Nome original do ficheiro > Fallback de segurança
+        // Name priority: manual input > Python > original file name > safe fallback
         $documentName = $validatedData['name']
             ?? ($extractedData['suggested_title'] ?? null)
             ?? $originalFileName
@@ -121,7 +121,7 @@ class DocumentService
     }
 
     /**
-     * Extrai metadados (apenas se for PDF), calcula o hash SHA-256 e guarda o ficheiro.
+     * Extracts metadata (PDFs only), computes the SHA-256 hash and stores the file.
      *
      * @return array{0: string, 1: string, 2: array}
      */

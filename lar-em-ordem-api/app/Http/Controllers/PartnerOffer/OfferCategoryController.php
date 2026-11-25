@@ -10,7 +10,7 @@ class OfferCategoryController extends Controller
     public function __construct(private OfferService $service) {}
 
     /**
-     * Catálogo de tipos de oferta (para o formulário de criar/editar oferta).
+     * Offer type catalog (for the create/edit offer form).
      *
      * @return \Illuminate\Http\JsonResponse
      */

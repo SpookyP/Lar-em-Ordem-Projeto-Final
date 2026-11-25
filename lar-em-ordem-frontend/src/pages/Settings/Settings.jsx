@@ -81,7 +81,7 @@ export default function Settings() {
       </h1>
 
       <div className="flex flex-col md:flex-row gap-6">
-        {/*Menu esq. */}
+        {/* Left menu */}
         <nav
           className={`w-full md:w-64 shrink-0 flex-col gap-6 ${section ? "hidden md:flex" : "flex"}`}
         >
@@ -114,7 +114,7 @@ export default function Settings() {
           ))}
         </nav>
 
-        {/*Menu dta. */}
+        {/* Right menu */}
         <div
           className={`flex-1 max-w-3xl rounded-3xl bg-card border border-border md:overflow-hidden md:max-h-[80vh] ${section ? "" : "hidden md:block"}`}
         >

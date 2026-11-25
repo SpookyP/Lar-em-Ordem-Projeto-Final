@@ -24,12 +24,12 @@ class AssistanceRequestController extends Controller
     ) {}
 
      /**
-     * Lista os pedidos de assistência do utilizador autenticado numa casa (?property_id=, obrigatório), paginados.
-     * Permite filtrar através do parâmetro 'status' (ex: ?status=open) e escolher o tamanho da página (?per_page=).
-     *
-     * @param IndexAssistanceRequestRequest $request O pedido HTTP com o filtro validado.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos.
-     */
+      * Lists the authenticated user's assistance requests for one property (?property_id=, required), paginated.
+      * Can be filtered with 'status' (e.g. ?status=open) and sized with ?per_page=.
+      *
+      * @param IndexAssistanceRequestRequest $request HTTP request with the validated filter.
+      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Request collection.
+      */
     public function index(IndexAssistanceRequestRequest $request)
     {
         return AssistanceRequestResource::collection(
@@ -43,10 +43,10 @@ class AssistanceRequestController extends Controller
     }
 
     /**
-     * Abre um novo pedido de assistência para uma casa do residente autenticado.
+     * Opens a new assistance request for one of the authenticated resident's properties.
      *
-     * @param StoreAssistanceRequestRequest $request Dados validados.
-     * @return \Illuminate\Http\JsonResponse Devolve o recurso criado com o status 201.
+     * @param StoreAssistanceRequestRequest $request Validated data.
+     * @return \Illuminate\Http\JsonResponse The created resource with status 201.
      */
     public function store(StoreAssistanceRequestRequest $request)
     {
@@ -60,12 +60,12 @@ class AssistanceRequestController extends Controller
     }
 
     /**
-     * Devolve os detalhes de um pedido de assistência, incluindo a casa e a categoria.
-     * Se for o dono a ver, inclui também as propostas recebidas, paginadas (?page=&per_page=),
-     * com a paginação em proposals_meta.
+     * Returns an assistance request's details, including the property and the category.
+     * The owner also gets the proposals received, paginated (?page=&per_page=),
+     * with the pagination in proposals_meta.
      *
-     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
+     * @param PerPageRequest $request HTTP request with the validated page size.
+     * @param AssistanceRequest $assistanceRequest The request.
      * @return AssistanceRequestResource
      */
     public function show(PerPageRequest $request, AssistanceRequest $assistanceRequest)
@@ -84,12 +84,12 @@ class AssistanceRequestController extends Controller
     }
     
     /**
-     * Atualiza um pedido de assistência enquanto estiver aberto, incluindo as imagens.
-     * Com imagens, enviar multipart com POST e '_method=PATCH'.
-     * 
-     * @param UpdateAssistanceRequestRequest $request Dados validados.
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @return AssistanceRequestResource Devolve o pedido atualizado.
+     * Updates an assistance request while it is open, images included.
+     * With images, send multipart as POST with '_method=PATCH'.
+     *
+     * @param UpdateAssistanceRequestRequest $request Validated data.
+     * @param AssistanceRequest $assistanceRequest The request.
+     * @return AssistanceRequestResource The updated request.
      */
     public function update(UpdateAssistanceRequestRequest $request, AssistanceRequest $assistanceRequest)
     {
@@ -101,10 +101,10 @@ class AssistanceRequestController extends Controller
     }
 
     /**
-     * Cancela um pedido de assistência aberto.
+     * Cancels an open assistance request.
      *
-     * @param AssistanceRequest $assistanceRequest Instância do pedido.
-     * @return AssistanceRequestResource Devolve o pedido cancelado.
+     * @param AssistanceRequest $assistanceRequest The request.
+     * @return AssistanceRequestResource The cancelled request.
      */
     public function cancel(AssistanceRequest $assistanceRequest)
     {
@@ -114,11 +114,11 @@ class AssistanceRequestController extends Controller
     }
 
     /**
-     * Lista os pedidos abertos disponíveis para o prestador autenticado
-     * (das suas categorias e zonas), com pesquisa opcional por texto e localização.
+     * Lists the open requests available to the authenticated service provider
+     * (in their categories and zones), with optional text and location search.
      *
-     * @param AvailableAssistanceRequestRequest $request O pedido HTTP com a pesquisa e o tamanho da página validados.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de pedidos (paginada).
+     * @param AvailableAssistanceRequestRequest $request HTTP request with the validated search and page size.
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Paginated request collection.
      */
     public function available(AvailableAssistanceRequestRequest $request)
     {

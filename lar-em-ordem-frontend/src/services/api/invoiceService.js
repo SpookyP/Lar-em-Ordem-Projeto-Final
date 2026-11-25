@@ -1,11 +1,11 @@
 import axiosClient from "./axiosClient";
 
-// Normaliza a resposta recebida do Axios.
+// Normalises the Axios response.
 function getResponseBody(response) {
   return response?.data ?? response;
 }
 
-// Extrai a lista de faturas dos diferentes formatos de resposta da API.
+// Pulls the invoice list out of the API's different response formats.
 function getResponseArray(body) {
   if (Array.isArray(body)) return body;
   if (Array.isArray(body?.data)) return body.data;
@@ -17,13 +17,13 @@ function getResponseArray(body) {
 }
 
 const PAGE_SIZE = 15;
-const MAX_PAGES = 200; // Limite de segurança contra ciclos infinitos.
+const MAX_PAGES = 200; // Safety limit against endless loops.
 
 /**
- * Procura e agrega todas as páginas de faturas para uma determinada propriedade.
+ * Fetches and merges every page of invoices for one property.
  */
 export async function fetchAllInvoices(propertyId) {
-  // Evita pedidos à API quando não existe uma propriedade selecionada.
+  // Skips the API call when no property is selected.
   if (!propertyId) return [];
 
   const invoices = [];
@@ -38,14 +38,14 @@ export async function fetchAllInvoices(propertyId) {
       },
     });
 
-    // Normaliza a resposta e obtém as faturas da página atual.
+    // Normalises the response and gets the current page's invoices.
     const body = getResponseBody(response);
     const pageInvoices = getResponseArray(body);
 
-    // Página vazia: não há mais dados.
+    // Empty page: no more data.
     if (pageInvoices.length === 0) break;
 
-    // Se a API ignorar a paginação e repetir as mesmas faturas, termina.
+    // If the API ignores the pagination and repeats the same invoices, stop.
     const allRepeated = pageInvoices.every(
       (invoice) => invoice?.id != null && seenIds.has(invoice.id)
     );
@@ -58,7 +58,7 @@ export async function fetchAllInvoices(propertyId) {
 
     invoices.push(...pageInvoices);
 
-    // Número da última página indicado pela API (se existir).
+    // Last page number reported by the API (if any).
     const lastPage = Number(
       body?.meta?.last_page ??
         body?.last_page ??
@@ -68,7 +68,7 @@ export async function fetchAllInvoices(propertyId) {
     if (Number.isFinite(lastPage) && lastPage >= 1) {
       if (page >= lastPage) break;
     } else if (pageInvoices.length < PAGE_SIZE) {
-      // Sem metadados: uma página incompleta é a última.
+      // No metadata: an incomplete page is the last one.
       break;
     }
   }
@@ -77,10 +77,10 @@ export async function fetchAllInvoices(propertyId) {
 }
 
 /**
- * Obtém a série histórica mensal de custos médios do grupo comparável.
+ * Gets the monthly history of average costs for the comparable group.
  */
 export async function fetchMonthlyCostBenchmarks(propertyId) {
-  // Evita pedidos à API quando não existe uma propriedade selecionada.
+  // Skips the API call when no property is selected.
   if (!propertyId) return [];
 
   const response = await axiosClient.get(
@@ -92,16 +92,16 @@ export async function fetchMonthlyCostBenchmarks(propertyId) {
     }
   );
 
-  // Aceita tanto uma lista direta como a lista embrulhada em "data".
+  // Accepts a plain list or one wrapped in "data".
   return getResponseArray(getResponseBody(response));
 }
 
 /**
- * Envia o PDF para extração dos dados; devolve o corpo da resposta.
- * A API só lê o ficheiro: não o guarda.
+ * Sends the PDF so its data is extracted; returns the response body.
+ * The API only reads the file and doesn't store it.
  */
 export async function uploadInvoiceFile(formData) {
-  // O browser define o Content-Type e o boundary do multipart.
+  // The browser sets the multipart Content-Type and boundary.
   const response = await axiosClient.post(
     "/api/v1/invoices/upload",
     formData
@@ -111,8 +111,8 @@ export async function uploadInvoiceFile(formData) {
 }
 
 /**
- * Cria a fatura com os respetivos consumos e itens de detalhe.
- * Com PDF, vai tudo num só pedido multipart: o ficheiro só é guardado se a fatura for registada.
+ * Creates the invoice with its consumptions and detail items.
+ * With a PDF everything goes in one multipart request: the file is only stored if the invoice is saved.
  */
 export async function createInvoice(payload, file = null) {
   const response = file
@@ -125,7 +125,7 @@ export async function createInvoice(payload, file = null) {
 }
 
 /**
- * Obtém o detalhe de uma fatura (consumos e itens incluídos).
+ * Gets an invoice's detail (consumptions and items included).
  */
 export async function getInvoice(id) {
   const response = await axiosClient.get(
@@ -134,12 +134,12 @@ export async function getInvoice(id) {
 
   const body = getResponseBody(response);
 
-  // Aceita a fatura diretamente ou embrulhada em "data".
+  // Accepts the invoice directly or wrapped in "data".
   return body?.data ?? body;
 }
 
 /**
- * Obtém o conteúdo binário (Blob) do PDF associado à fatura.
+ * Gets the binary content (Blob) of the invoice's PDF.
  */
 export async function getInvoiceFileBlob(id) {
   const response = await axiosClient.get(
@@ -151,17 +151,17 @@ export async function getInvoiceFileBlob(id) {
 }
 
 /**
- * Elimina uma fatura.
+ * Deletes an invoice.
  */
 export async function deleteInvoice(id) {
   await axiosClient.delete(`/api/v1/invoices/${id}`);
 }
 
 /**
- * Obtém a série anual de custos da habitação e dos benchmarks.
+ * Gets the yearly series of the property's costs and the benchmarks.
  */
 export async function fetchAnnualBenchmarks(propertyId) {
-  // Evita pedidos à API quando não existe uma propriedade selecionada.
+  // Skips the API call when no property is selected.
   if (!propertyId) return null;
 
   const response = await axiosClient.get(

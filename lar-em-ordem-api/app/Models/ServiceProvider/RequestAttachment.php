@@ -18,7 +18,7 @@ class RequestAttachment extends Model
     }
 
     /**
-     * Ficheiro guardado no R2 (nome, caminho, tipo e tamanho).
+     * File stored in R2 (name, path, type and size).
      */
     public function file()
     {

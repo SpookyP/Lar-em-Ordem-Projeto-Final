@@ -10,7 +10,7 @@ Route::apiResource('offers', OfferController::class)
     ->whereUlid('offer');
 
 /*
-* offer-categories          → catálogo de tipos de oferta (formulário do parceiro).
-* offers                    → as ofertas do parceiro autenticado, paginadas (filtro ?status=).
-* offers/recommendations    → as ofertas em vigor de todos os parceiros, paginadas (?search=, ?category_id=), com os tipos.
-*/
+ * offer-categories          → offer type catalog (partner form).
+ * offers                    → the authenticated partner's offers, paginated (?status= filter).
+ * offers/recommendations    → every partner's current offers, paginated (?search=, ?category_id=), with the types.
+ */

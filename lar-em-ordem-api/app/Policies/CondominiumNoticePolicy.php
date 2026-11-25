@@ -10,13 +10,13 @@ class CondominiumNoticePolicy
 {
 
 
-    /** Histórico de avisos: só o administrador do condomínio. */
+    /** Notice history: the condominium's admin only. */
     public function viewAny(User $user, Condominium $condominium): bool
     {
         return $condominium->isManagedBy($user);
     }
 
-    /** Publicar aviso: só o administrador do condomínio. */
+    /** Publish a notice: the condominium's admin only. */
     public function create(User $user, Condominium $condominium): bool
     {
         return $condominium->isManagedBy($user);
@@ -32,13 +32,13 @@ class CondominiumNoticePolicy
         return $notice->condominium->isManagedBy($user);
     }
 
-    /** Dar o "visto": residente com casa no condomínio. */
+    /** Mark as seen: a resident with a property in the condominium. */
     public function markRead(User $user, CondominiumNotice $notice): bool
     {
         return $notice->condominium->hasMember($user);
     }
 
-    /** Eliminar do "sino": residente com casa no condomínio. */
+    /** Dismiss from the bell: a resident with a property in the condominium. */
     public function dismiss(User $user, CondominiumNotice $notice): bool
     {
         return $notice->condominium->hasMember($user);

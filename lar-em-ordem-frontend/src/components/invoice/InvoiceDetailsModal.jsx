@@ -47,7 +47,7 @@ export function InvoiceDetailsModal({ invoice, onClose }) {
         className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* Cabeçalho do modal, sempre com o azul principal. */}
+        {/* Modal header, always in the main blue. */}
         <div
           className="relative overflow-hidden p-6"
           style={{ backgroundColor: HEADER_COLOR }}
@@ -82,7 +82,7 @@ export function InvoiceDetailsModal({ invoice, onClose }) {
               </div>
             </div>
 
-            {/* Botão para fechar (o modal também fecha com Escape ou ao clicar fora). */}
+            {/* Close button (the modal also closes with Escape or by clicking outside). */}
             <button
               type="button"
               onClick={onClose}
@@ -93,7 +93,7 @@ export function InvoiceDetailsModal({ invoice, onClose }) {
             </button>
           </div>
 
-          {/* Serviços associados à fatura. */}
+          {/* Services on the invoice. */}
           <div className="relative mt-5 flex flex-wrap gap-2">
             {invoiceTypes.length > 0 ? (
               invoiceTypes.map((typeId) => {
@@ -119,9 +119,9 @@ export function InvoiceDetailsModal({ invoice, onClose }) {
           </div>
         </div>
 
-        {/* Conteúdo do modal. */}
+        {/* Modal content. */}
         <div className="max-h-[calc(85vh-150px)] w-full min-w-0 space-y-6 overflow-y-auto p-5 sm:p-6">
-          {/* Informação principal da fatura. */}
+          {/* Main invoice details. */}
           <section>
             <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-slate-500">
               Informação da fatura
@@ -162,7 +162,7 @@ export function InvoiceDetailsModal({ invoice, onClose }) {
             </div>
           </section>
 
-          {/* Consumos associados à fatura. */}
+          {/* Consumptions on the invoice. */}
           <section>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500">
@@ -261,7 +261,7 @@ export function InvoiceDetailsModal({ invoice, onClose }) {
             )}
           </section>
 
-          {/* Total indicado pelo fornecedor. */}
+          {/* Total stated by the supplier. */}
           <div
             className="flex items-center justify-between gap-4 rounded-xl p-4 text-white"
             style={{ backgroundColor: HEADER_COLOR }}

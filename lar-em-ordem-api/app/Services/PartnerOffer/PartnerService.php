@@ -15,12 +15,12 @@ class PartnerService
     public function __construct(private PersonalDataEraser $eraser) {}
     
     /**
-     * Parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor de cada um,
-     * filtrados (opcional) por um texto no nome ou na descrição.
-     * Os apagados ficam de fora pelo soft delete.
+     * Partners in alphabetical order, paginated, each with their number of current offers,
+     * optionally filtered by text in the name or description.
+     * Deleted partners are left out by the soft delete.
      *
-     * @param int $perPage Número de parceiros por página.
-     * @param string|null $search (Opcional) Texto a procurar no nome ou na descrição.
+     * @param int $perPage Partners per page.
+     * @param string|null $search (Optional) Text to search in the name or description.
      * @return LengthAwarePaginator
      */
     public function list(int $perPage = 5, ?string $search = null): LengthAwarePaginator
@@ -38,10 +38,10 @@ class PartnerService
     }
 
     /**
-     * Cria o perfil de parceiro de um utilizador e atribui-lhe a role 'partner'.
+     * Creates a user's partner profile and assigns the 'partner' role.
      *
-     * @param array $data Dados validados para a criação do parceiro.
-     * @param User $owner Utilizador dono do perfil.
+     * @param array $data Validated data for the new partner.
+     * @param User $owner User who owns the profile.
      * @return Partner
      */
     public function create(array $data, User $owner): Partner
@@ -56,10 +56,10 @@ class PartnerService
     }
 
     /**
-     * Atualiza os dados de um parceiro existente.
+     * Updates an existing partner.
      *
-     * @param Partner $partner Instância do parceiro a ser atualizado.
-     * @param array $data Dados validados para a atualização.
+     * @param Partner $partner Partner to update.
+     * @param array $data Validated data for the update.
      * @return Partner
      */
     public function update(Partner $partner, array $data): Partner
@@ -69,10 +69,10 @@ class PartnerService
     }
 
     /**
-     * Remove um parceiro e as suas ofertas, e retira a role 'partner' ao utilizador.
-     * Tudo numa transação: se um passo falhar, nada é alterado.
+     * Removes a partner and their offers, and takes the 'partner' role from the user.
+     * All in one transaction: if a step fails, nothing changes.
      *
-     * @param Partner $partner Instância do parceiro a ser removido.
+     * @param Partner $partner Partner to remove.
      * @return void
      */
    public function delete(Partner $partner): void
@@ -86,13 +86,13 @@ class PartnerService
     }
 
    /**
-     * Carrega no parceiro uma página das suas ofertas em vigor (vista pública),
-     * da mais recente para a mais antiga.
-     *
-     * @param Partner $partner Instância do parceiro.
-     * @param int $perPage Número de ofertas por página.
-     * @return LengthAwarePaginator A página de ofertas (já colocada em $partner->offers).
-     */
+    * Loads one page of the partner's current offers onto the partner (public view),
+    * newest first.
+    *
+    * @param Partner $partner The partner.
+    * @param int $perPage Offers per page.
+    * @return LengthAwarePaginator The page of offers (already set on $partner->offers).
+    */
     public function loadWithOffers(Partner $partner, int $perPage = 5): LengthAwarePaginator
     {
         $offers = $partner->offers()
@@ -103,7 +103,7 @@ class PartnerService
             ->paginate($perPage)
             ->withQueryString();
 
-        // a página de ofertas fica na relação 'offers': o resource mostra-a em data.offers
+        // the page of offers goes in the 'offers' relation: the resource shows it in data.offers
         $partner->setRelation('offers', $offers->getCollection());
 
         return $offers;

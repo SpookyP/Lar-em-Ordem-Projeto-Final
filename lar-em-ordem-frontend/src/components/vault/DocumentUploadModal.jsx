@@ -29,7 +29,7 @@ export function DocumentUploadModal({
   const [reading, setReading] = useState(false);
   const lastFile = useRef(null);
 
-  // Ao escolher um PDF, lê-o logo e preenche o nome e as datas 
+  // When a PDF is chosen, read it right away and fill in the name and dates
   async function handleFile(selected) {
     setFile(selected);
     lastFile.current = selected;
@@ -57,7 +57,7 @@ export function DocumentUploadModal({
         setExpirationDate((current) => current || data.expirationDate);
       }
     } catch {
-      // A leitura automática é só uma ajuda: se falhar, os campos preenchem-se à mão
+      // The automatic reading only helps: if it fails, the fields are filled in by hand
     } finally {
       if (lastFile.current === selected) setReading(false);
     }

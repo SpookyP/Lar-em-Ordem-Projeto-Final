@@ -11,7 +11,7 @@ class CondominiumResource extends JsonResource
     {
         $user = $request->user();
 
-        // código de convite e nº de casas só para quem gere o condomínio
+        // invite code and number of properties only for whoever manages the condominium
         $canManage = $this->resource->isManagedBy($user);
 
         return [
@@ -35,8 +35,8 @@ class CondominiumResource extends JsonResource
                 'contact' => $this->admin->contact,
             ]),
 
-            // frações ligadas (para o administrador poder retirar uma casa),
-            // só aparece se quem pede gere o condomínio E as casas foram carregadas;
+            // linked fractions (so the admin can remove a property),
+            // only shown when the requester manages the condominium AND the properties were loaded;
             'properties'       => $this->when($canManage, fn () => $this->whenLoaded('properties', fn () => $this->properties->map(fn ($property) => [
                 'id'       => $property->id,
                 'door'     => $property->address?->door,

@@ -10,9 +10,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Alerta do Cofre Digital em tempo real: publicado no canal privado da habitação
- * (properties.{property_id}) quando um documento entra nos escalões de validade ou expira.
- * Vai pela fila: se o Reverb estiver em baixo, guardar o documento não falha.
+ * Real-time Digital Vault alert, published on the property's private channel
+ * (properties.{property_id}) when a document enters an expiry window or expires.
+ * Queued, so saving the document still works when Reverb is down.
  */
 class VaultNotificationBroadcast implements ShouldBroadcast
 {
@@ -23,7 +23,7 @@ class VaultNotificationBroadcast implements ShouldBroadcast
     ) {}
 
     /**
-     * Canal privado da habitação associada à notificação.
+     * Private channel of the property the notification belongs to.
      *
      * @return array<PrivateChannel>
      */
@@ -35,7 +35,7 @@ class VaultNotificationBroadcast implements ShouldBroadcast
     }
 
     /**
-     * Nome do evento no frontend: .listen('.vault.notification', ...)
+     * Event name on the frontend: .listen('.vault.notification', ...)
      */
     public function broadcastAs(): string
     {
@@ -43,7 +43,7 @@ class VaultNotificationBroadcast implements ShouldBroadcast
     }
 
     /**
-     * Os mesmos campos devolvidos pelo NotificationResource no endpoint GET.
+     * Same fields that NotificationResource returns on the GET endpoint.
      */
     public function broadcastWith(): array
     {

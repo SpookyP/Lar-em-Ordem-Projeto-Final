@@ -4,11 +4,11 @@ import {
   fetchMonthlyCostBenchmarks,
 } from "../services/api/invoiceService";
 
-// Referências estáveis para evitar novos arrays (e resets nos filhos) a cada render.
+// Stable references so a new array (and a reset in the children) isn't created on every render.
 const NO_INVOICES = [];
 const NO_BENCHMARKS = [];
 
-// Obtém o ID da propriedade atualmente selecionada.
+// Gets the id of the currently selected property.
 function getActivePropertyId() {
   if (typeof window === "undefined") return "";
 
@@ -20,13 +20,13 @@ function getActivePropertyId() {
     try {
       const parsed = JSON.parse(stored);
 
-      // Aceita o ID guardado diretamente como string.
+      // Accepts the stored id as a plain string.
       if (typeof parsed === "string") return parsed;
 
-      // Aceita também um ID numérico (ex.: "5" é lido como número pelo JSON.parse).
+      // Also accepts a numeric id (e.g. "5" is read as a number by JSON.parse).
       if (typeof parsed === "number") return String(parsed);
 
-      // Aceita também um objeto com a propriedade id.
+      // Also accepts an object with an id property.
       if (parsed && typeof parsed === "object") {
         return parsed.id ?? "";
       }
@@ -36,7 +36,7 @@ function getActivePropertyId() {
       return stored;
     }
   } catch {
-    // Evita erros caso o localStorage não esteja disponível.
+    // Avoids errors when localStorage isn't available.
     return "";
   }
 }
@@ -45,7 +45,7 @@ export default function useInvoices() {
   const [propertyId, setPropertyId] = useState(getActivePropertyId);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Resultado do último pedido concluído (identificado pela chave do pedido).
+  // Result of the last finished request (identified by the request key).
   const [fetched, setFetched] = useState({
     key: null,
     propertyId: null,
@@ -55,16 +55,16 @@ export default function useInvoices() {
     benchmarkError: "",
   });
 
-  // Sincronização com a casa ativa e atualizações das faturas.
+  // Keeps in sync with the active property and invoice updates.
   useEffect(() => {
     const syncActiveHouse = () => {
       setPropertyId(getActivePropertyId());
 
-      // Volta a carregar os dados da propriedade selecionada.
+      // Reloads the selected property's data.
       setRefreshKey((value) => value + 1);
     };
 
-    // O evento storage só interessa quando muda a casa ativa.
+    // The storage event only matters when the active property changes.
     const handleStorage = (event) => {
       if (event.key !== "activeHouse" && event.key !== null) {
         return;
@@ -73,7 +73,7 @@ export default function useInvoices() {
       syncActiveHouse();
     };
 
-    // Evento personalizado utilizado na mesma janela.
+    // Custom event used in the same window.
     const handleInvoicesUpdated = () => {
       setRefreshKey((value) => value + 1);
     };
@@ -91,12 +91,12 @@ export default function useInvoices() {
 
   const requestKey = `${propertyId}-${refreshKey}`;
 
-  // Carregamento das faturas e dos benchmarks através dos serviços centralizados.
+  // Loads the invoices and benchmarks through the shared services.
   useEffect(() => {
-    // Sem propriedade selecionada, não existem dados para carregar.
+    // No property selected, so there is nothing to load.
     if (!propertyId) return undefined;
 
-    // Impede que respostas de pedidos anteriores atualizem o estado.
+    // Stops responses from older requests from updating the state.
     let cancelled = false;
 
     Promise.allSettled([
@@ -130,19 +130,19 @@ export default function useInvoices() {
     };
   }, [propertyId, requestKey]);
 
-  // Valores derivados do último pedido (sem estado duplicado).
+  // Values derived from the last request (no duplicated state).
   const isCurrent = fetched.key === requestKey;
   const loading = Boolean(propertyId) && !isCurrent;
 
-  // Durante uma atualização da mesma casa mantêm-se os dados anteriores.
+  // While the same property refreshes, the previous data stays.
   const sameProperty = Boolean(propertyId) && fetched.propertyId === propertyId;
 
-  // Permite atualizar os dados depois de criar ou eliminar uma fatura.
+  // Lets the data refresh after an invoice is created or deleted.
   const refresh = useCallback(() => {
     setRefreshKey((value) => value + 1);
   }, []);
 
-  // Dados e operações disponibilizados à página.
+  // Data and actions handed to the page.
   return {
     propertyId,
     invoices: sameProperty ? fetched.invoices : NO_INVOICES,

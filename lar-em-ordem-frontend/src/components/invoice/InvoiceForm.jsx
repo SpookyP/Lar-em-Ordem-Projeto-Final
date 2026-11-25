@@ -24,7 +24,7 @@ import {
 } from "./invoiceFormUtils";
 
 export default function InvoiceForm({ onInvoiceSaved }) {
-  // Guarda os tipos de consumo disponíveis.
+  // Holds the available consumption types.
   const [consumptionTypes, setConsumptionTypes] = useState([
     { id: 1, name: "Eletricidade", unit_of_measure: "kWh" },
     { id: 2, name: "Água", unit_of_measure: "m³" },
@@ -375,7 +375,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
 
   return (
     <section className="space-y-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-      {/* Cabeçalho e descrição do formulário. */}
+      {/* Form header and description. */}
       <header
         className="relative -mx-6 -mt-6 mb-8 flex flex-col gap-2 overflow-hidden rounded-t-2xl p-6 text-white"
         style={{ backgroundColor: "#0F766E" }}
@@ -392,7 +392,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         </div>
       </header>
 
-      {/* Campo para anexar o documento PDF. */}
+      {/* Field to attach the PDF document. */}
       <FileInput
         label="Documento da fatura"
         hint={
@@ -407,7 +407,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         accept="application/pdf,.pdf"
       />
 
-      {/* Confirmação de que o documento foi carregado. */}
+      {/* Confirmation that the document was uploaded. */}
       {uploadSuccess && (
         <div className="-mt-6 flex items-center gap-2 text-sm font-medium text-emerald-700">
           <CheckCircle2 className="h-4 w-4 shrink-0" />O PDF é guardado quando
@@ -415,7 +415,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
         </div>
       )}
 
-      {/* Formulário com os dados principais da fatura. */}
+      {/* Form with the invoice's main details. */}
       <form
         onSubmit={handleSubmit}
         className="space-y-6 border-t border-slate-100 pt-4"
@@ -430,7 +430,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           </p>
         </div>
 
-        {/* Apresenta mensagens de sucesso ou erro. */}
+        {/* Shows success or error messages. */}
         {formMessage && (
           <div
             role={formMessage.type === "error" ? "alert" : "status"}
@@ -449,7 +449,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           </div>
         )}
 
-        {/* Campos das datas de emissão e faturação. */}
+        {/* Issue and billing period date fields. */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <DatePicker
             label="Data de emissão"
@@ -473,7 +473,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           />
         </div>
 
-        {/* Campos de identificação e valor da fatura. */}
+        {/* Invoice identification and amount fields. */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <TextInput
             label="Fornecedor"
@@ -500,7 +500,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           />
         </div>
 
-        {/* Seleção dos tipos de consumo incluídos na fatura. */}
+        {/* Picks the consumption types on the invoice. */}
         <div className="space-y-3">
           <h3 className="text-base font-bold uppercase tracking-wider text-slate-800">
             Consumos da fatura
@@ -530,7 +530,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           </div>
         </div>
 
-        {/* Apresenta os campos dos consumos selecionados. */}
+        {/* Shows the fields of the selected consumptions. */}
         {selectedTypeIds.length > 0 && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {selectedTypeIds.map((id) => {
@@ -544,7 +544,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                   key={id}
                   className="space-y-4 rounded-xl border border-navy/30 bg-navy/5 p-4"
                 >
-                  {/* Identificação do consumo e respetiva unidade. */}
+                  {/* Consumption name and its unit. */}
                   <div className="flex items-center justify-between">
                     <strong className="text-base font-semibold text-navy">
                       {type.name}
@@ -554,7 +554,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                     </span>
                   </div>
 
-                  {/* Campos da quantidade consumida e do custo total. */}
+                  {/* Amount consumed and total cost fields. */}
                   <div className="grid grid-cols-2 gap-3">
                     <TextInput
                       label={`Quantidade (${type.unit_of_measure})`}
@@ -577,7 +577,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                     />
                   </div>
 
-                  {/* Ativa a introdução de informação adicional. */}
+                  {/* Turns on the extra details entry. */}
                   <div className="rounded-xl border border-navy/30 bg-navy/5 p-3">
                     <Checkbox
                       checked={Boolean(showItems[id])}
@@ -592,7 +592,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                     />
                   </div>
 
-                  {/* Permite gerir os itens individuais de cada consumo. */}
+                  {/* Manages each consumption's individual items. */}
                   {showItems[id] && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -600,7 +600,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                           Itens da fatura
                         </h4>
 
-                        {/* Adiciona uma nova linha de detalhe. */}
+                        {/* Adds a new detail row. */}
                         <button
                           type="button"
                           onClick={() => addItem(id)}
@@ -611,7 +611,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                         </button>
                       </div>
 
-                      {/* Informa quando ainda não existem itens adicionados. */}
+                      {/* Shown when no items have been added yet. */}
                       {items.length === 0 && (
                         <p className="rounded-lg border border-dashed border-navy/30 bg-navy/5 p-3 text-sm text-slate-500">
                           Sem itens. Adicione uma linha ou carregue um PDF com
@@ -619,7 +619,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                         </p>
                       )}
 
-                      {/* Lista os itens e permite editar ou remover cada linha. */}
+                      {/* Lists the items and lets each row be edited or removed. */}
                       {items.map((item, index) => (
                         <div
                           key={`${id}-${index}`}
@@ -630,7 +630,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                               Linha {index + 1}
                             </strong>
 
-                            {/* Remove a linha selecionada. */}
+                            {/* Removes the selected row. */}
                             <button
                               type="button"
                               aria-label={`Remover linha ${index + 1}`}
@@ -641,7 +641,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                             </button>
                           </div>
 
-                          {/* Campo para descrever o item da fatura. */}
+                          {/* Field describing the invoice item. */}
                           <TextArea
                             label="Descrição"
                             value={item.name}
@@ -652,7 +652,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                             rows={2}
                           />
 
-                          {/* Campos da categoria e unidade do item. */}
+                          {/* Item category and unit fields. */}
                           <div className="grid grid-cols-2 gap-3">
                             <SearchSelect
                               label="Categoria"
@@ -674,7 +674,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
                             />
                           </div>
 
-                          {/* Campos da quantidade e custo do item. */}
+                          {/* Item amount and cost fields. */}
                           <div className="grid grid-cols-2 gap-3">
                             <TextInput
                               label="Quantidade"
@@ -706,7 +706,7 @@ export default function InvoiceForm({ onInvoiceSaved }) {
           </div>
         )}
 
-        {/* Botão para guardar a fatura e os respetivos consumos. */}
+        {/* Button that saves the invoice and its consumptions. */}
         <button
           type="submit"
           disabled={submitting || uploading}

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->dateTime('closed_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->index('status'); //matching filtra sempre por open
+            $table->index('status'); // matching always filters by open
         });
     }
 

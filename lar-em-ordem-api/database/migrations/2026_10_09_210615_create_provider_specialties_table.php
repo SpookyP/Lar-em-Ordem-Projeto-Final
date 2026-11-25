@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Liga prestador, categoria e especialidade (fixa ou custom).
+     * Links a provider, a category and a specialty (catalog or custom).
      */
     public function up(): void
     {

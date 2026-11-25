@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Vault\DocumentController;
 
 
-// Documentos
+// Documents
 Route::get('/properties/{property}/documents', [DocumentController::class, 'index'])
     ->whereUlid('property');
 Route::post('/properties/{property}/documents/extract', [DocumentController::class, 'extract'])
@@ -25,7 +25,7 @@ Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])
     ->whereUlid('document');
 Route::get('/document-categories', [DocumentCategoryController::class, 'index']);
 
-// Notificações
+// Notifications
 Route::get('/properties/{property}/notifications', [NotificationController::class, 'index'])
     ->whereUlid('property');
 Route::patch('/properties/{property}/notifications/read-all', [NotificationController::class, 'markAllAsRead'])

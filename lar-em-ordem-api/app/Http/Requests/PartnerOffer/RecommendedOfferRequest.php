@@ -7,9 +7,9 @@ use App\Http\Requests\PerPageRequest;
 class RecommendedOfferRequest extends PerPageRequest
 {
     /**
-     * Ofertas em vigor de todos os parceiros: pesquisa, tipo e paginação.
+     * Current offers of every partner: search, type and pagination.
      * ?search=fibra&category_id=3&per_page=5
-     * (search: título, descrição ou nome do parceiro).
+     * (search: title, description or partner name).
      */
     public function rules(): array
     {

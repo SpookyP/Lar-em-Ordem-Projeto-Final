@@ -18,7 +18,7 @@ class ConsumptionSeeder extends Seeder
             return;
         }
 
-        // Primeiro tipo em todas as faturas FT; os restantes tipos apenas nos últimos 3 meses.
+        // First type on every FT invoice; the other types only in the last 3 months.
         $commonTypeId = $consumptionTypeIds->first();
         $recentLimit = now()->startOfMonth()->subMonths(3)->toDateString();
         $units = DB::table('consumption_types')->pluck('unit_of_measure', 'id');
@@ -27,7 +27,7 @@ class ConsumptionSeeder extends Seeder
         $consumptions = [];
         $items = [];
 
-        // Processa exclusivamente faturas FT criadas pelo InvoiceSeeder.
+        // Only processes FT invoices created by InvoiceSeeder.
         $invoices = DB::table('invoices')
             ->select('id', 'property_id', 'period_start', 'period_end')
             ->where('invoice_number', 'like', 'FT-%')
@@ -55,7 +55,7 @@ class ConsumptionSeeder extends Seeder
                     'updated_at' => $now,
                 ];
 
-                // Itens simulados, proporcionais ao custo do consumo.
+                // Simulated items, proportional to the consumption cost.
                 $items[] = $this->item(
                     $id,
                     'Consumo Principal',
@@ -114,7 +114,7 @@ class ConsumptionSeeder extends Seeder
         ];
     }
 
-    // Os consumos são inseridos primeiro porque os itens dependem deles.
+    // Consumptions are inserted first because the items depend on them.
     private function flush(array &$consumptions, array &$items): void
     {
         if ($consumptions !== []) {

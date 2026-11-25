@@ -45,7 +45,7 @@ export function getNavItems(
   activeHouse,
   { hasCondominium = false } = {},
 ) {
-  //arrendatário (sem cofre)
+  // tenant (no vault)
   const byProfile = navItemsByProfile[profileName];
   if (byProfile) return byProfile;
 

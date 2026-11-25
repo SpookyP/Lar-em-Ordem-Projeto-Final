@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
  */
 class OfferFactory extends Factory
 {
-    /** Área do catálogo (e da PartnerFactory) => tipo de oferta (OfferCategorySeeder). */
+    /** Catalog area (and PartnerFactory's) => offer type (OfferCategorySeeder). */
     private const CATEGORY_OF = [
         'Seguro'           => 'Seguros',
         'Energia'          => 'Energia',
@@ -27,8 +27,8 @@ class OfferFactory extends Factory
     ];
 
     /**
-     * Ofertas realistas para a casa (título, descrição e tipo coerentes).
-     * {pct}, {meses} e {preco} são trocados por números ao gerar, para as ofertas não ficarem todas iguais.
+     * Realistic home offers (title, description and type that match).
+     * {pct}, {meses} and {preco} are replaced with numbers when generating, so the offers aren't all the same.
      */
     private const CATALOG = [
         ['type' => 'Seguro',           'title' => 'Seguro multirriscos com {meses} meses grátis',         'description' => 'Proteja a sua casa contra incêndio, inundação e roubo. Ao subscrever online, os primeiros {meses} meses ficam por nossa conta.'],
@@ -61,7 +61,7 @@ class OfferFactory extends Factory
     ];
 
     /**
-     * Define the model's default state (oferta em vigor, de um tipo ao calhas).
+     * Define the model's default state (a current offer of a random type).
      *
      * @return array<string, mixed>
      */
@@ -76,8 +76,8 @@ class OfferFactory extends Factory
     }
 
     /**
-     * Oferta de um tipo (ex.: 'Seguro'), para combinar com a área do parceiro.
-     * Se o tipo não tiver ofertas no catálogo (ou for null), escolhe de todas.
+     * Offer of one type (e.g. 'Seguro'), to match the partner's area.
+     * If the type has no offers in the catalog (or is null), it picks from all of them.
      */
     public function ofType(?string $type): static
     {
@@ -87,7 +87,7 @@ class OfferFactory extends Factory
     }
 
     /**
-     * Escolhe uma oferta da lista e troca {pct}, {meses} e {preco} por números.
+     * Picks an offer from the list and replaces {pct}, {meses} and {preco} with numbers.
      *
      * @return array{title: string, description: string, offer_category_id: int, url: string|null}
      */
@@ -95,7 +95,7 @@ class OfferFactory extends Factory
     {
         $offer = fake()->randomElement($catalog);
 
-        // números que variam de oferta para oferta
+        // numbers that vary from offer to offer
         $values = [
             '{pct}'   => fake()->randomElement([10, 15, 20, 25, 30]),
             '{meses}' => fake()->numberBetween(2, 3),
@@ -115,7 +115,7 @@ class OfferFactory extends Factory
     }
 
     /**
-     * Oferta que já terminou.
+     * Offer that already ended.
      */
     public function expired(): static
     {
@@ -126,7 +126,7 @@ class OfferFactory extends Factory
     }
 
     /**
-     * Oferta que ainda não começou.
+     * Offer that hasn't started yet.
      */
     public function upcoming(): static
     {
@@ -137,7 +137,7 @@ class OfferFactory extends Factory
     }
 
     /**
-     * Oferta desativada pelo parceiro.
+     * Offer paused by the partner.
      */
     public function inactive(): static
     {

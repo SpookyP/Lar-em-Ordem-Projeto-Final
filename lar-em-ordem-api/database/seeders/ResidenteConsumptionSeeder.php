@@ -51,9 +51,9 @@ class ResidenteConsumptionSeeder extends Seeder
     private array $annualBenchmarkData = [];
 
         /**
-     * @param string $email Residente que recebe as faturas.
-     * @param bool $allHomes Todas as casas com contrato ativo; sem isto, só a primeira casa (como nos testes).
-     */
+         * @param string $email Resident who gets the invoices.
+         * @param bool $allHomes Every property with an active contract; otherwise only the first one (as in the tests).
+         */
     public function run(string $email = self::EMAIL, bool $allHomes = false): void
     {
         // one seed per resident: always the same numbers for the same email, but two residents don't look alike

@@ -10,11 +10,11 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Tests\TestCase;
 
 /**
- * Parceiros (módulo 7): listagem, perfil próprio e detalhe com as ofertas em vigor.
- * A criação, a edição e a remoção do perfil passam pelos endpoints dos perfis
- * (POST/DELETE /api/user/profile e PUT /user/profile-information), que usam o PartnerService.
- * Usa os dados do DatabaseSeeder/OfferSeeder: "Parceiro Lda" (parceiro@example.com, NIF 123456789)
- * com 3 ofertas em vigor, 1 expirada, 1 futura e 1 inativa.
+ * Partners (module 7): list, own profile and detail with the current offers.
+ * Creating, editing and removing the profile go through the profile endpoints
+ * (POST/DELETE /api/user/profile and PUT /user/profile-information), which use PartnerService.
+ * Uses the DatabaseSeeder/OfferSeeder data: "Parceiro Lda" (parceiro@example.com, NIF 123456789)
+ * with 3 current offers, 1 expired, 1 upcoming and 1 inactive.
  */
 class PartnerTest extends TestCase
 {
@@ -54,7 +54,7 @@ class PartnerTest extends TestCase
         ];
     }
 
-    /** Edita o perfil do "Parceiro Lda" (o Fortify responde 200 sem corpo). */
+    /** Edits the "Parceiro Lda" profile (Fortify answers 200 with no body). */
     private function editar(array $dados)
     {
         return $this->actingAs($this->parceiro)
@@ -76,17 +76,17 @@ class PartnerTest extends TestCase
             $this->assertArrayNotHasKey('active', $parceiro);
         }
 
-        // por ordem alfabética
+        // alphabetical order
         $nomes = collect($resposta->json('data'))->pluck('company_name')->all();
         $this->assertSame(collect($nomes)->sort(SORT_NATURAL | SORT_FLAG_CASE)->values()->all(), $nomes);
 
-        // cada parceiro traz quantas ofertas em vigor tem
+        // each partner comes with how many current offers it has
         $this->actingAs($this->morador)
             ->getJson('/api/v1/partners?search=Parceiro Lda')
             ->assertJsonPath('data.0.id', $this->idParceiro())
             ->assertJsonPath('data.0.current_offers_count', 3);
 
-        // por defeito, 5 por página
+        // 5 per page by default
         $this->actingAs($this->morador)->getJson('/api/v1/partners')->assertJsonPath('meta.per_page', 5);
     }
 
@@ -106,32 +106,32 @@ class PartnerTest extends TestCase
 
     public function test_a_pesquisa_procura_no_nome_e_na_descricao_de_todos_os_parceiros(): void
     {
-        // pelo nome, sem distinguir maiúsculas
+        // by name, case insensitive
         $this->actingAs($this->morador)
             ->getJson('/api/v1/partners?search=PARCEIRO lda')
             ->assertOk()
             ->assertJsonPath('meta.total', 1)
             ->assertJsonPath('data.0.id', $this->idParceiro());
 
-        // pela descrição ("Empresa parceira de gestão imobiliária.")
+        // by description ("Empresa parceira de gestão imobiliária.")
         $this->actingAs($this->morador)
             ->getJson('/api/v1/partners?search=imobili')
             ->assertOk()
             ->assertJsonPath('data.0.id', $this->idParceiro());
 
-        // procura em todos, não só na primeira página: com 1 por página continua a encontrá-lo
+        // searches all of them, not just the first page: with 1 per page it still finds it
         $this->actingAs($this->morador)
             ->getJson('/api/v1/partners?search=parceiro lda&per_page=1')
             ->assertJsonPath('meta.total', 1);
 
-        // sem resultados
+        // no results
         $this->actingAs($this->morador)
             ->getJson('/api/v1/partners?search=nao-existe-nada')
             ->assertOk()
             ->assertJsonCount(0, 'data')
             ->assertJsonPath('meta.total', 0);
 
-        // pesquisa vazia = todos
+        // empty search = all
         $this->actingAs($this->morador)
             ->getJson('/api/v1/partners?search=&per_page=15')
             ->assertJsonPath('meta.total', Partner::count());
@@ -173,11 +173,11 @@ class PartnerTest extends TestCase
         $this->assertFalse($titulos->contains('Campanha de Natal (ainda não começou)'));
         $this->assertFalse($titulos->contains('Oferta desativada'));
 
-        // da data de início mais recente para a mais antiga
+        // newest start date first
         $datas = collect($resposta->json('data.offers'))->pluck('start_date')->all();
         $this->assertSame(collect($datas)->sortDesc()->values()->all(), $datas);
 
-        // 2 ofertas por página: a página 2 tem a última
+        // 2 offers per page: page 2 has the last one
         $this->actingAs($this->morador)
             ->getJson('/api/v1/partners/' . $this->idParceiro() . '?per_page=2&page=2')
             ->assertOk()
@@ -209,7 +209,7 @@ class PartnerTest extends TestCase
         }
     }
 
-    // ------------------------------------------ criação (POST /api/user/profile)
+    // ------------------------------------------ create (POST /api/user/profile)
 
     public function test_cria_o_perfil_de_parceiro_e_atribui_a_role(): void
     {
@@ -255,7 +255,7 @@ class PartnerTest extends TestCase
         $this->assertNull($user->fresh()->partner);
     }
 
-    // ---------------------------------- edição (PUT /user/profile-information)
+    // ---------------------------------- edit (PUT /user/profile-information)
 
     public function test_o_parceiro_atualiza_so_os_campos_enviados(): void
     {
@@ -310,19 +310,19 @@ class PartnerTest extends TestCase
 
     public function test_so_se_edita_um_perfil_de_parceiro_que_se_tem(): void
     {
-        // o morador não é parceiro
+        // the resident isn't a partner
         $this->actingAs($this->morador)
             ->putJson('/user/profile-information', ['role' => 'partner', 'phone' => '900000000'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['role']);
     }
 
-    // ---------------------------------------- remoção (DELETE /api/user/profile)
+    // ---------------------------------------- remove (DELETE /api/user/profile)
 
     public function test_o_dono_apaga_o_perfil_as_ofertas_e_perde_a_role(): void
     {
         $id = $this->idParceiro();
-       $this->parceiro->assignRole('resident'); // conta anterior à regra do perfil exclusivo (hoje impossível de criar)
+       $this->parceiro->assignRole('resident'); // account older than the exclusive profile rule (impossible to create today)
 
         $this->actingAs($this->parceiro)
             ->deleteJson('/api/user/profile', ['role' => 'partner'])
@@ -332,7 +332,7 @@ class PartnerTest extends TestCase
         $this->assertSame(0, Offer::where('partner_id', $id)->count());
         $this->assertFalse($this->parceiro->fresh()->hasRole('partner'));
 
-        // deixa de aparecer, e as ofertas saem das recomendações
+        // no longer listed, and their offers leave the recommendations
         $this->actingAs($this->morador)->getJson("/api/v1/partners/{$id}")->assertNotFound();
 
         $recomendacoes = collect($this->actingAs($this->morador)->getJson('/api/v1/offers/recommendations')->json('data'));
@@ -349,7 +349,7 @@ class PartnerTest extends TestCase
         $this->assertNotNull($this->parceiro->fresh()->partner);
     }
 
-    // ------------------------------------------------------- rotas removidas
+    // ------------------------------------------------------- removed routes
 
     public function test_as_rotas_antigas_ja_nao_existem(): void
     {
@@ -358,7 +358,7 @@ class PartnerTest extends TestCase
         $this->actingAs($this->morador)->getJson("/api/v1/partners/offers/{$id}")->assertNotFound();
         $this->actingAs($this->morador)->getJson("/api/v1/offers/partner/{$id}")->assertNotFound();
 
-        // criar, editar e apagar o perfil passou para os endpoints dos perfis (o URL existe para GET: 405)
+        // creating, editing and deleting the profile moved to the profile endpoints (the URL exists for GET: 405)
         $this->actingAs($this->parceiro)->postJson('/api/v1/partners', [])->assertStatus(405);
         $this->actingAs($this->parceiro)->patchJson("/api/v1/partners/{$id}", ['phone' => '900000000'])->assertStatus(405);
         $this->actingAs($this->parceiro)->deleteJson("/api/v1/partners/{$id}")->assertStatus(405);

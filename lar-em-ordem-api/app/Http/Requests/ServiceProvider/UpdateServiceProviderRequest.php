@@ -17,8 +17,8 @@ class UpdateServiceProviderRequest extends FormRequest
     }
 
     /**
-     * Todos os campos são opcionais. As listas (zonas, especialidades da lista, especialidades próprias),
-     * quando enviadas, substituem as anteriores; uma lista vazia retira todas. Se não forem enviadas, ficam iguais.
+     * Every field is optional. The lists (zones, catalog specialties, custom specialties),
+     * when sent, replace the previous ones; an empty list removes them all. Lists not sent stay as they are.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */

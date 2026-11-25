@@ -11,9 +11,9 @@ use Illuminate\Database\Seeder;
 class ServiceProviderSeeder extends Seeder
 {
     /**
-     * Dá zonas e especialidades aos prestadores de demonstração e cria mais três prestadores,
-     * para que os pedidos de Matosinhos recebam propostas de vários prestadores.
-     * Precisa do ServiceZoneSeeder e do ProblemCategorySeeder.
+     * Gives zones and specialties to the demo providers and creates three more providers,
+     * so the Matosinhos requests get proposals from several providers.
+     * Needs ServiceZoneSeeder and ProblemCategorySeeder.
      */
     public function run(): void
     {
@@ -25,7 +25,7 @@ class ServiceProviderSeeder extends Seeder
         $servicos->zones()->sync($matosinhos->merge($porto));
         $this->addSpecialties($servicos, ['Fugas de água', 'Desentupimentos', 'Esquentadores e termoacumuladores', 'Tomadas e iluminação']);
 
-        // Outros prestadores, sem conta de demonstração
+        // Other providers, with no demo account
         ServiceProviderModel::factory(3)->create()->each(function (ServiceProviderModel $provider) use ($matosinhos) {
             $provider->user->assignRole('service_provider');
             $provider->zones()->sync($matosinhos);
@@ -33,10 +33,10 @@ class ServiceProviderSeeder extends Seeder
         });
     }
     /**
-     * Associa ao prestador especialidades do catálogo, procuradas pelo nome.
+     * Gives the provider catalog specialties, looked up by name.
      *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @param array<string> $names Nomes das especialidades no catálogo.
+     * @param ServiceProviderModel $provider The provider.
+     * @param array<string> $names Specialty names in the catalog.
      */
     private function addSpecialties(ServiceProviderModel $provider, array $names): void
     {

@@ -14,10 +14,10 @@ class PartnerController extends Controller
     public function __construct(private PartnerService $service) {}
 
     /**
-     * Lista os parceiros por ordem alfabética, paginados, com o nº de ofertas em vigor;
-     * ?search= filtra pelo nome ou pela descrição.
+     * Lists partners alphabetically, paginated, with their number of current offers;
+     * ?search= filters by name or description.
      *
-     * @param IndexPartnerRequest $request Pedido validado (per_page, search).
+     * @param IndexPartnerRequest $request Validated request (per_page, search).
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(IndexPartnerRequest $request)
@@ -29,11 +29,11 @@ class PartnerController extends Controller
     }
 
     /**
-     * Devolve um parceiro com uma página das suas ofertas em vigor (data.offers)
-     * e a informação dessa paginação em offers_meta (?page=&per_page= das ofertas).
+     * Returns a partner with one page of their current offers (data.offers)
+     * and that page's pagination in offers_meta (?page=&per_page= for the offers).
      *
-     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
-     * @param Partner $partner Instância do parceiro solicitada.
+     * @param PerPageRequest $request HTTP request with the validated page size.
+     * @param Partner $partner The requested partner.
      * @return \Illuminate\Http\JsonResponse
      */
     public function show(PerPageRequest $request, Partner $partner)

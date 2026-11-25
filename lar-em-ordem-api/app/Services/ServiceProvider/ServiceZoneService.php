@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Collection;
 class ServiceZoneService
 {
     /**
-     * Lista as zonas, com filtros opcionais por distrito e concelho.
+     * Lists the zones, with optional district and county filters.
      *
      * @param array $filters ['district' => ?string, 'county' => ?string]
-     * @return Collection Zonas ordenadas por distrito, concelho e localidade.
+     * @return Collection Zones ordered by district, county and locality.
      */
     public function list(array $filters = []): Collection
     {

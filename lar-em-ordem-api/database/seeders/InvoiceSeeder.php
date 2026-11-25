@@ -17,7 +17,7 @@ class InvoiceSeeder extends Seeder
 
     public function run(): void
     {
-        // Cria ou reutiliza o utilizador temporário das faturas FT.
+        // Creates or reuses the temporary user for the FT invoices.
         $user = User::firstOrCreate(
             ['email' => 'temp@teste.com'],
             ['name' => 'Utilizador Temporario', 'password' => 'password']
@@ -28,7 +28,7 @@ class InvoiceSeeder extends Seeder
             ['nif' => '123456789']
         );
 
-        // Não criar faturas nas propriedades do residente de teste.
+        // Don't create invoices on the test resident's properties.
         $testUser = User::where('email', 'residente@example.com')->first();
         $testResidentId = $testUser?->resident?->id;
 
@@ -56,7 +56,7 @@ class InvoiceSeeder extends Seeder
         $thisMonth = now()->startOfMonth();
         $rows = [];
 
-        // Últimos 3 meses: todas as propriedades incluídas recebem uma fatura.
+        // Last 3 months: every included property gets an invoice.
         for ($month = 3; $month >= 1; $month--) {
             $start = $thisMonth->copy()->subMonths($month);
 
@@ -65,7 +65,7 @@ class InvoiceSeeder extends Seeder
             }
         }
 
-        // Ano anterior: aproximadamente 90% das propriedades recebem uma fatura por mês.
+        // Previous year: about 90% of the properties get an invoice each month.
         $lastYearStart = $thisMonth->copy()->subYear()->startOfYear();
 
         for ($month = 0; $month < 12; $month++) {
@@ -80,7 +80,7 @@ class InvoiceSeeder extends Seeder
             }
         }
 
-        // Inserts em blocos: uma query por cada conjunto de 500 faturas.
+        // Inserts in chunks: one query per 500 invoices.
         foreach (array_chunk($rows, 500) as $chunk) {
             DB::table('invoices')->insert($chunk);
         }

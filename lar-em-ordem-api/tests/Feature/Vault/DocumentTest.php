@@ -173,18 +173,18 @@ class DocumentTest extends TestCase
 
     public function test_authorized_user_can_delete_document(): void
     {
-        // Usa a Cloud (R2) em vez do disco local para o Fake
+        // Use the cloud disk (R2) instead of the local disk for the fake
         Storage::fake('r2');
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = DocumentCategory::factory()->create();
 
-        // O ficheiro precisa de ter um ID e path realistas
+        // The file needs a realistic id and path
         $file = \App\Models\File\File::factory()->create([
             'user_id' => $user->id,
             'path' => 'vault_documents/teste_planta.pdf'
         ]);
 
-        // Cria o ficheiro virtual na Cloud
+        // Create the virtual file in the cloud
         Storage::disk('r2')->put($file->path, 'conteudo falso do pdf');
 
         $document = \App\Models\Vault\Document::create([
@@ -220,7 +220,7 @@ class DocumentTest extends TestCase
         [$user, $property] = $this->createAuthorizedUserAndProperty();
         $category = \App\Models\Vault\DocumentCategory::factory()->create();
 
-        // Criar documento "Seguro" a expirar em 5 dias
+        // Create a "Seguro" document expiring in 5 days
         $resSeguro = $this->actingAs($user, 'sanctum')
             ->postJson("/api/v1/properties/{$property->id}/documents", [
                 'property_id' => $property->id,
@@ -230,7 +230,7 @@ class DocumentTest extends TestCase
             ]);
         $seguroId = $resSeguro->json('data.id');
 
-        // Criar documento "Seguro Casa" a expirar em 5 dias
+        // Create a "Seguro Casa" document expiring in 5 days
         $resSeguroCasa = $this->actingAs($user, 'sanctum')
             ->postJson("/api/v1/properties/{$property->id}/documents", [
                 'property_id' => $property->id,
@@ -240,16 +240,16 @@ class DocumentTest extends TestCase
             ]);
         $seguroCasaId = $resSeguroCasa->json('data.id');
 
-        // Confirmar que ambos criaram alerta na BD
+        // Check that both created an alert in the database
         $this->assertDatabaseHas('vault_notifications', ['document_id' => $seguroId]);
         $this->assertDatabaseHas('vault_notifications', ['document_id' => $seguroCasaId]);
 
-        // Apagar APENAS o documento "Seguro"
+        // Delete ONLY the "Seguro" document
         $this->actingAs($user, 'sanctum')
             ->deleteJson("/api/v1/documents/{$seguroId}")
             ->assertStatus(200);
 
-        // Confirmar que o alerta do "Seguro" foi apagado, mas o do "Seguro Casa" continua intacto!
+        // Check that the "Seguro" alert was deleted and the "Seguro Casa" one is still there
         $this->assertDatabaseMissing('vault_notifications', ['document_id' => $seguroId]);
         $this->assertDatabaseHas('vault_notifications', ['document_id' => $seguroCasaId]);
     }

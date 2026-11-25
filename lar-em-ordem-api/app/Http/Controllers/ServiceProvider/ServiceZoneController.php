@@ -13,12 +13,12 @@ class ServiceZoneController extends Controller
     public function __construct(private ServiceZoneService $service) {}
     
    /**
-     * Lista as zonas de serviço.
-     * Permite filtrar os resultados através dos parâmetros opcionais no URL (ex: ?district=Porto&county=Matosinhos).
-     *
-     * @param IndexServiceZoneRequest $request O pedido HTTP com os dados de filtragem validados.
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Coleção de zonas de serviço.
-     */
+    * Lists the service zones.
+    * Results can be filtered with optional URL parameters (e.g. ?district=Porto&county=Matosinhos).
+    *
+    * @param IndexServiceZoneRequest $request HTTP request with the validated filters.
+    * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection Service zone collection.
+    */
     public function index(IndexServiceZoneRequest $request)
     {
         return ServiceZoneResource::collection(

@@ -10,8 +10,8 @@ use Illuminate\Auth\Access\Response;
 class OfferPolicy
 {
     /**
-     * O parceiro dono vê sempre a oferta; os restantes só a veem se estiver em vigor.
-     * Para quem não é dono, uma oferta fora de vigor responde 404.
+     * The owning partner always sees the offer; everyone else only while it is current.
+     * For anyone else, an offer that isn't current answers 404.
      */
     public function view(User $user, Offer $offer): Response
     {

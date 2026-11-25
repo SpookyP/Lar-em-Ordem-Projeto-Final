@@ -155,14 +155,14 @@ export default function InvoiceCard({
 
   return (
     <div>
-      {/* Apresenta uma mensagem quando ocorre um erro. */}
+      {/* Shows a message when an error happens. */}
       {error && (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
         </p>
       )}
 
-      {/* Organiza os cartões numa grelha responsiva. */}
+      {/* Lays out the cards in a responsive grid. */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -176,7 +176,7 @@ export default function InvoiceCard({
                 backgroundColor: card.color,
               }}
             >
-              {/* Apresenta o título e o ícone do cartão. */}
+              {/* Shows the card's title and icon. */}
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold tracking-wide text-white/85">
                   {card.title}
@@ -192,7 +192,7 @@ export default function InvoiceCard({
                 </div>
               </div>
 
-              {/* Apresenta o valor acumulado da despesa. */}
+              {/* Shows the accumulated spending. */}
               <div className="mt-5">
                 <p className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   {loading ? "..." : error ? "—" : formatMoney(card.value)}
@@ -209,7 +209,7 @@ export default function InvoiceCard({
                 </div>
               </div>
 
-              {/* Adiciona um círculo decorativo ao cartão. */}
+              {/* Adds a decorative circle to the card. */}
               <div
                 className="pointer-events-none absolute -bottom-8 -right-6 h-24 w-24 rounded-full opacity-40 transition-transform duration-500 group-hover:scale-125"
                 style={{ backgroundColor: darkerColor }}

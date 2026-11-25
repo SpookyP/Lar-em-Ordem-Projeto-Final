@@ -1,7 +1,7 @@
 import axiosClient from "./axiosClient";
 import { cleanParams, toPage } from "./pagination";
 
-//Traduzir o vinculo que vem do back
+// Translate the contract type that comes from the backend
 const BOND_LABELS = {
   Owner: "Proprietário",
   Tenant: "Arrendatário",

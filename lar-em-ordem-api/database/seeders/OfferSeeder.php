@@ -12,9 +12,9 @@ use Illuminate\Database\Seeder;
 class OfferSeeder extends Seeder
 {
     /**
-     * Cria ofertas para o parceiro de demonstração (em vigor, expirada, futura e inativa,
-     * para testar os filtros) e ofertas em vigor para os restantes parceiros.
-     * Precisa do PartnerSeeder.
+     * Creates offers for the demo partner (current, expired, upcoming and inactive,
+     * to test the filters) and current offers for the other partners.
+     * Needs PartnerSeeder.
      */
     public function run(): void
     {
@@ -56,7 +56,7 @@ class OfferSeeder extends Seeder
             'offer_category_id'       => $tipo('Outros'),
         ]);
 
-        // Restantes parceiros: 1 a 3 ofertas em vigor cada, da área da empresa
+        // Other partners: 1 to 3 current offers each, in the company's area
         Partner::whereKeyNot($parceiro->id)->get()->each(
             fn (Partner $partner) => Offer::factory(fake()->numberBetween(1, 6))
                 ->ofType(PartnerFactory::areaOf($partner->company_name))

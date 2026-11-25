@@ -19,22 +19,22 @@ class CondominiumService
 {
     public function __construct(private CondominiumDocumentService $documents) {}
 
-    /** Caracteres dos códigos (convite e transferência): sem 0/O nem 1/I/L */
+    /** Characters for the codes (invite and transfer): no 0/O or 1/I/L */
     private const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
-    /** Dias de validade do código de transferência. */
+    /** Days the transfer code stays valid. */
     private const TRANSFER_DAYS = 7;
 
-    /** Textos que substituem os dados de um condomínio apagado. */
+    /** Texts that replace a deleted condominium's data. */
     private const REMOVED_NAME = 'Condomínio removido';
     private const REMOVED_NOTICE = 'Aviso removido';
     private const REMOVED_STREET = 'Morada removida';
 
     /**
-     * Devolve os condomínios que o utilizador administra, paginados.
+     * Returns the condominiums the user manages, paginated.
      *
-     * @param User $user Utilizador autenticado.
-     * @param int $perPage Número de condomínios por página.
+     * @param User $user Authenticated user.
+     * @param int $perPage Condominiums per page.
      * @return LengthAwarePaginator
      */
     public function listFor(User $user, int $perPage = 5): LengthAwarePaginator
@@ -49,11 +49,11 @@ class CondominiumService
     }
 
     /**
-     * Cria um condomínio (e a morada do prédio) gerido pelo administrador indicado.
-     * Administrador, morada e código de convite são definidos aqui, nunca vêm do pedido.
+     * Creates a condominium (and the building's address) managed by the given admin.
+     * The admin, address and invite code are set here and never come from the request.
      *
-     * @param array $data Dados validados (name, reserve_fund, address).
-     * @param CondominiumAdmin $admin Administrador que cria o condomínio.
+     * @param array $data Validated data (name, reserve_fund, address).
+     * @param CondominiumAdmin $admin Admin creating the condominium.
      * @return Condominium
      */
     public function create(array $data, CondominiumAdmin $admin): Condominium
@@ -75,11 +75,11 @@ class CondominiumService
     }
 
     /**
-     * Atualiza o condomínio, a morada do prédio (se vier), gera novo código de convite (se pedido)
-     * e muda de administrador.
+     * Updates the condominium and the building's address (when sent), and generates a new
+     * invite code when asked.
      *
-     * @param Condominium $condominium Condomínio a atualizar.
-     * @param array $data Dados validados.
+     * @param Condominium $condominium Condominium to update.
+     * @param array $data Validated data.
      * @return Condominium
      */
     public function update(Condominium $condominium, array $data): Condominium
@@ -89,7 +89,7 @@ class CondominiumService
                 $condominium->address->update($data['address']);
             }
 
-            // o código antigo deixa de funcionar (quem já entrou não é afetado)
+            // the old code stops working (properties that already joined are not affected)
             if (! empty($data['regenerate_invite_code'])) {
                 $condominium->invite_code = $this->newInviteCode();
             }
@@ -101,12 +101,12 @@ class CondominiumService
     }
 
   /**
-     * Apaga o condomínio: desliga as casas, apaga os documentos
-     * e anonimiza o que fica (nome, morada e avisos) antes do soft delete.
-     *
-     * @param Condominium $condominium Condomínio a apagar.
-     * @return void
-     */
+   * Deletes the condominium: unlinks the properties, deletes the documents
+   * and anonymises what remains (name, address and notices) before the soft delete.
+   *
+   * @param Condominium $condominium Condominium to delete.
+   * @return void
+   */
     public function delete(Condominium $condominium): void
     {
         DB::transaction(function () use ($condominium) {
@@ -120,7 +120,7 @@ class CondominiumService
                 'message' => '',
             ]);
 
-            // distrito, concelho e localidade não identificam o prédio; a rua e o código postal saem
+            // district, county and locality don't identify the building; the street and postal code go
             $condominium->address->forceFill([
                 'street'      => self::REMOVED_STREET,
                 'postal_code' => '0000-000',
@@ -140,19 +140,19 @@ class CondominiumService
     }
 
     /**
-     * Liga uma casa do residente ao condomínio do código de convite.
-     * A casa tem de ter contrato ativo do utilizador e não pode pertencer já a um condomínio.
+     * Links one of the resident's properties to the condominium of the invite code.
+     * The property needs an active contract of the user and can't already belong to a condominium.
      *
-     * @param User $user Residente autenticado.
-     * @param string $inviteCode Código de convite.
-     * @param string $propertyId Casa a ligar.
-     * @return Condominium O condomínio a que a casa ficou ligada.
+     * @param User $user Authenticated resident.
+     * @param string $inviteCode Invite code.
+     * @param string $propertyId Property to link.
+     * @return Condominium The condominium the property was linked to.
      */
     public function join(User $user, string $inviteCode, string $propertyId): Condominium
     {
         $property = Property::findOrFail($propertyId);
 
-        // reutiliza PropertyPolicy::view → contrato ativo
+        // reuses PropertyPolicy::view → active contract
         if (Gate::forUser($user)->denies('view', $property)) {
             throw ValidationException::withMessages([
                 'property_id' => 'Só pode ligar ao condomínio casas onde tem um contrato ativo.',
@@ -178,12 +178,12 @@ class CondominiumService
     }
 
     /**
-     * Desliga uma casa do condomínio.
-     * O administrador pode retirar qualquer casa do seu condomínio; o residente só a sua.
+     * Unlinks a property from the condominium.
+     * The admin can remove any property of their condominium; a resident only their own.
      *
-     * @param Condominium $condominium Condomínio.
-     * @param User $user Utilizador autenticado (administrador ou residente).
-     * @param string $propertyId Casa a desligar.
+     * @param Condominium $condominium Condominium.
+     * @param User $user Authenticated user (admin or resident).
+     * @param string $propertyId Property to unlink.
      * @return void
      */
     public function leave(Condominium $condominium, User $user, string $propertyId): void
@@ -191,8 +191,8 @@ class CondominiumService
         $property = Property::where('condominium_id', $condominium->id)->find($propertyId);
 
         $allowed = $property && (
-            Gate::forUser($user)->allows('update', $condominium)   // administrador
-            || Gate::forUser($user)->allows('view', $property)     // residente com contrato ativo
+            Gate::forUser($user)->allows('update', $condominium)   // admin
+            || Gate::forUser($user)->allows('view', $property)     // resident with an active contract
         );
 
         if (! $allowed) {
@@ -205,17 +205,17 @@ class CondominiumService
     }
 
     /**
-     * Gera um código de transferência (12 caracteres, válido TRANSFER_DAYS dias).
-     * Só o hash fica guardado; o código é devolvido uma única vez. Substitui um código anterior.
+     * Generates a transfer code (12 characters, valid for TRANSFER_DAYS days).
+     * Only the hash is stored; the code is returned once. Replaces any previous code.
      *
-     * @param Condominium $condominium Condomínio a transferir.
-     * @return string O código, para o administrador entregar ao novo.
+     * @param Condominium $condominium Condominium to transfer.
+     * @return string The code, for the admin to hand to the new one.
      */
     public function startTransfer(Condominium $condominium): string
     {
         do {
             $code = $this->randomCode(12);
-            // Calcula o SHA-256 (algoritmo) do código (hash unidirecional de 64 caracteres hex);
+            // SHA-256 of the code (one-way hash, 64 hex characters);
             $hash = hash('sha256', $code);
         } while (Condominium::withTrashed()->where('transfer_code_hash', $hash)->exists());
 
@@ -228,9 +228,9 @@ class CondominiumService
     }
 
     /**
-     * Cancela a transferência pendente (o código deixa de funcionar).
+     * Cancels the pending transfer (the code stops working).
      *
-     * @param Condominium $condominium Condomínio.
+     * @param Condominium $condominium Condominium.
      * @return void
      */
     public function cancelTransfer(Condominium $condominium): void
@@ -242,11 +242,11 @@ class CondominiumService
     }
 
     /**
-     * O novo administrador aceita a transferência com o código recebido.
+     * The new admin accepts the transfer with the code they received.
      *
-     * @param string $transferCode Código de transferência.
-     * @param CondominiumAdmin $newAdmin Perfil de administrador de quem aceita.
-     * @return Condominium O condomínio, já com o novo administrador.
+     * @param string $transferCode Transfer code.
+     * @param CondominiumAdmin $newAdmin Admin profile of whoever accepts.
+     * @return Condominium The condominium, now with the new admin.
      */
     public function claim(string $transferCode, CondominiumAdmin $newAdmin): Condominium
     {
@@ -269,11 +269,11 @@ class CondominiumService
     }
 
     /**
-     * Carrega o que o resource mostra: morada, administrador, nº de casas e,
-     * para o administrador, as frações ligadas (para poder retirar uma casa).
+     * Loads what the resource shows: address, admin, number of properties and,
+     * for the admin, the linked fractions (so they can remove a property).
      *
-     * @param Condominium $condominium Condomínio.
-     * @param bool $withProperties Carregar as casas (só para quem gere).
+     * @param Condominium $condominium Condominium.
+     * @param bool $withProperties Load the properties (only for whoever manages it).
      * @return Condominium
      */
     public function loadFull(Condominium $condominium, bool $withProperties = false): Condominium
@@ -288,9 +288,9 @@ class CondominiumService
     }
 
     /**
-     * Passa o condomínio para outro administrador: os ficheiros dos documentos passam para
-     * o utilizador do novo (senão desapareciam se o antigo apagasse a conta) e a transferência
-     * pendente é anulada.
+     * Hands the condominium to another admin: the document files move to the new admin's
+     * user (otherwise they would disappear if the old one deleted their account) and the pending
+     * transfer is cleared.
      */
     private function changeAdmin(Condominium $condominium, CondominiumAdmin $newAdmin): void
     {
@@ -307,7 +307,7 @@ class CondominiumService
     }
 
     /**
-     * Gera um código de convite único com 8 caracteres.
+     * Generates a unique 8-character invite code.
      */
     private function newInviteCode(): string
     {
@@ -319,7 +319,7 @@ class CondominiumService
     }
 
     /**
-     * Sorteia um código com caracteres de CODE_ALPHABET (random_int: gerador seguro).
+     * Draws a code from CODE_ALPHABET characters (random_int is a secure generator).
      */
     private function randomCode(int $length): string
     {

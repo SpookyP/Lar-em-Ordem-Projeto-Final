@@ -5,7 +5,7 @@ namespace App\Http\Requests\PartnerOffer;
 use App\Http\Requests\PerPageRequest;
 
 /**
- * Lista de parceiros: ?per_page= (1–15), ?page= e ?search= opcional (nome ou descrição).
+ * Partner list: ?per_page= (1 to 15), ?page= and an optional ?search= (name or description).
  */
 class IndexPartnerRequest extends PerPageRequest
 {

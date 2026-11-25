@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Collection;
 class ProblemCategoryService
 {
     /**
-     * Devolve todas as categorias de problemas com as respetivas especialidades,
-     * ambas por ordem alfabética.
+     * Returns every problem category with its specialties,
+     * both in alphabetical order.
      *
      * @return Collection
      */

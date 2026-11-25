@@ -13,12 +13,12 @@ use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
 /**
- * Regras dos FormRequests do condomínio que não consultam a base de dados.
- * As regras com "exists" (zonas, casas, categorias) são testadas nos testes feature.
+ * Condominium FormRequest rules that don't query the database.
+ * Rules with "exists" (zones, properties, categories) are covered by the feature tests.
  */
 class CondominiumValidationRulesTest extends TestCase
 {
-    /** Erros (campo => primeira mensagem) que as regras do FormRequest dão para $dados. */
+    /** Errors (field => first message) the FormRequest rules give for $dados. */
     private function erros(string $formRequest, array $dados): array
     {
         $request = new $formRequest();
@@ -28,7 +28,7 @@ class CondominiumValidationRulesTest extends TestCase
         return collect($validator->errors()->messages())->map(fn ($m) => $m[0])->all();
     }
 
-    // ----------------------------------------------------------- condomínio
+    // ----------------------------------------------------------- condominium
 
     public function test_o_condominio_exige_nome_e_morada(): void
     {
@@ -45,7 +45,7 @@ class CondominiumValidationRulesTest extends TestCase
         $this->assertSame('O fundo comum de reserva não pode ser negativo.', $erros['reserve_fund']);
     }
 
-    // ------------------------------------------------------ perfil de admin
+    // ------------------------------------------------------ admin profile
 
     public function test_o_perfil_de_administrador_exige_contacto_e_tipo_valido(): void
     {
@@ -62,7 +62,7 @@ class CondominiumValidationRulesTest extends TestCase
         }
     }
 
-    // --------------------------------------------------- convite e transferência
+    // --------------------------------------------------- invite and transfer
 
     public function test_o_codigo_de_convite_tem_8_caracteres(): void
     {
@@ -81,7 +81,7 @@ class CondominiumValidationRulesTest extends TestCase
         $this->assertSame([], $this->erros(ClaimCondominiumRequest::class, ['transfer_code' => 'TRANSFER2345']));
     }
 
-    // ---------------------------------------------------------------- avisos
+    // ---------------------------------------------------------------- notices
 
     public function test_um_aviso_valido_nao_tem_erros(): void
     {
@@ -92,7 +92,7 @@ class CondominiumValidationRulesTest extends TestCase
             'expires_at' => now()->addWeek()->toDateTimeString(),
         ]));
 
-        // sem prioridade nem data de fim também é válido
+        // no priority and no end date is also valid
         $this->assertSame([], $this->erros(StoreCondominiumNoticeRequest::class, ['title' => 'X', 'message' => 'Y']));
     }
 
@@ -110,7 +110,7 @@ class CondominiumValidationRulesTest extends TestCase
         $this->assertArrayHasKey('message', $erros);
     }
 
-    // ------------------------------------------------------------ documentos
+    // ------------------------------------------------------------ documents
 
     public function test_o_documento_aceita_pdf_jpg_e_png(): void
     {
@@ -121,7 +121,7 @@ class CondominiumValidationRulesTest extends TestCase
                 'document_date' => now()->toDateString(),
             ]);
 
-            // a categoria consulta a base de dados: é testada no CondominiumDocumentTest
+            // the category queries the database: it is covered in CondominiumDocumentTest
             $this->assertSame([], array_diff_key($erros, ['condominium_document_category_id' => true]), $nome);
         }
     }

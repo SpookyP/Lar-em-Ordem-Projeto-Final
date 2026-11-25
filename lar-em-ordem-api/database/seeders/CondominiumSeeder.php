@@ -13,12 +13,12 @@ use Illuminate\Database\Seeder;
 class CondominiumSeeder extends Seeder
 {
     /**
-     * Condomínio de demonstração (módulo 8):
-     * - condominio@example.com administra o "Edifício Brito Capelo" (Matosinhos), código de convite CAPELA23;
-     * - a casa do morador@example.com em Matosinhos pertence ao prédio;
-     * - três avisos: um alto e um normal em vigor (o normal já lido pelo morador) e um expirado (só no histórico).
-     * Sem documentos: precisariam de ficheiros reais no R2.
-     * Precisa do AssistanceRequestSeeder (casa de Matosinhos do morador).
+     * Demo condominium (module 8):
+     * - condominio@example.com manages "Edifício Brito Capelo" (Matosinhos), invite code CAPELA23;
+     * - morador@example.com's property in Matosinhos belongs to the building;
+     * - three notices: one high and one normal still current (the normal one already read by the resident) and one expired (history only).
+     * No documents: they would need real files in R2.
+     * Needs AssistanceRequestSeeder (the resident's Matosinhos property).
      */
     public function run(): void
     {

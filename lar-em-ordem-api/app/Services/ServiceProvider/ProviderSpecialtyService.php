@@ -10,12 +10,12 @@ use Illuminate\Validation\ValidationException;
 class ProviderSpecialtyService
 {
     /**
-     * Substitui as especialidades do prestador. Cada lista só é tratada se for enviada (não null):
-     * as que já existem mantêm-se, as que saíram da lista são apagadas e as novas são criadas.
+     * Replaces the provider's specialties. Each list is only handled when sent (not null):
+     * the ones that already exist stay, the ones taken off the list are deleted and the new ones are created.
      *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @param array<int>|null $specialtyIds IDs das especialidades da lista (a categoria vem da própria especialidade).
-     * @param array|null $customSpecialties Especialidades próprias: [['problem_category_id' => 1, 'name' => '...'], ...].
+     * @param ServiceProviderModel $provider The provider.
+     * @param array<int>|null $specialtyIds Catalog specialty ids (the category comes from the specialty).
+     * @param array|null $customSpecialties Custom specialties: [['problem_category_id' => 1, 'name' => '...'], ...].
      * @return void
      */
     public function sync(ServiceProviderModel $provider, ?array $specialtyIds, ?array $customSpecialties): void
@@ -30,10 +30,10 @@ class ProviderSpecialtyService
     }
 
     /**
-     * Substitui as especialidades da lista do prestador.
+     * Replaces the provider's catalog specialties.
      *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @param array<int> $specialtyIds IDs das especialidades do catálogo.
+     * @param ServiceProviderModel $provider The provider.
+     * @param array<int> $specialtyIds Catalog specialty ids.
      * @return void
      */
     private function syncFixed(ServiceProviderModel $provider, array $specialtyIds): void
@@ -55,11 +55,11 @@ class ProviderSpecialtyService
     }
 
     /**
-     * Substitui as especialidades próprias (custom) do prestador.
-     * Falha (422) se a lista tiver a mesma especialidade repetida na mesma categoria.
+     * Replaces the provider's custom specialties.
+     * Fails (422) if the list repeats the same specialty in the same category.
      *
-     * @param ServiceProviderModel $provider Instância do prestador.
-     * @param array $customSpecialties Lista de ['problem_category_id' => ..., 'name' => ...].
+     * @param ServiceProviderModel $provider The provider.
+     * @param array $customSpecialties List of ['problem_category_id' => ..., 'name' => ...].
      * @return void
      */
     private function syncCustom(ServiceProviderModel $provider, array $customSpecialties): void

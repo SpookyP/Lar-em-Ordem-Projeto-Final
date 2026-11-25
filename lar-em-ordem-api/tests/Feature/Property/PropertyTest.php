@@ -279,7 +279,7 @@ class PropertyTest extends TestCase
                 ],
             ]);
 
-        // county/location/district são NOT NULL: tem de dar 422 (antes dava 500 ao gravar)
+        // county/location/district are NOT NULL: it has to be a 422 (it used to be a 500 on save)
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['address.county']);
 

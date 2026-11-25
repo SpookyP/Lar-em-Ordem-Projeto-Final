@@ -156,7 +156,7 @@ def extract_issue_date(text):
     return None
 
 
-# Extrai as datas inicial e final do período faturado.
+# Extracts the start and end dates of the billing period.
 def extract_period(text):
     match = re.search(
         r"Per[ií]odo de Fatura[cç][aã]o(?:\s*\([^)]*\))?\s*:\s*"

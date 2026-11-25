@@ -16,9 +16,9 @@ class ServiceProviderController extends Controller
     ) {}
 
     /**
-     * Devolve o perfil de prestador do utilizador autenticado, incluindo as suas zonas e especialidades.
+     * Returns the authenticated user's service provider profile, with its zones and specialties.
      *
-     * @param Request $request Pedido com o utilizador autenticado.
+     * @param Request $request Request with the authenticated user.
      * @return ServiceProviderResource
      */
     public function showMyProfile(Request $request)

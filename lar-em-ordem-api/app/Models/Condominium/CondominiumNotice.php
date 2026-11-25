@@ -28,7 +28,7 @@ class CondominiumNotice extends Model
         ];
     }
 
-    /** Avisos de um condomínio apagado deixam de ser acessíveis pela API. */
+    /** Notices of a deleted condominium are no longer reachable through the API. */
     public function resolveRouteBindingQuery($query, $value, $field = null)
     {
         return parent::resolveRouteBindingQuery($query, $value, $field)->whereHas('condominium');
@@ -39,20 +39,20 @@ class CondominiumNotice extends Model
         return $this->belongsTo(Condominium::class);
     }
 
-    /** Residentes que já deram o "visto". */
+    /** Residents who have marked the notice as seen. */
     public function readers()
     {
         return $this->belongsToMany(Resident::class, 'condominium_notice_reads')
             ->withPivot('read_at', 'dismissed_at');
     }
 
-    /** O aviso ainda está em vigor? */
+    /** Is the notice still current? */
     public function isCurrent(): bool
     {
         return $this->expires_at === null || $this->expires_at->isFuture();
     }
 
-    /** Avisos ainda em vigor (sem data de fim ou com data de fim no futuro). */
+    /** Notices still current (no end date, or an end date in the future). */
     public function scopeCurrent(Builder $query): Builder
     {
         return $query->where(fn (Builder $q) => $q
@@ -60,14 +60,14 @@ class CondominiumNotice extends Model
             ->orWhere('expires_at', '>', now()));
     }
 
-    /** Avisos em vigor que o residente ainda não viu. */
+    /** Current notices the resident hasn't seen yet. */
     public function scopeUnreadBy(Builder $query, string $residentId): Builder
     {
         return $query->current()
             ->whereDoesntHave('readers', fn (Builder $q) => $q->where('residents.id', $residentId));
     }
 
-    /** Prioridade alta primeiro, depois os mais recentes. */
+    /** High priority first, then the most recent. */
     public function scopeOrdered(Builder $query): Builder
     {
         return $query

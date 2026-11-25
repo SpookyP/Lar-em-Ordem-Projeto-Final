@@ -9,8 +9,8 @@ use App\Models\User\User;
 use Tests\TestCase;
 
 /**
- * Métodos dos modelos do condomínio que não precisam da base de dados.
- * Os modelos são criados só em memória (new ...), nunca gravados.
+ * Condominium model methods that don't need the database.
+ * The models are only built in memory (new ...), never saved.
  */
 class CondominiumModelsTest extends TestCase
 {
@@ -55,7 +55,7 @@ class CondominiumModelsTest extends TestCase
         $this->assertFalse($this->condominio()->isManagedBy(null));
     }
 
-    // ---------------------------------------------------- Condominium (dados)
+    // ---------------------------------------------------- Condominium (data)
 
     public function test_os_codigos_nao_aparecem_quando_o_condominio_e_serializado(): void
     {
@@ -68,7 +68,7 @@ class CondominiumModelsTest extends TestCase
 
     public function test_o_codigo_de_convite_e_o_administrador_nao_vem_do_pedido(): void
     {
-        // fora do $fillable: só o service os define (forceFill)
+        // outside $fillable: only the service sets them (forceFill)
         $condominio = new Condominium([
             'name'                 => 'X',
             'invite_code'          => 'AAAAAAAA',

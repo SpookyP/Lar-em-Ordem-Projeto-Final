@@ -96,7 +96,7 @@ export function PropertyForm({
     setForm((prev) => ({
       ...prev,
       resident_type_id: v,
-      //só o arrendatário indica datas. o proprietário fica com a data de hoje
+      // only tenants enter dates; owners get today's date
       start_date: tenant ? "" : todayISO(),
       end_date: "",
     }));

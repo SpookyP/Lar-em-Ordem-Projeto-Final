@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Extração inteligente de dados de documentos de habitação (PDF).
+Extracts data from housing documents (PDF).
 
-Uso:  python pdf_extractor.py /caminho/ficheiro.pdf [--full-text]
+Usage:  python pdf_extractor.py /path/to/file.pdf [--full-text]
 """
 import sys
 import json
@@ -13,10 +13,10 @@ from datetime import date
 import pdfplumber
 
 MAX_PAGES = 20
-MIN_TEXT_CHARS = 30  # abaixo disto assumimos PDF digitalizado (precisa de OCR)
+MIN_TEXT_CHARS = 30  # below this we assume a scanned PDF (needs OCR)
 
 # ----------------------------------------------------------------------------
-# Utilitários de texto
+# Text utilities
 # ----------------------------------------------------------------------------
 
 def normalize(text: str) -> str:
@@ -27,7 +27,7 @@ def normalize(text: str) -> str:
 
 
 def fold(text: str) -> str:
-    """Minúsculas e sem acentos, MANTENDO o mesmo comprimento do original."""
+    """Lowercase and without accents, KEEPING the original length."""
     return "".join(unicodedata.normalize("NFKD", c)[0] for c in text).lower()
 
 
@@ -62,7 +62,7 @@ def all_amounts(f):
 
 
 # ----------------------------------------------------------------------------
-# Validadores
+# Validators
 # ----------------------------------------------------------------------------
 
 def valid_nif(nif: str) -> bool:
@@ -142,7 +142,7 @@ def make_date(y, m, d):
 
 
 def find_dates(f):
-    """Devolve uma lista de tuplos: (start_pos, end_pos, date_obj)."""
+    """Returns a list of tuples: (start_pos, end_pos, date_obj)."""
     found = []
     for m in re.finditer(r"\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})\b", f):
         d = make_date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
@@ -162,20 +162,20 @@ def find_dates(f):
 
 
 def get_context_window(f: str, pos: int, prev_date_end: int, max_back: int = 120) -> str:
-    """Extrai texto seguro para trás, parando em barreiras para evitar misturar contextos."""
+    """Takes the text before the match, stopping at boundaries so contexts don't mix."""
     start = max(prev_date_end, pos - max_back)
 
-    # Parar em ponto final real (. seguido de espaço ou de nova linha)
+    # Stop at a real full stop (. followed by a space or a newline)
     last_dot = max(f.rfind(". ", start, pos), f.rfind(".\n", start, pos))
     if last_dot != -1 and (pos - last_dot) > 15:
         start = last_dot + 2
 
-    # Parar noutro parágrafo (dupla quebra de linha)
+    # Stop at another paragraph (double line break)
     last_para = f.rfind("\n\n", start, pos)
     if last_para != -1:
         start = last_para
 
-    # Transforma quebras de linha em espaços para manter as frases unidas
+    # Turn line breaks into spaces to keep sentences together
     return f[start:pos].replace("\n", " ")
 
 
@@ -239,7 +239,7 @@ def extract_dates(f: str, doc_type: str = "desconhecido"):
         context_after = f[end_pos:min(len(f), end_pos + 30)].replace("\n", " ")
         window_before = get_context_window(f, start_pos, prev_date_end, 120)
 
-        prev_date_end = end_pos # A próxima data já não pode ler antes disto
+        prev_date_end = end_pos # The next date can't read before this point
 
         if is_ignored_date_context(window_before, context_after):
             continue
@@ -247,7 +247,7 @@ def extract_dates(f: str, doc_type: str = "desconhecido"):
         field, score = classify_date(window_before)
 
         if field:
-            # Bónus para datas no final de contratos/escrituras
+            # Bonus for dates at the end of contracts/deeds
             if start_pos / text_len >= 0.70:
                 score += 2
 
@@ -259,14 +259,14 @@ def extract_dates(f: str, doc_type: str = "desconhecido"):
 
     by_field = {field: val[2] for field, val in best_by_field.items()}
 
-    # Fallback seguro para issue_date
+    # Safe fallback for issue_date
     if "issue_date" not in by_field and unclassified:
         if doc_type in ("contrato_arrendamento", "escritura", "condominio"):
             by_field["issue_date"] = unclassified[-1][1]
         else:
             by_field["issue_date"] = unclassified[0][1]
 
-    # Impedir validações falsas
+    # Avoid false validity dates
     if doc_type in NO_EXPIRATION_DOC_TYPES:
         by_field.pop("expiration_date", None)
 
@@ -274,7 +274,7 @@ def extract_dates(f: str, doc_type: str = "desconhecido"):
 
 
 # ----------------------------------------------------------------------------
-# Classificação do tipo de documento
+# Document type classification
 # ----------------------------------------------------------------------------
 
 DOC_TYPES = {
@@ -344,7 +344,7 @@ def classify(f):
 
 
 # ----------------------------------------------------------------------------
-# Entidades comuns (todos os tipos)
+# Common entities (every type)
 # ----------------------------------------------------------------------------
 
 PROVIDERS = {
@@ -398,7 +398,7 @@ def extract_property(f, o):
 
 
 # ----------------------------------------------------------------------------
-# Extratores específicos por tipo
+# Type-specific extractors
 # ----------------------------------------------------------------------------
 
 def ex_certificado_energetico(f, o):
@@ -562,7 +562,7 @@ DEFAULT_VALIDITY_YEARS = {"certificado_energetico": 10}
 
 
 def infer_expiration_from_duration(base_date: date, duration_str: str) -> date:
-    """Calcula a data de validade a partir de strings como '3 anos' ou '24 meses'."""
+    """Works out the expiry date from strings such as '3 anos' or '24 meses'."""
     if not base_date or not duration_str:
         return None
     m = re.search(r"(\d+)\s*(anos?|meses)", duration_str.lower())
@@ -574,7 +574,7 @@ def infer_expiration_from_duration(base_date: date, duration_str: str) -> date:
 
 
 # ----------------------------------------------------------------------------
-# Análise
+# Analysis
 # ----------------------------------------------------------------------------
 
 def analyze_text(text: str, today: date = None) -> dict:
@@ -593,12 +593,12 @@ def analyze_text(text: str, today: date = None) -> dict:
     expiration = by_field.get("expiration_date")
     expiration_inferred = False
 
-    # Inferência por validade fixa do tipo de documento
+    # Inferred from the document type's fixed validity
     if not expiration and issue and doc_type in DEFAULT_VALIDITY_YEARS:
         expiration = add_years(issue, DEFAULT_VALIDITY_YEARS[doc_type])
         expiration_inferred = True
 
-    # Inferência por prazo explícito no texto (Contratos ou Garantias)
+    # Inferred from an explicit term in the text (contracts or warranties)
     if not expiration:
         duration_str = details.get("duracao") or details.get("prazo_garantia")
         base_for_duration = start or issue

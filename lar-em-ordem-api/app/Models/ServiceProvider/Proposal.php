@@ -49,18 +49,18 @@ class Proposal extends Model
     ];
 
      /**
-     * Indica se a proposta tem status 'pending'.
-     *
-     * @return bool
-     */
+      * Whether the proposal status is 'pending'.
+      *
+      * @return bool
+      */
     public function isPending(): bool
     {
         return $this->status === 'pending';
     }
 
     /**
-     * Pendente mas já fora da validade. É calculado: na base de dados continua 'pending',
-     * por isso volta a ser válida se o prestador prolongar a validade.
+     * Pending but past its validity. Calculated on the fly: the database still says 'pending',
+     * so it becomes valid again if the provider extends the validity.
      *
      * @return bool
      */
@@ -70,9 +70,9 @@ class Proposal extends Model
     }
 
     /**
-     * Propostas pendentes ainda dentro da validade.
+     * Pending proposals still within their validity.
      *
-     * @param Builder $query Query a que se aplica o filtro.
+     * @param Builder $query Query the filter applies to.
      * @return Builder
      */
     public function scopeStillValid(Builder $query): Builder

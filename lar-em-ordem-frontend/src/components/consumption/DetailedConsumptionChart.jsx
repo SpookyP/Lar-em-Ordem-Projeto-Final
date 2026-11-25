@@ -30,7 +30,7 @@ export default function DetailedConsumptionChart({
   const [internalFilter, setInternalFilter] = useState("all");
   const [activeItemId, setActiveItemId] = useState(null);
 
-  // Verifica se o filtro é controlado pelo componente pai.
+  // Checks whether the filter is controlled by the parent component.
   const controlled = filterProp !== undefined;
   const filter = controlled ? String(filterProp) : internalFilter;
 
@@ -128,7 +128,7 @@ export default function DetailedConsumptionChart({
 
   return (
     <section className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      {/* Cabeçalho com título e filtros. */}
+      {/* Header with the title and filters. */}
       <div
         className="relative -mx-4 -mt-4 mb-4 flex flex-col gap-4 overflow-hidden rounded-t-2xl p-5 text-white shadow-sm sm:-mx-6 sm:-mt-6 sm:flex-row sm:items-center sm:justify-between sm:p-6"
         style={{ backgroundColor: HEADER_COLOR }}
@@ -146,7 +146,7 @@ export default function DetailedConsumptionChart({
           </p>
         </div>
 
-        {/* Botões para filtrar os tipos de consumo. */}
+        {/* Buttons to filter the consumption types. */}
         <div className="relative z-10 flex flex-wrap gap-2">
           {FILTERS.map((option) => {
             const active = filter === option.id;
@@ -170,14 +170,14 @@ export default function DetailedConsumptionChart({
         </div>
       </div>
 
-      {/* Apresenta mensagens de erro, quando existem. */}
+      {/* Shows error messages, when there are any. */}
       {error && (
         <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
           {error}
         </p>
       )}
 
-      {/* Apresenta uma mensagem quando não existem consumos. */}
+      {/* Shows a message when there are no consumptions. */}
       {!visibleItems.length ? (
         <div className="py-12 text-center">
           <p className="text-base font-medium text-slate-700">
@@ -190,14 +190,14 @@ export default function DetailedConsumptionChart({
         </div>
       ) : (
         <>
-          {/* Organiza o gráfico e a lista em duas colunas. */}
+          {/* Lays out the chart and the list in two columns. */}
           <div className="mt-6 grid w-full min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)]">
-            {/* Gráfico circular e totais por serviço. */}
+            {/* Pie chart and totals per service. */}
             <div className="min-w-0">
               <div className="relative h-80 sm:h-87.5 xl:h-95">
                 {chartItems.length > 0 ? (
                   <>
-                    {/* Desenha o gráfico com os custos dos consumos. */}
+                    {/* Draws the chart with the consumption costs. */}
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart accessibilityLayer={false}>
                         <Pie
@@ -228,7 +228,7 @@ export default function DetailedConsumptionChart({
                           })}
                         </Pie>
 
-                        {/* Mostra os detalhes ao passar sobre uma fatia. */}
+                        {/* Shows the details when hovering a slice. */}
                         <Tooltip
                           content={<ChartTooltip />}
                           wrapperStyle={{
@@ -239,7 +239,7 @@ export default function DetailedConsumptionChart({
                       </PieChart>
                     </ResponsiveContainer>
 
-                    {/* Apresenta o total ou o item selecionado no centro. */}
+                    {/* Shows the total or the selected item in the middle. */}
                     <div
                       className="pointer-events-none absolute inset-0 flex items-center justify-center"
                       style={{ zIndex: 1 }}
@@ -286,7 +286,7 @@ export default function DetailedConsumptionChart({
                 )}
               </div>
 
-              {/* Apresenta os totais separados por serviço. */}
+              {/* Shows the totals split by service. */}
               <div className="mt-3 space-y-2">
                 {groups.map((group) => {
                   const groupTotal = group.items.reduce(
@@ -320,7 +320,7 @@ export default function DetailedConsumptionChart({
               </div>
             </div>
 
-            {/* Lista detalhada dos itens agrupados por serviço. */}
+            {/* Detailed list of the items grouped by service. */}
             <div className="min-w-0">
               <div className="max-h-100 min-w-0 space-y-3 overflow-y-auto overscroll-contain pr-1 sm:max-h-110 sm:pr-2 scrollbar-gutter-stable">
                 {groups.map((group) => {
@@ -331,7 +331,7 @@ export default function DetailedConsumptionChart({
 
                   return (
                     <div key={group.id}>
-                      {/* Cabeçalho do grupo com o respetivo total. */}
+                      {/* Group header with its total. */}
                       <div className="sticky top-0 z-10 mb-1 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/95 pb-1.5 pt-1 backdrop-blur-sm">
                         <div className="flex min-w-0 items-center gap-1.5">
                           <span
@@ -355,7 +355,7 @@ export default function DetailedConsumptionChart({
                         </strong>
                       </div>
 
-                      {/* Apresenta os itens e respetivos valores. */}
+                      {/* Shows the items and their amounts. */}
                       <div className="space-y-0.5">
                         {group.items.map((item) => {
                           const active = activeId === item.id;
@@ -368,7 +368,7 @@ export default function DetailedConsumptionChart({
                                 }`
                               : "";
 
-                          // Junta as informações complementares do item.
+                          // Puts together the item's extra details.
                           const metadataParts = [
                             item.categoryLabel,
                             ...String(item.description ?? "").split(" · "),
@@ -418,7 +418,7 @@ export default function DetailedConsumptionChart({
                                   </p>
                                 )}
 
-                                {/* Identifica os valores que representam créditos. */}
+                                {/* Flags the amounts that are credits. */}
                                 {item.isCredit && (
                                   <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold leading-4 text-emerald-700">
                                     Crédito / autoconsumo
@@ -426,7 +426,7 @@ export default function DetailedConsumptionChart({
                                 )}
                               </div>
 
-                              {/* Apresenta o custo do item. */}
+                              {/* Shows the item's cost. */}
                               <strong
                                 className={`shrink-0 whitespace-nowrap pt-0.5 text-base font-semibold ${
                                   item.isCredit
@@ -447,7 +447,7 @@ export default function DetailedConsumptionChart({
             </div>
           </div>
 
-          {/* Apresenta o total final do filtro selecionado. */}
+          {/* Shows the final total for the selected filter. */}
           <div className="mt-5 flex flex-col items-start justify-between gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:gap-3">
             <span className="text-base text-slate-500">
               Total líquido do filtro selecionado

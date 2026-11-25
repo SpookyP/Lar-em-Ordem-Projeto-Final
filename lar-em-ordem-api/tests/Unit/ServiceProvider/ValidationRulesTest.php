@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
 /**
- * Regras dos FormRequests que não consultam a base de dados (sem "exists").
- * Valida os dados diretamente com as regras e mensagens de cada FormRequest.
+ * FormRequest rules that don't query the database (no "exists").
+ * Validates the data directly against each FormRequest's rules and messages.
  */
 class ValidationRulesTest extends TestCase
 {
-    /** Erros (campo => primeira mensagem) que as regras do FormRequest dão para $dados. */
+    /** Errors (field => first message) the FormRequest rules give for $dados. */
     private function erros(string $formRequest, array $dados): array
     {
         $request = new $formRequest();
@@ -36,7 +36,7 @@ class ValidationRulesTest extends TestCase
         ];
     }
 
-    // ------------------------------------------------------------- proposta
+    // ------------------------------------------------------------- proposal
 
     public function test_uma_proposta_valida_nao_tem_erros(): void
     {
@@ -108,7 +108,7 @@ class ValidationRulesTest extends TestCase
         }
     }
 
-    // ----------------------------------------------------------- paginação
+    // ----------------------------------------------------------- pagination
 
     public function test_per_page_e_opcional_e_aceita_de_1_a_15(): void
     {
@@ -131,7 +131,7 @@ class ValidationRulesTest extends TestCase
         );
     }
 
-    // --------------------------------------------------------------- oferta
+    // --------------------------------------------------------------- offer
 
     public function test_uma_oferta_sem_data_de_fim_e_valida(): void
     {
@@ -141,7 +141,7 @@ class ValidationRulesTest extends TestCase
             'start_date'  => '2026-10-01',
         ]);
 
-        // o tipo (offer_category_id) consulta a base de dados: é testado no OfferTest
+        // the type (offer_category_id) queries the database: it is covered in OfferTest
         $this->assertSame([], array_diff_key($erros, ['offer_category_id' => true]));
     }
 

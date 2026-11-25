@@ -19,10 +19,10 @@ class CondominiumNoticeController extends Controller
     public function __construct(private CondominiumNoticeService $service) {}
 
     /**
-     * Histórico de avisos do condomínio (inclui expirados). Só o administrador.
+     * Condominium notice history (expired ones included). Admin only.
      *
-     * @param PerPageRequest $request O pedido HTTP com o tamanho da página validado.
-     * @param Condominium $condominium Condomínio.
+     * @param PerPageRequest $request HTTP request with the validated page size.
+     * @param Condominium $condominium Condominium.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(PerPageRequest $request, Condominium $condominium)
@@ -35,10 +35,10 @@ class CondominiumNoticeController extends Controller
     }
 
     /**
-     * Publica um aviso e envia-o por email aos residentes. Só o administrador.
+     * Publishes a notice and emails it to the residents. Admin only.
      *
-     * @param StoreCondominiumNoticeRequest $request Dados validados.
-     * @param Condominium $condominium Condomínio.
+     * @param StoreCondominiumNoticeRequest $request Validated data.
+     * @param Condominium $condominium Condominium.
      * @return \Illuminate\Http\JsonResponse 201 (Created).
      */
     public function store(StoreCondominiumNoticeRequest $request, Condominium $condominium)
@@ -51,10 +51,10 @@ class CondominiumNoticeController extends Controller
     }
 
     /**
-     * Edita um aviso; se mudou, volta a ficar por ler e o email é reenviado. Só o administrador.
+     * Edits a notice; if something changed it becomes unread again and the email is sent again. Admin only.
      *
-     * @param UpdateCondominiumNoticeRequest $request Dados validados.
-     * @param CondominiumNotice $condominiumNotice Aviso.
+     * @param UpdateCondominiumNoticeRequest $request Validated data.
+     * @param CondominiumNotice $condominiumNotice Notice.
      * @return CondominiumNoticeResource
      */
     public function update(UpdateCondominiumNoticeRequest $request, CondominiumNotice $condominiumNotice)
@@ -65,9 +65,9 @@ class CondominiumNoticeController extends Controller
     }
 
     /**
-     * Apaga um aviso. Só o administrador.
+     * Deletes a notice. Admin only.
      *
-     * @param CondominiumNotice $condominiumNotice Aviso.
+     * @param CondominiumNotice $condominiumNotice Notice.
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(CondominiumNotice $condominiumNotice)
@@ -80,10 +80,10 @@ class CondominiumNoticeController extends Controller
     }
 
     /**
-     * O residente dá o "visto" no aviso.
+     * The resident marks the notice as seen.
      *
-     * @param Request $request Pedido com o utilizador autenticado.
-     * @param CondominiumNotice $condominiumNotice Aviso.
+     * @param Request $request Request with the authenticated user.
+     * @param CondominiumNotice $condominiumNotice Notice.
      * @return CondominiumNoticeResource
      */
     public function markRead(Request $request, CondominiumNotice $condominiumNotice)
@@ -94,16 +94,16 @@ class CondominiumNoticeController extends Controller
     }
 
     /**
-     * Sino do residente: avisos em vigor do condomínio da casa ativa, sem os que eliminou, com "read".
-     * Casa sem condomínio: lista vazia.
+     * Resident bell: current notices of the active property's condominium, minus the dismissed ones, with "read".
+     * A property with no condominium gets an empty list.
      *
-     * @param Request $request Pedido com o utilizador autenticado.
-     * @param Property $property Casa ativa do residente.
+     * @param Request $request Request with the authenticated user.
+     * @param Property $property The resident's active property.
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
      */
     public function bell(Request $request, Property $property)
     {
-        // reutiliza PropertyPolicy::view → contrato ativo nesta casa
+        // reuses PropertyPolicy::view → active contract on this property
         Gate::authorize('view', $property);
 
         if (! $property->condominium) {
@@ -116,10 +116,10 @@ class CondominiumNoticeController extends Controller
     }
 
     /**
-     * "Marcar tudo como lido" no sino (condomínio da casa ativa).
+     * "Mark all as read" in the bell (active property's condominium).
      *
-     * @param Request $request Pedido com o utilizador autenticado.
-     * @param Property $property Casa ativa do residente.
+     * @param Request $request Request with the authenticated user.
+     * @param Property $property The resident's active property.
      * @return \Illuminate\Http\JsonResponse
      */
     public function markAllRead(Request $request, Property $property)
@@ -137,10 +137,10 @@ class CondominiumNoticeController extends Controller
     }
 
     /**
-     * O residente elimina o aviso do seu sino (não apaga o aviso).
+     * The resident dismisses the notice from their bell (the notice itself is not deleted).
      *
-     * @param Request $request Pedido com o utilizador autenticado.
-     * @param CondominiumNotice $condominiumNotice Aviso.
+     * @param Request $request Request with the authenticated user.
+     * @param CondominiumNotice $condominiumNotice Notice.
      * @return \Illuminate\Http\JsonResponse
      */
     public function dismiss(Request $request, CondominiumNotice $condominiumNotice)

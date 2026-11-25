@@ -16,15 +16,15 @@ use Illuminate\Database\Seeder;
 class AssistanceRequestSeeder extends Seeder
 {
     /**
-     * Cria uma casa de demonstração em Matosinhos para o morador@example.com e um pedido
-     * de assistência em cada estado, com as respetivas propostas.
-     * Precisa do ServiceProviderSeeder (prestadores com zonas e especialidades).
+     * Creates a demo property in Matosinhos for morador@example.com and one assistance
+     * request in each status, with their proposals.
+     * Needs ServiceProviderSeeder (providers with zones and specialties).
      */
     public function run(): void
     {
         $morador = User::where('email', 'morador@example.com')->firstOrFail();
 
-        // Morada real, dentro das zonas dos prestadores de demonstração
+        // Real address, inside the demo providers' zones
         $address = Address::create([
             'street'      => 'Rua Brito Capelo',
             'postal_code' => '4450-073',
@@ -52,15 +52,15 @@ class AssistanceRequestSeeder extends Seeder
 
         $base = ['property_id' => $property->id, 'resident_id' => $morador->resident->id];
 
-        // 1. Aberto, sem propostas: aparece em "available" para os prestadores de canalização
+        // 1. Open, no proposals: shows in "available" for the plumbing providers
         AssistanceRequest::factory()->create($base + [
             'problem_category_id' => $canalizacao,
             'title'               => 'Fuga de água debaixo do lava-loiça',
             'description'         => 'Está sempre a pingar e o armário já tem a madeira inchada.',
         ]);
 
-        // 2. Aberto: duas propostas pendentes (o residente pode aceitar ou recusar)
-        //    e uma recusada individualmente (o pedido continua aberto)
+        // 2. Open: two pending proposals (the resident can accept or reject them)
+        //    and one rejected on its own (the request stays open)
         $tomada = AssistanceRequest::factory()->create($base + [
             'problem_category_id' => $eletricidade,
             'title'               => 'Tomada da sala sem corrente',
@@ -84,7 +84,7 @@ class AssistanceRequestSeeder extends Seeder
             'estimated_value'       => 150,
         ]);
 
-        // 3. Fechado: proposta do "Serviços Lda" aceite, a do outro prestador recusada automaticamente
+        // 3. Closed: "Serviços Lda" proposal accepted, the other provider's rejected automatically
         $sanita = AssistanceRequest::factory()->closed()->create($base + [
             'problem_category_id' => $canalizacao,
             'title'               => 'Sanita entupida',
@@ -102,7 +102,7 @@ class AssistanceRequestSeeder extends Seeder
             'estimated_value'       => 95,
         ]);
 
-        // 4. Fechado no mês passado, com uma proposta retirada pelo prestador antes da aceitação
+        // 4. Closed last month, with a proposal the provider withdrew before it was accepted
         $esquentador = AssistanceRequest::factory()->closed()->create($base + [
             'problem_category_id' => $canalizacao,
             'title'               => 'Esquentador não aquece a água',
@@ -123,7 +123,7 @@ class AssistanceRequestSeeder extends Seeder
             'estimated_value'       => 140,
         ]);
 
-        // 5. Cancelado: a proposta que estava pendente passou a recusada
+        // 5. Cancelled: the proposal that was pending became rejected
         $humidade = AssistanceRequest::factory()->cancelled()->create($base + [
             'problem_category_id' => $pintura,
             'title'               => 'Mancha de humidade no teto do quarto',

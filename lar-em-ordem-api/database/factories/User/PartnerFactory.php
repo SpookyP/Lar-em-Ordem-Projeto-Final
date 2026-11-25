@@ -13,9 +13,9 @@ use Illuminate\Support\Str;
 class PartnerFactory extends Factory
 {
     /**
-     * Empresas parceiras fictícias: nome → área e descrição.
-     * A área não é guardada no parceiro: serve para o OfferSeeder criar ofertas do tipo certo
-     * (OfferFactory::ofType). As áreas são os tipos do catálogo da OfferFactory.
+     * Fictional partner companies: name → area and description.
+     * The area isn't stored on the partner: OfferSeeder uses it to create offers of the right type
+     * (OfferFactory::ofType). The areas are the types in OfferFactory's catalog.
      */
     public const CATALOG = [
         'Casa Segura Seguros'      => ['area' => 'Seguro',           'description' => 'Seguros multirriscos e de recheio pensados para quem arrenda ou tem casa própria.'],
@@ -62,7 +62,7 @@ class PartnerFactory extends Factory
 
     public function definition(): array
     {
-        // unique(): no seeder (10 parceiros) não se repetem empresas
+        // unique(): companies don't repeat in the seeder (10 partners)
         $name = fake()->unique()->randomElement(array_keys(self::CATALOG));
 
         return [
@@ -76,7 +76,7 @@ class PartnerFactory extends Factory
     }
 
     /**
-     * Área da empresa (para criar ofertas do tipo certo), ou null se o nome não for do catálogo.
+     * The company's area (to create offers of the right type), or null if the name isn't in the catalog.
      */
     public static function areaOf(string $companyName): ?string
     {

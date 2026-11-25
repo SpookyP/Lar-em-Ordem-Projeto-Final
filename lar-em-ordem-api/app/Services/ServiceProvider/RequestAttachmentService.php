@@ -14,19 +14,19 @@ class RequestAttachmentService
     public function __construct(private FileStorageService $fileStorage) {}
 
     /**
-     * Atualiza as imagens de um pedido: guarda as novas no R2 e remove as indicadas.
-     * No fim o pedido não pode ter mais de 2 imagens.
-     * As novas são guardadas antes de apagar as antigas, para que uma falha no upload
-     * não deixe o pedido sem as imagens que já tinha.
+     * Updates a request's images: stores the new ones in R2 and removes the given ones.
+     * The request can't end up with more than 2 images.
+     * New images are stored before the old ones are deleted, so a failed upload
+     * doesn't leave the request without the images it already had.
      *
-     * @param AssistanceRequest $assistanceRequest Pedido a que pertencem as imagens.
-     * @param array<UploadedFile> $newImages Imagens validadas a juntar.
-     * @param array<string> $removeIds IDs das imagens (RequestAttachment) a remover.
+     * @param AssistanceRequest $assistanceRequest Request the images belong to.
+     * @param array<UploadedFile> $newImages Validated images to add.
+     * @param array<string> $removeIds Ids of the images (RequestAttachment) to remove.
      * @return void
      */
     public function sync(AssistanceRequest $assistanceRequest, array $newImages = [], array $removeIds = []): void
     {
-        //vai buscar à base de dados as imagens que o morador pediu para remover, que pertencem a este pedido
+        // loads the images the resident asked to remove that belong to this request
         $toRemove = $assistanceRequest->attachments()->with('file')->whereIn('id', $removeIds)->get();
 
         if ($toRemove->count() !== count($removeIds)) {
@@ -49,7 +49,7 @@ class RequestAttachmentService
             $assistanceRequest->attachments()->create(['file_id' => $file->id]);
         }
 
-        // apaga o ficheiro do R2 e o registo em files; o anexo é apagado em cascata
+        // deletes the file from R2 and its row in files; the attachment goes with it by cascade
         foreach ($toRemove as $attachment) {
             $this->fileStorage->deleteFile($attachment->file);
         }

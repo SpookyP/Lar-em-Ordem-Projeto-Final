@@ -1,4 +1,4 @@
-//Como cada role, vinda de /api/user, se mostra na seleção do perfil
+// How each role from /api/user shows in the profile picker
 
 export const ROLE_INFO = {
   resident: { label: "Gestor de casas", hasHouses: true, home: "/dashboard" },

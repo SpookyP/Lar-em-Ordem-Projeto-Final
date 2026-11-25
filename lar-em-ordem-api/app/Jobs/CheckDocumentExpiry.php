@@ -14,11 +14,10 @@ class CheckDocumentExpiry implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * O método handle é o "motor" do Job. É executado automaticamente pelo Laravel
-     * quando o processo é despachado (ex: pelo agendador diário).
+     * handle() does the job's work. Laravel runs it when the job is dispatched
+     * (e.g. by the daily scheduler).
      *
-     * O Laravel faz Injeção de Dependência (DI) automática, entregando uma
-     * instância pronta a usar do teu DocumentExpiryService.
+     * Laravel injects DocumentExpiryService automatically, ready to use.
      */
     public function handle(DocumentExpiryService $expiryService): void
     {
