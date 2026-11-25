@@ -110,11 +110,11 @@ export default function Consumptions() {
     <div className="w-full max-w-none min-w-0 px-3 sm:px-4 lg:px-6 space-y-6 sm:space-y-8 pb-12">
       {/* Cabeçalho */}
       <div className="w-full min-w-0">
-        <h1 className="font-display text-3xl text-slate-900 wrap-break-word">
+        <h1 className="font-display text-4xl text-navy wrap-break-word">
           Consumos Inteligentes
         </h1>
 
-        <p className="text-slate-500 text-xs sm:text-sm mt-1 wrap-break-word">
+        <p className="mt-1 text-muted">
           Decomposição das faturas
           {range
             ? ` · ${formatMonth(range.start)} – ${formatMonth(range.end)}`

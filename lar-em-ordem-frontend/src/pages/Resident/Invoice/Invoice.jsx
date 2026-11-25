@@ -14,9 +14,9 @@ export default function Invoice() {
       {/* Cabeçalho e navegação para o formulário de faturas */}
       <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="font-display text-3xl text-slate-900">Faturas</h1>
+          <h1 className="font-display text-4xl text-navy">Faturas</h1>
 
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-1 text-muted">
             Consulte e acompanhe as faturas da sua casa.
           </p>
         </div>
