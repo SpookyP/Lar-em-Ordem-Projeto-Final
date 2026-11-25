@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api\Vault;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PerPageRequest;
+use App\Http\Requests\Vault\ExtractDocumentRequest;
 use App\Http\Requests\Vault\StoreDocumentRequest;
 use App\Http\Requests\Vault\UpdateDocumentRequest;
 use App\Http\Resources\Vault\DocumentResource;
 use App\Models\Property\Property;
 use App\Models\Vault\Document;
 use App\Services\Vault\DocumentService;
+use App\Services\Vault\PdfExtractionService;
 use App\Services\FileStorage\FileStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -38,6 +40,21 @@ class DocumentController extends Controller
         return DocumentResource::collection($documents);
     }
 
+     public function extract(ExtractDocumentRequest $request, Property $property, PdfExtractionService $extraction): JsonResponse
+    {
+        $this->authorize('manageVault', $property);
+
+        $data = $extraction->extractInfo($request->file('file')->getRealPath());
+
+        return response()->json([
+            'data' => [
+                'suggested_title' => $data['suggested_title'] ?? null,
+                'issue_date'      => $data['issue_date'] ?? null,
+                'expiration_date' => $data['expiration_date'] ?? null,
+            ],
+        ]);
+    }
+    
     public function store(StoreDocumentRequest $request, Property $property): JsonResponse
     {
         $this->authorize('manageVault', $property);

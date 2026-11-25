@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { uploadDocument } from "../../services/api/documentService";
+import {
+  extractDocumentData,
+  uploadDocument,
+} from "../../services/api/documentService";
 import { getErrorMessage } from "../../utils/apiError";
 import { TextInput, SearchSelect, FileInput, DatePicker } from "../form";
 
-// "initialCategoryId" and "initialName" fill the form when the upload starts from a checklist item
 export function DocumentUploadModal({
   propertyId,
   categories = [],
@@ -24,6 +26,42 @@ export function DocumentUploadModal({
   const [issueDate, setIssueDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [reading, setReading] = useState(false);
+  const lastFile = useRef(null);
+
+  // Ao escolher um PDF, lê-o logo e preenche o nome e as datas 
+  async function handleFile(selected) {
+    setFile(selected);
+    lastFile.current = selected;
+
+    const isPdf =
+      selected &&
+      (selected.type === "application/pdf" || /\.pdf$/i.test(selected.name));
+    if (!isPdf) {
+      setReading(false);
+      return;
+    }
+
+    setReading(true);
+    try {
+      const data = await extractDocumentData(propertyId, selected);
+      if (lastFile.current !== selected) return;
+
+      if (data.suggestedTitle) {
+        setName((current) => (current.trim() ? current : data.suggestedTitle));
+      }
+      if (data.issueDate) {
+        setIssueDate((current) => current || data.issueDate);
+      }
+      if (data.expirationDate) {
+        setExpirationDate((current) => current || data.expirationDate);
+      }
+    } catch {
+      // A leitura automática é só uma ajuda: se falhar, os campos preenchem-se à mão
+    } finally {
+      if (lastFile.current === selected) setReading(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -91,8 +129,9 @@ export function DocumentUploadModal({
             label="Ficheiro"
             required
             value={file}
-            onChange={setFile}
+            onChange={handleFile}
             accept=".pdf,.jpg,.jpeg,.png"
+            hint={reading ? "A ler o documento…" : undefined}
           />
 
           <TextInput
@@ -146,7 +185,7 @@ export function DocumentUploadModal({
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || reading}
               className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-light disabled:opacity-60"
             >
               {saving ? "A carregar…" : "Carregar"}

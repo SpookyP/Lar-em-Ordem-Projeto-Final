@@ -315,4 +315,58 @@ class DocumentTest extends TestCase
             ->getJson("/api/v1/properties/{$property->id}/notifications")
             ->assertForbidden();
     }
+
+    public function test_owner_reads_the_pdf_before_saving_and_nothing_is_stored(): void
+    {
+        Storage::fake('r2');
+        $this->mock(PdfExtractionService::class, function (MockInterface $mock) {
+            $mock->shouldReceive('extractInfo')->once()->andReturn([
+                'status'          => 'success',
+                'suggested_title' => 'Seguro Multirriscos',
+                'issue_date'      => '2026-01-15',
+                'expiration_date' => '2027-01-14',
+                'extracted_text'  => 'texto completo do PDF',
+            ]);
+        });
+        [$user, $property] = $this->createAuthorizedUserAndProperty();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/properties/{$property->id}/documents/extract", [
+                'file' => UploadedFile::fake()->create('seguro.pdf', 100, 'application/pdf'),
+            ])
+            ->assertOk()
+            ->assertExactJson(['data' => [
+                'suggested_title' => 'Seguro Multirriscos',
+                'issue_date'      => '2026-01-15',
+                'expiration_date' => '2027-01-14',
+            ]]);
+
+        $this->assertDatabaseMissing('vault_documents', ['property_id' => $property->id]);
+        $this->assertSame([], Storage::disk('r2')->allFiles());
+    }
+
+    public function test_reading_the_pdf_before_saving_only_accepts_pdfs(): void
+    {
+        [$user, $property] = $this->createAuthorizedUserAndProperty();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/properties/{$property->id}/documents/extract", [
+                'file' => UploadedFile::fake()->create('foto.png', 100, 'image/png'),
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['file' => 'Só é possível ler automaticamente ficheiros PDF.']);
+    }
+
+    public function test_someone_without_access_cannot_read_a_pdf_for_another_property(): void
+    {
+        [, $property] = $this->createAuthorizedUserAndProperty();
+        $other = User::factory()->create();
+        Resident::factory()->create(['user_id' => $other->id]);
+
+        $this->actingAs($other, 'sanctum')
+            ->postJson("/api/v1/properties/{$property->id}/documents/extract", [
+                'file' => UploadedFile::fake()->create('seguro.pdf', 100, 'application/pdf'),
+            ])
+            ->assertForbidden();
+    }
 }

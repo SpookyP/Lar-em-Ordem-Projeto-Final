@@ -77,6 +77,22 @@ export async function getAllPropertyDocuments(propertyId) {
   return [first, ...others].flatMap((page) => page.items);
 }
 
+export async function extractDocumentData(propertyId, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axiosClient.post(
+    `/api/v1/properties/${propertyId}/documents/extract`,
+    formData,
+  );
+  const data = response.data.data;
+  return {
+    suggestedTitle: data.suggested_title,
+    issueDate: data.issue_date,
+    expirationDate: data.expiration_date,
+  };
+}
+
 export async function uploadDocument(
   propertyId,
   { name, documentCategoryId, description, file, expirationDate, issueDate },
