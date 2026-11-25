@@ -136,7 +136,7 @@ class DemoSeeder extends Seeder
             // fora de condomínios
             'tiago'   => ['Tiago Lopes', 'tiago.lopes', ['street' => 'Rua Roberto Ivens', 'postal_code' => '4450-249', 'door' => 'Nº 640', 'fraction' => '2º Frt'] + self::MATOSINHOS, 'T2', 78, 'Tenant', null],
             'luis'    => ['Luís Teixeira', 'luis.teixeira', ['street' => 'Rua de Vila Franca', 'postal_code' => '4460-302', 'door' => 'Nº 85', 'fraction' => null, 'district' => 'Porto', 'county' => 'Matosinhos', 'location' => 'Senhora da Hora'], 'T4', 180, 'Owner', null, 'House'],
-            'carla'   => ['Carla Mendes', 'carla.mendes', ['street' => 'Rua de Cedofeita', 'postal_code' => '4050-180', 'door' => 'Nº 312', 'fraction' => '1º', 'district' => 'Porto', 'county' => 'Porto', 'location' => 'Cedofeita, Santo Ildefonso, Sé, Miragaia, São Nicolau e Vitória'], 'T1', 58, 'Tenant', null],
+            'carla'   => ['Carla Mendes', 'carla.mendes', ['street' => 'Rua de Cedofeita', 'postal_code' => '4050-180', 'door' => 'Nº 312', 'fraction' => '1º', 'district' => 'Porto', 'county' => 'Porto', 'location' => 'Cedofeita'], 'T1', 58, 'Tenant', null],
             'sofia'   => ['Sofia Rocha', 'sofia.rocha', ['street' => 'Avenida da República', 'postal_code' => '4430-190', 'door' => 'Nº 1350', 'fraction' => '6º Esq', 'district' => 'Porto', 'county' => 'Vila Nova de Gaia', 'location' => 'Mafamude'], 'T3', 105, 'Owner', null],
         ];
 
