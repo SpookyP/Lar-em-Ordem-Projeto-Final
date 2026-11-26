@@ -15,8 +15,6 @@ Route::post('/properties/{property}/documents/extract', [DocumentController::cla
 Route::post('/properties/{property}/documents', [DocumentController::class, 'store'])
     ->whereUlid('property');
 
-Route::get('/documents/{document}', [DocumentController::class, 'show'])
-    ->whereUlid('document');
 Route::put('/documents/{document}', [DocumentController::class, 'update'])
     ->whereUlid('document');
 Route::get('/documents/{document}/content', [DocumentController::class, 'content'])

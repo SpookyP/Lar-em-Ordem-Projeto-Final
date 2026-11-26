@@ -75,15 +75,6 @@ class DocumentController extends Controller
         ], 201);
     }
 
-    public function show(Document $document): DocumentResource
-    {
-        $this->authorize('manageVault', $document->property);
-
-        $document->load('category');
-
-        return new DocumentResource($document);
-    }
-
     public function update(UpdateDocumentRequest $request, Document $document): JsonResponse
     {
         $this->authorize('manageVault', $document->property);
