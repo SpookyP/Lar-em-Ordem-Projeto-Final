@@ -369,4 +369,14 @@ class DocumentTest extends TestCase
             ])
             ->assertForbidden();
     }
+
+     public function test_a_single_document_has_no_get_endpoint(): void
+    {
+        [$user] = $this->createAuthorizedUserAndProperty();
+
+        // the frontend lists documents and reads the file through /content; the URL exists for PUT/DELETE: 405
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/documents/' . Str::ulid())
+            ->assertStatus(405);
+    }
 }

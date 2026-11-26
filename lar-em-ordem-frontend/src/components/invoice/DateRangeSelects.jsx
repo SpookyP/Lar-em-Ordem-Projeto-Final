@@ -41,7 +41,7 @@ export function DateRangeSelects({ range, currentMonthIndex, onChange }) {
     const endIndex = keyToIndex(next.end);
 
     if (startIndex > currentMonthIndex || endIndex > currentMonthIndex) {
-      setError("Não podes selecionar uma data futura.");
+      setError("Não pode selecionar uma data futura.");
       return;
     }
 
@@ -74,15 +74,15 @@ export function DateRangeSelects({ range, currentMonthIndex, onChange }) {
     const palette =
       tone === "indigo"
         ? {
-            icon: "bg-indigo-100 text-indigo-700",
-            dot: "bg-indigo-700",
-            focus: "focus:border-indigo-400 focus:ring-indigo-100",
-          }
+          icon: "bg-indigo-100 text-indigo-700",
+          dot: "bg-indigo-700",
+          focus: "focus:border-indigo-400 focus:ring-indigo-100",
+        }
         : {
-            icon: "bg-teal-100 text-teal-700",
-            dot: "bg-teal-500",
-            focus: "focus:border-teal-400 focus:ring-teal-100",
-          };
+          icon: "bg-teal-100 text-teal-700",
+          dot: "bg-teal-500",
+          focus: "focus:border-teal-400 focus:ring-teal-100",
+        };
 
     return (
       <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:shadow-md sm:p-4">
