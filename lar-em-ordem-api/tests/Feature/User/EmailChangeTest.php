@@ -134,7 +134,9 @@ class EmailChangeTest extends TestCase
 
         $this->travel(11)->minutes();
 
-        $this->postJson($link)->assertForbidden();
+         $this->postJson($link)
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Link inválido ou expirado.');
         $this->assertNull($user->fresh()->email_verified_at);
     }
 
@@ -144,7 +146,9 @@ class EmailChangeTest extends TestCase
         $user = $this->resident();
         $this->update($user, ['email' => 'novo@example.com'])->assertOk();
 
-        $this->postJson($this->signedLink($user, 'novo@example.com') . 'x')->assertForbidden();
+        $this->postJson($this->signedLink($user, 'novo@example.com') . 'x')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Link inválido ou expirado.');
 
         $this->assertNull($user->fresh()->email_verified_at);
     }
