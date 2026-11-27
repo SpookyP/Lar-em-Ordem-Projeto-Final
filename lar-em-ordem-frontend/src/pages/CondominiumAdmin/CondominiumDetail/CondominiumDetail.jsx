@@ -237,7 +237,7 @@ export default function CondominiumDetail() {
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <nav
         aria-label="Caminho"
         className="flex items-center gap-2 text-sm text-muted"
@@ -414,7 +414,7 @@ export default function CondominiumDetail() {
             setEditing(false);
             getCondominium(id)
               .then(setCondominium)
-              .catch(() => {});
+              .catch(() => { });
           }}
           onClose={() => setEditing(false)}
         />

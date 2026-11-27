@@ -123,21 +123,19 @@ export default function Partners() {
               <EmptyState message="Nenhum parceiro encontrado." />
             ) : (
               <div
-                className={`grid gap-4 ${
-                  selectedId
-                    ? "grid-cols-1 xl:grid-cols-2"
-                    : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                }`}
+                className={`grid gap-4 ${selectedId
+                  ? "grid-cols-1 xl:grid-cols-2"
+                  : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                  }`}
               >
                 {colored.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => selectPartner(p.id)}
-                    className={`group flex h-full flex-col gap-3 rounded-2xl border bg-card p-5 text-left shadow-md ${p.theme.shadow} transition hover:-translate-y-0.5 ${
-                      selectedId === p.id
-                        ? "border-navy ring-1 ring-navy"
-                        : "border-transparent"
-                    }`}
+                    className={`group flex h-full flex-col gap-3 rounded-2xl border bg-card p-5 text-left shadow-md ${p.theme.shadow} transition hover:-translate-y-0.5 ${selectedId === p.id
+                      ? "border-navy ring-1 ring-navy"
+                      : "border-transparent"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -231,12 +229,12 @@ export default function Partners() {
                           state={{ background: location }}
                           className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 transition hover:border-navy/30 hover:shadow-sm"
                         >
-                          <div className="min-w-0">
-                            <div className="flex min-w-0 items-center gap-2">
-                              <span className="shrink-0 rounded-full bg-teal/15 px-2 py-0.5 text-[10px] font-medium text-teal">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="max-w-full shrink-0 truncate rounded-full bg-teal/15 px-2 py-0.5 text-[10px] font-medium text-teal">
                                 {offer.category?.name}
                               </span>
-                              <h4 className="font-medium text-navy wrap-break-word">
+                              <h4 className="min-w-0 font-medium text-navy wrap-anywhere">
                                 {offer.title}
                               </h4>
                             </div>

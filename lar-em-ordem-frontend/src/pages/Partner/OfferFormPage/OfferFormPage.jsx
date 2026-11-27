@@ -27,7 +27,7 @@ export default function OfferFormPage({ mode }) {
   });
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl mx-auto">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link

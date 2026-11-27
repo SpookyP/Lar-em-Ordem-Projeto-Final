@@ -102,7 +102,7 @@ export default function Condominiums() {
   );
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-7">
+    <div className="flex flex-col gap-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">

@@ -74,8 +74,8 @@ export default function MyOffers() {
   const isEmptyAll = !loading && status === "" && total === 0;
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl text-navy">As minhas ofertas</h1>
         <Link
           to="/partner/offers/new"
@@ -92,11 +92,10 @@ export default function MyOffers() {
             <button
               key={f.label}
               onClick={() => setStatus(f.value)}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                status === f.value
-                  ? "bg-navy text-white"
-                  : "bg-card text-muted hover:text-navy"
-              }`}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${status === f.value
+                ? "bg-navy text-white"
+                : "bg-card text-muted hover:text-navy"
+                }`}
             >
               {f.label}
             </button>
@@ -132,24 +131,24 @@ export default function MyOffers() {
                   key={offer.id}
                   className="rounded-2xl bg-card p-5 shadow-sm flex flex-col gap-3"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between gap-3">
                     <Link
                       to={`/partner/offers/${offer.id}`}
-                      className="hover:underline"
+                      className="min-w-0 hover:underline"
                     >
-                      <h2 className="font-display text-lg text-navy">
+                      <h2 className="font-display text-lg text-navy wrap-anywhere">
                         {offer.title}
                       </h2>
                     </Link>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${st.className}`}
+                      className={`mt-1 shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${st.className}`}
                     >
                       {st.label}
                     </span>
                   </div>
 
                   <p className="text-sm text-muted">{offer.category?.name}</p>
-                  <p className="text-sm text-text">{offer.description}</p>
+                  <p className="text-sm text-text wrap-anywhere">{offer.description}</p>
                   <p className="text-xs text-muted">
                     {formatDate(offer.startDate)}
                     {offer.endDate
