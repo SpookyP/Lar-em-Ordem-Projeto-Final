@@ -36,7 +36,7 @@ export default function JobListing() {
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-7">
+    <div className="flex flex-col gap-7">
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
           Prestador de serviços

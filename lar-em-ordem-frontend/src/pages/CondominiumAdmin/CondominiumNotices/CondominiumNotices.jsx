@@ -26,9 +26,8 @@ function NoticeItem({ notice, onEdit, onAskDelete }) {
           {priority.label}
         </span>
         <span
-          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-            current ? "bg-green-light text-green" : "bg-surface text-muted"
-          }`}
+          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${current ? "bg-green-light text-green" : "bg-surface text-muted"
+            }`}
         >
           {current ? "Em vigor" : "Expirado"}
         </span>
@@ -121,8 +120,8 @@ export default function CondominiumNotices() {
   const isEmpty = !loading && !error && total === 0;
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             to={`/admin/condominiums/${id}`}

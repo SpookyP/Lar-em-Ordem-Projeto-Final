@@ -63,7 +63,7 @@ export default function Proposals() {
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-7">
+    <div className="flex flex-col gap-7">
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
           Prestador
@@ -83,18 +83,16 @@ export default function Proposals() {
                 type="button"
                 onClick={() => setFilter(f.id)}
                 aria-pressed={active}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
-                  active
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${active
                     ? "bg-navy text-white"
                     : "bg-surface text-muted hover:text-navy"
-                }`}
+                  }`}
               >
                 {f.label}
                 {counts && (
                   <span
-                    className={`min-w-5 rounded-full px-1.5 text-center text-xs font-semibold ${
-                      active ? "bg-white/20 text-white" : "bg-card text-text"
-                    }`}
+                    className={`min-w-5 rounded-full px-1.5 text-center text-xs font-semibold ${active ? "bg-white/20 text-white" : "bg-card text-text"
+                      }`}
                   >
                     {counts[f.id]}
                   </span>

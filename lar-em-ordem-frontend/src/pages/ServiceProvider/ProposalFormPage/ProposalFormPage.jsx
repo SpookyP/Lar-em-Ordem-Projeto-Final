@@ -100,7 +100,7 @@ export default function ProposalFormPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <nav
         aria-label="Caminho"
         className="flex items-center gap-2 text-sm text-muted"
