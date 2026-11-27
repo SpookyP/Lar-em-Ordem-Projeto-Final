@@ -200,6 +200,26 @@ class ProposalTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
+    public function test_as_propostas_expiradas_saem_das_pendentes(): void
+    {
+        // the pending "Tomada" proposal passes its validity: it moves from pending to expired
+        $this->proposta($this->servicos, 'Tomada da sala sem corrente')
+            ->forceFill(['validity' => today()->subDay()])
+            ->save();
+
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/proposals/mine?status=pending')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 0);
+
+        $this->actingAs($this->servicos)
+            ->getJson('/api/v1/proposals/mine?status=expired')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.status', 'pending')
+            ->assertJsonPath('data.0.is_expired', true);
+    }
+
     public function test_o_estado_das_propostas_tem_de_ser_valido(): void
     {
         $this->actingAs($this->servicos)

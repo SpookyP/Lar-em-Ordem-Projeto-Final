@@ -64,6 +64,7 @@ const PROPOSAL_FALLBACK = {
 
 export const PROPOSAL_STATUS = {
   pending: { label: "Pendente", style: "bg-amber-light text-amber" },
+  expired: { label: "Expirada", style: "bg-surface text-muted" },
   accepted: { label: "Aceite", style: "bg-green-light text-green" },
   rejected: { label: "Rejeitada", style: "bg-red-light text-red" },
   withdrawn: { label: "Retirada", style: "bg-surface text-muted" },
