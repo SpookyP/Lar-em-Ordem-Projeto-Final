@@ -18,13 +18,13 @@ class ProposalService
       *
       * @param ServiceProviderModel $provider The provider.
       * @param int $perPage Proposals per page.
-      * @param string|null $status Status (pending/accepted/rejected/withdrawn), or null for all.
+      * @param string|null $status Status (pending/expired/accepted/rejected/withdrawn), or null for all.
       * @return LengthAwarePaginator
       */
     public function listByProvider(ServiceProviderModel $provider, int $perPage = 5, ?string $status = null): LengthAwarePaginator
     {
         return $provider->proposals()
-            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($status, fn ($q) => $q->status($status))
             ->with([
                 'assistanceRequest.property.address',
                 'assistanceRequest.problemCategory',

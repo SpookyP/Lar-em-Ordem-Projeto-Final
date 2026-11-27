@@ -15,7 +15,7 @@ class IndexProposalRequest extends PerPageRequest
     {
         return [
             ...parent::rules(),
-            'status' => ['sometimes', 'string', Rule::in(['pending', 'accepted', 'rejected', 'withdrawn'])],
+            'status' => ['sometimes', 'string', Rule::in(['pending', 'expired', 'accepted', 'rejected', 'withdrawn'])],
         ];
     }
 

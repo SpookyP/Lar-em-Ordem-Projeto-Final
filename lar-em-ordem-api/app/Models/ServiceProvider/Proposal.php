@@ -79,4 +79,32 @@ class Proposal extends Model
     {
         return $query->where('status', 'pending')->whereDate('validity', '>=', today());
     }
+
+    /**
+     * Pending proposals past their validity (the calculated "expired" state).
+     *
+     * @param Builder $query Query the filter applies to.
+     * @return Builder
+     */
+    public function scopeExpired(Builder $query): Builder
+    {
+        return $query->where('status', 'pending')->whereDate('validity', '<', today());
+    }
+
+    /**
+     * Filters by the status the provider sees: 'pending' only the ones still valid,
+     * 'expired' the pending ones past their validity, the others by the stored status.
+     *
+     * @param Builder $query Query the filter applies to.
+     * @param string $status pending/expired/accepted/rejected/withdrawn.
+     * @return Builder
+     */
+    public function scopeStatus(Builder $query, string $status): Builder
+    {
+        return match ($status) {
+            'pending' => $query->stillValid(),
+            'expired' => $query->expired(),
+            default   => $query->where('status', $status),
+        };
+    }
 }
